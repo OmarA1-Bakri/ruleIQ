@@ -1,67 +1,71 @@
 /**
- * ruleIQ Design System Colors
+ * ruleIQ Design System Colors - Teal Professional Theme
  * Consolidated color tokens aligned with Tailwind config
  * Use these tokens for programmatic color access
  */
 
 export const colors = {
-  // Brand Colors - Dark Theme Rebrand
-  midnight: {
-    DEFAULT: '#0F172A', // Midnight blue - primary brand color (dark mode first)
-    dark: '#020617', // Darker variant for deep backgrounds
-    light: '#1E293B', // Lighter variant for elevated surfaces
-  },
-  turquoise: {
-    DEFAULT: '#00BCD4', // Turquoise - secondary accent color (from logo)
-    dark: '#00838F', // Darker turquoise for hover states
-    light: '#4DD0E1', // Lighter turquoise for backgrounds
-  },
-  electric: {
-    DEFAULT: '#1E40AF', // Electric blue - supporting accent
-    dark: '#1E3A8A', // Darker blue variant
-    light: '#3B82F6', // Lighter blue variant
+  // Brand Colors - Teal Professional Theme
+  teal: {
+    50: '#E6FFFA', // Lightest - backgrounds, subtle highlights
+    100: '#B2F5EA', // Light backgrounds, hover states
+    200: '#81E6D9', // Light accents, borders
+    300: '#4FD1C5', // Bright accent, highlights
+    400: '#38B2AC', // Medium teal, icons
+    500: '#319795', // Standard teal
+    600: '#2C7A7B', // PRIMARY - Main brand color
+    700: '#285E61', // Dark - hover states, emphasis
+    800: '#234E52', // Darker text on light
+    900: '#1D4044', // Darkest
   },
 
-  // Neutral Colors (Dark Theme Optimized)
+  // Neutral Colors (Light Theme Optimized)
   neutral: {
-    light: '#334155', // Dark gray - elevated surfaces
-    medium: '#475569', // Medium gray - borders, dividers
-    dark: '#64748B', // Light gray - secondary text on dark
+    50: '#F9FAFB', // Lightest backgrounds
+    100: '#F3F4F6', // Light backgrounds
+    200: '#E5E7EB', // Borders, dividers
+    300: '#D1D5DB', // Disabled borders
+    400: '#9CA3AF', // Placeholder text
+    500: '#6B7280', // Muted text
+    600: '#4B5563', // Secondary text
+    700: '#374151', // Body text
+    800: '#1F2937', // Headings
+    900: '#111827', // Primary text
   },
 
-  // Semantic Colors
+  // Semantic Colors (Light Theme)
   semantic: {
-    success: '#10B981', // Emerald green for dark theme
+    success: '#10B981', // Emerald green
     warning: '#F59E0B', // Amber for warnings
     error: '#EF4444', // Red for errors
-    info: '#00BCD4', // Use turquoise for info states
+    info: '#319795', // Teal-500 for info states
   },
 
-  // Surface Colors (Dark Mode First)
+  // Surface Colors (Light Theme First)
   surface: {
-    primary: '#0F172A', // Dark theme primary surface (midnight)
-    secondary: '#1E293B', // Dark theme secondary surface
-    tertiary: '#334155', // Dark theme tertiary surface
-
-    'primary-light': '#FFFFFF', // Light theme primary surface
-    'secondary-light': '#F8FAFC', // Light theme secondary surface
-    'tertiary-light': '#E2E8F0', // Light theme tertiary surface
+    primary: '#FFFFFF', // Light theme primary surface (white)
+    secondary: '#F9FAFB', // Light theme secondary surface (neutral-50)
+    tertiary: '#F3F4F6', // Light theme tertiary surface (neutral-100)
+    elevated: '#FFFFFF', // Elevated components with shadow
   },
 
-  // Text Colors (Dark Mode Optimized)
+  // Text Colors (Light Theme Optimized)
   text: {
-    'on-dark': '#F1F5F9', // Light text on dark surfaces (primary)
-    'on-light': '#0F172A', // Dark text on light surfaces
-    'on-turquoise': '#FFFFFF', // White text on turquoise
-    'on-midnight': '#F1F5F9', // Light text on midnight blue
-    secondary: '#CBD5E1', // Secondary text color (light on dark)
-    muted: '#94A3B8', // Muted text color (dark theme)
+    primary: '#111827', // Dark text on light surfaces (neutral-900)
+    secondary: '#4B5563', // Secondary text (neutral-600)
+    tertiary: '#6B7280', // Muted text (neutral-500)
+    inverse: '#FFFFFF', // White text for dark backgrounds
+    brand: '#2C7A7B', // Brand teal text (teal-600)
+    accent: '#319795', // Teal accent text (teal-500)
   },
 
-  // Legacy support (will be deprecated)
-  primary: '#0F172A',
-  'primary-dark': '#020617',
-  'primary-light': '#1E293B',
+  // Brand shortcuts for easy access
+  brand: {
+    primary: '#2C7A7B', // teal-600
+    secondary: '#319795', // teal-500
+    light: '#E6FFFA', // teal-50
+    dark: '#285E61', // teal-700
+  },
 } as const;
 
 export type ColorKey = keyof typeof colors;

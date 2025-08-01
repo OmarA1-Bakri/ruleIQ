@@ -34,11 +34,7 @@ export function TopHeader({ onMobileMenuToggle }: TopHeaderProps) {
 
   return (
     <header
-      className="supports-[backdrop-filter]:bg-oxford-blue/95 sticky top-0 z-50 w-full border-b backdrop-blur"
-      style={{
-        backgroundColor: '#161e3a',
-        borderBottomColor: 'rgba(233, 236, 239, 0.2)',
-      }}
+      className="sticky top-0 z-50 w-full border-b border-neutral-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/95"
     >
       <div className="container flex h-16 max-w-screen-2xl items-center px-4">
         {/* Mobile Hamburger Menu */}
@@ -71,36 +67,31 @@ export function TopHeader({ onMobileMenuToggle }: TopHeaderProps) {
         <nav className="mr-6 hidden items-center space-x-6 text-sm font-medium md:flex">
           <Link
             href="/"
-            className="transition-colors hover:text-white"
-            style={{ color: '#F0EAD6' }}
+            className="text-neutral-700 transition-colors hover:text-teal-600"
           >
             Dashboard
           </Link>
           <Link
             href="/assessments"
-            className="transition-colors hover:text-white"
-            style={{ color: '#6C757D' }}
+            className="text-neutral-600 transition-colors hover:text-teal-600"
           >
             Assessments
           </Link>
           <Link
             href="/evidence"
-            className="transition-colors hover:text-white"
-            style={{ color: '#6C757D' }}
+            className="text-neutral-600 transition-colors hover:text-teal-600"
           >
             Evidence
           </Link>
           <Link
             href="/policies"
-            className="transition-colors hover:text-white"
-            style={{ color: '#6C757D' }}
+            className="text-neutral-600 transition-colors hover:text-teal-600"
           >
             Policies
           </Link>
           <Link
             href="/reports"
-            className="transition-colors hover:text-white"
-            style={{ color: '#6C757D' }}
+            className="text-neutral-600 transition-colors hover:text-teal-600"
           >
             Reports
           </Link>

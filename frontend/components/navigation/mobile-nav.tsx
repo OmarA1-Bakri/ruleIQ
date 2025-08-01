@@ -46,22 +46,17 @@ export function MobileNav({ open, onOpenChange }: MobileNavProps) {
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="left"
-        className="w-[300px] p-0 sm:w-[400px]"
-        style={{
-          backgroundColor: '#002147',
-          borderRightColor: 'rgba(233, 236, 239, 0.2)',
-        }}
+        className="w-[300px] p-0 sm:w-[400px] bg-white border-r border-neutral-200"
       >
         <SheetHeader
-          className="border-b px-6 py-4"
-          style={{ borderBottomColor: 'rgba(233, 236, 239, 0.2)' }}
+          className="border-b border-neutral-200 px-6 py-4"
         >
           <div className="flex items-center justify-between">
             <SheetTitle className="flex items-center space-x-1">
-              <span className="text-xl font-bold" style={{ color: '#F0EAD6' }}>
+              <span className="text-xl font-bold text-neutral-700">
                 rule
               </span>
-              <span className="text-xl font-bold" style={{ color: '#FFD700' }}>
+              <span className="text-xl font-bold text-teal-600">
                 IQ
               </span>
             </SheetTitle>
@@ -69,8 +64,7 @@ export function MobileNav({ open, onOpenChange }: MobileNavProps) {
               variant="ghost"
               size="icon"
               onClick={() => onOpenChange(false)}
-              className="hover:bg-white/10"
-              style={{ color: '#F0EAD6' }}
+              className="text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100"
             >
               <X className="h-5 w-5" />
             </Button>
@@ -86,18 +80,15 @@ export function MobileNav({ open, onOpenChange }: MobileNavProps) {
                 href={item.href}
                 onClick={() => onOpenChange(false)}
                 className={`flex items-center space-x-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                  isActive ? 'shadow-sm' : 'hover:bg-white/10'
+                  isActive
+                    ? 'bg-teal-50 text-teal-700 shadow-sm'
+                    : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50'
                 }`}
-                style={{
-                  backgroundColor: isActive ? '#F0EAD6' : 'transparent',
-                  color: isActive ? '#002147' : '#F0EAD6',
-                }}
               >
                 <item.icon
-                  className="h-5 w-5"
-                  style={{
-                    color: isActive ? '#002147' : '#6C757D',
-                  }}
+                  className={`h-5 w-5 ${
+                    isActive ? 'text-teal-600' : 'text-neutral-500'
+                  }`}
                 />
                 <span>{item.title}</span>
               </Link>

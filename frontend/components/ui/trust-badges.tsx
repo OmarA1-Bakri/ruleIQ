@@ -11,17 +11,11 @@ const Badge = ({ icon, text }: { icon: React.ReactNode; text: string }) => (
 
 export function TrustBadges() {
   return (
-    <div
-      className="flex flex-col items-center justify-center gap-4 rounded-lg border p-4 sm:flex-row sm:justify-between"
-      style={{
-        borderColor: 'rgba(240, 234, 214, 0.2)',
-        color: '#F0EAD6',
-      }}
-    >
-      <Badge icon={<Lock className="h-4 w-4 text-success" />} text="256-bit SSL Encryption" />
-      <Badge icon={<ShieldCheck className="text-eggshell-white h-4 w-4" />} text="GDPR Compliant" />
+    <div className="flex flex-col items-center justify-center gap-4 rounded-lg border border-neutral-200 bg-white p-4 text-neutral-700 sm:flex-row sm:justify-between">
+      <Badge icon={<Lock className="h-4 w-4 text-emerald-600" />} text="256-bit SSL Encryption" />
+      <Badge icon={<ShieldCheck className="h-4 w-4 text-teal-600" />} text="GDPR Compliant" />
       <Badge
-        icon={<ShieldCheck className="text-eggshell-white h-4 w-4" />}
+        icon={<ShieldCheck className="h-4 w-4 text-teal-600" />}
         text="ISO 27001 Certified"
       />
     </div>

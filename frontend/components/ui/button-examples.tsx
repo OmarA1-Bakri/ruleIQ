@@ -9,8 +9,8 @@ export function ButtonExamples() {
       {/* Dashboard Actions */}
       <Card className="ruleiq-card">
         <CardHeader>
-          <CardTitle style={{ color: '#F0EAD6' }}>Dashboard Actions</CardTitle>
-          <CardDescription style={{ color: '#6C757D' }}>
+          <CardTitle className="text-neutral-900">Dashboard Actions</CardTitle>
+          <CardDescription className="text-neutral-600">
             Common button combinations used in dashboard interfaces
           </CardDescription>
         </CardHeader>

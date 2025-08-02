@@ -9,9 +9,9 @@ export function ButtonShowcase() {
       {/* Primary Buttons */}
       <Card className="ruleiq-card">
         <CardHeader>
-          <CardTitle style={{ color: '#F0EAD6' }}>Primary Buttons</CardTitle>
-          <CardDescription style={{ color: '#6C757D' }}>
-            Oxford-blue background with eggshell-white text
+          <CardTitle className="text-neutral-900">Primary Buttons</CardTitle>
+          <CardDescription className="text-neutral-600">
+            Teal background with white text for primary actions
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -48,9 +48,9 @@ export function ButtonShowcase() {
       {/* Secondary Buttons */}
       <Card className="ruleiq-card">
         <CardHeader>
-          <CardTitle style={{ color: '#F0EAD6' }}>Secondary Buttons</CardTitle>
-          <CardDescription style={{ color: '#6C757D' }}>
-            Eggshell-white background with oxford-blue border and text
+          <CardTitle className="text-neutral-900">Secondary Buttons</CardTitle>
+          <CardDescription className="text-neutral-600">
+            White background with teal border and text for secondary actions
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -87,9 +87,9 @@ export function ButtonShowcase() {
       {/* Ghost Buttons */}
       <Card className="ruleiq-card">
         <CardHeader>
-          <CardTitle style={{ color: '#F0EAD6' }}>Ghost Buttons</CardTitle>
-          <CardDescription style={{ color: '#6C757D' }}>
-            No background or border with oxford-blue text
+          <CardTitle className="text-neutral-900">Ghost Buttons</CardTitle>
+          <CardDescription className="text-neutral-600">
+            Transparent background with neutral text for subtle actions
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -126,8 +126,8 @@ export function ButtonShowcase() {
       {/* Additional Variants */}
       <Card className="ruleiq-card">
         <CardHeader>
-          <CardTitle style={{ color: '#F0EAD6' }}>Additional Variants</CardTitle>
-          <CardDescription style={{ color: '#6C757D' }}>
+          <CardTitle className="text-neutral-900">Additional Variants</CardTitle>
+          <CardDescription className="text-neutral-600">
             Extra button variants for specific use cases
           </CardDescription>
         </CardHeader>
@@ -158,8 +158,8 @@ export function ButtonShowcase() {
       {/* Usage Examples */}
       <Card className="ruleiq-card">
         <CardHeader>
-          <CardTitle style={{ color: '#F0EAD6' }}>Usage Examples</CardTitle>
-          <CardDescription style={{ color: '#6C757D' }}>
+          <CardTitle className="text-neutral-900">Usage Examples</CardTitle>
+          <CardDescription className="text-neutral-600">
             Common button combinations and use cases
           </CardDescription>
         </CardHeader>
@@ -167,7 +167,7 @@ export function ButtonShowcase() {
           <div className="space-y-6">
             {/* Action Group */}
             <div className="space-y-2">
-              <h4 className="text-sm font-medium" style={{ color: '#F0EAD6' }}>
+              <h4 className="text-sm font-medium text-neutral-900">
                 Action Group
               </h4>
               <div className="flex flex-wrap items-center gap-3">
@@ -185,7 +185,7 @@ export function ButtonShowcase() {
 
             {/* Form Actions */}
             <div className="space-y-2">
-              <h4 className="text-sm font-medium" style={{ color: '#F0EAD6' }}>
+              <h4 className="text-sm font-medium text-neutral-900">
                 Form Actions
               </h4>
               <div className="flex flex-wrap items-center gap-3">
@@ -202,7 +202,7 @@ export function ButtonShowcase() {
 
             {/* Status Actions */}
             <div className="space-y-2">
-              <h4 className="text-sm font-medium" style={{ color: '#F0EAD6' }}>
+              <h4 className="text-sm font-medium text-neutral-900">
                 Status Actions
               </h4>
               <div className="flex flex-wrap items-center gap-3">

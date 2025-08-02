@@ -14,6 +14,9 @@ import { SparklesBackground } from '@/components/ui/sparkles-background';
 import { GradientBackground } from '@/components/ui/gradient-background';
 import { AnimatedGrid } from '@/components/ui/animated-grid';
 import { FloatingElements } from '@/components/ui/floating-elements';
+import { ShimmerButton } from '@/components/magicui/shimmer-button';
+import { EnhancedMetricCard } from '@/components/dashboard/enhanced-metric-card';
+import { NumberTicker } from '@/components/magicui/number-ticker';
 
 
 export default function MarketingPage() {
@@ -152,22 +155,24 @@ export default function MarketingPage() {
             </motion.p>
             
             <TypewriterEffect words={typewriterWords} />
-            <div className="relative flex items-center justify-center space-x-4">{/* Clean CTA area without distracting effects */}
-              <Button 
-                variant="default" 
-                size="lg" 
-                className="z-10 bg-teal-600 hover:bg-teal-700 text-lg px-8 py-4 h-auto rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group"
+            <div className="relative flex items-center justify-center space-x-4">
+              <ShimmerButton
+                className="z-10 bg-teal-600 text-lg px-8 py-4 h-auto rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group"
+                shimmerColor="#4FD1C5"
+                background="linear-gradient(135deg, #2C7A7B 0%, #319795 100%)"
               >
-                Start Free Trial
-                <motion.span
-                  className="ml-2 group-hover:translate-x-1 transition-transform duration-200"
-                  initial={{ x: 0 }}
-                  animate={{ x: [0, 3, 0] }}
-                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                >
-                  →
-                </motion.span>
-              </Button>
+                <span className="flex items-center gap-2 text-white font-semibold">
+                  Start Free Trial
+                  <motion.span
+                    className="group-hover:translate-x-1 transition-transform duration-200"
+                    initial={{ x: 0 }}
+                    animate={{ x: [0, 3, 0] }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                  >
+                    →
+                  </motion.span>
+                </span>
+              </ShimmerButton>
               <Button 
                 variant="outline" 
                 size="lg" 
@@ -220,6 +225,57 @@ export default function MarketingPage() {
             <InfiniteSlider items={clientLogos} direction="right" speed="slow" />
           </div>
         </GradientBackground>
+      </section>
+
+      {/* Metrics Section */}
+      <section className="py-20 bg-gradient-to-r from-teal-50 to-white">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-neutral-900 mb-4">
+              Trusted by Growing Businesses
+            </h2>
+            <p className="text-neutral-600 max-w-2xl mx-auto">
+              Join hundreds of UK SMBs who have transformed their compliance operations with ruleIQ
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
+            <EnhancedMetricCard
+              title="Active Users"
+              value={500}
+              suffix="+"
+              description="UK businesses trust ruleIQ"
+              icon={<Users className="h-5 w-5" />}
+              className="text-center"
+            />
+            <EnhancedMetricCard
+              title="Compliance Score"
+              value={98}
+              suffix="%"
+              description="Average improvement"
+              icon={<BarChart className="h-5 w-5" />}
+              change={{ value: 15, trend: 'up' }}
+              className="text-center"
+            />
+            <EnhancedMetricCard
+              title="Time Saved"
+              value={75}
+              suffix="%"
+              description="Reduction in manual work"
+              icon={<CheckCircle className="h-5 w-5" />}
+              change={{ value: 25, trend: 'up' }}
+              className="text-center"
+            />
+            <EnhancedMetricCard
+              title="Frameworks"
+              value={12}
+              suffix="+"
+              description="Supported standards"
+              icon={<ShieldCheck className="h-5 w-5" />}
+              className="text-center"
+            />
+          </div>
+        </div>
       </section>
 
       {/* Features Section */}
@@ -373,9 +429,13 @@ export default function MarketingPage() {
                 placeholder="Enter your email"
                 className="border-teal-300 bg-background/50 focus:border-teal-600 focus:ring-teal-600"
               />
-              <Button variant="default" className="w-full sm:w-auto bg-teal-600 hover:bg-teal-700">
-                Get Started Free
-              </Button>
+              <ShimmerButton
+                className="w-full sm:w-auto bg-teal-600 hover:bg-teal-700"
+                shimmerColor="#4FD1C5"
+                background="linear-gradient(135deg, #2C7A7B 0%, #319795 100%)"
+              >
+                <span className="text-white font-semibold">Get Started Free</span>
+              </ShimmerButton>
             </div>
             <p className="mt-2 text-xs text-muted-foreground">No credit card required.</p>
           </div>

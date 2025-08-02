@@ -6,12 +6,12 @@ export default function ComponentsPage() {
     <>
       <BreadcrumbNav items={[{ title: 'Components' }]} />
 
-      <main className="flex-1 space-y-6 p-6" style={{ backgroundColor: '#002147' }}>
+      <main className="flex-1 space-y-6 bg-neutral-50 p-6">
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold" style={{ color: '#F0EAD6' }}>
+          <h1 className="text-3xl font-bold text-neutral-900">
             Button Components
           </h1>
-          <p className="text-lg" style={{ color: '#6C757D' }}>
+          <p className="text-lg text-neutral-600">
             Comprehensive button variant system for the ruleIQ platform
           </p>
         </div>

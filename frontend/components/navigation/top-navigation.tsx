@@ -98,19 +98,11 @@ export function TopNavigation({ isDarkMode = false, onThemeToggle }: TopNavigati
           {/* Search Bar */}
           <div className="max-w-md flex-1">
             <div className="relative">
-              <Search
-                className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
-                style={{ color: '#6C757D' }}
-              />
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-500" />
               <Input
                 type="search"
                 placeholder="Search compliance data, policies, reports..."
-                className="w-full border-0 py-2 pl-10 pr-4 text-sm focus-visible:ring-1 focus-visible:ring-offset-0"
-                style={{
-                  backgroundColor: 'rgba(240, 234, 214, 0.1)',
-                  color: '#F0EAD6',
-                  borderColor: 'rgba(233, 236, 239, 0.2)',
-                }}
+                className="w-full border-neutral-200 bg-neutral-50 py-2 pl-10 pr-4 text-sm text-neutral-700 placeholder:text-neutral-500 focus-visible:ring-1 focus-visible:ring-teal-600 focus-visible:ring-offset-0"
                 value={searchValue}
                 onChange={(e) => setSearchValue(e.target.value)}
               />
@@ -118,24 +110,16 @@ export function TopNavigation({ isDarkMode = false, onThemeToggle }: TopNavigati
           </div>
 
           {/* Countdown Clock */}
-          <div
-            className="hidden items-center space-x-2 rounded-lg px-3 py-1 lg:flex"
-            style={{ backgroundColor: 'rgba(240, 234, 214, 0.1)' }}
-          >
-            <Clock className="h-4 w-4" style={{ color: '#FFD700' }} />
-            <div
-              className="flex items-center space-x-1 font-mono text-sm"
-              style={{ color: '#F0EAD6' }}
-            >
-              <span className="text-xs" style={{ color: '#6C757D' }}>
-                Next Audit:
-              </span>
+          <div className="hidden items-center space-x-2 rounded-lg bg-teal-50 px-3 py-1 lg:flex">
+            <Clock className="h-4 w-4 text-teal-600" />
+            <div className="flex items-center space-x-1 font-mono text-sm text-neutral-700">
+              <span className="text-xs text-neutral-500">Next Audit:</span>
               <span className="font-semibold">{formatTime(timeUntilAudit.days)}d</span>
-              <span style={{ color: '#6C757D' }}>:</span>
+              <span className="text-neutral-400">:</span>
               <span className="font-semibold">{formatTime(timeUntilAudit.hours)}h</span>
-              <span style={{ color: '#6C757D' }}>:</span>
+              <span className="text-neutral-400">:</span>
               <span className="font-semibold">{formatTime(timeUntilAudit.minutes)}m</span>
-              <span style={{ color: '#6C757D' }}>:</span>
+              <span className="text-neutral-400">:</span>
               <span className="font-semibold">{formatTime(timeUntilAudit.seconds)}s</span>
             </div>
           </div>
@@ -144,11 +128,8 @@ export function TopNavigation({ isDarkMode = false, onThemeToggle }: TopNavigati
           <div className="flex items-center space-x-1 lg:hidden">
             <Tooltip>
               <TooltipTrigger asChild>
-                <div
-                  className="flex items-center space-x-1 font-mono text-xs"
-                  style={{ color: '#F0EAD6' }}
-                >
-                  <Clock className="h-3 w-3" style={{ color: '#FFD700' }} />
+                <div className="flex items-center space-x-1 rounded-lg bg-teal-50 px-2 py-1 font-mono text-xs text-neutral-700">
+                  <Clock className="h-3 w-3 text-teal-600" />
                   <span>
                     {timeUntilAudit.days}d {formatTime(timeUntilAudit.hours)}h
                   </span>
@@ -202,10 +183,7 @@ export function TopNavigation({ isDarkMode = false, onThemeToggle }: TopNavigati
               align="end"
               className="w-96 bg-white border-neutral-200"
             >
-              <DropdownMenuLabel
-                className="flex items-center justify-between"
-                style={{ color: '#002147' }}
-              >
+              <DropdownMenuLabel className="flex items-center justify-between text-neutral-900">
                 <span>Alerts & Notifications</span>
                 <Badge variant="secondary" className="text-xs">
                   5 new
@@ -214,84 +192,84 @@ export function TopNavigation({ isDarkMode = false, onThemeToggle }: TopNavigati
               <DropdownMenuSeparator />
               <div className="max-h-80 overflow-y-auto">
                 <div className="space-y-1">
-                  <div className="hover:bg-grey-300/20 rounded-sm p-3">
+                  <div className="rounded-sm p-3 hover:bg-neutral-50">
                     <div className="flex items-start space-x-3">
-                      <AlertTriangle className="mt-0.5 h-4 w-4" style={{ color: '#FFC107' }} />
+                      <AlertTriangle className="mt-0.5 h-4 w-4 text-amber-600" />
                       <div className="flex-1 space-y-1">
-                        <div className="text-sm font-medium" style={{ color: '#002147' }}>
+                        <div className="text-sm font-medium text-neutral-900">
                           GDPR Assessment Overdue
                         </div>
-                        <div className="text-xs" style={{ color: '#6C757D' }}>
+                        <div className="text-xs text-neutral-600">
                           The quarterly GDPR assessment was due 2 days ago. Please complete
                           immediately.
                         </div>
-                        <div className="text-xs" style={{ color: '#6C757D' }}>
+                        <div className="text-xs text-neutral-500">
                           2 hours ago
                         </div>
                       </div>
                     </div>
                   </div>
-                  <div className="hover:bg-grey-300/20 rounded-sm p-3">
+                  <div className="rounded-sm p-3 hover:bg-neutral-50">
                     <div className="flex items-start space-x-3">
-                      <Bell className="mt-0.5 h-4 w-4" style={{ color: '#28A745' }} />
+                      <Bell className="mt-0.5 h-4 w-4 text-emerald-600" />
                       <div className="flex-1 space-y-1">
-                        <div className="text-sm font-medium" style={{ color: '#002147' }}>
+                        <div className="text-sm font-medium text-neutral-900">
                           Compliance Score Improved
                         </div>
-                        <div className="text-xs" style={{ color: '#6C757D' }}>
+                        <div className="text-xs text-neutral-600">
                           Your overall compliance score has increased to 98% (+2.5% from last
                           month).
                         </div>
-                        <div className="text-xs" style={{ color: '#6C757D' }}>
+                        <div className="text-xs text-neutral-500">
                           4 hours ago
                         </div>
                       </div>
                     </div>
                   </div>
-                  <div className="hover:bg-grey-300/20 rounded-sm p-3">
+                  <div className="rounded-sm p-3 hover:bg-neutral-50">
                     <div className="flex items-start space-x-3">
-                      <AlertTriangle className="mt-0.5 h-4 w-4" style={{ color: '#DC3545' }} />
+                      <AlertTriangle className="mt-0.5 h-4 w-4 text-red-600" />
                       <div className="flex-1 space-y-1">
-                        <div className="text-sm font-medium" style={{ color: '#002147' }}>
+                        <div className="text-sm font-medium text-neutral-900">
                           Critical Policy Update Required
                         </div>
-                        <div className="text-xs" style={{ color: '#6C757D' }}>
+                        <div className="text-xs text-neutral-600">
                           New financial regulations require immediate policy updates. Review
                           required by March 20.
                         </div>
-                        <div className="text-xs" style={{ color: '#6C757D' }}>
+                        <div className="text-xs text-neutral-500">
                           6 hours ago
                         </div>
                       </div>
                     </div>
                   </div>
-                  <div className="hover:bg-grey-300/20 rounded-sm p-3">
+                  <div className="rounded-sm p-3 hover:bg-neutral-50">
                     <div className="flex items-start space-x-3">
-                      <Bell className="mt-0.5 h-4 w-4" style={{ color: '#002147' }} />
+                      <Bell className="mt-0.5 h-4 w-4 text-teal-600" />
                       <div className="flex-1 space-y-1">
-                        <div className="text-sm font-medium" style={{ color: '#002147' }}>
+                        <div className="text-sm font-medium text-neutral-900">
                           Monthly Report Generated
                         </div>
-                        <div className="text-xs" style={{ color: '#6C757D' }}>
+                        <div className="text-xs text-neutral-600">
                           Your February compliance report is ready for review and download.
                         </div>
-                        <div className="text-xs" style={{ color: '#6C757D' }}>
+                        <div className="text-xs text-neutral-500">
                           1 day ago
                         </div>
                       </div>
                     </div>
                   </div>
-                  <div className="hover:bg-grey-300/20 rounded-sm p-3">
+                  <div className="rounded-sm p-3 hover:bg-neutral-50">
                     <div className="flex items-start space-x-3">
-                      <Bell className="mt-0.5 h-4 w-4" style={{ color: '#002147' }} />
+                      <Bell className="mt-0.5 h-4 w-4 text-teal-600" />
                       <div className="flex-1 space-y-1">
-                        <div className="text-sm font-medium" style={{ color: '#002147' }}>
+                        <div className="text-sm font-medium text-neutral-900">
                           Team Member Added
                         </div>
-                        <div className="text-xs" style={{ color: '#6C757D' }}>
+                        <div className="text-xs text-neutral-600">
                           Sarah Johnson has been added to your compliance team as a Risk Analyst.
                         </div>
-                        <div className="text-xs" style={{ color: '#6C757D' }}>
+                        <div className="text-xs text-neutral-500">
                           2 days ago
                         </div>
                       </div>
@@ -301,7 +279,7 @@ export function TopNavigation({ isDarkMode = false, onThemeToggle }: TopNavigati
               </div>
               <DropdownMenuSeparator />
               <div className="p-2">
-                <Button variant="ghost" className="w-full text-sm" style={{ color: '#002147' }}>
+                <Button variant="ghost" className="w-full text-sm text-teal-600 hover:text-teal-700 hover:bg-teal-50">
                   View All Alerts
                 </Button>
               </div>

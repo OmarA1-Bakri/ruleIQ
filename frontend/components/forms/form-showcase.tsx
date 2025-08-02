@@ -101,8 +101,8 @@ export function FormShowcase() {
       {/* Basic Form Components */}
       <Card className="ruleiq-card">
         <CardHeader>
-          <CardTitle style={{ color: '#F0EAD6' }}>Basic Form Components</CardTitle>
-          <CardDescription style={{ color: '#6C757D' }}>
+          <CardTitle className="text-neutral-900">Basic Form Components</CardTitle>
+          <CardDescription className="text-neutral-600">
             Individual form components with different states
           </CardDescription>
         </CardHeader>
@@ -373,8 +373,8 @@ export function FormShowcase() {
       {/* Form States Demo */}
       <Card className="ruleiq-card">
         <CardHeader>
-          <CardTitle style={{ color: '#F0EAD6' }}>Form Validation States</CardTitle>
-          <CardDescription style={{ color: '#6C757D' }}>
+          <CardTitle className="text-neutral-900">Form Validation States</CardTitle>
+          <CardDescription className="text-neutral-600">
             Examples of different validation states and feedback
           </CardDescription>
         </CardHeader>
@@ -382,7 +382,7 @@ export function FormShowcase() {
           <div className="grid gap-6 md:grid-cols-2">
             {/* Error Examples */}
             <div className="space-y-4">
-              <h4 className="font-semibold" style={{ color: '#F0EAD6' }}>
+              <h4 className="font-semibold text-neutral-900">
                 Error States
               </h4>
 
@@ -409,7 +409,7 @@ export function FormShowcase() {
 
             {/* Success Examples */}
             <div className="space-y-4">
-              <h4 className="font-semibold" style={{ color: '#F0EAD6' }}>
+              <h4 className="font-semibold text-neutral-900">
                 Success States
               </h4>
 

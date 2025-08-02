@@ -2,6 +2,7 @@ import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import React from 'react';
 
 import { cn } from '@/lib/utils';
+import { NumberTicker } from '@/components/magicui/number-ticker';
 
 interface MetricWidgetProps {
   title: string;
@@ -58,7 +59,11 @@ export function MetricWidget({
         <div className="flex items-baseline gap-2">
           <h3 className="text-3xl font-bold text-neutral-900">
             {prefix}
-            {value}
+            {typeof value === 'number' ? (
+              <NumberTicker value={value} className="text-3xl font-bold text-neutral-900" />
+            ) : (
+              value
+            )}
             {suffix}
           </h3>
           {change && (

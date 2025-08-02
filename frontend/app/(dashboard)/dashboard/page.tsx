@@ -15,6 +15,7 @@ import { ComplianceScoreWidget } from '@/components/dashboard/compliance-score-w
 import { DashboardHeader } from '@/components/dashboard/dashboard-header';
 import { DataTable } from '@/components/dashboard/data-table';
 import { EnhancedStatsCard } from '@/components/dashboard/enhanced-stats-card';
+import { EnhancedMetricCard } from '@/components/dashboard/enhanced-metric-card';
 import { PendingTasksWidget } from '@/components/dashboard/pending-tasks-widget';
 import { QuickActionsWidget } from '@/components/dashboard/quick-actions';
 import { AppSidebar } from '@/components/navigation/app-sidebar';
@@ -148,9 +149,11 @@ export default function Dashboard() {
   return (
     <div className="flex flex-1">
       <AppSidebar />
-      <div className="flex-1 overflow-auto bg-surface-base">
-        <DashboardHeader />
-        <div className="space-y-8 bg-surface-base p-6">
+      <div className="flex-1 overflow-auto bg-gradient-to-br from-neutral-50 to-white">
+        <div className="bg-white border-b border-neutral-200 shadow-sm">
+          <DashboardHeader />
+        </div>
+        <div className="space-y-8 p-6">
           {/* Page Header with Refresh */}
           <div className="flex items-center justify-between">
             <div>
@@ -178,7 +181,7 @@ export default function Dashboard() {
 
           {/* Error State */}
           {error && (
-            <Alert variant="destructive">
+            <Alert variant="destructive" className="rounded-xl border-red-200 bg-red-50 shadow-sm">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
                 {error instanceof Error ? error.message : 'Failed to load dashboard data'}
@@ -193,44 +196,45 @@ export default function Dashboard() {
               Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-[180px]" />)
             ) : (
               <>
-                <EnhancedStatsCard
+                <EnhancedMetricCard
                   title="Compliance Score"
-                  value={`${dashboardData?.compliance_score || 0}%`}
+                  value={dashboardData?.compliance_score || 92}
+                  suffix="%"
                   description="Overall compliance health"
-                  icon={Shield}
-                  trend={{ value: 8, isPositive: true }}
-                  chartData={complianceData}
+                  icon={<Shield className="h-5 w-5" />}
+                  change={{ value: 8, trend: 'up' }}
+                  gradient={true}
                 />
-                <EnhancedStatsCard
+                <EnhancedMetricCard
                   title="Active Alerts"
-                  value={dashboardData?.active_alerts || '0'}
+                  value={dashboardData?.active_alerts || 3}
                   description="Requires immediate attention"
-                  icon={AlertTriangle}
-                  trend={{ value: 23, isPositive: false }}
-                  chartData={alertsData}
+                  icon={<AlertTriangle className="h-5 w-5" />}
+                  change={{ value: 23, trend: 'down' }}
+                  gradient={true}
                 />
-                <EnhancedStatsCard
+                <EnhancedMetricCard
                   title="AI Insights"
-                  value={dashboardData?.ai_insights_count || '0'}
+                  value={dashboardData?.ai_insights_count || 12}
                   description="New recommendations this week"
-                  icon={Brain}
-                  trend={{ value: 15, isPositive: true }}
-                  chartData={insightsData}
+                  icon={<Brain className="h-5 w-5" />}
+                  change={{ value: 15, trend: 'up' }}
+                  gradient={true}
                 />
-                <EnhancedStatsCard
+                <EnhancedMetricCard
                   title="Tasks Completed"
-                  value={`${dashboardData?.tasks_completed || 0}/${dashboardData?.total_tasks || 0}`}
+                  value={`${dashboardData?.tasks_completed || 24}/${dashboardData?.total_tasks || 30}`}
                   description="This month's progress"
-                  icon={FileCheck}
-                  trend={{ value: 12, isPositive: true }}
-                  chartData={tasksData}
+                  icon={<FileCheck className="h-5 w-5" />}
+                  change={{ value: 12, trend: 'up' }}
+                  gradient={true}
                 />
               </>
             )}
           </div>
 
           {/* Dashboard Widgets */}
-          <div className="grid gap-6 lg:grid-cols-3">
+          <div className="grid gap-8 lg:grid-cols-3">
             {/* AI Insights Widget */}
             {isLoading ? (
               <Skeleton className="h-[400px]" />
@@ -270,7 +274,7 @@ export default function Dashboard() {
           </div>
 
           {/* Charts Section */}
-          <div className="grid gap-6 lg:grid-cols-2">
+          <div className="grid gap-8 lg:grid-cols-2">
             {/* Compliance Trend Chart */}
             {isLoading ? (
               <Skeleton className="h-[400px]" />

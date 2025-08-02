@@ -87,22 +87,16 @@ export function DashboardHeader() {
 
         {/* Countdown Clock */}
         <div className="flex flex-1 justify-center">
-          <div
-            className="flex items-center space-x-2 rounded-lg px-3 py-1"
-            style={{ backgroundColor: 'rgba(240, 234, 214, 0.1)' }}
-          >
-            <Clock className="h-4 w-4" style={{ color: '#FFD700' }} />
-            <div
-              className="flex items-center space-x-1 font-mono text-sm"
-              style={{ color: '#F0EAD6' }}
-            >
-              <span className="text-xs" style={{ color: '#6C757D' }}>
+          <div className="flex items-center space-x-2 rounded-lg bg-teal-50 px-3 py-1">
+            <Clock className="h-4 w-4 text-teal-600" />
+            <div className="flex items-center space-x-1 font-mono text-sm text-neutral-700">
+              <span className="text-xs text-neutral-500">
                 Next Audit:
               </span>
               <span className="font-semibold">{formatTime(timeUntilAudit.days)}d</span>
-              <span style={{ color: '#6C757D' }}>:</span>
+              <span className="text-neutral-400">:</span>
               <span className="font-semibold">{formatTime(timeUntilAudit.hours)}h</span>
-              <span style={{ color: '#6C757D' }}>:</span>
+              <span className="text-neutral-400">:</span>
               <span className="font-semibold">{formatTime(timeUntilAudit.minutes)}m</span>
               <span style={{ color: '#6C757D' }}>:</span>
               <span className="font-semibold">{formatTime(timeUntilAudit.seconds)}s</span>

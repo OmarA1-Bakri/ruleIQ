@@ -43,7 +43,6 @@ TEST_CONFIGS = {
                     "--tb=short",
                     "--maxfail=10",
                     "--disable-warnings",
-                    "--no-cov",
                 ],
                 "timeout": 300,
                 "parallel": False,  # Sequential until database isolation is fixed

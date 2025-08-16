@@ -1,489 +1,587 @@
 [
   {
     "id": "TC001",
-    "title": "User Registration with Valid Data",
-    "description": "Verify that a user can successfully register using valid credentials and required information.",
+    "title": "JWT Authentication Success",
+    "description": "Verify user can successfully authenticate with valid credentials and obtain JWT access and refresh tokens.",
     "category": "functional",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Navigate to the registration page."
-      },
-      {
-        "type": "action",
-        "description": "Fill out the registration form with valid username, email, and password."
-      },
-      {
-        "type": "action",
-        "description": "Submit the registration form."
+        "description": "Send a login request with valid username and password to the authentication endpoint."
       },
       {
         "type": "assertion",
-        "description": "Confirm the registration is successful and user is redirected to the login page or dashboard."
+        "description": "Receive a HTTP 200 response with valid JWT access and refresh tokens encrypted with AES-GCM."
+      },
+      {
+        "type": "action",
+        "description": "Use the access token to access a protected endpoint."
+      },
+      {
+        "type": "assertion",
+        "description": "Access is granted and appropriate data is returned."
       }
     ]
   },
   {
     "id": "TC002",
-    "title": "User Login with Correct Credentials",
-    "description": "Validate that users can log in successfully using valid username/email and password.",
-    "category": "functional",
+    "title": "JWT Authentication with Invalid Credentials",
+    "description": "Verify authentication fails when invalid credentials are used.",
+    "category": "error handling",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Navigate to the login page."
-      },
-      {
-        "type": "action",
-        "description": "Input valid username/email and password."
-      },
-      {
-        "type": "action",
-        "description": "Click the login button."
+        "description": "Send a login request with invalid username or password to the authentication endpoint."
       },
       {
         "type": "assertion",
-        "description": "Verify successful login and access to the user dashboard."
+        "description": "Receive a HTTP 401 Unauthorized response with standardized error message."
       }
     ]
   },
   {
     "id": "TC003",
-    "title": "User Login with Invalid Credentials",
-    "description": "Ensure login fails with incorrect username/email or password and appropriate error messages are shown.",
-    "category": "error handling",
+    "title": "RBAC Enforcement on Protected Endpoint",
+    "description": "Verify that role-based access control (RBAC) middleware correctly restricts access based on user roles.",
+    "category": "security",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Navigate to the login page."
+        "description": "Authenticate as a user with limited role permissions."
       },
       {
         "type": "action",
-        "description": "Enter invalid username/email or password."
-      },
-      {
-        "type": "action",
-        "description": "Click login button."
+        "description": "Attempt to access an endpoint requiring higher privilege."
       },
       {
         "type": "assertion",
-        "description": "Confirm login fails and an error message is displayed."
+        "description": "Access is denied with HTTP 403 Forbidden and appropriate error message."
       }
     ]
   },
   {
     "id": "TC004",
-    "title": "JWT Token Refresh Flow",
-    "description": "Test that users can refresh their JWT tokens without needing to re-authenticate when tokens expire.",
+    "title": "Refresh JWT Token Successfully",
+    "description": "Verify that a valid refresh token can be used to obtain a new access token.",
     "category": "functional",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Log in successfully and obtain JWT token."
+        "description": "Authenticate and obtain refresh token."
       },
       {
         "type": "action",
-        "description": "Wait for the token to expire or simulate expiration."
-      },
-      {
-        "type": "action",
-        "description": "Send token refresh request using the refresh token."
+        "description": "Send refresh request with valid refresh token."
       },
       {
         "type": "assertion",
-        "description": "Verify a new JWT token is returned and user session remains active."
+        "description": "Receive a new JWT access token."
       }
     ]
   },
   {
     "id": "TC005",
-    "title": "OAuth Login Integration",
-    "description": "Verify that users can log in using integrated OAuth providers correctly.",
-    "category": "functional",
+    "title": "Rate Limiting on Public API Endpoints",
+    "description": "Verify that rate limiting middleware correctly enforces limits on public freemium API endpoints to prevent abuse.",
+    "category": "security",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Navigate to the login page."
-      },
-      {
-        "type": "action",
-        "description": "Choose an OAuth provider (e.g., Google)."
-      },
-      {
-        "type": "action",
-        "description": "Complete OAuth login flow."
+        "description": "Send requests exceeding the preset rate limits to a public API endpoint."
       },
       {
         "type": "assertion",
-        "description": "Verify successful login and access to user dashboard."
+        "description": "Receive HTTP 429 Too Many Requests response with standardized error message."
       }
     ]
   },
   {
     "id": "TC006",
-    "title": "Business Profile CRUD Operations",
-    "description": "Ensure users can create, read, update, and delete business profiles while maintaining compliance context tracking.",
+    "title": "IQ Agent Compliance Orchestrator - Gap Analysis",
+    "description": "Verify IQ Agent performs autonomous compliance gap analysis using Neo4j GraphRAG knowledge base returning accurate gap data.",
     "category": "functional",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Log in and navigate to business profile management."
-      },
-      {
-        "type": "action",
-        "description": "Create a new business profile with valid data."
+        "description": "Trigger IQ Agent to execute compliance gap analysis for a selected business profile."
       },
       {
         "type": "assertion",
-        "description": "Confirm the new profile is saved and visible in the list."
-      },
-      {
-        "type": "action",
-        "description": "Open the created profile and update fields."
-      },
-      {
-        "type": "assertion",
-        "description": "Verify changes are saved correctly."
-      },
-      {
-        "type": "action",
-        "description": "Delete the business profile."
-      },
-      {
-        "type": "assertion",
-        "description": "Confirm the profile is removed and no residual data remains."
+        "description": "Response includes correct gap analysis data consistent with knowledge graph."
       }
     ]
   },
   {
     "id": "TC007",
-    "title": "Dynamic Compliance Assessment Workflow",
-    "description": "Test multi-framework selection and dynamic, adaptive workflows for compliance assessments including GDPR and ISO 27001.",
+    "title": "RAG Self-Critic Fact-Checking Valid Response",
+    "description": "Verify RAG Self-Critic validates AI-generated compliance response, confirming factual accuracy and trust scoring.",
     "category": "functional",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Log in and initiate a compliance assessment selecting GDPR and ISO 27001 frameworks."
-      },
-      {
-        "type": "action",
-        "description": "Verify that the workflow displays relevant questions dynamically based on selections."
-      },
-      {
-        "type": "action",
-        "description": "Answer assessment questions and proceed through the workflow."
+        "description": "Provide AI-generated compliance response to RAG Self-Critic for fact checking."
       },
       {
         "type": "assertion",
-        "description": "Ensure correct conditional questions appear and completion status is updated."
+        "description": "Receive validation confirming response facts are correct and trust score is above threshold."
       }
     ]
   },
   {
     "id": "TC008",
-    "title": "AI-Driven Question Help and Follow-ups",
-    "description": "Validate AI services provide contextual help on assessment questions and generate appropriate follow-up questions.",
-    "category": "functional",
+    "title": "RAG Self-Critic Detects Biased Response",
+    "description": "Verify RAG Self-Critic identifies and flags biased or incorrect AI responses correctly.",
+    "category": "error handling",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "During assessment, request help on a given question."
+        "description": "Provide a deliberately biased or factually incorrect AI-generated response to RAG Self-Critic."
       },
       {
         "type": "assertion",
-        "description": "Confirm AI provides contextual help response relevant to the question."
-      },
-      {
-        "type": "action",
-        "description": "Answer a question triggering AI-generated follow-up questions."
-      },
-      {
-        "type": "assertion",
-        "description": "Verify follow-up questions appear appropriately in the workflow."
+        "description": "Response is flagged with bias or fact-check failure warnings and not delivered to user."
       }
     ]
   },
   {
     "id": "TC009",
-    "title": "Evidence Document Upload and AI Validation",
-    "description": "Test file uploads with support for multiple document types and AI-driven classification and validation of evidence.",
+    "title": "LangGraph Multi-agent Conversational Workflow",
+    "description": "Verify LangGraph agents support conversational compliance assessments with correct state management and observability.",
     "category": "functional",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "During assessment, upload evidence files including PDF, DOCX, JPEG."
-      },
-      {
-        "type": "assertion",
-        "description": "Confirm files upload successfully without errors."
+        "description": "Initiate a multi-turn compliance assessment conversation using LangGraph agents."
       },
       {
         "type": "action",
-        "description": "Trigger AI classification and validation of uploaded evidence."
+        "description": "Respond to AI-generated questions and progress through workflow states."
       },
       {
         "type": "assertion",
-        "description": "Verify AI correctly classifies documents and flags validation issues if present."
+        "description": "Conversation state updates correctly and observability data in LangSmith is accurate."
       }
     ]
   },
   {
     "id": "TC010",
-    "title": "AI Assessment Rate Limiting",
-    "description": "Verify that AI assessment endpoints enforce rate limits to prevent abuse and ensure stability.",
-    "category": "error handling",
-    "priority": "Medium",
+    "title": "Freemium Public Endpoint with Email Capture and Abuse Protection",
+    "description": "Validate that public freemium AI assessment endpoint securely captures user email, dynamically generates questions, and enforces abuse protections.",
+    "category": "security",
+    "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Send a high volume of AI assessment requests exceeding rate limits."
+        "description": "Submit a compliance assessment request providing valid email."
       },
       {
         "type": "assertion",
-        "description": "Confirm that rate limiting responses are received with appropriate HTTP status codes."
+        "description": "Questionnaire is generated dynamically and email is securely stored."
+      },
+      {
+        "type": "action",
+        "description": "Submit excessive requests to trigger abuse detection mechanisms."
+      },
+      {
+        "type": "assertion",
+        "description": "Abuse protections rate-limit or block the requests as expected."
       }
     ]
   },
   {
     "id": "TC011",
-    "title": "Dashboard Navigation and Rendering",
-    "description": "Ensure the dashboard and all authenticated routes render correctly without hydration errors and that navigation works as expected.",
-    "category": "ui",
-    "priority": "High",
+    "title": "Business Profile Creation and Update",
+    "description": "Verify users can create and update business profiles with all mandatory fields and data mappings correctly persisted.",
+    "category": "functional",
+    "priority": "Medium",
     "steps": [
       {
         "type": "action",
-        "description": "Log in and navigate to the main dashboard."
+        "description": "Create a new business profile with valid data via API."
       },
       {
         "type": "assertion",
-        "description": "Check that the dashboard UI renders without errors or layout shifts."
+        "description": "Business profile is persisted with correctly mapped database fields."
       },
       {
         "type": "action",
-        "description": "Navigate between dashboard components like business profiles and AI policy pages."
+        "description": "Update an existing business profile's data."
       },
       {
         "type": "assertion",
-        "description": "Verify seamless navigation and correct content rendering on each page."
+        "description": "Updates are saved and reflected on retrieval."
       }
     ]
   },
   {
     "id": "TC012",
-    "title": "Database Migration Integrity",
-    "description": "Test database migrations to fix column naming issues and ensure no data loss or corruption occurs.",
+    "title": "Evidence Upload and Audit Trail",
+    "description": "Verify users can upload compliance evidence documents and that an audit trail is maintained accurately.",
     "category": "functional",
-    "priority": "High",
+    "priority": "Medium",
     "steps": [
       {
         "type": "action",
-        "description": "Run database migration scripts in a test environment with existing data."
+        "description": "Upload a compliance document via the evidence management endpoint."
       },
       {
         "type": "assertion",
-        "description": "Verify that column renames are applied correctly and data remains intact."
+        "description": "Document is stored and linked to the relevant compliance controls."
+      },
+      {
+        "type": "action",
+        "description": "Verify audit trail shows upload metadata and user activity."
+      },
+      {
+        "type": "assertion",
+        "description": "Audit logs correctly capture evidence upload events."
       }
     ]
   },
   {
     "id": "TC013",
-    "title": "Input Validation and Injection Prevention",
-    "description": "Validate input fields enforce strict whitelist validation and prevent injection attacks.",
-    "category": "security",
-    "priority": "High",
+    "title": "Dashboard Real-time Compliance Analytics",
+    "description": "Verify dashboard displays accurate real-time compliance scores, risk visualizations, and implementation progress.",
+    "category": "functional",
+    "priority": "Medium",
     "steps": [
       {
         "type": "action",
-        "description": "Attempt to input malicious payloads (e.g., SQL, XSS) in all user inputs including forms and API endpoints."
+        "description": "Access dashboard with active compliance data."
       },
       {
         "type": "assertion",
-        "description": "Confirm that all inputs are properly sanitized and rejected, with error messages indicating invalid input."
+        "description": "Compliance scores, risks, and progress graphs render correctly and reflect current data."
       }
     ]
   },
   {
     "id": "TC014",
-    "title": "API Response Performance Benchmarks",
-    "description": "Ensure API responses have a 95th percentile latency under 200ms and database queries under 50ms.",
-    "category": "performance",
-    "priority": "High",
+    "title": "Policy Generation via AI with Template Customization",
+    "description": "Verify AI powered policy generation creates accurate and customizable policies using templates and user input.",
+    "category": "functional",
+    "priority": "Medium",
     "steps": [
       {
         "type": "action",
-        "description": "Execute representative API requests under load testing conditions."
+        "description": "Request AI policy generation specifying template and customization parameters."
       },
       {
         "type": "assertion",
-        "description": "Verify API response times meet the sub-200ms 95th percentile requirement."
+        "description": "Generated policy document matches requested template and parameterized inputs."
       },
       {
         "type": "action",
-        "description": "Monitor underlying database query execution times during API calls."
+        "description": "Update policy parameters and regenerate."
       },
       {
         "type": "assertion",
-        "description": "Ensure query response times stay below 50ms."
+        "description": "Updated policy reflects new customizations."
       }
     ]
   },
   {
     "id": "TC015",
-    "title": "Security Compliance Audit Logging",
-    "description": "Check that all critical user actions and system events are logged to satisfy GDPR, ISO 27001, Cyber Essentials, and SOC 2 standards.",
-    "category": "security",
+    "title": "Circuit Breaker Activation for AI Service Failures",
+    "description": "Test that the circuit breaker pattern triggers protection and fallback mechanisms upon AI service failures or overloads.",
+    "category": "error handling",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Perform sensitive operations such as login, logout, profile update, and evidence upload."
+        "description": "Simulate AI service failure or latency exceeding threshold."
       },
       {
         "type": "assertion",
-        "description": "Verify audit logs capture detailed information including timestamp, user identity, and action performed."
+        "description": "Circuit breaker activates, AI calls are short-circuited, and fallback responses returned."
       }
     ]
   },
   {
     "id": "TC016",
-    "title": "AI Model Circuit Breaker Resilience",
-    "description": "Simulate AI model failures and verify the system gracefully switches between available models without impacting user experience.",
-    "category": "error handling",
+    "title": "Compliance Knowledge Graph Initialization and Maintenance",
+    "description": "Verify the Neo4j graph database is properly initialized with up-to-date compliance data and can be updated reliably.",
+    "category": "functional",
     "priority": "Medium",
     "steps": [
       {
         "type": "action",
-        "description": "Simulate failure or timeout in primary AI model."
+        "description": "Initialize knowledge graph with baseline compliance data."
       },
       {
         "type": "assertion",
-        "description": "Confirm the system activates circuit breaker and switches to an alternate AI model."
+        "description": "Graph contains correct domain and regulation nodes and edges."
       },
       {
         "type": "action",
-        "description": "Continue AI assessment requests."
+        "description": "Apply update to compliance data set and ensure graph updates without data loss."
       },
       {
         "type": "assertion",
-        "description": "Validate consistent AI responses without service interruption."
+        "description": "Updated graph reflects new compliance requirements."
       }
     ]
   },
   {
     "id": "TC017",
-    "title": "Real-time AI Chat WebSocket Communication",
-    "description": "Test the WebSocket based real-time AI chat features including connection establishment, message streaming, and error handling.",
+    "title": "API Compliance with OpenAPI Documentation and Standardized Error Responses",
+    "description": "Ensure all API endpoints match OpenAPI specs and return standardized error formats on invalid inputs or failures.",
     "category": "functional",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Connect to AI chat server via WebSocket."
+        "description": "Send requests with valid and invalid data to all API endpoints."
       },
       {
         "type": "assertion",
-        "description": "Verify connection is established successfully."
-      },
-      {
-        "type": "action",
-        "description": "Send chat messages and receive streaming AI responses in real time."
-      },
-      {
-        "type": "assertion",
-        "description": "Confirm responses stream correctly without delays or interruption."
-      },
-      {
-        "type": "action",
-        "description": "Simulate network interruption."
-      },
-      {
-        "type": "assertion",
-        "description": "Verify client handles disconnections gracefully and attempts reconnection if applicable."
+        "description": "Responses match OpenAPI documented schemas and errors follow standardized structure."
       }
     ]
   },
   {
     "id": "TC018",
-    "title": "Security Headers and Rate Limiting Verification",
-    "description": "Validate HTTP security headers are present and rate limiting is enforced correctly to protect against abuse.",
+    "title": "GDPR Compliance for Data Handling",
+    "description": "Verify that user data handling, including consent recording and PII processing, complies with GDPR requirements.",
     "category": "security",
     "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Send HTTP requests and inspect response headers."
+        "description": "Submit data subject requests including consent and data erasure via the UI and APIs."
       },
       {
         "type": "assertion",
-        "description": "Confirm security headers like Content-Security-Policy, Strict-Transport-Security, X-Content-Type-Options are set."
-      },
-      {
-        "type": "action",
-        "description": "Send rapid requests exceeding rate limits."
-      },
-      {
-        "type": "assertion",
-        "description": "Ensure rate limiting responses are triggered with suitable HTTP status codes."
+        "description": "Data is processed, stored, or deleted in compliance with GDPR policies and logged appropriately."
       }
     ]
   },
   {
     "id": "TC019",
-    "title": "Frontend Hydration and State Management Stability",
-    "description": "Test that pages built with Next.js and React hydrate correctly without warnings and that state management via Zustand and TanStack Query functions as expected.",
-    "category": "ui",
-    "priority": "Medium",
+    "title": "Performance Testing - Basic Query Response Time",
+    "description": "Verify API response times for basic queries are under 200 milliseconds.",
+    "category": "performance",
+    "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Load key pages in authenticated routes."
+        "description": "Send typical basic queries to endpoints multiple times."
       },
       {
         "type": "assertion",
-        "description": "Check browser console to verify that no hydration errors or warnings appear."
-      },
-      {
-        "type": "action",
-        "description": "Perform state changes through the UI and verify that data updates correctly."
-      },
-      {
-        "type": "assertion",
-        "description": "Confirm UI reflects state changes and data fetching operates smoothly."
+        "description": "Ensure 95% of responses return in under 200 ms."
       }
     ]
   },
   {
     "id": "TC020",
-    "title": "Monitoring Dashboards Data Accuracy and Alerts",
-    "description": "Verify that system monitoring dashboards display accurate system health metrics, database performance, AI cost tracking, and security events with real-time updates and alerts.",
+    "title": "Performance Testing - Complex Assessment Execution Time",
+    "description": "Verify that complex compliance assessments do not exceed 3 minutes response time.",
+    "category": "performance",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Trigger a full compliance assessment involving IQ Agent and LangGraph workflows."
+      },
+      {
+        "type": "assertion",
+        "description": "Complete assessment and return results within 3 minutes."
+      }
+    ]
+  },
+  {
+    "id": "TC021",
+    "title": "Security Audit - Authentication and Session Management",
+    "description": "Validate security audit findings remediation including strong password policies, token expiry, session management, and encryption.",
+    "category": "security",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Perform penetration tests and vulnerability scans focusing on authentication and session handling."
+      },
+      {
+        "type": "assertion",
+        "description": "No critical vulnerabilities found; all security controls function as expected."
+      }
+    ]
+  },
+  {
+    "id": "TC022",
+    "title": "Monitoring - Detection of Rate Limit Breaches",
+    "description": "Verify monitoring systems detect rate limit violations and generate alerts appropriately.",
     "category": "functional",
     "priority": "Medium",
     "steps": [
       {
         "type": "action",
-        "description": "Access monitoring dashboards as an administrator."
+        "description": "Trigger multiple rate limit breaches on API endpoints."
       },
       {
         "type": "assertion",
-        "description": "Confirm displayed metrics match actual system and AI usage statistics."
+        "description": "Monitoring system generates alerts and logs breaches for security team."
+      }
+    ]
+  },
+  {
+    "id": "TC023",
+    "title": "Database Migration - Schema Versioning and Rollback",
+    "description": "Verify Alembic-based migrations apply correctly across environments and can be rolled back safely.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Apply database migration to update schema."
+      },
+      {
+        "type": "assertion",
+        "description": "Migration completes without errors and schema changes are effective."
       },
       {
         "type": "action",
-        "description": "Trigger monitored events such as security alerts and system health warnings."
+        "description": "Perform rollback of the migration."
       },
       {
         "type": "assertion",
-        "description": "Verify the dashboards reflect these events with timely notifications."
+        "description": "Schema reverts properly with no data loss."
+      }
+    ]
+  },
+  {
+    "id": "TC024",
+    "title": "Frontend Integration Using Standardized API Client",
+    "description": "Verify frontend components use the standardized API client with automatic versioning and error handling.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Invoke API calls from frontend components."
+      },
+      {
+        "type": "assertion",
+        "description": "API calls succeed, errors are handled gracefully, and versioning headers are included."
+      }
+    ]
+  },
+  {
+    "id": "TC025",
+    "title": "End-to-End Freemium Assessment Flow",
+    "description": "Validate the complete user flow for freemium AI assessments including signup, email capture, assessment initiation, AI risk scoring, and result delivery.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "User signs up or logs in."
+      },
+      {
+        "type": "action",
+        "description": "User starts freemium compliance assessment through public endpoint."
+      },
+      {
+        "type": "action",
+        "description": "User provides answers to AI-generated dynamic questions."
+      },
+      {
+        "type": "assertion",
+        "description": "User receives AI-driven risk score and recommendations."
+      }
+    ]
+  },
+  {
+    "id": "TC026",
+    "title": "Security Input Validation and Sanitization",
+    "description": "Verify system validates and sanitizes all user inputs preventing injection and other attacks.",
+    "category": "security",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Submit inputs containing SQL injection, XSS, and other malicious payloads."
+      },
+      {
+        "type": "assertion",
+        "description": "Inputs are rejected or sanitized; no unauthorized data access or script execution occurs."
+      }
+    ]
+  },
+  {
+    "id": "TC027",
+    "title": "Asynchronous Task Queue Execution with Celery",
+    "description": "Validate that long-running tasks utilize Celery background queue and complete successfully.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Trigger long-running compliance assessment or report generation task."
+      },
+      {
+        "type": "assertion",
+        "description": "Task is queued and executed asynchronously; status observable via API."
+      }
+    ]
+  },
+  {
+    "id": "TC028",
+    "title": "OpenAPI Documentation Completeness and Accuracy",
+    "description": "Verify that all API endpoints are accurately documented in OpenAPI and Swagger UI.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Access API documentation endpoint."
+      },
+      {
+        "type": "assertion",
+        "description": "All endpoints are present with correct request/response schemas and descriptions."
+      }
+    ]
+  },
+  {
+    "id": "TC029",
+    "title": "Docker Multi-environment Deployment Validation",
+    "description": "Verify Docker setup supports running the application correctly across development, production, and freemium environments.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Build and run Docker containers with docker-compose for each environment."
+      },
+      {
+        "type": "assertion",
+        "description": "All services start successfully; environment-specific configs are applied."
+      }
+    ]
+  },
+  {
+    "id": "TC030",
+    "title": "Implementation Tracking Progress Monitoring",
+    "description": "Verify that implementation tracking captures and reports compliance status updates accurately.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Update compliance implementation status via API."
+      },
+      {
+        "type": "assertion",
+        "description": "Dashboard and reports reflect updated implementation progress."
       }
     ]
   }

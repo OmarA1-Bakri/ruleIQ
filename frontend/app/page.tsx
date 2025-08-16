@@ -258,9 +258,9 @@ const HeroSection = ({ showEmailCapture, setShowEmailCapture }: HeroSectionProps
         <motion.div
           animate={{ y: [0, 10, 0] }}
           transition={{ duration: 2, repeat: Infinity }}
-          className="flex h-10 w-6 items-start justify-center rounded-full border-2 border-text-secondary/30 p-2"
+          className="flex h-10 w-6 items-start justify-center rounded-full border-2 border-teal-500 p-2"
         >
-          <motion.div className="h-2 w-1 rounded-full bg-text-secondary/50" />
+          <motion.div className="h-2 w-1 rounded-full bg-teal-600" />
         </motion.div>
       </motion.div>
     </section>
@@ -446,49 +446,49 @@ export default function HomePage() {
         Skip to pricing
       </a>
 
+      {/* Free Compliance Health Check Banner */}
+      <div className="fixed top-0 left-0 right-0 z-[60] bg-gradient-to-r from-teal-600 to-teal-700 py-2 text-center text-white">
+        <div className="container mx-auto px-4 flex items-center justify-center gap-2 flex-wrap sm:flex-nowrap">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4 animate-pulse" />
+            <span className="text-sm font-medium">
+              🎉 Free Compliance Health Check! Meet IQ - Your AI Assistant
+            </span>
+          </div>
+          <Button
+            size="sm"
+            variant="secondary"
+            className="bg-white text-teal-600 hover:bg-neutral-100 text-xs px-3 py-1 h-auto min-h-[28px] whitespace-nowrap"
+            onClick={() => {
+              const element = document.getElementById('hero-section');
+              element?.scrollIntoView({ behavior: 'smooth' });
+              setTimeout(() => setShowEmailCapture(true), 500);
+            }}
+          >
+            Get Started →
+          </Button>
+        </div>
+      </div>
+
       {/* Navigation */}
-      <header className="glass-card border-glass-border fixed left-0 right-0 top-0 z-50 border-b" role="banner">
-        <div className="container mx-auto grid h-16 grid-cols-[1fr_auto_1fr] items-center px-4">
+      <header className="glass-card border-glass-border fixed left-0 right-0 top-12 z-50 border-b" role="banner">
+        <div className="container mx-auto flex items-center justify-between px-4 py-3">
           <Link href="/" className="flex items-center">
-            <div className="relative h-12 w-auto md:h-14 lg:h-16">
+            <div className="relative h-8 w-auto">
               <img
                 alt="ruleIQ"
-                width="250"
-                height="250"
+                width="100"
+                height="32"
                 decoding="async"
                 data-nimg="1"
-                className="ai-style-change-1 h-full w-full object-contain"
+                className="h-full w-auto object-contain"
                 src="/assets/logo.svg"
-                style={{ color: 'transparent', objectFit: 'contain' }}
+                style={{ color: 'transparent' }}
               />
             </div>
           </Link>
 
-          {/* Center nav in its own grid cell without flex so it centers naturally */}
-          <div className="col-start-2 col-end-3">
-            <nav className="hidden justify-center gap-8 md:flex" aria-label="Main navigation">
-              <Link
-                href="#features"
-                className="text-muted-foreground transition-colors hover:text-foreground"
-              >
-                Features
-              </Link>
-              <Link
-                href="#pricing"
-                className="text-muted-foreground transition-colors hover:text-foreground"
-              >
-                Pricing
-              </Link>
-              <Link
-                href="#testimonials"
-                className="text-muted-foreground transition-colors hover:text-foreground"
-              >
-                Testimonials
-              </Link>
-            </nav>
-          </div>
-
-          <nav className="hidden items-center justify-center gap-8 md:flex">
+          <nav className="hidden items-center gap-8 md:flex" aria-label="Main navigation">
             <Link
               href="#features"
               className="text-muted-foreground transition-colors hover:text-foreground"

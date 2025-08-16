@@ -30,6 +30,7 @@ from database import (
 )
 from services.ai.assistant import ComplianceAssistant
 from services.ai.circuit_breaker import AICircuitBreaker
+from services.assessment_agent import AssessmentAgent  # LangGraph conversational agent
 from config.logging_config import get_logger
 
 logger = get_logger(__name__)
@@ -47,12 +48,14 @@ class FreemiumAssessmentService:
         self.db = db_session
         self.assistant = ComplianceAssistant(db_session)
         self.circuit_breaker = AICircuitBreaker()
+        self.assessment_agent = AssessmentAgent(db_session)  # LangGraph conversational agent
 
         # Configuration constants
         self.SESSION_DURATION_HOURS = 24
-        self.MIN_QUESTIONS_FOR_RESULTS = 3
+        self.MIN_QUESTIONS_FOR_RESULTS = 5
         self.MAX_QUESTIONS_PER_SESSION = 12
         self.DEFAULT_QUESTION_TIME_LIMIT = 300  # 5 minutes per question
+        self.USE_LANGGRAPH_AGENT = True  # Feature flag for new conversational agent
 
     async def create_session(
         self,
@@ -107,30 +110,69 @@ class FreemiumAssessmentService:
             await self.db.commit()
             await self.db.refresh(session)
 
-            # Generate initial AI questions based on business context
-            initial_questions = await self._generate_initial_questions(
-                session_id=session.id,
-                business_type=business_type,
-                company_size=company_size,
-                assessment_type=assessment_type,
-                personalization_data=personalization_data
-            )
+            # Use LangGraph agent if enabled, otherwise use traditional approach
+            if self.USE_LANGGRAPH_AGENT:
+                # Initialize LangGraph assessment agent state
+                initial_context = {
+                    "business_type": business_type,
+                    "company_size": company_size,
+                    "assessment_type": assessment_type,
+                    **full_personalization_data
+                }
+                
+                # Start assessment with LangGraph agent
+                agent_state = await self.assessment_agent.start_assessment(
+                    session_id=str(session.id),
+                    lead_id=str(lead_id),
+                    initial_context=initial_context
+                )
+                
+                # Store agent state in session
+                session.ai_responses = {
+                    "agent_state": "active",
+                    "current_phase": agent_state.get("current_phase", "introduction").value if hasattr(agent_state.get("current_phase", "introduction"), 'value') else str(agent_state.get("current_phase", "introduction")),
+                    "questions_generated": len(agent_state.get("questions_asked", [])),
+                    "total_questions_planned": agent_state.get("total_questions_planned", self.MAX_QUESTIONS_PER_SESSION),
+                    "using_langgraph": True,
+                    "generation_timestamp": datetime.utcnow().isoformat()
+                }
+                
+                # Extract first question from agent messages
+                messages = agent_state.get("messages", [])
+                if messages and len(messages) > 0:
+                    # Last message should be the introduction/first question
+                    session.current_question_id = "agent_intro"
+                    session.total_questions = agent_state.get("total_questions_planned", self.MIN_QUESTIONS_FOR_RESULTS)
+                
+            else:
+                # Generate initial AI questions based on business context (traditional approach)
+                initial_questions = await self._generate_initial_questions(
+                    session_id=session.id,
+                    business_type=business_type,
+                    company_size=company_size,
+                    assessment_type=assessment_type,
+                    personalization_data=personalization_data
+                )
 
-            # Store questions in session
-            session.ai_responses = {
-                "questions_generated": len(initial_questions),
-                "total_questions_planned": self.MAX_QUESTIONS_PER_SESSION,
-                "personalization_applied": bool(personalization_data),
-                "generation_timestamp": datetime.utcnow().isoformat()
-            }
+                # Store questions in session
+                session.ai_responses = {
+                    "questions_generated": len(initial_questions),
+                    "total_questions_planned": self.MAX_QUESTIONS_PER_SESSION,
+                    "personalization_applied": bool(personalization_data),
+                    "using_langgraph": False,
+                    "generation_timestamp": datetime.utcnow().isoformat()
+                }
+
+                session.user_answers = {}
+                session.current_question_id = initial_questions[0]["question_id"] if initial_questions else None
+                session.total_questions = len(initial_questions)
 
             session.user_answers = {}
-            session.current_question_id = initial_questions[0]["question_id"] if initial_questions else None
-            session.total_questions = len(initial_questions)
 
             await self.db.commit()
 
-            logger.info(f"Session created successfully: {session.id} with {len(initial_questions)} questions")
+            questions_count = session.ai_responses.get("questions_generated", 0) if self.USE_LANGGRAPH_AGENT else len(initial_questions if 'initial_questions' in locals() else [])
+            logger.info(f"Session created successfully: {session.id} with LangGraph={'enabled' if self.USE_LANGGRAPH_AGENT else 'disabled'}")
             return session
 
         except Exception as e:
@@ -170,48 +212,109 @@ class FreemiumAssessmentService:
 
             logger.info(f"Processing answer for session: {session_id}, question: {question_id}")
 
-            # Store the answer
-            if not session.user_answers:
-                session.user_answers = {}
-
-            session.user_answers[question_id] = {
-                "answer": answer,
-                "confidence": answer_confidence,
-                "time_spent_seconds": time_spent_seconds,
-                "timestamp": datetime.utcnow().isoformat()
-            }
-
-            # Update progress
-            session.questions_answered += 1
-            session.progress_percentage = (session.questions_answered / session.total_questions) * 100
-
-            # Determine if we need more questions or can complete
-            next_question = None
-            completion_status = "in_progress"
-
-            if session.questions_answered >= self.MIN_QUESTIONS_FOR_RESULTS:
-                # Use AI to determine if we have enough information or need follow-up questions
-                follow_up_needed = await self._determine_follow_up_questions(
-                    session_id=session_id,
-                    latest_answer={
-                        "question_id": question_id,
-                        "answer": answer,
-                        "confidence": answer_confidence
-                    }
+            # Check if using LangGraph agent
+            if session.ai_responses and session.ai_responses.get("using_langgraph", False):
+                # Process answer with LangGraph agent
+                agent_state = await self.assessment_agent.process_user_response(
+                    session_id=str(session.id),
+                    user_response=answer,
+                    confidence=answer_confidence
                 )
+                
+                # Store the answer
+                if not session.user_answers:
+                    session.user_answers = {}
 
-                if follow_up_needed and session.questions_answered < self.MAX_QUESTIONS_PER_SESSION:
-                    next_question = await self._generate_follow_up_question(
-                        session_id=session_id,
-                        previous_answers=session.user_answers
-                    )
-                else:
-                    completion_status = "completed"
+                session.user_answers[question_id] = {
+                    "answer": answer,
+                    "confidence": answer_confidence,
+                    "time_spent_seconds": time_spent_seconds,
+                    "timestamp": datetime.utcnow().isoformat()
+                }
+
+                # Update progress from agent state
+                session.questions_answered = agent_state.get("questions_answered", session.questions_answered + 1)
+                session.progress_percentage = (session.questions_answered / max(session.total_questions, self.MIN_QUESTIONS_FOR_RESULTS)) * 100
+                
+                # Check if assessment is complete
+                completion_status = "completed" if agent_state.get("current_phase") == "completion" else "in_progress"
+                next_question = None
+                
+                # Extract next question from agent messages if not complete
+                if completion_status == "in_progress":
+                    messages = agent_state.get("messages", [])
+                    if messages:
+                        # Get the last AI message as the next question
+                        for msg in reversed(messages):
+                            if hasattr(msg, 'role') and msg.role == 'assistant':
+                                next_question = {
+                                    "question_id": f"agent_{session.questions_answered + 1}",
+                                    "question_text": msg.content,
+                                    "question_type": "conversational",
+                                    "category": agent_state.get("current_phase", "general")
+                                }
+                                break
+                
+                # Update session with agent state
+                session.ai_responses.update({
+                    "current_phase": str(agent_state.get("current_phase", "unknown")),
+                    "questions_answered": session.questions_answered,
+                    "compliance_score": agent_state.get("compliance_score", 0),
+                    "risk_level": agent_state.get("risk_level", "unknown")
+                })
+                
+                if completion_status == "completed":
                     session.completed_at = datetime.utcnow()
+                    
             else:
-                # Generate next standard question
-                next_question = await self._get_next_question(
-                    session_id=session_id,
+                # Traditional processing (non-LangGraph)
+                # Store the answer
+                if not session.user_answers:
+                    session.user_answers = {}
+
+                session.user_answers[question_id] = {
+                    "answer": answer,
+                    "confidence": answer_confidence,
+                    "time_spent_seconds": time_spent_seconds,
+                    "timestamp": datetime.utcnow().isoformat()
+                }
+
+                # Update progress
+                session.questions_answered += 1
+                # Calculate progress safely, avoiding division by zero
+                if session.total_questions > 0:
+                    session.progress_percentage = (session.questions_answered / session.total_questions) * 100
+                else:
+                    # If no questions were generated (e.g., due to AI quota), use a default progression
+                    session.progress_percentage = min(session.questions_answered * 20, 100)  # 20% per question
+
+                # Determine if we need more questions or can complete
+                next_question = None
+                completion_status = "in_progress"
+
+                if session.questions_answered >= self.MIN_QUESTIONS_FOR_RESULTS:
+                    # Use AI to determine if we have enough information or need follow-up questions
+                    follow_up_needed = await self._determine_follow_up_questions(
+                        session_id=session_id,
+                        latest_answer={
+                            "question_id": question_id,
+                            "answer": answer,
+                            "confidence": answer_confidence
+                        }
+                    )
+
+                    if follow_up_needed and session.questions_answered < self.MAX_QUESTIONS_PER_SESSION:
+                        next_question = await self._generate_follow_up_question(
+                            session_id=session_id,
+                            previous_answers=session.user_answers
+                        )
+                    else:
+                        completion_status = "completed"
+                        session.completed_at = datetime.utcnow()
+                else:
+                    # Generate next standard question
+                    next_question = await self._get_next_question(
+                        session_id=session_id,
                     answered_questions=list(session.user_answers.keys())
                 )
 
@@ -445,10 +548,10 @@ class FreemiumAssessmentService:
                 "personalization": personalization_data or {}
             }
 
-            # Generate questions using AI assistant
+            # Generate INITIAL questions using AI assistant (start with just 2-3 to be conversational)
             questions_data = await self.assistant.generate_assessment_questions(
                 business_context=context,
-                max_questions=8,
+                max_questions=3,  # Start with fewer questions, generate more based on answers
                 difficulty_level="mixed"
             )
 
@@ -482,6 +585,41 @@ class FreemiumAssessmentService:
                     "question_type": "multiple_choice",
                     "category": "data_management",
                     "options": ["Cloud backup", "Local backup", "Both", "No formal backup", "Don't know"]
+                },
+                {
+                    "question_id": "gen_004",
+                    "question_text": "Do you conduct regular security training for your employees?",
+                    "question_type": "yes_no",
+                    "category": "training",
+                    "options": ["Yes, regularly", "Yes, occasionally", "No", "Planning to start"]
+                },
+                {
+                    "question_id": "gen_005",
+                    "question_text": "How do you manage access to sensitive business data?",
+                    "question_type": "multiple_choice",
+                    "category": "access_control",
+                    "options": ["Role-based access", "Department-based", "Everyone has access", "No formal system", "Unsure"]
+                },
+                {
+                    "question_id": "gen_006",
+                    "question_text": "Do you have a data breach response plan?",
+                    "question_type": "yes_no",
+                    "category": "incident_response",
+                    "options": ["Yes, documented", "Yes, informal", "No", "In development"]
+                },
+                {
+                    "question_id": "gen_007",
+                    "question_text": "How often do you review your compliance status?",
+                    "question_type": "multiple_choice",
+                    "category": "compliance_review",
+                    "options": ["Monthly", "Quarterly", "Annually", "Never", "Ad-hoc basis"]
+                },
+                {
+                    "question_id": "gen_008",
+                    "question_text": "Do you use encryption for sensitive data?",
+                    "question_type": "yes_no",
+                    "category": "data_security",
+                    "options": ["Yes, at rest and in transit", "Yes, partially", "No", "Don't know"]
                 }
             ],
             "gdpr": [
@@ -498,6 +636,34 @@ class FreemiumAssessmentService:
                     "question_type": "yes_no",
                     "category": "governance",
                     "options": ["Yes", "No", "Not required"]
+                },
+                {
+                    "question_id": "gdpr_003",
+                    "question_text": "Do you have a privacy policy that meets GDPR requirements?",
+                    "question_type": "yes_no",
+                    "category": "documentation",
+                    "options": ["Yes, fully compliant", "Yes, needs updating", "No", "Unsure"]
+                },
+                {
+                    "question_id": "gdpr_004",
+                    "question_text": "How do you handle data subject access requests?",
+                    "question_type": "multiple_choice",
+                    "category": "data_rights",
+                    "options": ["Automated process", "Manual process", "No formal process", "Never received any"]
+                },
+                {
+                    "question_id": "gdpr_005",
+                    "question_text": "Do you maintain records of processing activities?",
+                    "question_type": "yes_no",
+                    "category": "documentation",
+                    "options": ["Yes, comprehensive", "Yes, partial", "No", "Planning to implement"]
+                },
+                {
+                    "question_id": "gdpr_006",
+                    "question_text": "Have you conducted a Data Protection Impact Assessment (DPIA)?",
+                    "question_type": "yes_no",
+                    "category": "assessment",
+                    "options": ["Yes, recently", "Yes, over a year ago", "No", "Not sure if required"]
                 }
             ],
             "security": [
@@ -514,6 +680,62 @@ class FreemiumAssessmentService:
                     "question_type": "multiple_choice",
                     "category": "maintenance",
                     "options": ["Immediately", "Monthly", "Quarterly", "Annually", "Rarely"]
+                },
+                {
+                    "question_id": "sec_003",
+                    "question_text": "Do you perform regular security vulnerability assessments?",
+                    "question_type": "yes_no",
+                    "category": "assessment",
+                    "options": ["Yes, regularly", "Yes, occasionally", "No", "Planning to start"]
+                },
+                {
+                    "question_id": "sec_004",
+                    "question_text": "How do you manage user passwords and credentials?",
+                    "question_type": "multiple_choice",
+                    "category": "credential_management",
+                    "options": ["Password manager", "Single sign-on", "Manual tracking", "No formal system"]
+                },
+                {
+                    "question_id": "sec_005",
+                    "question_text": "Do you have network segmentation in place?",
+                    "question_type": "yes_no",
+                    "category": "network_security",
+                    "options": ["Yes, comprehensive", "Yes, partial", "No", "Don't know"]
+                },
+                {
+                    "question_id": "sec_006",
+                    "question_text": "How do you monitor for security incidents?",
+                    "question_type": "multiple_choice",
+                    "category": "monitoring",
+                    "options": ["24/7 SOC", "Automated tools", "Manual reviews", "No active monitoring"]
+                },
+                {
+                    "question_id": "sec_007",
+                    "question_text": "Do you have an incident response team?",
+                    "question_type": "yes_no",
+                    "category": "incident_response",
+                    "options": ["Yes, dedicated team", "Yes, assigned roles", "No", "Outsourced"]
+                },
+                {
+                    "question_id": "sec_008",
+                    "question_text": "How often do you conduct security awareness training?",
+                    "question_type": "multiple_choice",
+                    "category": "training",
+                    "options": ["Monthly", "Quarterly", "Annually", "During onboarding only", "Never"]
+                },
+                {
+                    "question_id": "sec_009",
+                    "question_text": "Do you maintain an inventory of all IT assets?",
+                    "question_type": "yes_no",
+                    "category": "asset_management",
+                    "options": ["Yes, automated", "Yes, manual", "Partial", "No"]
+                },
+                {
+                    "question_id": "sec_010",
+                    "question_text": "Have you implemented Zero Trust security principles?",
+                    "question_type": "yes_no",
+                    "category": "architecture",
+                    "options": ["Yes, fully", "Yes, partially", "No", "Planning to implement"]
                 }
             ]
         }
@@ -575,10 +797,44 @@ class FreemiumAssessmentService:
         session_id: uuid.UUID,
         answered_questions: List[str]
     ) -> Optional[Dict[str, Any]]:
-        """Get the next question in the sequence."""
-        # For now, return None to indicate no more questions
-        # In a full implementation, this would select from the question bank
-        return None
+        """Get the next question dynamically based on previous answers."""
+        try:
+            # Get the session to access previous answers
+            result = await self.db.execute(select(FreemiumAssessmentSession).where(FreemiumAssessmentSession.id == session_id))
+            session = result.scalar_one_or_none()
+            if not session:
+                return None
+            
+            # If AI is available, generate a contextual follow-up question
+            if self.circuit_breaker.is_model_available("gemini-2.5-flash"):
+                # Build context from previous answers
+                context = {
+                    "previous_answers": session.user_answers,
+                    "business_type": session.personalization_data.get("business_type"),
+                    "assessment_type": session.assessment_type,
+                    "questions_answered": len(answered_questions)
+                }
+                
+                # Generate a smart follow-up question based on what we've learned
+                follow_up = await self.assistant.generate_followup_questions(
+                    previous_answers=session.user_answers,
+                    max_questions=1
+                )
+                questions = follow_up.get("questions", [])
+                if questions:
+                    return questions[0]
+            
+            # Fallback: Select from our question bank if not already asked
+            fallback_questions = self._get_fallback_questions(session.assessment_type)
+            for question in fallback_questions:
+                if question["question_id"] not in answered_questions:
+                    return question
+            
+            return None
+            
+        except Exception as e:
+            logger.error(f"Error getting next question: {str(e)}")
+            return None
 
     async def _generate_ai_analysis(self, assessment_context: Dict[str, Any]) -> Dict[str, Any]:
         """Generate AI-powered analysis of assessment responses."""

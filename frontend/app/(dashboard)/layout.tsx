@@ -7,6 +7,7 @@ import { KeyboardShortcutsDialog } from '@/components/dashboard/keyboard-shortcu
 import { QuickActionsPanel } from '@/components/dashboard/quick-actions';
 import { AppSidebar } from '@/components/navigation/app-sidebar';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
+import { ChatWidget } from '@/components/chat/chat-widget';
 import { useAuthStore } from '@/lib/stores/auth.store';
 import { Loader2 } from 'lucide-react';
 
@@ -48,6 +49,11 @@ export default function DashboardLayout({
         <QuickActionsPanel />
         <KeyboardShortcutsDialog />
         <CommandPalette />
+        <ChatWidget 
+          position="bottom-right" 
+          defaultOpen={false}
+          enableVoice={true}
+        />
       </SidebarInset>
     </SidebarProvider>
   );

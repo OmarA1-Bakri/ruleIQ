@@ -1,99 +1,377 @@
 {
   "meta": {
-    "project": "ruleIQ Compliance Automation Platform",
-    "date": "2025-07-30",
+    "project": "ruleIQ Agentic Compliance Platform",
+    "date": "2025-08-14",
     "prepared_by": "Software Development Manager"
   },
-  "product_overview": "ruleIQ is an AI-powered compliance automation platform tailored for UK SMBs. It provides comprehensive assessment workflows, evidence management, AI-driven recommendations, and monitoring tools to simplify and enhance regulatory compliance processes for businesses.",
+  "product_overview": "ruleIQ is a next-generation autonomous compliance platform transforming traditional compliance tools into intelligent, AI-powered compliance partners. Leveraging advanced AI agents including IQ Agent, RAG Self-Critic, and LangGraph multi-agent workflows, it delivers trusted, proactive, and autonomous compliance management.",
   "core_goals": [
-    "Enable secure user authentication and role-based access control",
-    "Provide a responsive and intuitive user interface for managing compliance assessments, business profiles, and evidence",
-    "Integrate AI services for contextual guidance, assessment analysis, and personalized recommendations",
-    "Ensure data integrity and performance with robust database design and optimizations",
-    "Monitor system health, security events, and performance metrics with comprehensive observability",
-    "Implement strict security measures satisfying GDPR, ISO 27001, Cyber Essentials, and SOC 2 standards"
+    "Implement autonomous compliance orchestration through the IQ Agent using Neo4j GraphRAG knowledge base and LangGraph workflows",
+    "Ensure accuracy and reliability with RAG Self-Critic fact-checking and self-criticism systems",
+    "Enable seamless multi-agent conversational compliance assessments with LangGraph-based agents",
+    "Provide robust and secure JWT-based authentication with refresh tokens and RBAC middleware",
+    "Deliver real-time compliance analytics, evidence management, and reporting capabilities",
+    "Maintain high security standards, including rate limiting, input validation, and GDPR compliance",
+    "Provide comprehensive testing coverage and monitoring for system reliability and performance",
+    "Offer a freemium AI assessment strategy with secure public endpoints and strict abuse protections"
   ],
   "key_features": [
-    "JWT-based user authentication with registration, login, token refresh, and OAuth integration",
-    "Business profile management with detailed CRUD operations and compliance context tracking",
-    "AI-powered assessment assistance including question help, follow-ups, result analysis, and personalized policy recommendations",
-    "Dynamic and adaptive assessment workflows supporting multiple compliance frameworks (GDPR, ISO 27001, Cyber Essentials, etc.)",
-    "Evidence document management with support for multiple file types and AI-driven classification and validation",
-    "Real-time communication channels with WebSocket powered AI chat and streaming AI responses",
-    "Comprehensive monitoring dashboards covering system health, database performance, AI cost tracking, and security events",
-    "Multi-model AI integration with intelligent model selection and circuit breaker resilience",
-    "Automated security hardening including input validation, audit logging, rate limiting, and security headers",
-    "Performance optimization with connection pooling, caching, query optimization, and response streaming"
+    "JWT-based authentication system with AES-GCM encryption, refresh tokens, and RBAC middleware ensuring secure access control",
+    "IQ Agent AI Compliance Orchestrator using Neo4j GraphRAG for intelligent gap analysis, risk assessment, enforcement learning, and autonomous actions",
+    "RAG Self-Critic system for automated response validation, fact-checking, bias detection, and trust scoring",
+    "LangGraph multi-agent system managing conversational assessment workflows with state management and observability via LangSmith",
+    "AI-powered freemium compliance assessments with public endpoints including email capture, dynamic question generation, and AI-driven risk scoring",
+    "Policy generation and auto-update features powered by AI with customizable templates",
+    "Business profile management supporting detailed company information mapping for personalized compliance workflows",
+    "Dashboard with real-time analytics, risk visualization, and compliance scoring",
+    "Evidence collection and management system for document uploads and audit trail maintenance",
+    "Circuit breaker pattern and cost monitoring protecting AI service usage from abuse and ensuring reliable performance",
+    "Comprehensive testing suite covering unit, integration, E2E, performance, and security testing",
+    "OpenAPI/Swagger documented APIs with strict rate limiting and standardized error responses",
+    "Production-ready Docker multi-environment configuration and deployment setup"
   ],
   "user_flow_summary": [
-    "User registers or logs in securely via JWT authentication flow",
-    "User completes the business profile wizard capturing critical compliance context",
-    "User initiates a compliance assessment selecting one or multiple frameworks",
-    "The AI engine assists users by providing contextual question help and generating follow-up questions",
-    "User answers assessment questions, uploads supporting evidence, and saves progress",
-    "AI services analyze assessment results to identify compliance gaps and generate recommendations",
-    "User reviews AI-generated policies and implementation plans, with tasks tracked in the dashboard",
-    "System continuously monitors user activity, AI usage costs, database health, and security events",
-    "Administrators and users receive alerts and reports via integrated monitoring dashboards and notifications"
+    "User signs up or logs in via the JWT authentication system with secure token refresh and RBAC enforced access",
+    "User creates or updates business profile to personalize compliance services",
+    "User initiates a compliance assessment either through traditional form or conversational LangGraph agent",
+    "The IQ Agent orchestrates compliance queries by accessing Neo4j knowledge graph, retrieving relevant compliance patterns, and dynamically updating state",
+    "RAG Self-Critic validates AI-generated responses for factual accuracy and trusts score before delivering to the user",
+    "User interacts with conversational agent receiving AI-generated questions, provides answers, and receives real-time risk scoring and recommendations",
+    "Business user uploads evidence documents which are linked to compliance controls",
+    "User accesses dashboard to monitor compliance status, risk assessments, implementation progress, and reports",
+    "Admin or user requests AI-powered policy generation and reviews to maintain up-to-date compliance documents",
+    "System applies rate limiting, monitors AI usage costs, and provides circuit breakers to ensure service health and prevent abuse",
+    "Administrators monitor system health, logs, and analytics, and manage API access and security settings"
   ],
   "validation_criteria": [
-    "Authentication flow must successfully register, login, refresh tokens, and logout with secure token handling",
-    "Business profiles must support full CRUD operations without data integrity issues",
-    "AI assessment endpoints must respect rate limits and provide accurate, consistent AI responses",
-    "Frontend must render without hydration errors and handle navigation to dashboard and authenticated routes",
-    "Database migrations must fix column naming issues and preserve data integrity",
-    "Input validation must enforce whitelist policies preventing injection vulnerabilities",
-    "Performance benchmarks require API responses under 200ms P95 and database queries under 50ms",
-    "Security must meet requirements of GDPR, ISO 27001, Cyber Essentials, and SOC 2 frameworks including audit logging and encryption",
-    "Automated and manual testing must achieve >95% pass rate across unit, integration, AI, security, and frontend E2E tests"
+    "All protected endpoints enforce JWT-based authentication and RBAC permissions without bypass",
+    "Freemium and public endpoints implement rate limiting and abuse detection mechanisms effectively",
+    "AI responses meet minimum confidence thresholds as validated by RAG Self-Critic before delivery",
+    "Compliance knowledge graph is initialized and maintained with up-to-date domain and regulation data",
+    "Memory management consolidates context and patterns correctly without loss",
+    "All API endpoints conform to OpenAPI documentation specifications and standardized error formats",
+    "Frontend integrations use the standardized API client with automatic versioning and error handling",
+    "Comprehensive test coverage is maintained with >95% backend and >90% frontend coverage",
+    "Performance targets are met with API response times < 200ms for basic queries and < 3 minutes for complex assessments",
+    "Data handling complies fully with GDPR including consent recording and secure PII processing",
+    "Security audit findings for the freemium strategy are remediated with implemented authentication, session management, and data protection",
+    "Monitoring systems provide alerts for rate limit breaches, security incidents, and performance degradations",
+    "Deployment processes are fully documented and tested including database migration and environment configuration"
   ],
   "code_summary": {
     "tech_stack": [
       "Python 3.11+",
       "FastAPI",
-      "Next.js 15",
+      "Next.js 15.2.4",
       "TypeScript",
-      "React 18",
-      "Neon PostgreSQL",
+      "React 19",
+      "PostgreSQL (Neon)",
       "Redis",
+      "Celery",
+      "Docker",
       "TailwindCSS",
       "shadcn/ui",
-      "JWT Authentication",
       "Zustand",
-      "TanStack Query"
+      "TanStack Query",
+      "Neo4j",
+      "LangGraph",
+      "OpenAI GPT",
+      "Google Gemini",
+      "JWT Authentication",
+      "Playwright",
+      "Pytest",
+      "Vitest"
     ],
     "features": [
       {
-        "name": "User Authentication",
-        "description": "JWT-based authentication with registration, login, and OAuth integration",
+        "name": "Authentication System",
+        "description": "JWT-based authentication with AES-GCM encryption, refresh tokens, and RBAC middleware",
         "files": [
-          "api/routers/auth.py",
-          "frontend/app/(auth)/login/page.tsx",
-          "frontend/app/(auth)/register/page.tsx"
+          "api/auth.py",
+          "services/auth_service.py",
+          "api/middleware/rbac_middleware.py",
+          "api/dependencies/rbac_auth.py",
+          "frontend/lib/api/auth.ts",
+          "frontend/components/auth/login-form.tsx",
+          "frontend/components/auth/signup-form.tsx"
         ]
       },
       {
-        "name": "Dashboard",
-        "description": "Main user dashboard with navigation and overview components",
+        "name": "IQ Agent - AI Compliance Orchestrator",
+        "description": "Autonomous compliance intelligence agent with GraphRAG, memory management, and decision-making capabilities",
         "files": [
-          "frontend/app/(dashboard)/page.tsx",
-          "frontend/components/dashboard/dashboard-nav.tsx"
+          "services/iq_agent.py",
+          "services/iq_agent_hybrid.py",
+          "services/neo4j_service.py",
+          "services/compliance_memory_manager.py",
+          "services/compliance_retrieval_queries.py",
+          "tests/unit/services/test_iq_agent.py"
+        ]
+      },
+      {
+        "name": "Assessment Agent",
+        "description": "LangGraph-based agent for compliance assessments with React and freemium capabilities",
+        "files": [
+          "services/assessment_agent.py",
+          "services/assessment_agent_react.py",
+          "services/freemium_assessment_service.py",
+          "langgraph_agent/assessment_agent.py",
+          "api/routers/assessments.py"
+        ]
+      },
+      {
+        "name": "Policy Generation Service",
+        "description": "AI-powered policy document generation with templates and customization",
+        "files": [
+          "services/policy_service.py",
+          "api/routers/policies.py",
+          "frontend/app/(dashboard)/policies/page.tsx",
+          "frontend/lib/api/policies.ts"
         ]
       },
       {
         "name": "Business Profile Management",
-        "description": "CRUD operations for business profiles with compliance tracking",
+        "description": "Company profile creation and management with field mapping for database compatibility",
         "files": [
-          "api/routers/business_profiles.py",
-          "frontend/app/(dashboard)/business-profiles/page.tsx"
+          "services/business_service.py",
+          "api/routers/business.py",
+          "frontend/app/(dashboard)/business-profile/page.tsx",
+          "frontend/lib/api/business-profile/field-mapper.ts",
+          "database/models/business.py"
         ]
       },
       {
-        "name": "AI Policy Generation",
-        "description": "AI-powered policy generation with framework compliance",
+        "name": "AI Service Circuit Breaker",
+        "description": "Resilient AI service layer with circuit breaker pattern, fallback system, and performance optimization",
         "files": [
-          "api/routers/ai_policy_generation.py",
-          "frontend/app/(dashboard)/ai-policy/page.tsx"
+          "services/ai/circuit_breaker.py",
+          "services/ai/fallback_system.py",
+          "services/ai/performance_optimizer.py",
+          "services/ai/gemini_service.py",
+          "services/ai/openai_service.py",
+          "api/utils/circuit_breaker.py"
+        ]
+      },
+      {
+        "name": "RAG Self-Critic System",
+        "description": "Retrieval-Augmented Generation with self-critique and fact-checking capabilities",
+        "files": [
+          "services/rag_self_critic.py",
+          "services/rag_fact_checker.py",
+          "services/agentic_rag.py",
+          "tests/unit/services/test_rag_self_critic.py"
+        ]
+      },
+      {
+        "name": "Compliance Framework Management",
+        "description": "UK compliance framework management including GDPR, ISO27001, and other regulations",
+        "files": [
+          "services/framework_service.py",
+          "services/compliance_loader.py",
+          "api/routers/frameworks.py",
+          "database/models/framework.py",
+          "iso27001-templates/"
+        ]
+      },
+      {
+        "name": "Dashboard Analytics",
+        "description": "Real-time compliance analytics and visualization dashboard",
+        "files": [
+          "frontend/app/(dashboard)/dashboard/page.tsx",
+          "frontend/components/dashboard/compliance-score.tsx",
+          "frontend/components/dashboard/risk-assessment.tsx",
+          "frontend/lib/stores/dashboard-store.ts"
+        ]
+      },
+      {
+        "name": "Chat Interface",
+        "description": "AI-powered chat interface for compliance queries and assistance",
+        "files": [
+          "frontend/app/(dashboard)/chat/page.tsx",
+          "frontend/components/chat/chat-interface.tsx",
+          "frontend/components/chat/chat-widget.tsx",
+          "frontend/lib/stores/chat.store.ts",
+          "api/routers/chat.py"
+        ]
+      },
+      {
+        "name": "Evidence Collection System",
+        "description": "Document upload and evidence management for compliance verification",
+        "files": [
+          "services/evidence_service.py",
+          "api/routers/evidence.py",
+          "frontend/app/(dashboard)/evidence/page.tsx",
+          "frontend/lib/api/evidence.ts"
+        ]
+      },
+      {
+        "name": "Celery Task Queue",
+        "description": "Asynchronous task processing for long-running operations",
+        "files": [
+          "celery_app.py",
+          "workers/celery_worker.py",
+          "api/background/tasks.py",
+          "config/celery_config.py"
+        ]
+      },
+      {
+        "name": "Rate Limiting Middleware",
+        "description": "API rate limiting with different tiers for general, AI, and auth endpoints",
+        "files": [
+          "api/middleware/rate_limiter.py",
+          "api/middleware/rate_limit_config.py"
+        ]
+      },
+      {
+        "name": "Database Migration System",
+        "description": "Alembic-based database schema versioning and migration",
+        "files": [
+          "alembic.ini",
+          "alembic/versions/",
+          "database/db_setup.py",
+          "database/models.py",
+          "database/init_db.py"
+        ]
+      },
+      {
+        "name": "Testing Infrastructure",
+        "description": "Comprehensive testing suite with unit, integration, and E2E tests",
+        "files": [
+          "tests/conftest.py",
+          "tests/unit/",
+          "frontend/tests/",
+          "frontend/tests/e2e/",
+          "Makefile",
+          "pytest.ini"
+        ]
+      },
+      {
+        "name": "Monitoring and Logging",
+        "description": "Application monitoring, performance tracking, and structured logging",
+        "files": [
+          "services/monitoring/",
+          "services/performance_monitor.py",
+          "monitoring/",
+          "logs/"
+        ]
+      },
+      {
+        "name": "Frontend State Management",
+        "description": "Zustand stores for client state and TanStack Query for server state",
+        "files": [
+          "frontend/lib/stores/",
+          "frontend/lib/tanstack-query/hooks/",
+          "frontend/lib/providers/query-provider.tsx"
+        ]
+      },
+      {
+        "name": "Design System Components",
+        "description": "Teal design system with shadcn/ui components and custom UI elements",
+        "files": [
+          "frontend/components/ui/",
+          "frontend/lib/utils.ts",
+          "frontend/tailwind.config.ts",
+          "frontend/app/globals.css"
+        ]
+      },
+      {
+        "name": "API Documentation",
+        "description": "OpenAPI/Swagger documentation for all API endpoints",
+        "files": [
+          "api/main.py",
+          "docs/API_ENDPOINTS_DOCUMENTATION.md",
+          "docs/api/"
+        ]
+      },
+      {
+        "name": "Docker Configuration",
+        "description": "Multi-environment Docker setup for development and production",
+        "files": [
+          "docker-compose.yml",
+          "docker-compose.prod.yml",
+          "docker-compose.freemium.yml",
+          "Dockerfile",
+          "Dockerfile.freemium"
+        ]
+      },
+      {
+        "name": "Lead Scoring Service",
+        "description": "AI-based lead qualification and scoring for sales automation",
+        "files": [
+          "services/lead_scoring_service.py",
+          "api/routers/leads.py"
+        ]
+      },
+      {
+        "name": "Implementation Tracking",
+        "description": "Compliance implementation status tracking and progress monitoring",
+        "files": [
+          "services/implementation_service.py",
+          "services/readiness_service.py",
+          "frontend/app/(dashboard)/implementation/page.tsx"
+        ]
+      },
+      {
+        "name": "Reporting Engine",
+        "description": "Compliance report generation and export functionality",
+        "files": [
+          "services/reporting/",
+          "api/routers/reports.py",
+          "frontend/app/(dashboard)/reports/page.tsx"
+        ]
+      },
+      {
+        "name": "Integration Connectors",
+        "description": "External service integrations including Companies House and other APIs",
+        "files": [
+          "api/integrations/",
+          "services/agentic_integration.py",
+          "api/clients/"
+        ]
+      },
+      {
+        "name": "Performance Optimization",
+        "description": "AI service performance optimization and caching strategies",
+        "files": [
+          "services/ai_performance_optimizer.py",
+          "api/utils/cache.py",
+          "frontend/lib/utils/performance.ts"
+        ]
+      },
+      {
+        "name": "Security Utilities",
+        "description": "Security utilities including encryption, validation, and sanitization",
+        "files": [
+          "api/utils/security.py",
+          "api/utils/encryption.py",
+          "frontend/lib/utils/security.ts"
+        ]
+      },
+      {
+        "name": "Environment Configuration",
+        "description": "Environment variable management and configuration",
+        "files": [
+          ".env.template",
+          "config/",
+          "frontend/.env.local"
+        ]
+      },
+      {
+        "name": "Landing Page",
+        "description": "Marketing landing page with animations and call-to-action",
+        "files": [
+          "frontend/app/page.tsx",
+          "frontend/components/landing/",
+          "frontend/app/marketing/page.tsx"
+        ]
+      },
+      {
+        "name": "User Settings",
+        "description": "User profile and settings management interface",
+        "files": [
+          "frontend/app/(dashboard)/settings/page.tsx",
+          "frontend/components/settings/",
+          "api/routers/users.py"
         ]
       }
     ]

@@ -365,8 +365,8 @@ export const useAuthStore = create<AuthState>()(
             !updatedUser ||
             typeof updatedUser.id !== 'string' ||
             typeof updatedUser.email !== 'string' ||
-            typeof updatedUser.is_active !== 'boolean' ||
-            typeof updatedUser.created_at !== 'string'
+            typeof updatedUser.isActive !== 'boolean' ||
+            typeof updatedUser.createdAt !== 'string'
           ) {
             throw new Error('Invalid user data received from server');
           }

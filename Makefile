@@ -47,35 +47,35 @@ install-test-deps:
 # Chunked test execution modes
 test-fast:
 	@echo "🚀 Running fast unit tests..."
-	python scripts/run_tests_chunked.py --mode fast
+	@. .venv/bin/activate && python scripts/run_tests_chunked.py --mode fast
 
 test-integration:
 	@echo "🔗 Running integration tests..."
-	python scripts/run_tests_chunked.py --mode integration
+	@. .venv/bin/activate && python scripts/run_tests_chunked.py --mode integration
 
 test-performance:
 	@echo "⚡ Running performance tests..."
-	python scripts/run_tests_chunked.py --mode performance
+	@. .venv/bin/activate && python scripts/run_tests_chunked.py --mode performance
 
 test-ai:
 	@echo "🤖 Running AI and compliance tests..."
-	python scripts/run_tests_chunked.py --mode ai
+	@. .venv/bin/activate && python scripts/run_tests_chunked.py --mode ai
 
 test-security:
 	@echo "🔒 Running security tests..."
-	python scripts/run_tests_chunked.py --mode security
+	@. .venv/bin/activate && python scripts/run_tests_chunked.py --mode security
 
 test-e2e:
 	@echo "🎯 Running end-to-end tests..."
-	python scripts/run_tests_chunked.py --mode e2e
+	@. .venv/bin/activate && python scripts/run_tests_chunked.py --mode e2e
 
 test-full:
 	@echo "🎪 Running complete test suite..."
-	python scripts/run_tests_chunked.py --mode full
+	@. .venv/bin/activate && python scripts/run_tests_chunked.py --mode full
 
 test-ci:
 	@echo "🏗️ Running CI-optimized tests..."
-	python scripts/run_tests_chunked.py --mode ci
+	@. .venv/bin/activate && python scripts/run_tests_chunked.py --mode ci
 
 # Traditional pytest execution
 test-parallel:

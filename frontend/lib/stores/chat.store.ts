@@ -11,6 +11,9 @@ interface ChatState {
   // Conversations
   conversations: ChatConversation[];
   activeConversationId: string | null;
+  
+  // Widget-specific conversation
+  widgetConversationId: string | null;
 
   // Messages
   messages: Record<string, ChatMessage[]>; // conversationId -> messages
@@ -36,8 +39,12 @@ interface ChatState {
   loadConversation: (conversationId: string) => Promise<void>;
   createConversation: (title?: string, initialMessage?: string) => Promise<void>;
   setActiveConversation: (conversationId: string | null) => void;
-  sendMessage: (message: string) => Promise<void>;
+  sendMessage: (message: string, metadata?: Record<string, any>) => Promise<void>;
   deleteConversation: (conversationId: string) => Promise<void>;
+  
+  // Widget-specific actions
+  createWidgetConversation: () => Promise<void>;
+  loadWidgetConversation: () => Promise<void>;
 
   // WebSocket actions
   connectWebSocket: (conversationId: string) => void;
@@ -51,6 +58,7 @@ interface ChatState {
 const initialState = {
   conversations: [],
   activeConversationId: null,
+  widgetConversationId: null,
   messages: {},
   isConnected: false,
   isTyping: false,
@@ -145,9 +153,13 @@ export const useChatStore = create<ChatState>()(
         }
       },
 
-      sendMessage: async (message: string) => {
+      sendMessage: async (message: string, metadata?: Record<string, any>) => {
         const state = get();
-        if (!state.activeConversationId) return;
+        const conversationId = metadata?.source === 'widget' 
+          ? state.widgetConversationId 
+          : state.activeConversationId;
+        
+        if (!conversationId) return;
 
         set({ isSendingMessage: true, error: null });
 
@@ -157,18 +169,18 @@ export const useChatStore = create<ChatState>()(
         // Optimistically add message to UI
         const tempMessage: ChatMessage = {
           id: `temp-${Date.now()}`,
-          conversation_id: state.activeConversationId,
+          conversation_id: conversationId,
           role: 'user',
           content: message,
-          sequence_number: (state.messages[state.activeConversationId]?.length || 0) + 1,
+          sequence_number: (state.messages[conversationId]?.length || 0) + 1,
           created_at: new Date().toISOString(),
         };
 
         set((state) => ({
           messages: {
             ...state.messages,
-            [state.activeConversationId!]: [
-              ...(state.messages[state.activeConversationId!] || [] || []),
+            [conversationId]: [
+              ...(state.messages[conversationId] || []),
               tempMessage,
             ],
           },
@@ -179,10 +191,10 @@ export const useChatStore = create<ChatState>()(
           if (state.isConnected) {
             chatService.sendWebSocketMessage({
               type: 'message',
-              data: { content: message },
+              data: { content: message, metadata },
             });
           } else {
-            const response = await chatService.sendMessage(state.activeConversationId, {
+            const response = await chatService.sendMessage(conversationId, {
               content: message,
             });
 
@@ -190,9 +202,9 @@ export const useChatStore = create<ChatState>()(
             set((state) => ({
               messages: {
                 ...state.messages,
-                [state.activeConversationId!]:
-                  state.messages[state.activeConversationId!] ||
-                  [].map((msg) => (msg.id === tempMessage.id ? response : msg)),
+                [conversationId]: state.messages[conversationId]?.map((msg) => 
+                  msg.id === tempMessage.id ? response : msg
+                ) || [],
               },
             }));
           }
@@ -203,9 +215,9 @@ export const useChatStore = create<ChatState>()(
           set((state) => ({
             messages: {
               ...state.messages,
-              [state.activeConversationId!]:
-                state.messages[state.activeConversationId!] ||
-                [].filter((msg) => msg.id !== tempMessage.id),
+              [conversationId]: state.messages[conversationId]?.filter((msg) => 
+                msg.id !== tempMessage.id
+              ) || [],
             },
             error: error.message || 'Failed to send message',
             isSendingMessage: false,
@@ -243,7 +255,7 @@ export const useChatStore = create<ChatState>()(
 
       connectWebSocket: (conversationId: string) => {
         const state = get();
-        const authToken = useAuthStore.getState().accessToken;
+        const authToken = useAuthStore.getState().getToken();
 
         if (!authToken) {
           set({ error: 'Authentication required for chat' });
@@ -321,6 +333,54 @@ export const useChatStore = create<ChatState>()(
         chatService.disconnectWebSocket();
       },
 
+      createWidgetConversation: async () => {
+        set({ error: null });
+        try {
+          const response = await chatService.createConversation({
+            title: 'Chat Support',
+            initial_message: 'Chat widget conversation',
+          });
+
+          set((state) => ({
+            widgetConversationId: response.conversation.id,
+            messages: {
+              ...state.messages,
+              [response.conversation.id]: response.messages || [],
+            },
+          }));
+
+          // Connect WebSocket for the widget conversation
+          get().connectWebSocket(response.conversation.id);
+        } catch (error: any) {
+          set({ error: error.message || 'Failed to create widget conversation' });
+        }
+      },
+
+      loadWidgetConversation: async () => {
+        const state = get();
+        if (!state.widgetConversationId) return;
+
+        set({ isLoadingMessages: true, error: null });
+        try {
+          const response = await chatService.getConversation(state.widgetConversationId);
+          set((state) => ({
+            messages: {
+              ...state.messages,
+              [state.widgetConversationId!]: response.messages,
+            },
+            isLoadingMessages: false,
+          }));
+
+          // Connect WebSocket for real-time updates
+          get().connectWebSocket(state.widgetConversationId);
+        } catch (error: any) {
+          set({
+            error: error.message || 'Failed to load widget conversation',
+            isLoadingMessages: false,
+          });
+        }
+      },
+
       clearError: () => set({ error: null }),
 
       reset: () => {
@@ -333,6 +393,7 @@ export const useChatStore = create<ChatState>()(
       partialize: (state) => ({
         conversations: state.conversations,
         activeConversationId: state.activeConversationId,
+        widgetConversationId: state.widgetConversationId,
         messages: state.messages,
       }),
     },

@@ -5,7 +5,7 @@ import pytest
 from unittest.mock import Mock, patch
 from fastapi import HTTPException
 
-from api.auth_stack import verify_stack_token, get_current_user
+from api.auth import verify_stack_token, get_current_user
 
 
 @pytest.mark.asyncio

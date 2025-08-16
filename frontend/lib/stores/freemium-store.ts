@@ -78,15 +78,14 @@ const initialState: FreemiumState = {
   // Assessment state
   currentQuestion: null,
   currentQuestionId: null, // Add for test compatibility
-  responses: {}, // Use object for test compatibility
-  progress: 0, // Use number for test compatibility
-  progressObj: {
+  responses: [], // Use array as per type definition
+  progress: {
     current_question: 0,
     total_questions_estimate: 10,
     progress_percentage: 0,
     questions_answered: 0,
     time_elapsed_seconds: 0,
-  },
+  } as AssessmentProgress, // Use proper AssessmentProgress object
   isAssessmentStarted: false,
   isAssessmentComplete: false,
   assessmentStarted: false, // Add for test compatibility
@@ -119,6 +118,12 @@ const initialState: FreemiumState = {
   utmMedium: null,
   utmTerm: null,
   utmContent: null,
+  
+  // Computed properties (will be overridden by getters)
+  isSessionExpired: false,
+  canStartAssessment: false,
+  hasValidSession: false,
+  responseCount: 0,
 };
 
 // ============================================================================
@@ -313,7 +318,7 @@ export const useFreemiumStore = create<FreemiumStore & FreemiumStoreComputed>()(
           sessionToken: null,
           sessionExpiry: null,
           currentQuestion: null,
-          responses: {}, // Use object for test compatibility
+          responses: [], // Use array for consistency
           isAssessmentStarted: false,
           isAssessmentComplete: false,
           results: null,

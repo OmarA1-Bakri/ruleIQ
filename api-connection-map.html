@@ -1,0 +1,5196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RuleIQ API Connection Map</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+    
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+    
+    .header h1 {
+      font-size: 2rem;
+      margin-bottom: 10px;
+    }
+    
+    .stats {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      margin-top: 20px;
+    }
+    
+    .stat {
+      text-align: center;
+    }
+    
+    .stat-value {
+      font-size: 2rem;
+      font-weight: bold;
+    }
+    
+    .stat-label {
+      font-size: 0.9rem;
+      opacity: 0.9;
+    }
+    
+    .filters {
+      padding: 20px 30px;
+      background: #f8f9fa;
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    
+    .filter-btn {
+      padding: 8px 16px;
+      border: 2px solid #e5e7eb;
+      background: white;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .filter-btn:hover {
+      background: #f3f4f6;
+    }
+    
+    .filter-btn.active {
+      background: #667eea;
+      color: white;
+      border-color: #667eea;
+    }
+    
+    .search-box {
+      flex: 1;
+      padding: 8px 16px;
+      border: 2px solid #e5e7eb;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    
+    .connections {
+      padding: 30px;
+    }
+    
+    .connection-grid {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 20px;
+      align-items: stretch;
+    }
+    
+    .column {
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 20px;
+    }
+    
+    .column-title {
+      font-weight: bold;
+      font-size: 1.1rem;
+      margin-bottom: 15px;
+      color: #374151;
+    }
+    
+    .connection-row {
+      display: contents;
+    }
+    
+    .connection-row:hover .endpoint-card {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    
+    .endpoint-card {
+      background: white;
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      border: 1px solid #e5e7eb;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+    
+    .endpoint-method {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: bold;
+      margin-right: 8px;
+    }
+    
+    .method-GET { background: #d1fae5; color: #065f46; }
+    .method-POST { background: #dbeafe; color: #1e40af; }
+    .method-PUT { background: #fed7aa; color: #92400e; }
+    .method-PATCH { background: #fef3c7; color: #92400e; }
+    .method-DELETE { background: #fee2e2; color: #991b1b; }
+    
+    .endpoint-path {
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      color: #4b5563;
+      word-break: break-all;
+    }
+    
+    .endpoint-file {
+      font-size: 11px;
+      color: #9ca3af;
+      margin-top: 4px;
+    }
+    
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    
+    .status-line {
+      width: 100px;
+      height: 2px;
+      position: relative;
+    }
+    
+    .status-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      position: absolute;
+      top: -5px;
+      left: 44px;
+    }
+    
+    .status-connected { background: #10b981; }
+    .status-mismatched { background: #f59e0b; }
+    .status-missing { background: #ef4444; }
+    .status-unused { background: #6b7280; }
+    
+    .legend {
+      padding: 20px 30px;
+      background: #f8f9fa;
+      border-top: 1px solid #e5e7eb;
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+    }
+    
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: #6b7280;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🔗 API Connection Map</h1>
+      <p>Frontend-Backend Endpoint Connections for RuleIQ</p>
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-value" id="stat-connected">0</div>
+          <div class="stat-label">Connected</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value" id="stat-missing">0</div>
+          <div class="stat-label">Missing</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value" id="stat-unused">0</div>
+          <div class="stat-label">Unused</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="filters">
+      <button class="filter-btn active" onclick="filterConnections('all')">All</button>
+      <button class="filter-btn" onclick="filterConnections('connected')">✅ Connected</button>
+      <button class="filter-btn" onclick="filterConnections('missing')">❌ Missing</button>
+      <button class="filter-btn" onclick="filterConnections('unused')">🔄 Unused</button>
+      <input type="text" class="search-box" placeholder="Search endpoints..." onkeyup="searchConnections(this.value)">
+    </div>
+    
+    <div class="connections">
+      <div class="connection-grid" id="connections-grid">
+        <!-- Connections will be inserted here -->
+      </div>
+    </div>
+    
+    <div class="legend">
+      <div class="legend-item">
+        <div class="legend-dot status-connected"></div>
+        <span>Connected & Working</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot status-mismatched"></div>
+        <span>Path Mismatch</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot status-missing"></div>
+        <span>Not Connected</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot status-unused"></div>
+        <span>Unused Backend</span>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    const connections = [
+  {
+    "frontend": "ai-self-review.service.ts:POST:/ai/self-review",
+    "frontendDetails": {
+      "file": "ai-self-review.service.ts",
+      "method": "POST",
+      "path": "/ai/self-review",
+      "line": 297
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "ai-self-review.service.ts:POST:/ai/quick-confidence-check",
+    "frontendDetails": {
+      "file": "ai-self-review.service.ts",
+      "method": "POST",
+      "path": "/ai/quick-confidence-check",
+      "line": 347
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "assessments-ai.service.ts:POST:/ai/assessments/followup",
+    "frontendDetails": {
+      "file": "assessments-ai.service.ts",
+      "method": "POST",
+      "path": "/ai/assessments/followup",
+      "line": 339
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "assessments-ai.service.ts:GET:/ai/assessments/metrics",
+    "frontendDetails": {
+      "file": "assessments-ai.service.ts",
+      "method": "GET",
+      "path": "/ai/assessments/metrics",
+      "line": 559
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "assessments.service.ts:GET:/assessments",
+    "frontendDetails": {
+      "file": "assessments.service.ts",
+      "method": "GET",
+      "path": "/assessments",
+      "line": 33
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "assessments.service.ts:GET:/assessments/${id}",
+    "frontendDetails": {
+      "file": "assessments.service.ts",
+      "method": "GET",
+      "path": "/assessments/${id}",
+      "line": 43
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "assessments.service.ts:POST:/assessments",
+    "frontendDetails": {
+      "file": "assessments.service.ts",
+      "method": "POST",
+      "path": "/assessments",
+      "line": 51
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "assessments.service.ts:PATCH:/assessments/${id}",
+    "frontendDetails": {
+      "file": "assessments.service.ts",
+      "method": "PATCH",
+      "path": "/assessments/${id}",
+      "line": 59
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "assessments.service.ts:POST:/assessments/${id}/complete",
+    "frontendDetails": {
+      "file": "assessments.service.ts",
+      "method": "POST",
+      "path": "/assessments/${id}/complete",
+      "line": 98
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "assessments.service.ts:GET:/assessments/${id}/results",
+    "frontendDetails": {
+      "file": "assessments.service.ts",
+      "method": "GET",
+      "path": "/assessments/${id}/results",
+      "line": 106
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "assessments.service.ts:POST:/assessments/quick",
+    "frontendDetails": {
+      "file": "assessments.service.ts",
+      "method": "POST",
+      "path": "/assessments/quick",
+      "line": 114
+    },
+    "backend": {
+      "path": "/api/v1/assessments/quick",
+      "method": "POST",
+      "summary": "Quick Assessment",
+      "tags": [
+        "Assessments"
+      ],
+      "used": true
+    },
+    "status": "connected"
+  },
+  {
+    "frontend": "business-profiles.service.ts:GET:/business-profiles",
+    "frontendDetails": {
+      "file": "business-profiles.service.ts",
+      "method": "GET",
+      "path": "/business-profiles",
+      "line": 28
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "business-profiles.service.ts:GET:/business-profiles/${id}",
+    "frontendDetails": {
+      "file": "business-profiles.service.ts",
+      "method": "GET",
+      "path": "/business-profiles/${id}",
+      "line": 41
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "business-profiles.service.ts:POST:/business-profiles",
+    "frontendDetails": {
+      "file": "business-profiles.service.ts",
+      "method": "POST",
+      "path": "/business-profiles",
+      "line": 128
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "business-profiles.service.ts:PUT:/business-profiles/${id}",
+    "frontendDetails": {
+      "file": "business-profiles.service.ts",
+      "method": "PUT",
+      "path": "/business-profiles/${id}",
+      "line": 74
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "business-profiles.service.ts:GET:/business-profiles/${id}/compliance",
+    "frontendDetails": {
+      "file": "business-profiles.service.ts",
+      "method": "GET",
+      "path": "/business-profiles/${id}/compliance",
+      "line": 95
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "chat.service.ts:GET:/chat/conversations/${id}",
+    "frontendDetails": {
+      "file": "chat.service.ts",
+      "method": "GET",
+      "path": "/chat/conversations/${id}",
+      "line": 56
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "chat.service.ts:POST:/chat/conversations",
+    "frontendDetails": {
+      "file": "chat.service.ts",
+      "method": "POST",
+      "path": "/chat/conversations",
+      "line": 70
+    },
+    "backend": {
+      "path": "/api/v1/chat/conversations",
+      "method": "POST",
+      "summary": "Create Conversation",
+      "tags": [
+        "AI Assistant",
+        "Chat Assistant"
+      ],
+      "used": true
+    },
+    "status": "connected"
+  },
+  {
+    "frontend": "chat.service.ts:POST:/chat/evidence-recommendations",
+    "frontendDetails": {
+      "file": "chat.service.ts",
+      "method": "POST",
+      "path": "/chat/evidence-recommendations",
+      "line": 109
+    },
+    "backend": {
+      "path": "/api/v1/chat/evidence-recommendations",
+      "method": "POST",
+      "summary": "Get Evidence Recommendations",
+      "tags": [
+        "AI Assistant",
+        "Chat Assistant"
+      ],
+      "used": true
+    },
+    "status": "connected"
+  },
+  {
+    "frontend": "chat.service.ts:POST:/chat/compliance-gap-analysis",
+    "frontendDetails": {
+      "file": "chat.service.ts",
+      "method": "POST",
+      "path": "/chat/compliance-gap-analysis",
+      "line": 123
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "chat.service.ts:GET:/chat/smart-compliance-guidance",
+    "frontendDetails": {
+      "file": "chat.service.ts",
+      "method": "GET",
+      "path": "/chat/smart-compliance-guidance",
+      "line": 185
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "chat.service.ts:GET:/chat/cache/metrics",
+    "frontendDetails": {
+      "file": "chat.service.ts",
+      "method": "GET",
+      "path": "/chat/cache/metrics",
+      "line": 195
+    },
+    "backend": {
+      "path": "/api/v1/chat/cache/metrics",
+      "method": "GET",
+      "summary": "Get Ai Cache Metrics",
+      "tags": [
+        "AI Assistant",
+        "Chat Assistant"
+      ],
+      "used": true
+    },
+    "status": "connected"
+  },
+  {
+    "frontend": "chat.service.ts:DELETE:/chat/cache/clear?pattern=${encodeURIComponent(pattern)}",
+    "frontendDetails": {
+      "file": "chat.service.ts",
+      "method": "DELETE",
+      "path": "/chat/cache/clear?pattern=${encodeURIComponent(pattern)}",
+      "line": 207
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "chat.service.ts:GET:/chat/performance/metrics",
+    "frontendDetails": {
+      "file": "chat.service.ts",
+      "method": "GET",
+      "path": "/chat/performance/metrics",
+      "line": 215
+    },
+    "backend": {
+      "path": "/api/v1/chat/performance/metrics",
+      "method": "GET",
+      "summary": "Get Ai Performance Metrics",
+      "tags": [
+        "AI Assistant",
+        "Chat Assistant"
+      ],
+      "used": true
+    },
+    "status": "connected"
+  },
+  {
+    "frontend": "compliance.service.ts:GET:/compliance/status",
+    "frontendDetails": {
+      "file": "compliance.service.ts",
+      "method": "GET",
+      "path": "/compliance/status",
+      "line": 56
+    },
+    "backend": {
+      "path": "/api/v1/compliance/status",
+      "method": "GET",
+      "summary": "Get Compliance Status",
+      "tags": [
+        "Compliance Status"
+      ],
+      "used": true
+    },
+    "status": "connected"
+  },
+  {
+    "frontend": "compliance.service.ts:GET:/compliance/status/${frameworkId}",
+    "frontendDetails": {
+      "file": "compliance.service.ts",
+      "method": "GET",
+      "path": "/compliance/status/${frameworkId}",
+      "line": 69
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "compliance.service.ts:POST:/compliance/tasks",
+    "frontendDetails": {
+      "file": "compliance.service.ts",
+      "method": "POST",
+      "path": "/compliance/tasks",
+      "line": 98
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "compliance.service.ts:PATCH:/compliance/tasks/${taskId}",
+    "frontendDetails": {
+      "file": "compliance.service.ts",
+      "method": "PATCH",
+      "path": "/compliance/tasks/${taskId}",
+      "line": 109
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "compliance.service.ts:POST:/compliance/risks",
+    "frontendDetails": {
+      "file": "compliance.service.ts",
+      "method": "POST",
+      "path": "/compliance/risks",
+      "line": 135
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "compliance.service.ts:PATCH:/compliance/risks/${riskId}",
+    "frontendDetails": {
+      "file": "compliance.service.ts",
+      "method": "PATCH",
+      "path": "/compliance/risks/${riskId}",
+      "line": 146
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "compliance.service.ts:GET:/compliance/timeline",
+    "frontendDetails": {
+      "file": "compliance.service.ts",
+      "method": "GET",
+      "path": "/compliance/timeline",
+      "line": 174
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "compliance.service.ts:GET:/compliance/dashboard",
+    "frontendDetails": {
+      "file": "compliance.service.ts",
+      "method": "GET",
+      "path": "/compliance/dashboard",
+      "line": 202
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "compliance.service.ts:POST:/compliance/certificate/generate",
+    "frontendDetails": {
+      "file": "compliance.service.ts",
+      "method": "POST",
+      "path": "/compliance/certificate/generate",
+      "line": 220
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "dashboard.service.ts:GET:/dashboard",
+    "frontendDetails": {
+      "file": "dashboard.service.ts",
+      "method": "GET",
+      "path": "/dashboard",
+      "line": 82
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "dashboard.service.ts:GET:/dashboard/widgets",
+    "frontendDetails": {
+      "file": "dashboard.service.ts",
+      "method": "GET",
+      "path": "/dashboard/widgets",
+      "line": 99
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "dashboard.service.ts:GET:/dashboard/notifications",
+    "frontendDetails": {
+      "file": "dashboard.service.ts",
+      "method": "GET",
+      "path": "/dashboard/notifications",
+      "line": 144
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "dashboard.service.ts:GET:/dashboard/quick-actions",
+    "frontendDetails": {
+      "file": "dashboard.service.ts",
+      "method": "GET",
+      "path": "/dashboard/quick-actions",
+      "line": 176
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "dashboard.service.ts:GET:/dashboard/recommendations",
+    "frontendDetails": {
+      "file": "dashboard.service.ts",
+      "method": "GET",
+      "path": "/dashboard/recommendations",
+      "line": 205
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "evidence-collection.service.ts:GET:/evidence-collection/plans",
+    "frontendDetails": {
+      "file": "evidence-collection.service.ts",
+      "method": "GET",
+      "path": "/evidence-collection/plans",
+      "line": 69
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "evidence.service.ts:GET:/evidence",
+    "frontendDetails": {
+      "file": "evidence.service.ts",
+      "method": "GET",
+      "path": "/evidence",
+      "line": 52
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "evidence.service.ts:GET:/evidence/${id}",
+    "frontendDetails": {
+      "file": "evidence.service.ts",
+      "method": "GET",
+      "path": "/evidence/${id}",
+      "line": 62
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "evidence.service.ts:POST:/evidence",
+    "frontendDetails": {
+      "file": "evidence.service.ts",
+      "method": "POST",
+      "path": "/evidence",
+      "line": 70
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "evidence.service.ts:PATCH:/evidence/${id}",
+    "frontendDetails": {
+      "file": "evidence.service.ts",
+      "method": "PATCH",
+      "path": "/evidence/${id}",
+      "line": 78
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "evidence.service.ts:POST:/evidence/bulk-update",
+    "frontendDetails": {
+      "file": "evidence.service.ts",
+      "method": "POST",
+      "path": "/evidence/bulk-update",
+      "line": 97
+    },
+    "backend": {
+      "path": "/api/v1/evidence/bulk-update",
+      "method": "POST",
+      "summary": "Bulk Update Evidence Status",
+      "tags": [
+        "Evidence"
+      ],
+      "used": true
+    },
+    "status": "connected"
+  },
+  {
+    "frontend": "evidence.service.ts:POST:/evidence/${id}/automation",
+    "frontendDetails": {
+      "file": "evidence.service.ts",
+      "method": "POST",
+      "path": "/evidence/${id}/automation",
+      "line": 133
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "evidence.service.ts:GET:/evidence/dashboard/${frameworkId}",
+    "frontendDetails": {
+      "file": "evidence.service.ts",
+      "method": "GET",
+      "path": "/evidence/dashboard/${frameworkId}",
+      "line": 154
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "evidence.service.ts:POST:/evidence/${id}/classify",
+    "frontendDetails": {
+      "file": "evidence.service.ts",
+      "method": "POST",
+      "path": "/evidence/${id}/classify",
+      "line": 173
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "evidence.service.ts:GET:/evidence/requirements/${frameworkId}",
+    "frontendDetails": {
+      "file": "evidence.service.ts",
+      "method": "GET",
+      "path": "/evidence/requirements/${frameworkId}",
+      "line": 201
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "evidence.service.ts:GET:/evidence/${id}/quality",
+    "frontendDetails": {
+      "file": "evidence.service.ts",
+      "method": "GET",
+      "path": "/evidence/${id}/quality",
+      "line": 215
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "foundation-evidence.service.ts:POST:/foundation/evidence/aws/configure",
+    "frontendDetails": {
+      "file": "foundation-evidence.service.ts",
+      "method": "POST",
+      "path": "/foundation/evidence/aws/configure",
+      "line": 98
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "foundation-evidence.service.ts:POST:/foundation/evidence/okta/configure",
+    "frontendDetails": {
+      "file": "foundation-evidence.service.ts",
+      "method": "POST",
+      "path": "/foundation/evidence/okta/configure",
+      "line": 113
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "foundation-evidence.service.ts:POST:/foundation/evidence/google/configure",
+    "frontendDetails": {
+      "file": "foundation-evidence.service.ts",
+      "method": "POST",
+      "path": "/foundation/evidence/google/configure",
+      "line": 128
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "foundation-evidence.service.ts:POST:/foundation/evidence/microsoft/configure",
+    "frontendDetails": {
+      "file": "foundation-evidence.service.ts",
+      "method": "POST",
+      "path": "/foundation/evidence/microsoft/configure",
+      "line": 143
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "foundation-evidence.service.ts:GET:/foundation/evidence/health",
+    "frontendDetails": {
+      "file": "foundation-evidence.service.ts",
+      "method": "GET",
+      "path": "/foundation/evidence/health",
+      "line": 207
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "frameworks.service.ts:GET:/frameworks",
+    "frontendDetails": {
+      "file": "frameworks.service.ts",
+      "method": "GET",
+      "path": "/frameworks",
+      "line": 18
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "frameworks.service.ts:GET:/frameworks/${id}",
+    "frontendDetails": {
+      "file": "frameworks.service.ts",
+      "method": "GET",
+      "path": "/frameworks/${id}",
+      "line": 26
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "frameworks.service.ts:GET:/frameworks/${frameworkId}/controls",
+    "frontendDetails": {
+      "file": "frameworks.service.ts",
+      "method": "GET",
+      "path": "/frameworks/${frameworkId}/controls",
+      "line": 55
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "frameworks.service.ts:GET:/frameworks/${frameworkId}/implementation-guide",
+    "frontendDetails": {
+      "file": "frameworks.service.ts",
+      "method": "GET",
+      "path": "/frameworks/${frameworkId}/implementation-guide",
+      "line": 75
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "frameworks.service.ts:GET:/frameworks/${frameworkId}/compliance-status",
+    "frontendDetails": {
+      "file": "frameworks.service.ts",
+      "method": "GET",
+      "path": "/frameworks/${frameworkId}/compliance-status",
+      "line": 98
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "frameworks.service.ts:POST:/frameworks/compare",
+    "frontendDetails": {
+      "file": "frameworks.service.ts",
+      "method": "POST",
+      "path": "/frameworks/compare",
+      "line": 123
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "frameworks.service.ts:GET:/frameworks/${frameworkId}/maturity-assessment",
+    "frontendDetails": {
+      "file": "frameworks.service.ts",
+      "method": "GET",
+      "path": "/frameworks/${frameworkId}/maturity-assessment",
+      "line": 148
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "implementation.service.ts:GET:/implementation/plans/${planId}",
+    "frontendDetails": {
+      "file": "implementation.service.ts",
+      "method": "GET",
+      "path": "/implementation/plans/${planId}",
+      "line": 85
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "implementation.service.ts:POST:/implementation/plans",
+    "frontendDetails": {
+      "file": "implementation.service.ts",
+      "method": "POST",
+      "path": "/implementation/plans",
+      "line": 95
+    },
+    "backend": {
+      "path": "/api/v1/implementation/plans",
+      "method": "POST",
+      "summary": "Create Plan",
+      "tags": [
+        "Implementation Plans"
+      ],
+      "used": true
+    },
+    "status": "connected"
+  },
+  {
+    "frontend": "implementation.service.ts:GET:/implementation/recommendations",
+    "frontendDetails": {
+      "file": "implementation.service.ts",
+      "method": "GET",
+      "path": "/implementation/recommendations",
+      "line": 168
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "implementation.service.ts:GET:/implementation/resources/${frameworkId}",
+    "frontendDetails": {
+      "file": "implementation.service.ts",
+      "method": "GET",
+      "path": "/implementation/resources/${frameworkId}",
+      "line": 206
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "implementation.service.ts:GET:/implementation/plans/${planId}/analytics",
+    "frontendDetails": {
+      "file": "implementation.service.ts",
+      "method": "GET",
+      "path": "/implementation/plans/${planId}/analytics",
+      "line": 249
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "integrations.service.ts:GET:/integrations",
+    "frontendDetails": {
+      "file": "integrations.service.ts",
+      "method": "GET",
+      "path": "/integrations",
+      "line": 22
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "integrations.service.ts:GET:/integrations/connected",
+    "frontendDetails": {
+      "file": "integrations.service.ts",
+      "method": "GET",
+      "path": "/integrations/connected",
+      "line": 30
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "integrations.service.ts:POST:/integrations/connect",
+    "frontendDetails": {
+      "file": "integrations.service.ts",
+      "method": "POST",
+      "path": "/integrations/connect",
+      "line": 42
+    },
+    "backend": {
+      "path": "/api/v1/integrations/connect",
+      "method": "POST",
+      "summary": "Connect or Update Integration",
+      "tags": [
+        "Integrations"
+      ],
+      "used": true
+    },
+    "status": "connected"
+  },
+  {
+    "frontend": "integrations.service.ts:POST:/integrations/${integrationId}/test",
+    "frontendDetails": {
+      "file": "integrations.service.ts",
+      "method": "POST",
+      "path": "/integrations/${integrationId}/test",
+      "line": 61
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "integrations.service.ts:GET:/integrations/${integrationId}/sync-history",
+    "frontendDetails": {
+      "file": "integrations.service.ts",
+      "method": "GET",
+      "path": "/integrations/${integrationId}/sync-history",
+      "line": 100
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "integrations.service.ts:POST:/integrations/${integrationId}/webhooks",
+    "frontendDetails": {
+      "file": "integrations.service.ts",
+      "method": "POST",
+      "path": "/integrations/${integrationId}/webhooks",
+      "line": 115
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "integrations.service.ts:GET:/integrations/${integrationId}/logs",
+    "frontendDetails": {
+      "file": "integrations.service.ts",
+      "method": "GET",
+      "path": "/integrations/${integrationId}/logs",
+      "line": 140
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "integrations.service.ts:POST:/integrations/oauth/callback",
+    "frontendDetails": {
+      "file": "integrations.service.ts",
+      "method": "POST",
+      "path": "/integrations/oauth/callback",
+      "line": 177
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "monitoring.service.ts:GET:/monitoring/database/status",
+    "frontendDetails": {
+      "file": "monitoring.service.ts",
+      "method": "GET",
+      "path": "/monitoring/database/status",
+      "line": 39
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "monitoring.service.ts:PATCH:/monitoring/alerts/${alertId}/resolve",
+    "frontendDetails": {
+      "file": "monitoring.service.ts",
+      "method": "PATCH",
+      "path": "/monitoring/alerts/${alertId}/resolve",
+      "line": 63
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "monitoring.service.ts:GET:/monitoring/metrics",
+    "frontendDetails": {
+      "file": "monitoring.service.ts",
+      "method": "GET",
+      "path": "/monitoring/metrics",
+      "line": 73
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "monitoring.service.ts:GET:/monitoring/api-performance",
+    "frontendDetails": {
+      "file": "monitoring.service.ts",
+      "method": "GET",
+      "path": "/monitoring/api-performance",
+      "line": 100
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "monitoring.service.ts:GET:/monitoring/error-logs",
+    "frontendDetails": {
+      "file": "monitoring.service.ts",
+      "method": "GET",
+      "path": "/monitoring/error-logs",
+      "line": 126
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "monitoring.service.ts:GET:/monitoring/health",
+    "frontendDetails": {
+      "file": "monitoring.service.ts",
+      "method": "GET",
+      "path": "/monitoring/health",
+      "line": 143
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "monitoring.service.ts:GET:/monitoring/audit-logs",
+    "frontendDetails": {
+      "file": "monitoring.service.ts",
+      "method": "GET",
+      "path": "/monitoring/audit-logs",
+      "line": 172
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "payment.service.ts:POST:/payments/subscription/cancel",
+    "frontendDetails": {
+      "file": "payment.service.ts",
+      "method": "POST",
+      "path": "/payments/subscription/cancel",
+      "line": 100
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "payment.service.ts:POST:/payments/subscription/reactivate",
+    "frontendDetails": {
+      "file": "payment.service.ts",
+      "method": "POST",
+      "path": "/payments/subscription/reactivate",
+      "line": 110
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "payment.service.ts:POST:/payments/payment-methods",
+    "frontendDetails": {
+      "file": "payment.service.ts",
+      "method": "POST",
+      "path": "/payments/payment-methods",
+      "line": 128
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "payment.service.ts:GET:/payments/invoices",
+    "frontendDetails": {
+      "file": "payment.service.ts",
+      "method": "GET",
+      "path": "/payments/invoices",
+      "line": 155
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "payment.service.ts:GET:/payments/invoices/upcoming",
+    "frontendDetails": {
+      "file": "payment.service.ts",
+      "method": "GET",
+      "path": "/payments/invoices/upcoming",
+      "line": 174
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "payment.service.ts:POST:/payments/coupons/apply",
+    "frontendDetails": {
+      "file": "payment.service.ts",
+      "method": "POST",
+      "path": "/payments/coupons/apply",
+      "line": 193
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "payment.service.ts:GET:/payments/subscription/limits",
+    "frontendDetails": {
+      "file": "payment.service.ts",
+      "method": "GET",
+      "path": "/payments/subscription/limits",
+      "line": 218
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "policies.service.ts:GET:/policies",
+    "frontendDetails": {
+      "file": "policies.service.ts",
+      "method": "GET",
+      "path": "/policies",
+      "line": 31
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "policies.service.ts:GET:/policies/${id}",
+    "frontendDetails": {
+      "file": "policies.service.ts",
+      "method": "GET",
+      "path": "/policies/${id}",
+      "line": 39
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "policies.service.ts:POST:/policies/generate",
+    "frontendDetails": {
+      "file": "policies.service.ts",
+      "method": "POST",
+      "path": "/policies/generate",
+      "line": 47
+    },
+    "backend": {
+      "path": "/api/v1/policies/generate",
+      "method": "POST",
+      "summary": "Generate Policy",
+      "tags": [
+        "Policies"
+      ],
+      "used": true
+    },
+    "status": "connected"
+  },
+  {
+    "frontend": "policies.service.ts:PATCH:/policies/${id}/status",
+    "frontendDetails": {
+      "file": "policies.service.ts",
+      "method": "PATCH",
+      "path": "/policies/${id}/status",
+      "line": 62
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "policies.service.ts:PUT:/policies/${id}/approve",
+    "frontendDetails": {
+      "file": "policies.service.ts",
+      "method": "PUT",
+      "path": "/policies/${id}/approve",
+      "line": 77
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "policies.service.ts:POST:/policies/${id}/regenerate-section",
+    "frontendDetails": {
+      "file": "policies.service.ts",
+      "method": "POST",
+      "path": "/policies/${id}/regenerate-section",
+      "line": 95
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "policies.service.ts:GET:/policies/templates",
+    "frontendDetails": {
+      "file": "policies.service.ts",
+      "method": "GET",
+      "path": "/policies/templates",
+      "line": 126
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "policies.service.ts:POST:/policies/${id}/clone",
+    "frontendDetails": {
+      "file": "policies.service.ts",
+      "method": "POST",
+      "path": "/policies/${id}/clone",
+      "line": 134
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "policies.service.ts:GET:/policies/${id}/versions",
+    "frontendDetails": {
+      "file": "policies.service.ts",
+      "method": "GET",
+      "path": "/policies/${id}/versions",
+      "line": 151
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "readiness.service.ts:GET:/readiness/${businessProfileId}",
+    "frontendDetails": {
+      "file": "readiness.service.ts",
+      "method": "GET",
+      "path": "/readiness/${businessProfileId}",
+      "line": 48
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "readiness.service.ts:GET:/readiness/gaps/${businessProfileId}",
+    "frontendDetails": {
+      "file": "readiness.service.ts",
+      "method": "GET",
+      "path": "/readiness/gaps/${businessProfileId}",
+      "line": 57
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "readiness.service.ts:POST:/readiness/roadmap",
+    "frontendDetails": {
+      "file": "readiness.service.ts",
+      "method": "POST",
+      "path": "/readiness/roadmap",
+      "line": 100
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "readiness.service.ts:POST:/readiness/quick-assessment",
+    "frontendDetails": {
+      "file": "readiness.service.ts",
+      "method": "POST",
+      "path": "/readiness/quick-assessment",
+      "line": 119
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "readiness.service.ts:GET:/readiness/trends/${businessProfileId}",
+    "frontendDetails": {
+      "file": "readiness.service.ts",
+      "method": "GET",
+      "path": "/readiness/trends/${businessProfileId}",
+      "line": 149
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "readiness.service.ts:GET:/readiness/benchmarks",
+    "frontendDetails": {
+      "file": "readiness.service.ts",
+      "method": "GET",
+      "path": "/readiness/benchmarks",
+      "line": 173
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "reports.service.ts:GET:/reports/history",
+    "frontendDetails": {
+      "file": "reports.service.ts",
+      "method": "GET",
+      "path": "/reports/history",
+      "line": 37
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "reports.service.ts:GET:/reports/${id}",
+    "frontendDetails": {
+      "file": "reports.service.ts",
+      "method": "GET",
+      "path": "/reports/${id}",
+      "line": 47
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "reports.service.ts:POST:/reports/generate",
+    "frontendDetails": {
+      "file": "reports.service.ts",
+      "method": "POST",
+      "path": "/reports/generate",
+      "line": 55
+    },
+    "backend": {
+      "path": "/api/v1/reports/generate",
+      "method": "POST",
+      "summary": "Generate Report",
+      "tags": [
+        "Reports"
+      ],
+      "used": true
+    },
+    "status": "connected"
+  },
+  {
+    "frontend": "reports.service.ts:POST:/reports/schedule",
+    "frontendDetails": {
+      "file": "reports.service.ts",
+      "method": "POST",
+      "path": "/reports/schedule",
+      "line": 82
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "reports.service.ts:GET:/reports/scheduled",
+    "frontendDetails": {
+      "file": "reports.service.ts",
+      "method": "GET",
+      "path": "/reports/scheduled",
+      "line": 100
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "reports.service.ts:GET:/reports/templates",
+    "frontendDetails": {
+      "file": "reports.service.ts",
+      "method": "GET",
+      "path": "/reports/templates",
+      "line": 135
+    },
+    "backend": {
+      "path": "/api/v1/reports/templates",
+      "method": "GET",
+      "summary": "List Report Templates",
+      "tags": [
+        "Reports"
+      ],
+      "used": true
+    },
+    "status": "connected"
+  },
+  {
+    "frontend": "reports.service.ts:POST:/reports/preview",
+    "frontendDetails": {
+      "file": "reports.service.ts",
+      "method": "POST",
+      "path": "/reports/preview",
+      "line": 154
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": "reports.service.ts:GET:/reports/analytics",
+    "frontendDetails": {
+      "file": "reports.service.ts",
+      "method": "GET",
+      "path": "/reports/analytics",
+      "line": 172
+    },
+    "backend": null,
+    "status": "missing"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/auth/register",
+      "method": "POST",
+      "summary": "Register",
+      "tags": [
+        "Authentication"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/auth/token",
+      "method": "POST",
+      "summary": "Login For Access Token",
+      "tags": [
+        "Authentication"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/auth/login",
+      "method": "POST",
+      "summary": "Login With Roles",
+      "tags": [
+        "RBAC Authentication",
+        "RBAC Authentication"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/auth/refresh",
+      "method": "POST",
+      "summary": "Refresh Access Token",
+      "tags": [
+        "RBAC Authentication",
+        "RBAC Authentication"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/auth/me",
+      "method": "GET",
+      "summary": "Get Current User Info",
+      "tags": [
+        "RBAC Authentication",
+        "RBAC Authentication"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/auth/logout",
+      "method": "POST",
+      "summary": "Logout",
+      "tags": [
+        "Authentication"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/auth/assign-default-role",
+      "method": "POST",
+      "summary": "Assign Default Role",
+      "tags": [
+        "Authentication"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/auth/google/login",
+      "method": "GET",
+      "summary": "Google Login",
+      "tags": [
+        "Google OAuth",
+        "Google OAuth"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/auth/google/callback",
+      "method": "GET",
+      "summary": "Google Callback",
+      "tags": [
+        "Google OAuth",
+        "Google OAuth"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/auth/google/mobile-login",
+      "method": "POST",
+      "summary": "Google Mobile Login",
+      "tags": [
+        "Google OAuth",
+        "Google OAuth"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/auth/login-form",
+      "method": "POST",
+      "summary": "Login With Json",
+      "tags": [
+        "RBAC Authentication",
+        "RBAC Authentication"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/auth/admin/assign-role",
+      "method": "POST",
+      "summary": "Assign Role To User",
+      "tags": [
+        "RBAC Authentication",
+        "RBAC Authentication"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/auth/admin/revoke-role",
+      "method": "DELETE",
+      "summary": "Revoke Role From User",
+      "tags": [
+        "RBAC Authentication",
+        "RBAC Authentication"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/auth/admin/user-roles/{user_id}",
+      "method": "GET",
+      "summary": "Get User Roles",
+      "tags": [
+        "RBAC Authentication",
+        "RBAC Authentication"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/auth/admin/cleanup-expired-roles",
+      "method": "POST",
+      "summary": "Cleanup Expired Roles",
+      "tags": [
+        "RBAC Authentication",
+        "RBAC Authentication"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/auth/permissions",
+      "method": "GET",
+      "summary": "List User Permissions",
+      "tags": [
+        "RBAC Authentication",
+        "RBAC Authentication"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/auth/framework-access",
+      "method": "GET",
+      "summary": "List Accessible Frameworks",
+      "tags": [
+        "RBAC Authentication",
+        "RBAC Authentication"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/users/me",
+      "method": "GET",
+      "summary": "Get Current User",
+      "tags": [
+        "Users"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/users/profile",
+      "method": "GET",
+      "summary": "Get User Profile",
+      "tags": [
+        "Users"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/users/dashboard",
+      "method": "GET",
+      "summary": "Get User Dashboard",
+      "tags": [
+        "Users"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/users/me/deactivate",
+      "method": "PUT",
+      "summary": "Deactivate Account",
+      "tags": [
+        "Users"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/business-profiles/",
+      "method": "GET",
+      "summary": "Get Business Profile",
+      "tags": [
+        "Business Profiles"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/business-profiles/",
+      "method": "PUT",
+      "summary": "Update Business Profile",
+      "tags": [
+        "Business Profiles"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/business-profiles/",
+      "method": "POST",
+      "summary": "Create Business Profile",
+      "tags": [
+        "Business Profiles"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/business-profiles/{profile_id}",
+      "method": "GET",
+      "summary": "Get Business Profile By Id",
+      "tags": [
+        "Business Profiles"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/business-profiles/{profile_id}",
+      "method": "PUT",
+      "summary": "Update Business Profile By Id",
+      "tags": [
+        "Business Profiles"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/business-profiles/{profile_id}",
+      "method": "DELETE",
+      "summary": "Delete Business Profile By Id",
+      "tags": [
+        "Business Profiles"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/business-profiles/{profile_id}",
+      "method": "PATCH",
+      "summary": "Patch Business Profile",
+      "tags": [
+        "Business Profiles"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/assessments/",
+      "method": "GET",
+      "summary": "List Assessments",
+      "tags": [
+        "Assessments"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/assessments/",
+      "method": "POST",
+      "summary": "Create Assessment",
+      "tags": [
+        "Assessments"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/assessments/start",
+      "method": "POST",
+      "summary": "Start Assessment",
+      "tags": [
+        "Assessments"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/assessments/current",
+      "method": "GET",
+      "summary": "Get Current Session",
+      "tags": [
+        "Assessments"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/assessments/questions/{stage}",
+      "method": "GET",
+      "summary": "Get Questions",
+      "tags": [
+        "Assessments"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/assessments/{session_id}/response",
+      "method": "PUT",
+      "summary": "Update Response",
+      "tags": [
+        "Assessments"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/assessments/{session_id}/responses",
+      "method": "POST",
+      "summary": "Update Responses",
+      "tags": [
+        "Assessments"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/assessments/{session_id}",
+      "method": "GET",
+      "summary": "Get Assessment Session",
+      "tags": [
+        "Assessments"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/assessments/{session_id}/recommendations",
+      "method": "GET",
+      "summary": "Get Assessment Recommendations",
+      "tags": [
+        "Assessments"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/assessments/{session_id}/complete",
+      "method": "POST",
+      "summary": "Complete Assessment",
+      "tags": [
+        "Assessments"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/freemium/leads",
+      "method": "POST",
+      "summary": "Capture lead and track UTM parameters",
+      "tags": [
+        "Freemium Assessment",
+        "Freemium Assessment"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/freemium/sessions",
+      "method": "POST",
+      "summary": "Start AI assessment session",
+      "tags": [
+        "Freemium Assessment",
+        "Freemium Assessment"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/freemium/sessions/{session_token}",
+      "method": "GET",
+      "summary": "Get assessment session progress",
+      "tags": [
+        "Freemium Assessment",
+        "Freemium Assessment"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/freemium/sessions/{session_token}/answers",
+      "method": "POST",
+      "summary": "Submit assessment answers",
+      "tags": [
+        "Freemium Assessment",
+        "Freemium Assessment"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/freemium/sessions/{session_token}/results",
+      "method": "GET",
+      "summary": "Get AI assessment results",
+      "tags": [
+        "Freemium Assessment",
+        "Freemium Assessment"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/freemium/health",
+      "method": "GET",
+      "summary": "Freemium API health check",
+      "tags": [
+        "Freemium Assessment",
+        "Freemium Assessment"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/ai-assessments/{framework_id}/help",
+      "method": "POST",
+      "summary": "Get Question Help",
+      "tags": [
+        "AI Assessment Assistant",
+        "AI Assessment Assistant"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/ai-assessments/{framework_id}/help/stream",
+      "method": "POST",
+      "summary": "Get Question Help Stream",
+      "tags": [
+        "AI Assessment Assistant",
+        "AI Assessment Assistant"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/ai-assessments/followup",
+      "method": "POST",
+      "summary": "Generate Followup Questions",
+      "tags": [
+        "AI Assessment Assistant",
+        "AI Assessment Assistant"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/ai-assessments/analysis",
+      "method": "POST",
+      "summary": "Analyze Assessment Results",
+      "tags": [
+        "AI Assessment Assistant",
+        "AI Assessment Assistant"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/ai-assessments/analysis/stream",
+      "method": "POST",
+      "summary": "Analyze Assessment Results Stream",
+      "tags": [
+        "AI Assessment Assistant",
+        "AI Assessment Assistant"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/ai-assessments/recommendations",
+      "method": "POST",
+      "summary": "Generate Personalized Recommendations",
+      "tags": [
+        "AI Assessment Assistant",
+        "AI Assessment Assistant"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/ai-assessments/recommendations/stream",
+      "method": "POST",
+      "summary": "Generate Personalized Recommendations Stream",
+      "tags": [
+        "AI Assessment Assistant",
+        "AI Assessment Assistant"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/ai-assessments/feedback",
+      "method": "POST",
+      "summary": "Submit Ai Feedback",
+      "tags": [
+        "AI Assessment Assistant",
+        "AI Assessment Assistant"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/ai-assessments/metrics",
+      "method": "GET",
+      "summary": "Get Ai Metrics",
+      "tags": [
+        "AI Assessment Assistant",
+        "AI Assessment Assistant"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/ai-assessments/rate-limit-stats",
+      "method": "GET",
+      "summary": "Get Rate Limit Statistics",
+      "tags": [
+        "AI Assessment Assistant",
+        "AI Assessment Assistant"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/ai-assessments/health",
+      "method": "GET",
+      "summary": "Get Ai Service Health",
+      "tags": [
+        "AI Assessment Assistant",
+        "AI Assessment Assistant"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/ai-assessments/circuit-breaker/status",
+      "method": "GET",
+      "summary": "Get Circuit Breaker Status",
+      "tags": [
+        "AI Assessment Assistant",
+        "AI Assessment Assistant"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/ai-assessments/circuit-breaker/reset",
+      "method": "POST",
+      "summary": "Reset Circuit Breaker",
+      "tags": [
+        "AI Assessment Assistant",
+        "AI Assessment Assistant"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/ai-assessments/models/{model_name}/health",
+      "method": "GET",
+      "summary": "Get Model Health",
+      "tags": [
+        "AI Assessment Assistant",
+        "AI Assessment Assistant"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/ai-assessments/cache/metrics",
+      "method": "GET",
+      "summary": "Get Ai Cache Metrics",
+      "tags": [
+        "AI Assessment Assistant",
+        "AI Assessment Assistant"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/ai/assessments/{framework_id}/help",
+      "method": "POST",
+      "summary": "Get Question Help",
+      "tags": [
+        "AI Assessment Assistant (Legacy)",
+        "AI Assessment Assistant"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/ai/assessments/{framework_id}/help/stream",
+      "method": "POST",
+      "summary": "Get Question Help Stream",
+      "tags": [
+        "AI Assessment Assistant (Legacy)",
+        "AI Assessment Assistant"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/ai/assessments/followup",
+      "method": "POST",
+      "summary": "Generate Followup Questions",
+      "tags": [
+        "AI Assessment Assistant (Legacy)",
+        "AI Assessment Assistant"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/ai/assessments/analysis",
+      "method": "POST",
+      "summary": "Analyze Assessment Results",
+      "tags": [
+        "AI Assessment Assistant (Legacy)",
+        "AI Assessment Assistant"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/ai/assessments/analysis/stream",
+      "method": "POST",
+      "summary": "Analyze Assessment Results Stream",
+      "tags": [
+        "AI Assessment Assistant (Legacy)",
+        "AI Assessment Assistant"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/ai/assessments/recommendations",
+      "method": "POST",
+      "summary": "Generate Personalized Recommendations",
+      "tags": [
+        "AI Assessment Assistant (Legacy)",
+        "AI Assessment Assistant"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/ai/assessments/recommendations/stream",
+      "method": "POST",
+      "summary": "Generate Personalized Recommendations Stream",
+      "tags": [
+        "AI Assessment Assistant (Legacy)",
+        "AI Assessment Assistant"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/ai/assessments/feedback",
+      "method": "POST",
+      "summary": "Submit Ai Feedback",
+      "tags": [
+        "AI Assessment Assistant (Legacy)",
+        "AI Assessment Assistant"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/ai/assessments/metrics",
+      "method": "GET",
+      "summary": "Get Ai Metrics",
+      "tags": [
+        "AI Assessment Assistant (Legacy)",
+        "AI Assessment Assistant"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/ai/assessments/rate-limit-stats",
+      "method": "GET",
+      "summary": "Get Rate Limit Statistics",
+      "tags": [
+        "AI Assessment Assistant (Legacy)",
+        "AI Assessment Assistant"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/ai/assessments/health",
+      "method": "GET",
+      "summary": "Get Ai Service Health",
+      "tags": [
+        "AI Assessment Assistant (Legacy)",
+        "AI Assessment Assistant"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/ai/assessments/circuit-breaker/status",
+      "method": "GET",
+      "summary": "Get Circuit Breaker Status",
+      "tags": [
+        "AI Assessment Assistant (Legacy)",
+        "AI Assessment Assistant"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/ai/assessments/circuit-breaker/reset",
+      "method": "POST",
+      "summary": "Reset Circuit Breaker",
+      "tags": [
+        "AI Assessment Assistant (Legacy)",
+        "AI Assessment Assistant"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/ai/assessments/models/{model_name}/health",
+      "method": "GET",
+      "summary": "Get Model Health",
+      "tags": [
+        "AI Assessment Assistant (Legacy)",
+        "AI Assessment Assistant"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/ai/assessments/cache/metrics",
+      "method": "GET",
+      "summary": "Get Ai Cache Metrics",
+      "tags": [
+        "AI Assessment Assistant (Legacy)",
+        "AI Assessment Assistant"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/ai/optimization/model-selection",
+      "method": "POST",
+      "summary": "Model Selection",
+      "tags": [
+        "AI Optimization"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/ai/optimization/model-health",
+      "method": "GET",
+      "summary": "Model Health Check",
+      "tags": [
+        "AI Optimization"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/ai/optimization/performance-metrics",
+      "method": "GET",
+      "summary": "Performance Metrics",
+      "tags": [
+        "AI Optimization"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/ai/optimization/model-fallback-chain",
+      "method": "POST",
+      "summary": "Model Fallback Chain",
+      "tags": [
+        "AI Optimization"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/ai/optimization/circuit-breaker/status",
+      "method": "GET",
+      "summary": "Get Circuit Breaker Status",
+      "tags": [
+        "AI Optimization"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/ai/optimization/circuit-breaker/reset",
+      "method": "POST",
+      "summary": "Reset Circuit Breaker",
+      "tags": [
+        "AI Optimization"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/frameworks/",
+      "method": "GET",
+      "summary": "List Frameworks",
+      "tags": [
+        "Compliance Frameworks"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/frameworks/recommendations",
+      "method": "GET",
+      "summary": "Get Framework Recommendations",
+      "tags": [
+        "Compliance Frameworks"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/frameworks/recommendations/{business_profile_id}",
+      "method": "GET",
+      "summary": "Get Framework Recommendations For Profile",
+      "tags": [
+        "Compliance Frameworks"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/frameworks/all-public",
+      "method": "GET",
+      "summary": "List All Public Frameworks",
+      "tags": [
+        "Compliance Frameworks"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/frameworks/{framework_id}",
+      "method": "GET",
+      "summary": "Get Framework",
+      "tags": [
+        "Compliance Frameworks"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/policies/",
+      "method": "GET",
+      "summary": "List Policies",
+      "tags": [
+        "Policies"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/policies/{policy_id}",
+      "method": "GET",
+      "summary": "Get Policy",
+      "tags": [
+        "Policies"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/policies/{policy_id}/status",
+      "method": "PATCH",
+      "summary": "Update Policy Status",
+      "tags": [
+        "Policies"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/policies/{policy_id}/approve",
+      "method": "PUT",
+      "summary": "Approve Policy",
+      "tags": [
+        "Policies"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/implementation/plans",
+      "method": "GET",
+      "summary": "List Plans",
+      "tags": [
+        "Implementation Plans"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/implementation/plans/{plan_id}",
+      "method": "GET",
+      "summary": "Get Plan",
+      "tags": [
+        "Implementation Plans"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/implementation/plans/{plan_id}/tasks/{task_id}",
+      "method": "PATCH",
+      "summary": "Update Task",
+      "tags": [
+        "Implementation Plans"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/evidence/",
+      "method": "POST",
+      "summary": "Create New Evidence",
+      "tags": [
+        "Evidence"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/evidence/",
+      "method": "GET",
+      "summary": "List Evidence",
+      "tags": [
+        "Evidence"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/evidence/stats",
+      "method": "GET",
+      "summary": "Get Evidence Statistics",
+      "tags": [
+        "Evidence"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/evidence/search",
+      "method": "GET",
+      "summary": "Search Evidence Items",
+      "tags": [
+        "Evidence"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/evidence/validate",
+      "method": "POST",
+      "summary": "Validate Evidence Quality",
+      "tags": [
+        "Evidence"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/evidence/requirements",
+      "method": "GET",
+      "summary": "Get Evidence Requirements",
+      "tags": [
+        "Evidence"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/evidence/requirements",
+      "method": "POST",
+      "summary": "Identify Evidence Requirements",
+      "tags": [
+        "Evidence"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/evidence/{evidence_id}",
+      "method": "GET",
+      "summary": "Get Evidence Details",
+      "tags": [
+        "Evidence"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/evidence/{evidence_id}",
+      "method": "PUT",
+      "summary": "Update Evidence Item",
+      "tags": [
+        "Evidence"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/evidence/{evidence_id}",
+      "method": "PATCH",
+      "summary": "Update Evidence Status",
+      "tags": [
+        "Evidence"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/evidence/{evidence_id}",
+      "method": "DELETE",
+      "summary": "Delete Evidence Item",
+      "tags": [
+        "Evidence"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/evidence/{evidence_id}/automation",
+      "method": "POST",
+      "summary": "Configure Evidence Automation",
+      "tags": [
+        "Evidence"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/evidence/{evidence_id}/upload",
+      "method": "POST",
+      "summary": "Upload Evidence File Route",
+      "tags": [
+        "Evidence"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/evidence/dashboard/{framework_id}",
+      "method": "GET",
+      "summary": "Get Evidence Dashboard",
+      "tags": [
+        "Evidence"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/evidence/{evidence_id}/classify",
+      "method": "POST",
+      "summary": "Classify Evidence With Ai",
+      "tags": [
+        "Evidence"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/evidence/classify/bulk",
+      "method": "POST",
+      "summary": "Bulk Classify Evidence",
+      "tags": [
+        "Evidence"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/evidence/{evidence_id}/control-mapping",
+      "method": "POST",
+      "summary": "Get Control Mapping Suggestions",
+      "tags": [
+        "Evidence"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/evidence/classification/stats",
+      "method": "GET",
+      "summary": "Get Classification Statistics",
+      "tags": [
+        "Evidence"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/evidence/{evidence_id}/quality-analysis",
+      "method": "GET",
+      "summary": "Get Evidence Quality Analysis",
+      "tags": [
+        "Evidence"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/evidence/{evidence_id}/duplicate-detection",
+      "method": "POST",
+      "summary": "Detect Evidence Duplicates",
+      "tags": [
+        "Evidence"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/evidence/duplicate-detection/batch",
+      "method": "POST",
+      "summary": "Batch Duplicate Detection",
+      "tags": [
+        "Evidence"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/evidence/quality/benchmark",
+      "method": "GET",
+      "summary": "Get Quality Benchmark",
+      "tags": [
+        "Evidence"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/evidence/quality/trends",
+      "method": "GET",
+      "summary": "Get Quality Trends",
+      "tags": [
+        "Evidence"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/evidence-collection/evidence-collection/plans",
+      "method": "POST",
+      "summary": "Create Collection Plan",
+      "tags": [
+        "Evidence Collection",
+        "evidence-collection"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/evidence-collection/evidence-collection/plans",
+      "method": "GET",
+      "summary": "List Collection Plans",
+      "tags": [
+        "Evidence Collection",
+        "evidence-collection"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/evidence-collection/evidence-collection/plans/{plan_id}",
+      "method": "GET",
+      "summary": "Get Collection Plan",
+      "tags": [
+        "Evidence Collection",
+        "evidence-collection"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/evidence-collection/evidence-collection/plans/{plan_id}/priority-tasks",
+      "method": "GET",
+      "summary": "Get Priority Tasks",
+      "tags": [
+        "Evidence Collection",
+        "evidence-collection"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/evidence-collection/evidence-collection/plans/{plan_id}/tasks/{task_id}",
+      "method": "PATCH",
+      "summary": "Update Task Status",
+      "tags": [
+        "Evidence Collection",
+        "evidence-collection"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/evidence-collection/evidence-collection/automation-recommendations/{framework}",
+      "method": "GET",
+      "summary": "Get Automation Recommendations",
+      "tags": [
+        "Evidence Collection",
+        "evidence-collection"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/compliance/query",
+      "method": "POST",
+      "summary": "Query Compliance",
+      "tags": [
+        "Compliance Status"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/readiness/assessment",
+      "method": "GET",
+      "summary": "Get Readiness Assessment",
+      "tags": [
+        "Readiness Assessment"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/readiness/history",
+      "method": "GET",
+      "summary": "Get Assessment History",
+      "tags": [
+        "Readiness Assessment"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/readiness/report",
+      "method": "POST",
+      "summary": "Generate Report",
+      "tags": [
+        "Readiness Assessment"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/readiness/reports",
+      "method": "POST",
+      "summary": "Generate Compliance Report Endpoint",
+      "tags": [
+        "Readiness Assessment"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/readiness/reports/{report_id}/download",
+      "method": "GET",
+      "summary": "Download Compliance Report",
+      "tags": [
+        "Readiness Assessment"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/reports/generate/pdf",
+      "method": "POST",
+      "summary": "Generate Pdf Report",
+      "tags": [
+        "Reports"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/reports/preview/{report_type}",
+      "method": "GET",
+      "summary": "Preview Report Structure",
+      "tags": [
+        "Reports"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/reports/customize-template/{template_name}",
+      "method": "POST",
+      "summary": "Customize Report Template",
+      "tags": [
+        "Reports"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/reports/schedules",
+      "method": "GET",
+      "summary": "List Schedules",
+      "tags": [
+        "Reports"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/reports/schedules",
+      "method": "POST",
+      "summary": "Create Schedule",
+      "tags": [
+        "Reports"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/reports/schedules/{schedule_id}",
+      "method": "DELETE",
+      "summary": "Delete Schedule",
+      "tags": [
+        "Reports"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/reports/schedules/{schedule_id}/execute",
+      "method": "POST",
+      "summary": "Execute Schedule",
+      "tags": [
+        "Reports"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/integrations/{provider}",
+      "method": "DELETE",
+      "summary": "Disconnect integration",
+      "tags": [
+        "Integrations"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/integrations/{provider}/status",
+      "method": "GET",
+      "summary": "Get integration status",
+      "tags": [
+        "Integrations"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/foundation-evidence/foundation/evidence/aws/configure",
+      "method": "POST",
+      "summary": "Configure Aws Integration",
+      "tags": [
+        "Foundation Evidence Collection",
+        "Foundation Evidence Collection"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/foundation-evidence/foundation/evidence/okta/configure",
+      "method": "POST",
+      "summary": "Configure Okta Integration",
+      "tags": [
+        "Foundation Evidence Collection",
+        "Foundation Evidence Collection"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/foundation-evidence/foundation/evidence/google/configure",
+      "method": "POST",
+      "summary": "Configure Google Workspace Integration",
+      "tags": [
+        "Foundation Evidence Collection",
+        "Foundation Evidence Collection"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/foundation-evidence/foundation/evidence/microsoft/configure",
+      "method": "POST",
+      "summary": "Configure Microsoft Integration",
+      "tags": [
+        "Foundation Evidence Collection",
+        "Foundation Evidence Collection"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/foundation-evidence/foundation/evidence/collect",
+      "method": "POST",
+      "summary": "Start Foundation Evidence Collection",
+      "tags": [
+        "Foundation Evidence Collection",
+        "Foundation Evidence Collection"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/foundation-evidence/foundation/evidence/collect/{collection_id}/status",
+      "method": "GET",
+      "summary": "Get Collection Status",
+      "tags": [
+        "Foundation Evidence Collection",
+        "Foundation Evidence Collection"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/foundation-evidence/foundation/evidence/collect/{collection_id}/results",
+      "method": "GET",
+      "summary": "Get Collection Results",
+      "tags": [
+        "Foundation Evidence Collection",
+        "Foundation Evidence Collection"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/foundation-evidence/foundation/evidence/health",
+      "method": "GET",
+      "summary": "Check Foundation Integrations Health",
+      "tags": [
+        "Foundation Evidence Collection",
+        "Foundation Evidence Collection"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/security/role-based-access-control",
+      "method": "GET",
+      "summary": "Role Based Access Control",
+      "tags": [
+        "Security"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/security/business-logic-vulnerabilities",
+      "method": "POST",
+      "summary": "Business Logic Vulnerabilities",
+      "tags": [
+        "Security"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/security/security-status",
+      "method": "GET",
+      "summary": "Security Status",
+      "tags": [
+        "Security"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/security/rate-limit-test",
+      "method": "GET",
+      "summary": "Rate Limit Test",
+      "tags": [
+        "Security"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/secrets-vault/status",
+      "method": "GET",
+      "summary": "🔐 SecretsVault Status",
+      "tags": [
+        "🔐 Secrets Vault",
+        "🔐 Secrets Vault"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/chat/conversations",
+      "method": "GET",
+      "summary": "List Conversations",
+      "tags": [
+        "AI Assistant",
+        "Chat Assistant"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/chat/conversations/{conversation_id}",
+      "method": "GET",
+      "summary": "Get Conversation",
+      "tags": [
+        "AI Assistant",
+        "Chat Assistant"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/chat/conversations/{conversation_id}",
+      "method": "DELETE",
+      "summary": "Delete Conversation",
+      "tags": [
+        "AI Assistant",
+        "Chat Assistant"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/chat/conversations/{conversation_id}/messages",
+      "method": "POST",
+      "summary": "Send Message",
+      "tags": [
+        "AI Assistant",
+        "Chat Assistant"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/chat/compliance-analysis",
+      "method": "POST",
+      "summary": "Analyze Compliance Gap",
+      "tags": [
+        "AI Assistant",
+        "Chat Assistant"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/chat/context-aware-recommendations",
+      "method": "POST",
+      "summary": "Get Context Aware Recommendations",
+      "tags": [
+        "AI Assistant",
+        "Chat Assistant"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/chat/evidence-collection-workflow",
+      "method": "POST",
+      "summary": "Generate Evidence Collection Workflow",
+      "tags": [
+        "AI Assistant",
+        "Chat Assistant"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/chat/generate-policy",
+      "method": "POST",
+      "summary": "Generate Customized Policy",
+      "tags": [
+        "AI Assistant",
+        "Chat Assistant"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/chat/smart-guidance/{framework}",
+      "method": "GET",
+      "summary": "Get Smart Compliance Guidance",
+      "tags": [
+        "AI Assistant",
+        "Chat Assistant"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/chat/cache/clear",
+      "method": "DELETE",
+      "summary": "Clear Ai Cache",
+      "tags": [
+        "AI Assistant",
+        "Chat Assistant"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/chat/performance/optimize",
+      "method": "POST",
+      "summary": "Optimize Ai Performance",
+      "tags": [
+        "AI Assistant",
+        "Chat Assistant"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/chat/analytics/dashboard",
+      "method": "GET",
+      "summary": "Get Analytics Dashboard",
+      "tags": [
+        "AI Assistant",
+        "Chat Assistant"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/chat/analytics/usage",
+      "method": "GET",
+      "summary": "Get Usage Analytics",
+      "tags": [
+        "AI Assistant",
+        "Chat Assistant"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/chat/analytics/cost",
+      "method": "GET",
+      "summary": "Get Cost Analytics",
+      "tags": [
+        "AI Assistant",
+        "Chat Assistant"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/chat/analytics/alerts",
+      "method": "GET",
+      "summary": "Get System Alerts",
+      "tags": [
+        "AI Assistant",
+        "Chat Assistant"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/chat/analytics/alerts/{alert_id}/resolve",
+      "method": "POST",
+      "summary": "Resolve System Alert",
+      "tags": [
+        "AI Assistant",
+        "Chat Assistant"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/chat/smart-evidence/create-plan",
+      "method": "POST",
+      "summary": "Create Smart Evidence Plan",
+      "tags": [
+        "AI Assistant",
+        "Chat Assistant"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/chat/smart-evidence/plan/{plan_id}",
+      "method": "GET",
+      "summary": "Get Smart Evidence Plan",
+      "tags": [
+        "AI Assistant",
+        "Chat Assistant"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/chat/smart-evidence/next-tasks/{plan_id}",
+      "method": "GET",
+      "summary": "Get Next Priority Tasks",
+      "tags": [
+        "AI Assistant",
+        "Chat Assistant"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/chat/smart-evidence/update-task/{plan_id}/{task_id}",
+      "method": "POST",
+      "summary": "Update Evidence Task Status",
+      "tags": [
+        "AI Assistant",
+        "Chat Assistant"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/chat/quality/trends",
+      "method": "GET",
+      "summary": "Get Quality Trends",
+      "tags": [
+        "AI Assistant",
+        "Chat Assistant"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/chat/quality/feedback",
+      "method": "POST",
+      "summary": "Submit Quality Feedback",
+      "tags": [
+        "AI Assistant",
+        "Chat Assistant"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/chat/quality/assessment/{response_id}",
+      "method": "GET",
+      "summary": "Get Quality Assessment",
+      "tags": [
+        "AI Assistant",
+        "Chat Assistant"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/chat/quality/metrics",
+      "method": "GET",
+      "summary": "Get Quality Metrics",
+      "tags": [
+        "AI Assistant",
+        "Chat Assistant"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/ai/cost/api/v1/ai/cost/track",
+      "method": "POST",
+      "summary": "Track Ai Usage",
+      "tags": [
+        "AI Cost Monitoring",
+        "AI Cost Management"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/ai/cost/api/v1/ai/cost/analytics/daily",
+      "method": "GET",
+      "summary": "Get Daily Cost Analytics",
+      "tags": [
+        "AI Cost Monitoring",
+        "AI Cost Management"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/ai/cost/api/v1/ai/cost/analytics/trends",
+      "method": "GET",
+      "summary": "Get Cost Trends",
+      "tags": [
+        "AI Cost Monitoring",
+        "AI Cost Management"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/ai/cost/api/v1/ai/cost/budget/configure",
+      "method": "POST",
+      "summary": "Configure Budget",
+      "tags": [
+        "AI Cost Monitoring",
+        "AI Cost Management"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/ai/cost/api/v1/ai/cost/budget/status",
+      "method": "GET",
+      "summary": "Get Budget Status",
+      "tags": [
+        "AI Cost Monitoring",
+        "AI Cost Management"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/ai/cost/api/v1/ai/cost/alerts",
+      "method": "GET",
+      "summary": "Get Budget Alerts",
+      "tags": [
+        "AI Cost Monitoring",
+        "AI Cost Management"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/ai/cost/api/v1/ai/cost/optimization/recommendations",
+      "method": "GET",
+      "summary": "Get Optimization Recommendations",
+      "tags": [
+        "AI Cost Monitoring",
+        "AI Cost Management"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/ai/cost/api/v1/ai/cost/routing/select-model",
+      "method": "POST",
+      "summary": "Select Optimal Model",
+      "tags": [
+        "AI Cost Monitoring",
+        "AI Cost Management"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/ai/cost/api/v1/ai/cost/reports/monthly",
+      "method": "GET",
+      "summary": "Generate Monthly Report",
+      "tags": [
+        "AI Cost Monitoring",
+        "AI Cost Management"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/ai/cost/api/v1/ai/cost/usage/by-service",
+      "method": "GET",
+      "summary": "Get Usage By Service",
+      "tags": [
+        "AI Cost Monitoring",
+        "AI Cost Management"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/ai/cost/api/v1/ai/cost/health",
+      "method": "GET",
+      "summary": "Cost Monitoring Health",
+      "tags": [
+        "AI Cost Monitoring",
+        "AI Cost Management"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/ai/cost/api/v1/ai/cost/cache/clear",
+      "method": "DELETE",
+      "summary": "Clear Cost Cache",
+      "tags": [
+        "AI Cost Monitoring",
+        "AI Cost Management"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/ai/cost-websocket/api/v1/ai/cost/ws/admin/background-tasks/start",
+      "method": "POST",
+      "summary": "Start Background Tasks",
+      "tags": [
+        "AI Cost WebSocket",
+        "AI Cost WebSocket"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/ai/cost-websocket/api/v1/ai/cost/ws/admin/background-tasks/stop",
+      "method": "POST",
+      "summary": "Stop Background Tasks",
+      "tags": [
+        "AI Cost WebSocket",
+        "AI Cost WebSocket"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/ai/cost-websocket/api/v1/ai/cost/ws/connections/stats",
+      "method": "GET",
+      "summary": "Get Connection Stats",
+      "tags": [
+        "AI Cost WebSocket",
+        "AI Cost WebSocket"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/ai/cost-websocket/api/v1/ai/cost/ws/broadcast/alert",
+      "method": "POST",
+      "summary": "Broadcast Budget Alert",
+      "tags": [
+        "AI Cost WebSocket",
+        "AI Cost WebSocket"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/ai/cost-websocket/api/v1/ai/cost/ws/broadcast/cost-spike",
+      "method": "POST",
+      "summary": "Broadcast Cost Spike",
+      "tags": [
+        "AI Cost WebSocket",
+        "AI Cost WebSocket"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/ai/policies/policies/generate-policy",
+      "method": "POST",
+      "summary": "Generate Policy",
+      "tags": [
+        "AI Policy Generation",
+        "AI Policy Generation"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/ai/policies/policies/refine-policy",
+      "method": "PUT",
+      "summary": "Refine Policy",
+      "tags": [
+        "AI Policy Generation",
+        "AI Policy Generation"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/ai/policies/policies/policy-templates",
+      "method": "GET",
+      "summary": "Get Policy Templates",
+      "tags": [
+        "AI Policy Generation",
+        "AI Policy Generation"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/ai/policies/policies/metrics",
+      "method": "GET",
+      "summary": "Get Ai Metrics",
+      "tags": [
+        "AI Policy Generation",
+        "AI Policy Generation"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/ai/policies/policies/validate-policy",
+      "method": "POST",
+      "summary": "Validate Policy",
+      "tags": [
+        "AI Policy Generation",
+        "AI Policy Generation"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/ai/policies/policies/analytics/export",
+      "method": "POST",
+      "summary": "Export Analytics",
+      "tags": [
+        "AI Policy Generation",
+        "AI Policy Generation"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/performance/performance/overview",
+      "method": "GET",
+      "summary": "Wrapper",
+      "tags": [
+        "Performance Monitoring",
+        "performance-monitoring"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/performance/performance/database",
+      "method": "GET",
+      "summary": "Wrapper",
+      "tags": [
+        "Performance Monitoring",
+        "performance-monitoring"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/performance/performance/cache",
+      "method": "GET",
+      "summary": "Wrapper",
+      "tags": [
+        "Performance Monitoring",
+        "performance-monitoring"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/performance/performance/api",
+      "method": "GET",
+      "summary": "Wrapper",
+      "tags": [
+        "Performance Monitoring",
+        "performance-monitoring"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/performance/performance/system",
+      "method": "GET",
+      "summary": "Wrapper",
+      "tags": [
+        "Performance Monitoring",
+        "performance-monitoring"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/performance/performance/recommendations",
+      "method": "GET",
+      "summary": "Wrapper",
+      "tags": [
+        "Performance Monitoring",
+        "performance-monitoring"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/performance/performance/trends",
+      "method": "GET",
+      "summary": "Wrapper",
+      "tags": [
+        "Performance Monitoring",
+        "performance-monitoring"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/performance/performance/alerts/configure",
+      "method": "POST",
+      "summary": "Wrapper",
+      "tags": [
+        "Performance Monitoring",
+        "performance-monitoring"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/performance/performance/health",
+      "method": "GET",
+      "summary": "Performance Monitoring Health",
+      "tags": [
+        "Performance Monitoring",
+        "performance-monitoring"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/performance/performance/monitoring/start",
+      "method": "POST",
+      "summary": "Start Performance Monitoring",
+      "tags": [
+        "Performance Monitoring",
+        "performance-monitoring"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/performance/performance/monitoring/stop",
+      "method": "POST",
+      "summary": "Stop Performance Monitoring",
+      "tags": [
+        "Performance Monitoring",
+        "performance-monitoring"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/uk-compliance/api/v1/compliance/frameworks",
+      "method": "GET",
+      "summary": "Get Frameworks",
+      "tags": [
+        "UK Compliance",
+        "UK Compliance"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/uk-compliance/api/v1/compliance/frameworks/{framework_id}",
+      "method": "GET",
+      "summary": "Get Framework",
+      "tags": [
+        "UK Compliance",
+        "UK Compliance"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/uk-compliance/api/v1/compliance/frameworks/{framework_id}",
+      "method": "PUT",
+      "summary": "Update Framework",
+      "tags": [
+        "UK Compliance",
+        "UK Compliance"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/uk-compliance/api/v1/compliance/frameworks/{framework_id}",
+      "method": "DELETE",
+      "summary": "Delete Framework",
+      "tags": [
+        "UK Compliance",
+        "UK Compliance"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/uk-compliance/api/v1/compliance/frameworks/load",
+      "method": "POST",
+      "summary": "Load Frameworks",
+      "tags": [
+        "UK Compliance",
+        "UK Compliance"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/iq-agent/query",
+      "method": "POST",
+      "summary": "Query IQ Agent for Compliance Analysis",
+      "tags": [
+        "IQ Agent",
+        "IQ Agent - GraphRAG Intelligence"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/iq-agent/memory/store",
+      "method": "POST",
+      "summary": "Store Knowledge in IQ's Memory",
+      "tags": [
+        "IQ Agent",
+        "IQ Agent - GraphRAG Intelligence"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/iq-agent/memory/retrieve",
+      "method": "POST",
+      "summary": "Retrieve Relevant Memories",
+      "tags": [
+        "IQ Agent",
+        "IQ Agent - GraphRAG Intelligence"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/iq-agent/graph/initialize",
+      "method": "POST",
+      "summary": "Initialize Compliance Graph",
+      "tags": [
+        "IQ Agent",
+        "IQ Agent - GraphRAG Intelligence"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/iq-agent/health",
+      "method": "GET",
+      "summary": "IQ Agent Health Check",
+      "tags": [
+        "IQ Agent",
+        "IQ Agent - GraphRAG Intelligence"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/iq-agent/status",
+      "method": "GET",
+      "summary": "IQ Agent Status Summary",
+      "tags": [
+        "IQ Agent",
+        "IQ Agent - GraphRAG Intelligence"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/agentic-rag/find-examples",
+      "method": "POST",
+      "summary": "Find Code Examples",
+      "tags": [
+        "Agentic RAG",
+        "Agentic RAG"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/agentic-rag/fact-check",
+      "method": "POST",
+      "summary": "Fact-check a RAG response",
+      "tags": [
+        "Agentic RAG",
+        "Agentic RAG"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/agentic-rag/query-with-validation",
+      "method": "POST",
+      "summary": "Query documentation with automatic validation",
+      "tags": [
+        "Agentic RAG",
+        "Agentic RAG"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/admin/admin/users/",
+      "method": "GET",
+      "summary": "List Users",
+      "tags": [
+        "admin",
+        "admin",
+        "user-management"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/admin/admin/users/",
+      "method": "POST",
+      "summary": "Create User",
+      "tags": [
+        "admin",
+        "admin",
+        "user-management"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/admin/admin/users/{user_id}",
+      "method": "GET",
+      "summary": "Get User",
+      "tags": [
+        "admin",
+        "admin",
+        "user-management"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/admin/admin/users/{user_id}",
+      "method": "PUT",
+      "summary": "Update User",
+      "tags": [
+        "admin",
+        "admin",
+        "user-management"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/admin/admin/users/{user_id}",
+      "method": "DELETE",
+      "summary": "Delete User",
+      "tags": [
+        "admin",
+        "admin",
+        "user-management"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/admin/admin/users/roles/",
+      "method": "GET",
+      "summary": "List Roles",
+      "tags": [
+        "admin",
+        "admin",
+        "user-management"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/admin/admin/users/roles/",
+      "method": "POST",
+      "summary": "Create Role",
+      "tags": [
+        "admin",
+        "admin",
+        "user-management"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/admin/admin/users/{user_id}/roles",
+      "method": "POST",
+      "summary": "Assign Role To User",
+      "tags": [
+        "admin",
+        "admin",
+        "user-management"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/admin/admin/users/{user_id}/roles/{role_id}",
+      "method": "DELETE",
+      "summary": "Revoke Role From User",
+      "tags": [
+        "admin",
+        "admin",
+        "user-management"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/admin/admin/users/statistics",
+      "method": "GET",
+      "summary": "Get Admin Statistics",
+      "tags": [
+        "admin",
+        "admin",
+        "user-management"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/admin/admin/users/audit-logs",
+      "method": "GET",
+      "summary": "Get Audit Logs",
+      "tags": [
+        "admin",
+        "admin",
+        "user-management"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/admin/admin/users/initialize-rbac",
+      "method": "POST",
+      "summary": "Initialize Rbac System Endpoint",
+      "tags": [
+        "admin",
+        "admin",
+        "user-management"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/admin/admin/users/cleanup-expired-roles",
+      "method": "POST",
+      "summary": "Cleanup Expired Roles",
+      "tags": [
+        "admin",
+        "admin",
+        "user-management"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/admin/admin/tokens/statistics",
+      "method": "GET",
+      "summary": "Get Blacklist Statistics",
+      "tags": [
+        "admin",
+        "admin",
+        "token-management"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/admin/admin/tokens/entry/{token_hash}",
+      "method": "GET",
+      "summary": "Get Blacklist Entry",
+      "tags": [
+        "admin",
+        "admin",
+        "token-management"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/admin/admin/tokens/blacklist",
+      "method": "POST",
+      "summary": "Blacklist Token Admin",
+      "tags": [
+        "admin",
+        "admin",
+        "token-management"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/admin/admin/tokens/blacklist",
+      "method": "DELETE",
+      "summary": "Remove Token From Blacklist",
+      "tags": [
+        "admin",
+        "admin",
+        "token-management"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/admin/admin/tokens/blacklist/user",
+      "method": "POST",
+      "summary": "Blacklist User Tokens",
+      "tags": [
+        "admin",
+        "admin",
+        "token-management"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/admin/admin/tokens/cleanup",
+      "method": "POST",
+      "summary": "Cleanup Expired Tokens",
+      "tags": [
+        "admin",
+        "admin",
+        "token-management"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/admin/admin/tokens/health",
+      "method": "GET",
+      "summary": "Get Blacklist Health",
+      "tags": [
+        "admin",
+        "admin",
+        "token-management"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/admin/admin/tokens/patterns",
+      "method": "GET",
+      "summary": "Get Suspicious Patterns",
+      "tags": [
+        "admin",
+        "admin",
+        "token-management"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/admin/data-access/grant",
+      "method": "POST",
+      "summary": "Grant Data Access",
+      "tags": [
+        "admin",
+        "Data Access Management"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/admin/data-access/revoke",
+      "method": "DELETE",
+      "summary": "Revoke Data Access",
+      "tags": [
+        "admin",
+        "Data Access Management"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/admin/data-access/user/{user_id}",
+      "method": "GET",
+      "summary": "Get User Data Access",
+      "tags": [
+        "admin",
+        "Data Access Management"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/admin/data-access/levels",
+      "method": "GET",
+      "summary": "List Access Levels",
+      "tags": [
+        "admin",
+        "Data Access Management"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/admin/data-access/audit",
+      "method": "GET",
+      "summary": "Audit Data Access",
+      "tags": [
+        "admin",
+        "Data Access Management"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/test-utils/cleanup-test-users",
+      "method": "DELETE",
+      "summary": "Cleanup Test Users",
+      "tags": [
+        "Test Utilities"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/test-utils/create-test-user",
+      "method": "POST",
+      "summary": "Create Test User",
+      "tags": [
+        "Test Utilities"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/test-utils/clear-rate-limits",
+      "method": "POST",
+      "summary": "Clear Rate Limits",
+      "tags": [
+        "Test Utilities"
+      ]
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/dashboard",
+      "method": "GET",
+      "summary": "Get Dashboard",
+      "tags": []
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/",
+      "method": "GET",
+      "summary": "API Information",
+      "tags": []
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/health",
+      "method": "GET",
+      "summary": "Health Check",
+      "tags": []
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/health",
+      "method": "GET",
+      "summary": "API v1 Health Check",
+      "tags": []
+    },
+    "status": "unused"
+  },
+  {
+    "frontend": null,
+    "frontendDetails": null,
+    "backend": {
+      "path": "/api/v1/health/detailed",
+      "method": "GET",
+      "summary": "Detailed API v1 Health Check",
+      "tags": []
+    },
+    "status": "unused"
+  }
+];
+    let currentFilter = 'all';
+    
+    function renderConnections(filter = 'all', search = '') {
+      const grid = document.getElementById('connections-grid');
+      grid.innerHTML = '';
+      
+      // Add column headers
+      grid.innerHTML = `
+        <div class="column">
+          <div class="column-title">Frontend (Hooks/Services)</div>
+        </div>
+        <div></div>
+        <div class="column">
+          <div class="column-title">Backend Endpoints</div>
+        </div>
+      `;
+      
+      let stats = { connected: 0, missing: 0, unused: 0 };
+      
+      const filtered = connections.filter(conn => {
+        if (filter !== 'all' && conn.status !== filter) return false;
+        
+        if (search) {
+          const searchLower = search.toLowerCase();
+          const frontendMatch = conn.frontendDetails && (
+            conn.frontend.toLowerCase().includes(searchLower) ||
+            (conn.frontendDetails.path && conn.frontendDetails.path.toLowerCase().includes(searchLower))
+          );
+          const backendMatch = conn.backend && (
+            conn.backend.path.toLowerCase().includes(searchLower) ||
+            conn.backend.summary.toLowerCase().includes(searchLower)
+          );
+          return frontendMatch || backendMatch;
+        }
+        
+        return true;
+      });
+      
+      if (filtered.length === 0) {
+        grid.innerHTML += `
+          <div class="empty-state" style="grid-column: 1 / -1;">
+            No connections found matching your criteria
+          </div>
+        `;
+        return;
+      }
+      
+      filtered.forEach(conn => {
+        stats[conn.status === 'mismatched' ? 'missing' : conn.status]++;
+        
+        const frontendCard = conn.frontendDetails ? `
+          <div class="endpoint-card">
+            <div>
+              <span class="endpoint-method method-${conn.frontendDetails.method || 'GET'}">${conn.frontendDetails.method || 'HOOK'}</span>
+              <span class="endpoint-path">${conn.frontendDetails.path || conn.frontend}</span>
+            </div>
+            <div class="endpoint-file">${conn.frontendDetails.file || ''}</div>
+          </div>
+        ` : '<div></div>';
+        
+        const statusIndicator = `
+          <div class="status-indicator">
+            <div class="status-line status-${conn.status}">
+              <div class="status-dot status-${conn.status}"></div>
+            </div>
+          </div>
+        `;
+        
+        const backendCard = conn.backend ? `
+          <div class="endpoint-card">
+            <div>
+              <span class="endpoint-method method-${conn.backend.method}">${conn.backend.method}</span>
+              <span class="endpoint-path">${conn.backend.path}</span>
+            </div>
+            <div class="endpoint-file">${conn.backend.summary || conn.backend.tags.join(', ') || ''}</div>
+          </div>
+        ` : '<div></div>';
+        
+        grid.innerHTML += frontendCard + statusIndicator + backendCard;
+      });
+      
+      // Update stats
+      document.getElementById('stat-connected').textContent = stats.connected;
+      document.getElementById('stat-missing').textContent = stats.missing;
+      document.getElementById('stat-unused').textContent = stats.unused;
+    }
+    
+    function filterConnections(filter) {
+      currentFilter = filter;
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      event.target.classList.add('active');
+      renderConnections(filter);
+    }
+    
+    function searchConnections(value) {
+      renderConnections(currentFilter, value);
+    }
+    
+    // Initial render
+    renderConnections();
+  </script>
+</body>
+</html>

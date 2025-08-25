@@ -62,7 +62,7 @@ async def list_policies(
     return {"policies": policies}
 
 
-@router.get("/{policy_id}", response_model=GeneratedPolicyResponse)
+@router.get("/{id}", response_model=GeneratedPolicyResponse)
 async def get_policy(
     policy_id: UUID,
     current_user: User = Depends(get_current_active_user),
@@ -74,7 +74,7 @@ async def get_policy(
     return policy
 
 
-@router.patch("/{policy_id}/status")
+@router.patch("/{id}/status")
 async def update_policy_status(
     policy_id: UUID,
     status_update: dict,
@@ -100,7 +100,7 @@ async def update_policy_status(
     }
 
 
-@router.put("/{policy_id}/approve")
+@router.put("/{id}/approve")
 async def approve_policy(policy_id: UUID, current_user: User = Depends(get_current_active_user)):
     # Implementation for policy approval
     return {"message": "Policy approved", "policy_id": policy_id}

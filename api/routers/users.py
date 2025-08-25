@@ -14,9 +14,13 @@ from database.db_setup import get_db
 router = APIRouter()
 
 
-@router.get("/me", response_model=UserResponse)
-async def get_current_user(current_user: User = Depends(get_current_active_user)):
-    return current_user
+# REMOVED: Duplicate endpoint
+# REMOVED: Duplicate endpoint
+# # @router.get("/me", response_model=UserResponse)
+# # async def get_current_user(current_user: User = Depends(get_current_active_user)):
+# #     return current_user
+# #
+#
 
 
 @router.get("/profile", response_model=UserResponse)

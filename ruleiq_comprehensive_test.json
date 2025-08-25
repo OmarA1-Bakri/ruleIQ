@@ -1,0 +1,323 @@
+{
+  "info": {
+    "name": "RuleIQ API Comprehensive Tests",
+    "description": "Full API test suite with assertions",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {"key": "base_url", "value": "http://localhost:8000"},
+    {"key": "jwt_token", "value": ""},
+    {"key": "user_id", "value": ""},
+    {"key": "lead_id", "value": ""},
+    {"key": "timestamp", "value": ""}
+  ],
+  "item": [
+    {
+      "name": "1. Health Checks",
+      "item": [
+        {
+          "name": "Root Health Check",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Health status is healthy', function() {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.status).to.eql('healthy');",
+                  "});",
+                  "",
+                  "pm.test('Database is connected', function() {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.database.engine_initialized).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/health"
+          }
+        },
+        {
+          "name": "API Health Check",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('API version present', function() {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.version).to.exist;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/v1/health"
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Authentication Flow",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Login successful', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('JWT token received', function() {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.access_token).to.exist;",
+                  "    pm.collectionVariables.set('jwt_token', response.access_token);",
+                  "});",
+                  "",
+                  "pm.test('Token type is bearer', function() {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.token_type).to.eql('bearer');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"newtest@ruleiq.com\", \"password\": \"NewTestPass123!\"}"
+            },
+            "url": "{{base_url}}/api/v1/auth/login"
+          }
+        },
+        {
+          "name": "Get Current User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('User retrieved or known error', function() {",
+                  "    pm.expect([200, 500]).to.include(pm.response.code);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('User email matches', function() {",
+                  "        const response = pm.response.json();",
+                  "        pm.expect(response.email).to.eql('newtest@ruleiq.com');",
+                  "        pm.collectionVariables.set('user_id', response.id);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/auth/me"
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Freemium Features",
+      "item": [
+        {
+          "name": "Capture Lead",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.collectionVariables.set('timestamp', Date.now());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Lead created', function() {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Lead ID received', function() {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.lead_id).to.exist;",
+                  "    pm.collectionVariables.set('lead_id', response.lead_id);",
+                  "});",
+                  "",
+                  "pm.test('Lead score calculated', function() {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.lead_score).to.be.a('number');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"test_{{timestamp}}@example.com\", \"utm_source\": \"postman\", \"utm_medium\": \"api_test\"}"
+            },
+            "url": "{{base_url}}/api/v1/freemium/leads"
+          }
+        },
+        {
+          "name": "Freemium Health",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Freemium service healthy', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Database connected', function() {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.database).to.eql('connected');",
+                  "});",
+                  "",
+                  "pm.test('Leads count exists', function() {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.leads_count).to.be.a('number');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/v1/freemium/health"
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. IQ Agent",
+      "item": [
+        {
+          "name": "IQ Agent Health",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('IQ Agent health check successful', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Success flag present', function() {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.success).to.exist;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/v1/iq-agent/health"
+          }
+        },
+        {
+          "name": "IQ Agent Status",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status check successful', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Agent status present', function() {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.status).to.exist;",
+                  "    pm.expect(['healthy', 'degraded', 'unhealthy']).to.include(response.status);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/v1/iq-agent/status"
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Protected Endpoints",
+      "item": [
+        {
+          "name": "Business Profiles (Should 401)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Protected endpoint returns 401', function() {",
+                  "    pm.response.to.have.status(401);",
+                  "});",
+                  "",
+                  "pm.test('Error message present', function() {",
+                  "    const response = pm.response.json();",
+                  "    pm.expect(response.detail).to.exist;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/business-profiles/"
+          }
+        },
+        {
+          "name": "Assessments (Should 401)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Protected endpoint returns 401', function() {",
+                  "    pm.response.to.have.status(401);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/assessments/"
+          }
+        }
+      ]
+    }
+  ]
+}

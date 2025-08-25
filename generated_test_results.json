@@ -1,0 +1,1467 @@
+{
+  "collection": {
+    "item": [
+      {
+        "id": "31d5c2a7-ed74-4618-9fd2-c414b3ee8f89",
+        "name": "🔐 Authentication",
+        "item": [
+          {
+            "id": "617e2ced-17ef-43df-9c1d-b5fa50b15e87",
+            "name": "Register New User",
+            "request": {
+              "url": {
+                "query": [],
+                "variable": []
+              },
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "method": "POST",
+              "body": {
+                "mode": "raw",
+                "raw": "{\"email\": \"test@example.com\", \"password\": \"testpass123\"}"
+              }
+            },
+            "response": [],
+            "event": []
+          },
+          {
+            "id": "8a33d76e-a14e-40b6-b27e-a83e4bec9e3b",
+            "name": "Login User",
+            "request": {
+              "url": {
+                "query": [],
+                "variable": []
+              },
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "method": "POST",
+              "body": {
+                "mode": "raw",
+                "raw": "{\"email\": \"{{test_user_email}}\", \"password\": \"{{test_user_password}}\"}"
+              }
+            },
+            "response": [],
+            "event": []
+          },
+          {
+            "id": "e397b327-7322-4506-a186-cc38d2036ad1",
+            "name": "Get Current User",
+            "request": {
+              "url": {
+                "query": [],
+                "variable": []
+              },
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{jwt_token}}"
+                }
+              ],
+              "method": "GET"
+            },
+            "response": [],
+            "event": []
+          }
+        ],
+        "event": []
+      },
+      {
+        "id": "546b0e83-1287-4553-a354-738a03884bda",
+        "name": "🏢 Business Profiles",
+        "item": [
+          {
+            "id": "e406aed8-6265-42bc-ada6-e768166c7c0e",
+            "name": "Create Business Profile",
+            "request": {
+              "url": {
+                "query": [],
+                "variable": []
+              },
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{jwt_token}}"
+                }
+              ],
+              "method": "POST",
+              "body": {
+                "mode": "raw",
+                "raw": "{\"company_name\": \"Test Company\", \"industry\": \"Technology\"}"
+              }
+            },
+            "response": [],
+            "event": []
+          },
+          {
+            "id": "7686aa91-9c16-4883-8210-01aea059e036",
+            "name": "Get My Business Profile",
+            "request": {
+              "url": {
+                "query": [],
+                "variable": []
+              },
+              "header": [
+                {
+                  "key": "Authorization",
+                  "value": "Bearer {{jwt_token}}"
+                }
+              ],
+              "method": "GET"
+            },
+            "response": [],
+            "event": []
+          }
+        ],
+        "event": []
+      }
+    ],
+    "event": [],
+    "variable": [
+      {
+        "type": "any",
+        "value": "http://localhost:8000",
+        "key": "base_url"
+      },
+      {
+        "type": "any",
+        "value": "{{jwt_token}}",
+        "key": "jwt_token"
+      }
+    ],
+    "info": {
+      "_postman_id": "21086e0a-248e-46c8-99be-2d0dddca410a",
+      "name": "RuleIQ Generated Collection",
+      "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+      "description": {
+        "content": "Generated from verified 254 endpoints",
+        "type": "text/plain"
+      }
+    }
+  },
+  "environment": {
+    "_": {
+      "postman_variable_scope": "environment",
+      "postman_exported_at": "2025-08-23T10:15:00.000Z",
+      "postman_exported_using": "Newman/6.0.0"
+    },
+    "id": "working-env-2025",
+    "name": "RuleIQ Working Environment",
+    "values": [
+      {
+        "type": "any",
+        "value": "http://localhost:8000",
+        "key": "base_url"
+      },
+      {
+        "type": "any",
+        "value": "newtest@ruleiq.com",
+        "key": "test_user_email"
+      },
+      {
+        "type": "any",
+        "value": "NewTestPass123!",
+        "key": "test_user_password"
+      },
+      {
+        "type": "any",
+        "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlOThlMjgwMS01YTVmLTRiNDUtYWRiZi1kY2U2YWMxNGY2YjEiLCJleHAiOjE3NTU5NDg1MDEsInR5cGUiOiJhY2Nlc3MiLCJpYXQiOjE3NTU5NDY3MDF9.AoXKy60BNKpqlQSIIeXNY4xyHyrucTVKjpkF3Gb-Xro",
+        "key": "jwt_token"
+      },
+      {
+        "type": "any",
+        "value": "",
+        "key": "user_id"
+      },
+      {
+        "type": "any",
+        "value": "",
+        "key": "business_profile_id"
+      }
+    ]
+  },
+  "globals": {
+    "id": "97af7de7-9a37-4716-a09f-b14ea015bd28",
+    "values": []
+  },
+  "run": {
+    "stats": {
+      "iterations": {
+        "total": 1,
+        "pending": 0,
+        "failed": 0
+      },
+      "items": {
+        "total": 5,
+        "pending": 0,
+        "failed": 0
+      },
+      "scripts": {
+        "total": 0,
+        "pending": 0,
+        "failed": 0
+      },
+      "prerequests": {
+        "total": 5,
+        "pending": 0,
+        "failed": 0
+      },
+      "requests": {
+        "total": 5,
+        "pending": 0,
+        "failed": 5
+      },
+      "tests": {
+        "total": 5,
+        "pending": 0,
+        "failed": 0
+      },
+      "assertions": {
+        "total": 0,
+        "pending": 0,
+        "failed": 0
+      },
+      "testScripts": {
+        "total": 0,
+        "pending": 0,
+        "failed": 0
+      },
+      "prerequestScripts": {
+        "total": 0,
+        "pending": 0,
+        "failed": 0
+      }
+    },
+    "timings": {
+      "responseAverage": 0,
+      "responseMin": 0,
+      "responseMax": 0,
+      "responseSd": 0,
+      "dnsAverage": 0,
+      "dnsMin": 0,
+      "dnsMax": 0,
+      "dnsSd": 0,
+      "firstByteAverage": 0,
+      "firstByteMin": 0,
+      "firstByteMax": 0,
+      "firstByteSd": 0,
+      "started": 1755946886342,
+      "completed": 1755946886429
+    },
+    "executions": [
+      {
+        "cursor": {
+          "position": 0,
+          "iteration": 0,
+          "length": 5,
+          "cycles": 1,
+          "empty": false,
+          "eof": false,
+          "bof": true,
+          "cr": false,
+          "ref": "eb2720b7-b4fe-4b59-a90a-fecfe1c2da10",
+          "httpRequestId": "08451af7-af7a-4c0d-a32f-7c36ae23e582"
+        },
+        "item": {
+          "id": "617e2ced-17ef-43df-9c1d-b5fa50b15e87",
+          "name": "Register New User",
+          "request": {
+            "url": {
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"test@example.com\", \"password\": \"testpass123\"}"
+            }
+          },
+          "response": [],
+          "event": []
+        },
+        "request": {
+          "url": {
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "method": "POST",
+          "body": {
+            "mode": "raw",
+            "raw": "{\"email\": \"test@example.com\", \"password\": \"testpass123\"}"
+          }
+        },
+        "id": "617e2ced-17ef-43df-9c1d-b5fa50b15e87",
+        "requestError": {}
+      },
+      {
+        "cursor": {
+          "ref": "8137d2d9-56d6-4196-b162-034e8f8f7f78",
+          "length": 5,
+          "cycles": 1,
+          "position": 1,
+          "iteration": 0,
+          "httpRequestId": "33af4549-1b16-4ddb-b8cf-536b7d805510"
+        },
+        "item": {
+          "id": "8a33d76e-a14e-40b6-b27e-a83e4bec9e3b",
+          "name": "Login User",
+          "request": {
+            "url": {
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"{{test_user_email}}\", \"password\": \"{{test_user_password}}\"}"
+            }
+          },
+          "response": [],
+          "event": []
+        },
+        "request": {
+          "url": {
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "method": "POST",
+          "body": {
+            "mode": "raw",
+            "raw": "{\"email\": \"newtest@ruleiq.com\", \"password\": \"NewTestPass123!\"}"
+          }
+        },
+        "id": "8a33d76e-a14e-40b6-b27e-a83e4bec9e3b",
+        "requestError": {}
+      },
+      {
+        "cursor": {
+          "ref": "42c39d28-8346-428a-aa9a-1a951a60584a",
+          "length": 5,
+          "cycles": 1,
+          "position": 2,
+          "iteration": 0,
+          "httpRequestId": "e8760925-8264-4967-8a6b-099ef9d1052e"
+        },
+        "item": {
+          "id": "e397b327-7322-4506-a186-cc38d2036ad1",
+          "name": "Get Current User",
+          "request": {
+            "url": {
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "method": "GET"
+          },
+          "response": [],
+          "event": []
+        },
+        "request": {
+          "url": {
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlOThlMjgwMS01YTVmLTRiNDUtYWRiZi1kY2U2YWMxNGY2YjEiLCJleHAiOjE3NTU5NDg1MDEsInR5cGUiOiJhY2Nlc3MiLCJpYXQiOjE3NTU5NDY3MDF9.AoXKy60BNKpqlQSIIeXNY4xyHyrucTVKjpkF3Gb-Xro"
+            }
+          ],
+          "method": "GET"
+        },
+        "id": "e397b327-7322-4506-a186-cc38d2036ad1",
+        "requestError": {}
+      },
+      {
+        "cursor": {
+          "ref": "f926ceef-a036-4948-94c1-6c5c30c410ff",
+          "length": 5,
+          "cycles": 1,
+          "position": 3,
+          "iteration": 0,
+          "httpRequestId": "5fbdadfa-b5aa-421a-8c19-a14d44fa5244"
+        },
+        "item": {
+          "id": "e406aed8-6265-42bc-ada6-e768166c7c0e",
+          "name": "Create Business Profile",
+          "request": {
+            "url": {
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"company_name\": \"Test Company\", \"industry\": \"Technology\"}"
+            }
+          },
+          "response": [],
+          "event": []
+        },
+        "request": {
+          "url": {
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlOThlMjgwMS01YTVmLTRiNDUtYWRiZi1kY2U2YWMxNGY2YjEiLCJleHAiOjE3NTU5NDg1MDEsInR5cGUiOiJhY2Nlc3MiLCJpYXQiOjE3NTU5NDY3MDF9.AoXKy60BNKpqlQSIIeXNY4xyHyrucTVKjpkF3Gb-Xro"
+            }
+          ],
+          "method": "POST",
+          "body": {
+            "mode": "raw",
+            "raw": "{\"company_name\": \"Test Company\", \"industry\": \"Technology\"}"
+          }
+        },
+        "id": "e406aed8-6265-42bc-ada6-e768166c7c0e",
+        "requestError": {}
+      },
+      {
+        "cursor": {
+          "ref": "797904da-0a97-4a33-93b5-97843f547d9f",
+          "length": 5,
+          "cycles": 1,
+          "position": 4,
+          "iteration": 0,
+          "httpRequestId": "73e2d226-363d-4ed3-9e8f-c0efbaa62cef"
+        },
+        "item": {
+          "id": "7686aa91-9c16-4883-8210-01aea059e036",
+          "name": "Get My Business Profile",
+          "request": {
+            "url": {
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "method": "GET"
+          },
+          "response": [],
+          "event": []
+        },
+        "request": {
+          "url": {
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlOThlMjgwMS01YTVmLTRiNDUtYWRiZi1kY2U2YWMxNGY2YjEiLCJleHAiOjE3NTU5NDg1MDEsInR5cGUiOiJhY2Nlc3MiLCJpYXQiOjE3NTU5NDY3MDF9.AoXKy60BNKpqlQSIIeXNY4xyHyrucTVKjpkF3Gb-Xro"
+            }
+          ],
+          "method": "GET"
+        },
+        "id": "7686aa91-9c16-4883-8210-01aea059e036",
+        "requestError": {}
+      }
+    ],
+    "transfers": {
+      "responseTotal": 0
+    },
+    "failures": [
+      {
+        "error": {
+          "name": "Error",
+          "message": "runtime:extensions~request: request url is empty",
+          "stack": "Error: runtime:extensions~request: request url is empty\n    at Requester.request (/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/postman-runtime/lib/requester/requester.js:421:26)\n    at /home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/postman-runtime/lib/runner/extensions/http-request.command.js:156:37\n    at Requester.create (/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/postman-runtime/lib/requester/requester.js:508:16)\n    at RequesterPool.create (/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/postman-runtime/lib/requester/requester-pool.js:67:22)\n    at /home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/postman-runtime/lib/runner/extensions/http-request.command.js:105:32\n    at /home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js:252:13\n    at wrapper (/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js:273:20)\n    at replenish (/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js:443:29)\n    at /home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js:453:13\n    at eachOfLimit (/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js:479:36)\n    at awaitable (/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js:212:32)\n    at eachOfSeries (/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js:815:16)\n    at awaitable (/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js:212:32)\n    at _asyncMap (/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js:245:16)\n    at mapSeries (/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js:839:16)\n    at awaitable (/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js:212:32)",
+          "checksum": "914ed25cc094ac69f064bddc91274858",
+          "id": "a8347c82-cbbc-4976-b9fc-c9fdc050c2b5",
+          "timestamp": 1755946886360,
+          "stacktrace": [
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/postman-runtime/lib/requester/requester.js",
+              "lineNumber": 421,
+              "functionName": "Requester.request",
+              "typeName": "Requester",
+              "methodName": "request",
+              "columnNumber": 26,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/postman-runtime/lib/runner/extensions/http-request.command.js",
+              "lineNumber": 156,
+              "functionName": null,
+              "typeName": null,
+              "methodName": null,
+              "columnNumber": 37,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/postman-runtime/lib/requester/requester.js",
+              "lineNumber": 508,
+              "functionName": "Requester.create",
+              "typeName": "Requester",
+              "methodName": "create",
+              "columnNumber": 16,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/postman-runtime/lib/requester/requester-pool.js",
+              "lineNumber": 67,
+              "functionName": "RequesterPool.create",
+              "typeName": "RequesterPool",
+              "methodName": "create",
+              "columnNumber": 22,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/postman-runtime/lib/runner/extensions/http-request.command.js",
+              "lineNumber": 105,
+              "functionName": null,
+              "typeName": null,
+              "methodName": null,
+              "columnNumber": 32,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js",
+              "lineNumber": 252,
+              "functionName": null,
+              "typeName": null,
+              "methodName": null,
+              "columnNumber": 13,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js",
+              "lineNumber": 273,
+              "functionName": "wrapper",
+              "typeName": "Object",
+              "methodName": null,
+              "columnNumber": 20,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js",
+              "lineNumber": 443,
+              "functionName": "replenish",
+              "typeName": "Object",
+              "methodName": null,
+              "columnNumber": 29,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js",
+              "lineNumber": 453,
+              "functionName": null,
+              "typeName": null,
+              "methodName": null,
+              "columnNumber": 13,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js",
+              "lineNumber": 479,
+              "functionName": "eachOfLimit",
+              "typeName": "Object",
+              "methodName": null,
+              "columnNumber": 36,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js",
+              "lineNumber": 212,
+              "functionName": "awaitable",
+              "typeName": "Object",
+              "methodName": null,
+              "columnNumber": 32,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js",
+              "lineNumber": 815,
+              "functionName": "eachOfSeries",
+              "typeName": "Object",
+              "methodName": null,
+              "columnNumber": 16,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js",
+              "lineNumber": 212,
+              "functionName": "awaitable",
+              "typeName": "Object",
+              "methodName": null,
+              "columnNumber": 32,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js",
+              "lineNumber": 245,
+              "functionName": "_asyncMap",
+              "typeName": "Object",
+              "methodName": null,
+              "columnNumber": 16,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js",
+              "lineNumber": 839,
+              "functionName": "mapSeries",
+              "typeName": "Object",
+              "methodName": null,
+              "columnNumber": 16,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js",
+              "lineNumber": 212,
+              "functionName": "awaitable",
+              "typeName": "Object",
+              "methodName": null,
+              "columnNumber": 32,
+              "native": false
+            }
+          ]
+        },
+        "at": "request",
+        "source": {
+          "id": "617e2ced-17ef-43df-9c1d-b5fa50b15e87",
+          "name": "Register New User",
+          "request": {
+            "url": {
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"test@example.com\", \"password\": \"testpass123\"}"
+            }
+          },
+          "response": [],
+          "event": []
+        },
+        "cursor": {
+          "position": 0,
+          "iteration": 0,
+          "length": 5,
+          "cycles": 1,
+          "empty": false,
+          "eof": false,
+          "bof": true,
+          "cr": false,
+          "ref": "eb2720b7-b4fe-4b59-a90a-fecfe1c2da10",
+          "httpRequestId": "08451af7-af7a-4c0d-a32f-7c36ae23e582"
+        }
+      },
+      {
+        "error": {
+          "name": "Error",
+          "message": "runtime:extensions~request: request url is empty",
+          "stack": "Error: runtime:extensions~request: request url is empty\n    at Requester.request (/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/postman-runtime/lib/requester/requester.js:421:26)\n    at /home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/postman-runtime/lib/runner/extensions/http-request.command.js:156:37\n    at Requester.create (/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/postman-runtime/lib/requester/requester.js:508:16)\n    at RequesterPool.create (/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/postman-runtime/lib/requester/requester-pool.js:67:22)\n    at /home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/postman-runtime/lib/runner/extensions/http-request.command.js:105:32\n    at /home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js:252:13\n    at wrapper (/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js:273:20)\n    at replenish (/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js:443:29)\n    at /home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js:453:13\n    at eachOfLimit (/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js:479:36)\n    at awaitable (/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js:212:32)\n    at eachOfSeries (/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js:815:16)\n    at awaitable (/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js:212:32)\n    at _asyncMap (/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js:245:16)\n    at mapSeries (/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js:839:16)\n    at awaitable (/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js:212:32)",
+          "checksum": "914ed25cc094ac69f064bddc91274858",
+          "id": "435a3a7c-2951-4eaf-aa22-15e0729848a9",
+          "timestamp": 1755946886384,
+          "stacktrace": [
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/postman-runtime/lib/requester/requester.js",
+              "lineNumber": 421,
+              "functionName": "Requester.request",
+              "typeName": "Requester",
+              "methodName": "request",
+              "columnNumber": 26,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/postman-runtime/lib/runner/extensions/http-request.command.js",
+              "lineNumber": 156,
+              "functionName": null,
+              "typeName": null,
+              "methodName": null,
+              "columnNumber": 37,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/postman-runtime/lib/requester/requester.js",
+              "lineNumber": 508,
+              "functionName": "Requester.create",
+              "typeName": "Requester",
+              "methodName": "create",
+              "columnNumber": 16,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/postman-runtime/lib/requester/requester-pool.js",
+              "lineNumber": 67,
+              "functionName": "RequesterPool.create",
+              "typeName": "RequesterPool",
+              "methodName": "create",
+              "columnNumber": 22,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/postman-runtime/lib/runner/extensions/http-request.command.js",
+              "lineNumber": 105,
+              "functionName": null,
+              "typeName": null,
+              "methodName": null,
+              "columnNumber": 32,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js",
+              "lineNumber": 252,
+              "functionName": null,
+              "typeName": null,
+              "methodName": null,
+              "columnNumber": 13,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js",
+              "lineNumber": 273,
+              "functionName": "wrapper",
+              "typeName": "Object",
+              "methodName": null,
+              "columnNumber": 20,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js",
+              "lineNumber": 443,
+              "functionName": "replenish",
+              "typeName": "Object",
+              "methodName": null,
+              "columnNumber": 29,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js",
+              "lineNumber": 453,
+              "functionName": null,
+              "typeName": null,
+              "methodName": null,
+              "columnNumber": 13,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js",
+              "lineNumber": 479,
+              "functionName": "eachOfLimit",
+              "typeName": "Object",
+              "methodName": null,
+              "columnNumber": 36,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js",
+              "lineNumber": 212,
+              "functionName": "awaitable",
+              "typeName": "Object",
+              "methodName": null,
+              "columnNumber": 32,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js",
+              "lineNumber": 815,
+              "functionName": "eachOfSeries",
+              "typeName": "Object",
+              "methodName": null,
+              "columnNumber": 16,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js",
+              "lineNumber": 212,
+              "functionName": "awaitable",
+              "typeName": "Object",
+              "methodName": null,
+              "columnNumber": 32,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js",
+              "lineNumber": 245,
+              "functionName": "_asyncMap",
+              "typeName": "Object",
+              "methodName": null,
+              "columnNumber": 16,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js",
+              "lineNumber": 839,
+              "functionName": "mapSeries",
+              "typeName": "Object",
+              "methodName": null,
+              "columnNumber": 16,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js",
+              "lineNumber": 212,
+              "functionName": "awaitable",
+              "typeName": "Object",
+              "methodName": null,
+              "columnNumber": 32,
+              "native": false
+            }
+          ]
+        },
+        "at": "request",
+        "source": {
+          "id": "8a33d76e-a14e-40b6-b27e-a83e4bec9e3b",
+          "name": "Login User",
+          "request": {
+            "url": {
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"newtest@ruleiq.com\", \"password\": \"NewTestPass123!\"}"
+            }
+          },
+          "response": [],
+          "event": []
+        },
+        "cursor": {
+          "ref": "8137d2d9-56d6-4196-b162-034e8f8f7f78",
+          "length": 5,
+          "cycles": 1,
+          "position": 1,
+          "iteration": 0,
+          "httpRequestId": "33af4549-1b16-4ddb-b8cf-536b7d805510"
+        }
+      },
+      {
+        "error": {
+          "name": "Error",
+          "message": "runtime:extensions~request: request url is empty",
+          "stack": "Error: runtime:extensions~request: request url is empty\n    at Requester.request (/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/postman-runtime/lib/requester/requester.js:421:26)\n    at /home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/postman-runtime/lib/runner/extensions/http-request.command.js:156:37\n    at Requester.create (/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/postman-runtime/lib/requester/requester.js:508:16)\n    at RequesterPool.create (/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/postman-runtime/lib/requester/requester-pool.js:67:22)\n    at /home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/postman-runtime/lib/runner/extensions/http-request.command.js:105:32\n    at /home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js:252:13\n    at wrapper (/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js:273:20)\n    at replenish (/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js:443:29)\n    at /home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js:453:13\n    at eachOfLimit (/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js:479:36)\n    at awaitable (/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js:212:32)\n    at eachOfSeries (/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js:815:16)\n    at awaitable (/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js:212:32)\n    at _asyncMap (/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js:245:16)\n    at mapSeries (/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js:839:16)\n    at awaitable (/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js:212:32)",
+          "checksum": "914ed25cc094ac69f064bddc91274858",
+          "id": "7762f4fd-251c-487b-96fb-130dc963f8aa",
+          "timestamp": 1755946886397,
+          "stacktrace": [
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/postman-runtime/lib/requester/requester.js",
+              "lineNumber": 421,
+              "functionName": "Requester.request",
+              "typeName": "Requester",
+              "methodName": "request",
+              "columnNumber": 26,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/postman-runtime/lib/runner/extensions/http-request.command.js",
+              "lineNumber": 156,
+              "functionName": null,
+              "typeName": null,
+              "methodName": null,
+              "columnNumber": 37,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/postman-runtime/lib/requester/requester.js",
+              "lineNumber": 508,
+              "functionName": "Requester.create",
+              "typeName": "Requester",
+              "methodName": "create",
+              "columnNumber": 16,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/postman-runtime/lib/requester/requester-pool.js",
+              "lineNumber": 67,
+              "functionName": "RequesterPool.create",
+              "typeName": "RequesterPool",
+              "methodName": "create",
+              "columnNumber": 22,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/postman-runtime/lib/runner/extensions/http-request.command.js",
+              "lineNumber": 105,
+              "functionName": null,
+              "typeName": null,
+              "methodName": null,
+              "columnNumber": 32,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js",
+              "lineNumber": 252,
+              "functionName": null,
+              "typeName": null,
+              "methodName": null,
+              "columnNumber": 13,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js",
+              "lineNumber": 273,
+              "functionName": "wrapper",
+              "typeName": "Object",
+              "methodName": null,
+              "columnNumber": 20,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js",
+              "lineNumber": 443,
+              "functionName": "replenish",
+              "typeName": "Object",
+              "methodName": null,
+              "columnNumber": 29,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js",
+              "lineNumber": 453,
+              "functionName": null,
+              "typeName": null,
+              "methodName": null,
+              "columnNumber": 13,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js",
+              "lineNumber": 479,
+              "functionName": "eachOfLimit",
+              "typeName": "Object",
+              "methodName": null,
+              "columnNumber": 36,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js",
+              "lineNumber": 212,
+              "functionName": "awaitable",
+              "typeName": "Object",
+              "methodName": null,
+              "columnNumber": 32,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js",
+              "lineNumber": 815,
+              "functionName": "eachOfSeries",
+              "typeName": "Object",
+              "methodName": null,
+              "columnNumber": 16,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js",
+              "lineNumber": 212,
+              "functionName": "awaitable",
+              "typeName": "Object",
+              "methodName": null,
+              "columnNumber": 32,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js",
+              "lineNumber": 245,
+              "functionName": "_asyncMap",
+              "typeName": "Object",
+              "methodName": null,
+              "columnNumber": 16,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js",
+              "lineNumber": 839,
+              "functionName": "mapSeries",
+              "typeName": "Object",
+              "methodName": null,
+              "columnNumber": 16,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js",
+              "lineNumber": 212,
+              "functionName": "awaitable",
+              "typeName": "Object",
+              "methodName": null,
+              "columnNumber": 32,
+              "native": false
+            }
+          ]
+        },
+        "at": "request",
+        "source": {
+          "id": "e397b327-7322-4506-a186-cc38d2036ad1",
+          "name": "Get Current User",
+          "request": {
+            "url": {
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlOThlMjgwMS01YTVmLTRiNDUtYWRiZi1kY2U2YWMxNGY2YjEiLCJleHAiOjE3NTU5NDg1MDEsInR5cGUiOiJhY2Nlc3MiLCJpYXQiOjE3NTU5NDY3MDF9.AoXKy60BNKpqlQSIIeXNY4xyHyrucTVKjpkF3Gb-Xro"
+              }
+            ],
+            "method": "GET"
+          },
+          "response": [],
+          "event": []
+        },
+        "cursor": {
+          "ref": "42c39d28-8346-428a-aa9a-1a951a60584a",
+          "length": 5,
+          "cycles": 1,
+          "position": 2,
+          "iteration": 0,
+          "httpRequestId": "e8760925-8264-4967-8a6b-099ef9d1052e"
+        }
+      },
+      {
+        "error": {
+          "name": "Error",
+          "message": "runtime:extensions~request: request url is empty",
+          "stack": "Error: runtime:extensions~request: request url is empty\n    at Requester.request (/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/postman-runtime/lib/requester/requester.js:421:26)\n    at /home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/postman-runtime/lib/runner/extensions/http-request.command.js:156:37\n    at Requester.create (/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/postman-runtime/lib/requester/requester.js:508:16)\n    at RequesterPool.create (/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/postman-runtime/lib/requester/requester-pool.js:67:22)\n    at /home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/postman-runtime/lib/runner/extensions/http-request.command.js:105:32\n    at /home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js:252:13\n    at wrapper (/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js:273:20)\n    at replenish (/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js:443:29)\n    at /home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js:453:13\n    at eachOfLimit (/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js:479:36)\n    at awaitable (/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js:212:32)\n    at eachOfSeries (/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js:815:16)\n    at awaitable (/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js:212:32)\n    at _asyncMap (/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js:245:16)\n    at mapSeries (/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js:839:16)\n    at awaitable (/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js:212:32)",
+          "checksum": "914ed25cc094ac69f064bddc91274858",
+          "id": "ccb7f095-2732-4f66-a2c2-dde441a367d2",
+          "timestamp": 1755946886410,
+          "stacktrace": [
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/postman-runtime/lib/requester/requester.js",
+              "lineNumber": 421,
+              "functionName": "Requester.request",
+              "typeName": "Requester",
+              "methodName": "request",
+              "columnNumber": 26,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/postman-runtime/lib/runner/extensions/http-request.command.js",
+              "lineNumber": 156,
+              "functionName": null,
+              "typeName": null,
+              "methodName": null,
+              "columnNumber": 37,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/postman-runtime/lib/requester/requester.js",
+              "lineNumber": 508,
+              "functionName": "Requester.create",
+              "typeName": "Requester",
+              "methodName": "create",
+              "columnNumber": 16,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/postman-runtime/lib/requester/requester-pool.js",
+              "lineNumber": 67,
+              "functionName": "RequesterPool.create",
+              "typeName": "RequesterPool",
+              "methodName": "create",
+              "columnNumber": 22,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/postman-runtime/lib/runner/extensions/http-request.command.js",
+              "lineNumber": 105,
+              "functionName": null,
+              "typeName": null,
+              "methodName": null,
+              "columnNumber": 32,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js",
+              "lineNumber": 252,
+              "functionName": null,
+              "typeName": null,
+              "methodName": null,
+              "columnNumber": 13,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js",
+              "lineNumber": 273,
+              "functionName": "wrapper",
+              "typeName": "Object",
+              "methodName": null,
+              "columnNumber": 20,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js",
+              "lineNumber": 443,
+              "functionName": "replenish",
+              "typeName": "Object",
+              "methodName": null,
+              "columnNumber": 29,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js",
+              "lineNumber": 453,
+              "functionName": null,
+              "typeName": null,
+              "methodName": null,
+              "columnNumber": 13,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js",
+              "lineNumber": 479,
+              "functionName": "eachOfLimit",
+              "typeName": "Object",
+              "methodName": null,
+              "columnNumber": 36,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js",
+              "lineNumber": 212,
+              "functionName": "awaitable",
+              "typeName": "Object",
+              "methodName": null,
+              "columnNumber": 32,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js",
+              "lineNumber": 815,
+              "functionName": "eachOfSeries",
+              "typeName": "Object",
+              "methodName": null,
+              "columnNumber": 16,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js",
+              "lineNumber": 212,
+              "functionName": "awaitable",
+              "typeName": "Object",
+              "methodName": null,
+              "columnNumber": 32,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js",
+              "lineNumber": 245,
+              "functionName": "_asyncMap",
+              "typeName": "Object",
+              "methodName": null,
+              "columnNumber": 16,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js",
+              "lineNumber": 839,
+              "functionName": "mapSeries",
+              "typeName": "Object",
+              "methodName": null,
+              "columnNumber": 16,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js",
+              "lineNumber": 212,
+              "functionName": "awaitable",
+              "typeName": "Object",
+              "methodName": null,
+              "columnNumber": 32,
+              "native": false
+            }
+          ]
+        },
+        "at": "request",
+        "source": {
+          "id": "e406aed8-6265-42bc-ada6-e768166c7c0e",
+          "name": "Create Business Profile",
+          "request": {
+            "url": {
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlOThlMjgwMS01YTVmLTRiNDUtYWRiZi1kY2U2YWMxNGY2YjEiLCJleHAiOjE3NTU5NDg1MDEsInR5cGUiOiJhY2Nlc3MiLCJpYXQiOjE3NTU5NDY3MDF9.AoXKy60BNKpqlQSIIeXNY4xyHyrucTVKjpkF3Gb-Xro"
+              }
+            ],
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"company_name\": \"Test Company\", \"industry\": \"Technology\"}"
+            }
+          },
+          "response": [],
+          "event": []
+        },
+        "cursor": {
+          "ref": "f926ceef-a036-4948-94c1-6c5c30c410ff",
+          "length": 5,
+          "cycles": 1,
+          "position": 3,
+          "iteration": 0,
+          "httpRequestId": "5fbdadfa-b5aa-421a-8c19-a14d44fa5244"
+        }
+      },
+      {
+        "error": {
+          "name": "Error",
+          "message": "runtime:extensions~request: request url is empty",
+          "stack": "Error: runtime:extensions~request: request url is empty\n    at Requester.request (/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/postman-runtime/lib/requester/requester.js:421:26)\n    at /home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/postman-runtime/lib/runner/extensions/http-request.command.js:156:37\n    at Requester.create (/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/postman-runtime/lib/requester/requester.js:508:16)\n    at RequesterPool.create (/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/postman-runtime/lib/requester/requester-pool.js:67:22)\n    at /home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/postman-runtime/lib/runner/extensions/http-request.command.js:105:32\n    at /home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js:252:13\n    at wrapper (/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js:273:20)\n    at replenish (/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js:443:29)\n    at /home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js:453:13\n    at eachOfLimit (/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js:479:36)\n    at awaitable (/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js:212:32)\n    at eachOfSeries (/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js:815:16)\n    at awaitable (/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js:212:32)\n    at _asyncMap (/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js:245:16)\n    at mapSeries (/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js:839:16)\n    at awaitable (/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js:212:32)",
+          "checksum": "914ed25cc094ac69f064bddc91274858",
+          "id": "e9feeca7-60f2-4da8-9db5-17aac2953ba0",
+          "timestamp": 1755946886423,
+          "stacktrace": [
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/postman-runtime/lib/requester/requester.js",
+              "lineNumber": 421,
+              "functionName": "Requester.request",
+              "typeName": "Requester",
+              "methodName": "request",
+              "columnNumber": 26,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/postman-runtime/lib/runner/extensions/http-request.command.js",
+              "lineNumber": 156,
+              "functionName": null,
+              "typeName": null,
+              "methodName": null,
+              "columnNumber": 37,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/postman-runtime/lib/requester/requester.js",
+              "lineNumber": 508,
+              "functionName": "Requester.create",
+              "typeName": "Requester",
+              "methodName": "create",
+              "columnNumber": 16,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/postman-runtime/lib/requester/requester-pool.js",
+              "lineNumber": 67,
+              "functionName": "RequesterPool.create",
+              "typeName": "RequesterPool",
+              "methodName": "create",
+              "columnNumber": 22,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/postman-runtime/lib/runner/extensions/http-request.command.js",
+              "lineNumber": 105,
+              "functionName": null,
+              "typeName": null,
+              "methodName": null,
+              "columnNumber": 32,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js",
+              "lineNumber": 252,
+              "functionName": null,
+              "typeName": null,
+              "methodName": null,
+              "columnNumber": 13,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js",
+              "lineNumber": 273,
+              "functionName": "wrapper",
+              "typeName": "Object",
+              "methodName": null,
+              "columnNumber": 20,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js",
+              "lineNumber": 443,
+              "functionName": "replenish",
+              "typeName": "Object",
+              "methodName": null,
+              "columnNumber": 29,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js",
+              "lineNumber": 453,
+              "functionName": null,
+              "typeName": null,
+              "methodName": null,
+              "columnNumber": 13,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js",
+              "lineNumber": 479,
+              "functionName": "eachOfLimit",
+              "typeName": "Object",
+              "methodName": null,
+              "columnNumber": 36,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js",
+              "lineNumber": 212,
+              "functionName": "awaitable",
+              "typeName": "Object",
+              "methodName": null,
+              "columnNumber": 32,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js",
+              "lineNumber": 815,
+              "functionName": "eachOfSeries",
+              "typeName": "Object",
+              "methodName": null,
+              "columnNumber": 16,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js",
+              "lineNumber": 212,
+              "functionName": "awaitable",
+              "typeName": "Object",
+              "methodName": null,
+              "columnNumber": 32,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js",
+              "lineNumber": 245,
+              "functionName": "_asyncMap",
+              "typeName": "Object",
+              "methodName": null,
+              "columnNumber": 16,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js",
+              "lineNumber": 839,
+              "functionName": "mapSeries",
+              "typeName": "Object",
+              "methodName": null,
+              "columnNumber": 16,
+              "native": false
+            },
+            {
+              "fileName": "/home/omar/.config/nvm/versions/node/v22.14.0/lib/node_modules/newman/node_modules/async/dist/async.js",
+              "lineNumber": 212,
+              "functionName": "awaitable",
+              "typeName": "Object",
+              "methodName": null,
+              "columnNumber": 32,
+              "native": false
+            }
+          ]
+        },
+        "at": "request",
+        "source": {
+          "id": "7686aa91-9c16-4883-8210-01aea059e036",
+          "name": "Get My Business Profile",
+          "request": {
+            "url": {
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlOThlMjgwMS01YTVmLTRiNDUtYWRiZi1kY2U2YWMxNGY2YjEiLCJleHAiOjE3NTU5NDg1MDEsInR5cGUiOiJhY2Nlc3MiLCJpYXQiOjE3NTU5NDY3MDF9.AoXKy60BNKpqlQSIIeXNY4xyHyrucTVKjpkF3Gb-Xro"
+              }
+            ],
+            "method": "GET"
+          },
+          "response": [],
+          "event": []
+        },
+        "cursor": {
+          "ref": "797904da-0a97-4a33-93b5-97843f547d9f",
+          "length": 5,
+          "cycles": 1,
+          "position": 4,
+          "iteration": 0,
+          "httpRequestId": "73e2d226-363d-4ed3-9e8f-c0efbaa62cef"
+        }
+      }
+    ],
+    "error": null
+  }
+}

@@ -40,8 +40,8 @@ describe('Authentication Service Integration', () => {
             token_type: 'bearer',
           });
         }),
-        // Mock the /api/v1/users/me endpoint for user data
-        http.get('http://localhost:8000/api/v1/users/me', () => {
+        // Mock the /api/v1/auth/me endpoint for user data
+        http.get('http://localhost:8000/api/v1/auth/me', () => {
           return HttpResponse.json({
             id: 'user-123',
             email: 'test@example.com',
@@ -107,7 +107,7 @@ describe('Authentication Service Integration', () => {
             token_type: 'bearer',
           });
         }),
-        http.get('http://localhost:8000/api/v1/users/me', () => {
+        http.get('http://localhost:8000/api/v1/auth/me', () => {
           userEndpointCalled = true;
           return HttpResponse.json({
             id: 'user-123',
@@ -135,7 +135,7 @@ describe('Authentication Service Integration', () => {
             token_type: 'bearer',
           });
         }),
-        http.get('http://localhost:8000/api/v1/users/me', () => {
+        http.get('http://localhost:8000/api/v1/auth/me', () => {
           return HttpResponse.json({
             id: 'user-123',
             email: 'test@example.com',
@@ -178,7 +178,7 @@ describe('Authentication Service Integration', () => {
             token_type: 'bearer',
           });
         }),
-        http.get('http://localhost:8000/api/v1/users/me', () => {
+        http.get('http://localhost:8000/api/v1/auth/me', () => {
           return HttpResponse.json({
             id: 'user-456',
             email: 'test@example.com',
@@ -207,7 +207,7 @@ describe('Authentication Service Integration', () => {
             token_type: 'bearer',
           });
         }),
-        http.get('http://localhost:8000/api/v1/users/me', () => {
+        http.get('http://localhost:8000/api/v1/auth/me', () => {
           return HttpResponse.json({
             id: 'user-789',
             email: 'test@example.com',

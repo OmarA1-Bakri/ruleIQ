@@ -1,0 +1,1948 @@
+{
+  "endpoints": {
+    "POST /api/v1/auth/token": [
+      {
+        "router": "auth",
+        "function": "login_for_access_token",
+        "file": "auth.py",
+        "prefix": "/api/v1/auth",
+        "path": "/token"
+      }
+    ],
+    "POST /api/v1/auth/login": [
+      {
+        "router": "auth",
+        "function": "login",
+        "file": "auth.py",
+        "prefix": "/api/v1/auth",
+        "path": "/login"
+      }
+    ],
+    "POST /api/v1/auth/refresh": [
+      {
+        "router": "auth",
+        "function": "refresh_token",
+        "file": "auth.py",
+        "prefix": "/api/v1/auth",
+        "path": "/refresh"
+      }
+    ],
+    "GET /api/v1/auth/me": [
+      {
+        "router": "auth",
+        "function": "get_current_user",
+        "file": "auth.py",
+        "prefix": "/api/v1/auth",
+        "path": "/me"
+      }
+    ],
+    "POST /api/v1/auth/logout": [
+      {
+        "router": "auth",
+        "function": "logout",
+        "file": "auth.py",
+        "prefix": "/api/v1/auth",
+        "path": "/logout"
+      }
+    ],
+    "POST /api/v1/auth/assign-default-role": [
+      {
+        "router": "auth",
+        "function": "assign_default_role",
+        "file": "auth.py",
+        "prefix": "/api/v1/auth",
+        "path": "/assign-default-role"
+      }
+    ],
+    "GET /api/v1/auth/login": [
+      {
+        "router": "google_auth",
+        "function": "google_login",
+        "file": "google_auth.py",
+        "prefix": "/api/v1/auth",
+        "path": "/login"
+      }
+    ],
+    "GET /api/v1/auth/callback": [
+      {
+        "router": "google_auth",
+        "function": "google_callback",
+        "file": "google_auth.py",
+        "prefix": "/api/v1/auth",
+        "path": "/callback"
+      }
+    ],
+    "POST /api/v1/auth/mobile-login": [
+      {
+        "router": "google_auth",
+        "function": "google_mobile_login",
+        "file": "google_auth.py",
+        "prefix": "/api/v1/auth",
+        "path": "/mobile-login"
+      }
+    ],
+    "GET /api/v1/users/me": [
+      {
+        "router": "users",
+        "function": "get_current_user",
+        "file": "users.py",
+        "prefix": "/api/v1/users",
+        "path": "/me"
+      }
+    ],
+    "GET /api/v1/users/profile": [
+      {
+        "router": "users",
+        "function": "get_user_profile",
+        "file": "users.py",
+        "prefix": "/api/v1/users",
+        "path": "/profile"
+      }
+    ],
+    "GET /api/v1/users/dashboard": [
+      {
+        "router": "users",
+        "function": "get_user_dashboard",
+        "file": "users.py",
+        "prefix": "/api/v1/users",
+        "path": "/dashboard"
+      }
+    ],
+    "PUT /api/v1/users/me/deactivate": [
+      {
+        "router": "users",
+        "function": "deactivate_account",
+        "file": "users.py",
+        "prefix": "/api/v1/users",
+        "path": "/me/deactivate"
+      }
+    ],
+    "POST /api/v1/assessments/quick": [
+      {
+        "router": "assessments",
+        "function": "quick_assessment",
+        "file": "assessments.py",
+        "prefix": "/api/v1/assessments",
+        "path": "/quick"
+      }
+    ],
+    "GET /api/v1/assessments/": [
+      {
+        "router": "assessments",
+        "function": "list_assessments",
+        "file": "assessments.py",
+        "prefix": "/api/v1/assessments",
+        "path": "/"
+      }
+    ],
+    "POST /api/v1/assessments/": [
+      {
+        "router": "assessments",
+        "function": "create_assessment",
+        "file": "assessments.py",
+        "prefix": "/api/v1/assessments",
+        "path": "/"
+      }
+    ],
+    "GET /api/v1/assessments/current": [
+      {
+        "router": "assessments",
+        "function": "get_current_session",
+        "file": "assessments.py",
+        "prefix": "/api/v1/assessments",
+        "path": "/current"
+      }
+    ],
+    "GET /api/v1/assessments/questions/{stage}": [
+      {
+        "router": "assessments",
+        "function": "get_questions",
+        "file": "assessments.py",
+        "prefix": "/api/v1/assessments",
+        "path": "/questions/{stage}"
+      }
+    ],
+    "PUT /api/v1/assessments/{id}/response": [
+      {
+        "router": "assessments",
+        "function": "update_response",
+        "file": "assessments.py",
+        "prefix": "/api/v1/assessments",
+        "path": "/{id}/response"
+      }
+    ],
+    "POST /api/v1/assessments/{id}/responses": [
+      {
+        "router": "assessments",
+        "function": "update_responses",
+        "file": "assessments.py",
+        "prefix": "/api/v1/assessments",
+        "path": "/{id}/responses"
+      }
+    ],
+    "GET /api/v1/assessments/{id}": [
+      {
+        "router": "assessments",
+        "function": "get_assessment_session",
+        "file": "assessments.py",
+        "prefix": "/api/v1/assessments",
+        "path": "/{id}"
+      }
+    ],
+    "GET /api/v1/assessments/{id}/recommendations": [
+      {
+        "router": "assessments",
+        "function": "get_assessment_recommendations",
+        "file": "assessments.py",
+        "prefix": "/api/v1/assessments",
+        "path": "/{id}/recommendations"
+      }
+    ],
+    "POST /api/v1/assessments/{id}/complete": [
+      {
+        "router": "assessments",
+        "function": "complete_assessment",
+        "file": "assessments.py",
+        "prefix": "/api/v1/assessments",
+        "path": "/{id}/complete"
+      }
+    ],
+    "POST /api/v1/ai-assessments/{framework_id}/help": [
+      {
+        "router": "ai_assessments",
+        "function": "get_question_help",
+        "file": "ai_assessments.py",
+        "prefix": "/api/v1/ai-assessments",
+        "path": "/{framework_id}/help"
+      }
+    ],
+    "POST /api/v1/ai-assessments/{framework_id}/help/stream": [
+      {
+        "router": "ai_assessments",
+        "function": "get_question_help_stream",
+        "file": "ai_assessments.py",
+        "prefix": "/api/v1/ai-assessments",
+        "path": "/{framework_id}/help/stream"
+      }
+    ],
+    "POST /api/v1/ai-assessments/followup": [
+      {
+        "router": "ai_assessments",
+        "function": "generate_followup_questions",
+        "file": "ai_assessments.py",
+        "prefix": "/api/v1/ai-assessments",
+        "path": "/followup"
+      }
+    ],
+    "POST /api/v1/ai-assessments/analysis": [
+      {
+        "router": "ai_assessments",
+        "function": "analyze_assessment_results",
+        "file": "ai_assessments.py",
+        "prefix": "/api/v1/ai-assessments",
+        "path": "/analysis"
+      }
+    ],
+    "POST /api/v1/ai-assessments/analysis/stream": [
+      {
+        "router": "ai_assessments",
+        "function": "analyze_assessment_results_stream",
+        "file": "ai_assessments.py",
+        "prefix": "/api/v1/ai-assessments",
+        "path": "/analysis/stream"
+      }
+    ],
+    "POST /api/v1/ai-assessments/recommendations": [
+      {
+        "router": "ai_assessments",
+        "function": "generate_personalized_recommendations",
+        "file": "ai_assessments.py",
+        "prefix": "/api/v1/ai-assessments",
+        "path": "/recommendations"
+      }
+    ],
+    "POST /api/v1/ai-assessments/recommendations/stream": [
+      {
+        "router": "ai_assessments",
+        "function": "generate_personalized_recommendations_stream",
+        "file": "ai_assessments.py",
+        "prefix": "/api/v1/ai-assessments",
+        "path": "/recommendations/stream"
+      }
+    ],
+    "POST /api/v1/ai-assessments/feedback": [
+      {
+        "router": "ai_assessments",
+        "function": "submit_ai_feedback",
+        "file": "ai_assessments.py",
+        "prefix": "/api/v1/ai-assessments",
+        "path": "/feedback"
+      }
+    ],
+    "GET /api/v1/ai-assessments/metrics": [
+      {
+        "router": "ai_assessments",
+        "function": "get_ai_metrics",
+        "file": "ai_assessments.py",
+        "prefix": "/api/v1/ai-assessments",
+        "path": "/metrics"
+      }
+    ],
+    "GET /api/v1/ai-assessments/rate-limit-stats": [
+      {
+        "router": "ai_assessments",
+        "function": "get_rate_limit_statistics",
+        "file": "ai_assessments.py",
+        "prefix": "/api/v1/ai-assessments",
+        "path": "/rate-limit-stats"
+      }
+    ],
+    "GET /api/v1/ai-assessments/health": [
+      {
+        "router": "ai_assessments",
+        "function": "get_ai_service_health",
+        "file": "ai_assessments.py",
+        "prefix": "/api/v1/ai-assessments",
+        "path": "/health"
+      }
+    ],
+    "GET /api/v1/ai-assessments/circuit-breaker/status": [
+      {
+        "router": "ai_assessments",
+        "function": "get_circuit_breaker_status",
+        "file": "ai_assessments.py",
+        "prefix": "/api/v1/ai-assessments",
+        "path": "/circuit-breaker/status"
+      }
+    ],
+    "POST /api/v1/ai-assessments/circuit-breaker/reset": [
+      {
+        "router": "ai_assessments",
+        "function": "reset_circuit_breaker",
+        "file": "ai_assessments.py",
+        "prefix": "/api/v1/ai-assessments",
+        "path": "/circuit-breaker/reset"
+      }
+    ],
+    "GET /api/v1/ai-assessments/models/{model_name}/health": [
+      {
+        "router": "ai_assessments",
+        "function": "get_model_health",
+        "file": "ai_assessments.py",
+        "prefix": "/api/v1/ai-assessments",
+        "path": "/models/{model_name}/health"
+      }
+    ],
+    "GET /api/v1/ai-assessments/cache/metrics": [
+      {
+        "router": "ai_assessments",
+        "function": "get_ai_cache_metrics",
+        "file": "ai_assessments.py",
+        "prefix": "/api/v1/ai-assessments",
+        "path": "/cache/metrics"
+      }
+    ],
+    "POST /api/ai/assessments/{framework_id}/help": [
+      {
+        "router": "ai_assessments",
+        "function": "get_question_help",
+        "file": "ai_assessments.py",
+        "prefix": "/api/ai/assessments",
+        "path": "/{framework_id}/help"
+      }
+    ],
+    "POST /api/ai/assessments/{framework_id}/help/stream": [
+      {
+        "router": "ai_assessments",
+        "function": "get_question_help_stream",
+        "file": "ai_assessments.py",
+        "prefix": "/api/ai/assessments",
+        "path": "/{framework_id}/help/stream"
+      }
+    ],
+    "POST /api/ai/assessments/followup": [
+      {
+        "router": "ai_assessments",
+        "function": "generate_followup_questions",
+        "file": "ai_assessments.py",
+        "prefix": "/api/ai/assessments",
+        "path": "/followup"
+      }
+    ],
+    "POST /api/ai/assessments/analysis": [
+      {
+        "router": "ai_assessments",
+        "function": "analyze_assessment_results",
+        "file": "ai_assessments.py",
+        "prefix": "/api/ai/assessments",
+        "path": "/analysis"
+      }
+    ],
+    "POST /api/ai/assessments/analysis/stream": [
+      {
+        "router": "ai_assessments",
+        "function": "analyze_assessment_results_stream",
+        "file": "ai_assessments.py",
+        "prefix": "/api/ai/assessments",
+        "path": "/analysis/stream"
+      }
+    ],
+    "POST /api/ai/assessments/recommendations": [
+      {
+        "router": "ai_assessments",
+        "function": "generate_personalized_recommendations",
+        "file": "ai_assessments.py",
+        "prefix": "/api/ai/assessments",
+        "path": "/recommendations"
+      }
+    ],
+    "POST /api/ai/assessments/recommendations/stream": [
+      {
+        "router": "ai_assessments",
+        "function": "generate_personalized_recommendations_stream",
+        "file": "ai_assessments.py",
+        "prefix": "/api/ai/assessments",
+        "path": "/recommendations/stream"
+      }
+    ],
+    "POST /api/ai/assessments/feedback": [
+      {
+        "router": "ai_assessments",
+        "function": "submit_ai_feedback",
+        "file": "ai_assessments.py",
+        "prefix": "/api/ai/assessments",
+        "path": "/feedback"
+      }
+    ],
+    "GET /api/ai/assessments/metrics": [
+      {
+        "router": "ai_assessments",
+        "function": "get_ai_metrics",
+        "file": "ai_assessments.py",
+        "prefix": "/api/ai/assessments",
+        "path": "/metrics"
+      }
+    ],
+    "GET /api/ai/assessments/rate-limit-stats": [
+      {
+        "router": "ai_assessments",
+        "function": "get_rate_limit_statistics",
+        "file": "ai_assessments.py",
+        "prefix": "/api/ai/assessments",
+        "path": "/rate-limit-stats"
+      }
+    ],
+    "GET /api/ai/assessments/health": [
+      {
+        "router": "ai_assessments",
+        "function": "get_ai_service_health",
+        "file": "ai_assessments.py",
+        "prefix": "/api/ai/assessments",
+        "path": "/health"
+      }
+    ],
+    "GET /api/ai/assessments/circuit-breaker/status": [
+      {
+        "router": "ai_assessments",
+        "function": "get_circuit_breaker_status",
+        "file": "ai_assessments.py",
+        "prefix": "/api/ai/assessments",
+        "path": "/circuit-breaker/status"
+      }
+    ],
+    "POST /api/ai/assessments/circuit-breaker/reset": [
+      {
+        "router": "ai_assessments",
+        "function": "reset_circuit_breaker",
+        "file": "ai_assessments.py",
+        "prefix": "/api/ai/assessments",
+        "path": "/circuit-breaker/reset"
+      }
+    ],
+    "GET /api/ai/assessments/models/{model_name}/health": [
+      {
+        "router": "ai_assessments",
+        "function": "get_model_health",
+        "file": "ai_assessments.py",
+        "prefix": "/api/ai/assessments",
+        "path": "/models/{model_name}/health"
+      }
+    ],
+    "GET /api/ai/assessments/cache/metrics": [
+      {
+        "router": "ai_assessments",
+        "function": "get_ai_cache_metrics",
+        "file": "ai_assessments.py",
+        "prefix": "/api/ai/assessments",
+        "path": "/cache/metrics"
+      }
+    ],
+    "POST /api/v1/ai/optimization/model-selection": [
+      {
+        "router": "ai_optimization",
+        "function": "model_selection",
+        "file": "ai_optimization.py",
+        "prefix": "/api/v1/ai/optimization",
+        "path": "/model-selection"
+      }
+    ],
+    "GET /api/v1/ai/optimization/model-health": [
+      {
+        "router": "ai_optimization",
+        "function": "model_health_check",
+        "file": "ai_optimization.py",
+        "prefix": "/api/v1/ai/optimization",
+        "path": "/model-health"
+      }
+    ],
+    "GET /api/v1/ai/optimization/performance-metrics": [
+      {
+        "router": "ai_optimization",
+        "function": "performance_metrics",
+        "file": "ai_optimization.py",
+        "prefix": "/api/v1/ai/optimization",
+        "path": "/performance-metrics"
+      }
+    ],
+    "POST /api/v1/ai/optimization/model-fallback-chain": [
+      {
+        "router": "ai_optimization",
+        "function": "model_fallback_chain",
+        "file": "ai_optimization.py",
+        "prefix": "/api/v1/ai/optimization",
+        "path": "/model-fallback-chain"
+      }
+    ],
+    "GET /api/v1/ai/optimization/circuit-breaker/status": [
+      {
+        "router": "ai_optimization",
+        "function": "get_circuit_breaker_status",
+        "file": "ai_optimization.py",
+        "prefix": "/api/v1/ai/optimization",
+        "path": "/circuit-breaker/status"
+      }
+    ],
+    "POST /api/v1/ai/optimization/circuit-breaker/reset": [
+      {
+        "router": "ai_optimization",
+        "function": "reset_circuit_breaker",
+        "file": "ai_optimization.py",
+        "prefix": "/api/v1/ai/optimization",
+        "path": "/circuit-breaker/reset"
+      }
+    ],
+    "GET /api/v1/frameworks/": [
+      {
+        "router": "frameworks",
+        "function": "list_frameworks",
+        "file": "frameworks.py",
+        "prefix": "/api/v1/frameworks",
+        "path": "/"
+      }
+    ],
+    "GET /api/v1/frameworks/recommendations": [
+      {
+        "router": "frameworks",
+        "function": "get_framework_recommendations",
+        "file": "frameworks.py",
+        "prefix": "/api/v1/frameworks",
+        "path": "/recommendations"
+      }
+    ],
+    "GET /api/v1/frameworks/recommendations/{business_profile_id}": [
+      {
+        "router": "frameworks",
+        "function": "get_framework_recommendations_for_profile",
+        "file": "frameworks.py",
+        "prefix": "/api/v1/frameworks",
+        "path": "/recommendations/{business_profile_id}"
+      }
+    ],
+    "GET /api/v1/frameworks/all-public": [
+      {
+        "router": "frameworks",
+        "function": "list_all_public_frameworks",
+        "file": "frameworks.py",
+        "prefix": "/api/v1/frameworks",
+        "path": "/all-public"
+      }
+    ],
+    "GET /api/v1/frameworks/{framework_id}": [
+      {
+        "router": "frameworks",
+        "function": "get_framework",
+        "file": "frameworks.py",
+        "prefix": "/api/v1/frameworks",
+        "path": "/{framework_id}"
+      }
+    ],
+    "POST /api/v1/policies/generate": [
+      {
+        "router": "policies",
+        "function": "generate_policy",
+        "file": "policies.py",
+        "prefix": "/api/v1/policies",
+        "path": "/generate"
+      }
+    ],
+    "GET /api/v1/policies/": [
+      {
+        "router": "policies",
+        "function": "list_policies",
+        "file": "policies.py",
+        "prefix": "/api/v1/policies",
+        "path": "/"
+      }
+    ],
+    "GET /api/v1/policies/{id}": [
+      {
+        "router": "policies",
+        "function": "get_policy",
+        "file": "policies.py",
+        "prefix": "/api/v1/policies",
+        "path": "/{id}"
+      }
+    ],
+    "PATCH /api/v1/policies/{id}/status": [
+      {
+        "router": "policies",
+        "function": "update_policy_status",
+        "file": "policies.py",
+        "prefix": "/api/v1/policies",
+        "path": "/{id}/status"
+      }
+    ],
+    "PUT /api/v1/policies/{id}/approve": [
+      {
+        "router": "policies",
+        "function": "approve_policy",
+        "file": "policies.py",
+        "prefix": "/api/v1/policies",
+        "path": "/{id}/approve"
+      }
+    ],
+    "POST /api/v1/evidence/": [
+      {
+        "router": "evidence",
+        "function": "create_new_evidence",
+        "file": "evidence.py",
+        "prefix": "/api/v1/evidence",
+        "path": "/"
+      }
+    ],
+    "GET /api/v1/evidence/": [
+      {
+        "router": "evidence",
+        "function": "list_evidence",
+        "file": "evidence.py",
+        "prefix": "/api/v1/evidence",
+        "path": "/"
+      }
+    ],
+    "GET /api/v1/evidence/stats": [
+      {
+        "router": "evidence",
+        "function": "get_evidence_statistics",
+        "file": "evidence.py",
+        "prefix": "/api/v1/evidence",
+        "path": "/stats"
+      }
+    ],
+    "GET /api/v1/evidence/search": [
+      {
+        "router": "evidence",
+        "function": "search_evidence_items",
+        "file": "evidence.py",
+        "prefix": "/api/v1/evidence",
+        "path": "/search"
+      }
+    ],
+    "POST /api/v1/evidence/validate": [
+      {
+        "router": "evidence",
+        "function": "validate_evidence_quality",
+        "file": "evidence.py",
+        "prefix": "/api/v1/evidence",
+        "path": "/validate"
+      }
+    ],
+    "GET /api/v1/evidence/requirements": [
+      {
+        "router": "evidence",
+        "function": "get_evidence_requirements",
+        "file": "evidence.py",
+        "prefix": "/api/v1/evidence",
+        "path": "/requirements"
+      }
+    ],
+    "POST /api/v1/evidence/requirements": [
+      {
+        "router": "evidence",
+        "function": "identify_evidence_requirements",
+        "file": "evidence.py",
+        "prefix": "/api/v1/evidence",
+        "path": "/requirements"
+      }
+    ],
+    "GET /api/v1/evidence/{id}": [
+      {
+        "router": "evidence",
+        "function": "get_evidence_details",
+        "file": "evidence.py",
+        "prefix": "/api/v1/evidence",
+        "path": "/{id}"
+      }
+    ],
+    "PUT /api/v1/evidence/{id}": [
+      {
+        "router": "evidence",
+        "function": "update_evidence_item",
+        "file": "evidence.py",
+        "prefix": "/api/v1/evidence",
+        "path": "/{id}"
+      }
+    ],
+    "PATCH /api/v1/evidence/{id}": [
+      {
+        "router": "evidence",
+        "function": "update_evidence_status",
+        "file": "evidence.py",
+        "prefix": "/api/v1/evidence",
+        "path": "/{id}"
+      }
+    ],
+    "DELETE /api/v1/evidence/{id}": [
+      {
+        "router": "evidence",
+        "function": "delete_evidence_item",
+        "file": "evidence.py",
+        "prefix": "/api/v1/evidence",
+        "path": "/{id}"
+      }
+    ],
+    "POST /api/v1/evidence/bulk-update": [
+      {
+        "router": "evidence",
+        "function": "bulk_update_evidence_status",
+        "file": "evidence.py",
+        "prefix": "/api/v1/evidence",
+        "path": "/bulk-update"
+      }
+    ],
+    "POST /api/v1/evidence/{id}/automation": [
+      {
+        "router": "evidence",
+        "function": "configure_evidence_automation",
+        "file": "evidence.py",
+        "prefix": "/api/v1/evidence",
+        "path": "/{id}/automation"
+      }
+    ],
+    "POST /api/v1/evidence/{id}/upload": [
+      {
+        "router": "evidence",
+        "function": "upload_evidence_file_route",
+        "file": "evidence.py",
+        "prefix": "/api/v1/evidence",
+        "path": "/{id}/upload"
+      }
+    ],
+    "GET /api/v1/evidence/dashboard/{framework_id}": [
+      {
+        "router": "evidence",
+        "function": "get_evidence_dashboard",
+        "file": "evidence.py",
+        "prefix": "/api/v1/evidence",
+        "path": "/dashboard/{framework_id}"
+      }
+    ],
+    "POST /api/v1/evidence/{id}/classify": [
+      {
+        "router": "evidence",
+        "function": "classify_evidence_with_ai",
+        "file": "evidence.py",
+        "prefix": "/api/v1/evidence",
+        "path": "/{id}/classify"
+      }
+    ],
+    "POST /api/v1/evidence/classify/bulk": [
+      {
+        "router": "evidence",
+        "function": "bulk_classify_evidence",
+        "file": "evidence.py",
+        "prefix": "/api/v1/evidence",
+        "path": "/classify/bulk"
+      }
+    ],
+    "POST /api/v1/evidence/{id}/control-mapping": [
+      {
+        "router": "evidence",
+        "function": "get_control_mapping_suggestions",
+        "file": "evidence.py",
+        "prefix": "/api/v1/evidence",
+        "path": "/{id}/control-mapping"
+      }
+    ],
+    "GET /api/v1/evidence/classification/stats": [
+      {
+        "router": "evidence",
+        "function": "get_classification_statistics",
+        "file": "evidence.py",
+        "prefix": "/api/v1/evidence",
+        "path": "/classification/stats"
+      }
+    ],
+    "GET /api/v1/evidence/{id}/quality-analysis": [
+      {
+        "router": "evidence",
+        "function": "get_evidence_quality_analysis",
+        "file": "evidence.py",
+        "prefix": "/api/v1/evidence",
+        "path": "/{id}/quality-analysis"
+      }
+    ],
+    "POST /api/v1/evidence/{id}/duplicate-detection": [
+      {
+        "router": "evidence",
+        "function": "detect_evidence_duplicates",
+        "file": "evidence.py",
+        "prefix": "/api/v1/evidence",
+        "path": "/{id}/duplicate-detection"
+      }
+    ],
+    "POST /api/v1/evidence/duplicate-detection/batch": [
+      {
+        "router": "evidence",
+        "function": "batch_duplicate_detection",
+        "file": "evidence.py",
+        "prefix": "/api/v1/evidence",
+        "path": "/duplicate-detection/batch"
+      }
+    ],
+    "GET /api/v1/evidence/quality/benchmark": [
+      {
+        "router": "evidence",
+        "function": "get_quality_benchmark",
+        "file": "evidence.py",
+        "prefix": "/api/v1/evidence",
+        "path": "/quality/benchmark"
+      }
+    ],
+    "GET /api/v1/evidence/quality/trends": [
+      {
+        "router": "evidence",
+        "function": "get_quality_trends",
+        "file": "evidence.py",
+        "prefix": "/api/v1/evidence",
+        "path": "/quality/trends"
+      }
+    ],
+    "POST /api/v1/evidence-collection/plans": [
+      {
+        "router": "evidence_collection",
+        "function": "create_collection_plan",
+        "file": "evidence_collection.py",
+        "prefix": "/api/v1/evidence-collection",
+        "path": "/plans"
+      }
+    ],
+    "GET /api/v1/evidence-collection/plans/{plan_id}": [
+      {
+        "router": "evidence_collection",
+        "function": "get_collection_plan",
+        "file": "evidence_collection.py",
+        "prefix": "/api/v1/evidence-collection",
+        "path": "/plans/{plan_id}"
+      }
+    ],
+    "GET /api/v1/evidence-collection/plans": [
+      {
+        "router": "evidence_collection",
+        "function": "list_collection_plans",
+        "file": "evidence_collection.py",
+        "prefix": "/api/v1/evidence-collection",
+        "path": "/plans"
+      }
+    ],
+    "GET /api/v1/evidence-collection/plans/{plan_id}/priority-tasks": [
+      {
+        "router": "evidence_collection",
+        "function": "get_priority_tasks",
+        "file": "evidence_collection.py",
+        "prefix": "/api/v1/evidence-collection",
+        "path": "/plans/{plan_id}/priority-tasks"
+      }
+    ],
+    "PATCH /api/v1/evidence-collection/plans/{plan_id}/tasks/{task_id}": [
+      {
+        "router": "evidence_collection",
+        "function": "update_task_status",
+        "file": "evidence_collection.py",
+        "prefix": "/api/v1/evidence-collection",
+        "path": "/plans/{plan_id}/tasks/{task_id}"
+      }
+    ],
+    "GET /api/v1/evidence-collection/automation-recommendations/{framework}": [
+      {
+        "router": "evidence_collection",
+        "function": "get_automation_recommendations",
+        "file": "evidence_collection.py",
+        "prefix": "/api/v1/evidence-collection",
+        "path": "/automation-recommendations/{framework}"
+      }
+    ],
+    "GET /api/v1/compliance/status": [
+      {
+        "router": "compliance",
+        "function": "get_compliance_status",
+        "file": "compliance.py",
+        "prefix": "/api/v1/compliance",
+        "path": "/status"
+      }
+    ],
+    "POST /api/v1/compliance/query": [
+      {
+        "router": "compliance",
+        "function": "query_compliance",
+        "file": "compliance.py",
+        "prefix": "/api/v1/compliance",
+        "path": "/query"
+      }
+    ],
+    "GET /api/v1/readiness/assessment": [
+      {
+        "router": "readiness",
+        "function": "get_readiness_assessment",
+        "file": "readiness.py",
+        "prefix": "/api/v1/readiness",
+        "path": "/assessment"
+      }
+    ],
+    "GET /api/v1/readiness/history": [
+      {
+        "router": "readiness",
+        "function": "get_assessment_history",
+        "file": "readiness.py",
+        "prefix": "/api/v1/readiness",
+        "path": "/history"
+      }
+    ],
+    "POST /api/v1/readiness/report": [
+      {
+        "router": "readiness",
+        "function": "generate_report",
+        "file": "readiness.py",
+        "prefix": "/api/v1/readiness",
+        "path": "/report"
+      }
+    ],
+    "POST /api/v1/readiness/reports": [
+      {
+        "router": "readiness",
+        "function": "generate_compliance_report_endpoint",
+        "file": "readiness.py",
+        "prefix": "/api/v1/readiness",
+        "path": "/reports"
+      }
+    ],
+    "GET /api/v1/readiness/reports/{report_id}/download": [
+      {
+        "router": "readiness",
+        "function": "download_compliance_report",
+        "file": "readiness.py",
+        "prefix": "/api/v1/readiness",
+        "path": "/reports/{report_id}/download"
+      }
+    ],
+    "GET /api/v1/reports/templates": [
+      {
+        "router": "reporting",
+        "function": "list_report_templates",
+        "file": "reporting.py",
+        "prefix": "/api/v1/reports",
+        "path": "/templates"
+      }
+    ],
+    "POST /api/v1/reports/generate": [
+      {
+        "router": "reporting",
+        "function": "generate_report",
+        "file": "reporting.py",
+        "prefix": "/api/v1/reports",
+        "path": "/generate"
+      }
+    ],
+    "POST /api/v1/reports/generate/pdf": [
+      {
+        "router": "reporting",
+        "function": "generate_pdf_report",
+        "file": "reporting.py",
+        "prefix": "/api/v1/reports",
+        "path": "/generate/pdf"
+      }
+    ],
+    "GET /api/v1/reports/preview/{report_type}": [
+      {
+        "router": "reporting",
+        "function": "preview_report_structure",
+        "file": "reporting.py",
+        "prefix": "/api/v1/reports",
+        "path": "/preview/{report_type}"
+      }
+    ],
+    "POST /api/v1/reports/customize-template/{template_name}": [
+      {
+        "router": "reporting",
+        "function": "customize_report_template",
+        "file": "reporting.py",
+        "prefix": "/api/v1/reports",
+        "path": "/customize-template/{template_name}"
+      }
+    ],
+    "POST /api/v1/reports/schedules": [
+      {
+        "router": "reporting",
+        "function": "create_schedule",
+        "file": "reporting.py",
+        "prefix": "/api/v1/reports",
+        "path": "/schedules"
+      }
+    ],
+    "GET /api/v1/reports/schedules": [
+      {
+        "router": "reporting",
+        "function": "list_schedules",
+        "file": "reporting.py",
+        "prefix": "/api/v1/reports",
+        "path": "/schedules"
+      }
+    ],
+    "DELETE /api/v1/reports/schedules/{schedule_id}": [
+      {
+        "router": "reporting",
+        "function": "delete_schedule",
+        "file": "reporting.py",
+        "prefix": "/api/v1/reports",
+        "path": "/schedules/{schedule_id}"
+      }
+    ],
+    "POST /api/v1/reports/schedules/{schedule_id}/execute": [
+      {
+        "router": "reporting",
+        "function": "execute_schedule",
+        "file": "reporting.py",
+        "prefix": "/api/v1/reports",
+        "path": "/schedules/{schedule_id}/execute"
+      }
+    ],
+    "GET /api/v1/security/role-based-access-control": [
+      {
+        "router": "security",
+        "function": "role_based_access_control",
+        "file": "security.py",
+        "prefix": "/api/v1/security",
+        "path": "/role-based-access-control"
+      }
+    ],
+    "POST /api/v1/security/business-logic-vulnerabilities": [
+      {
+        "router": "security",
+        "function": "business_logic_vulnerabilities",
+        "file": "security.py",
+        "prefix": "/api/v1/security",
+        "path": "/business-logic-vulnerabilities"
+      }
+    ],
+    "GET /api/v1/security/security-status": [
+      {
+        "router": "security",
+        "function": "security_status",
+        "file": "security.py",
+        "prefix": "/api/v1/security",
+        "path": "/security-status"
+      }
+    ],
+    "GET /api/v1/security/rate-limit-test": [
+      {
+        "router": "security",
+        "function": "rate_limit_test",
+        "file": "security.py",
+        "prefix": "/api/v1/security",
+        "path": "/rate-limit-test"
+      }
+    ],
+    "POST /api/v1/chat/conversations": [
+      {
+        "router": "chat",
+        "function": "create_conversation",
+        "file": "chat.py",
+        "prefix": "/api/v1/chat",
+        "path": "/conversations"
+      }
+    ],
+    "GET /api/v1/chat/conversations": [
+      {
+        "router": "chat",
+        "function": "list_conversations",
+        "file": "chat.py",
+        "prefix": "/api/v1/chat",
+        "path": "/conversations"
+      }
+    ],
+    "GET /api/v1/chat/conversations/{conversation_id}": [
+      {
+        "router": "chat",
+        "function": "get_conversation",
+        "file": "chat.py",
+        "prefix": "/api/v1/chat",
+        "path": "/conversations/{conversation_id}"
+      }
+    ],
+    "POST /api/v1/chat/conversations/{conversation_id}/messages": [
+      {
+        "router": "chat",
+        "function": "send_message",
+        "file": "chat.py",
+        "prefix": "/api/v1/chat",
+        "path": "/conversations/{conversation_id}/messages"
+      }
+    ],
+    "DELETE /api/v1/chat/conversations/{conversation_id}": [
+      {
+        "router": "chat",
+        "function": "delete_conversation",
+        "file": "chat.py",
+        "prefix": "/api/v1/chat",
+        "path": "/conversations/{conversation_id}"
+      }
+    ],
+    "POST /api/v1/chat/evidence-recommendations": [
+      {
+        "router": "chat",
+        "function": "get_evidence_recommendations",
+        "file": "chat.py",
+        "prefix": "/api/v1/chat",
+        "path": "/evidence-recommendations"
+      }
+    ],
+    "POST /api/v1/chat/compliance-analysis": [
+      {
+        "router": "chat",
+        "function": "analyze_compliance_gap",
+        "file": "chat.py",
+        "prefix": "/api/v1/chat",
+        "path": "/compliance-analysis"
+      }
+    ],
+    "POST /api/v1/chat/context-aware-recommendations": [
+      {
+        "router": "chat",
+        "function": "get_context_aware_recommendations",
+        "file": "chat.py",
+        "prefix": "/api/v1/chat",
+        "path": "/context-aware-recommendations"
+      }
+    ],
+    "POST /api/v1/chat/evidence-collection-workflow": [
+      {
+        "router": "chat",
+        "function": "generate_evidence_collection_workflow",
+        "file": "chat.py",
+        "prefix": "/api/v1/chat",
+        "path": "/evidence-collection-workflow"
+      }
+    ],
+    "POST /api/v1/chat/generate-policy": [
+      {
+        "router": "chat",
+        "function": "generate_customized_policy",
+        "file": "chat.py",
+        "prefix": "/api/v1/chat",
+        "path": "/generate-policy"
+      }
+    ],
+    "GET /api/v1/chat/smart-guidance/{framework}": [
+      {
+        "router": "chat",
+        "function": "get_smart_compliance_guidance",
+        "file": "chat.py",
+        "prefix": "/api/v1/chat",
+        "path": "/smart-guidance/{framework}"
+      }
+    ],
+    "GET /api/v1/chat/cache/metrics": [
+      {
+        "router": "chat",
+        "function": "get_ai_cache_metrics",
+        "file": "chat.py",
+        "prefix": "/api/v1/chat",
+        "path": "/cache/metrics"
+      }
+    ],
+    "DELETE /api/v1/chat/cache/clear": [
+      {
+        "router": "chat",
+        "function": "clear_ai_cache",
+        "file": "chat.py",
+        "prefix": "/api/v1/chat",
+        "path": "/cache/clear"
+      }
+    ],
+    "GET /api/v1/chat/performance/metrics": [
+      {
+        "router": "chat",
+        "function": "get_ai_performance_metrics",
+        "file": "chat.py",
+        "prefix": "/api/v1/chat",
+        "path": "/performance/metrics"
+      }
+    ],
+    "POST /api/v1/chat/performance/optimize": [
+      {
+        "router": "chat",
+        "function": "optimize_ai_performance",
+        "file": "chat.py",
+        "prefix": "/api/v1/chat",
+        "path": "/performance/optimize"
+      }
+    ],
+    "GET /api/v1/chat/analytics/dashboard": [
+      {
+        "router": "chat",
+        "function": "get_analytics_dashboard",
+        "file": "chat.py",
+        "prefix": "/api/v1/chat",
+        "path": "/analytics/dashboard"
+      }
+    ],
+    "GET /api/v1/chat/analytics/usage": [
+      {
+        "router": "chat",
+        "function": "get_usage_analytics",
+        "file": "chat.py",
+        "prefix": "/api/v1/chat",
+        "path": "/analytics/usage"
+      }
+    ],
+    "GET /api/v1/chat/analytics/cost": [
+      {
+        "router": "chat",
+        "function": "get_cost_analytics",
+        "file": "chat.py",
+        "prefix": "/api/v1/chat",
+        "path": "/analytics/cost"
+      }
+    ],
+    "GET /api/v1/chat/analytics/alerts": [
+      {
+        "router": "chat",
+        "function": "get_system_alerts",
+        "file": "chat.py",
+        "prefix": "/api/v1/chat",
+        "path": "/analytics/alerts"
+      }
+    ],
+    "POST /api/v1/chat/analytics/alerts/{alert_id}/resolve": [
+      {
+        "router": "chat",
+        "function": "resolve_system_alert",
+        "file": "chat.py",
+        "prefix": "/api/v1/chat",
+        "path": "/analytics/alerts/{alert_id}/resolve"
+      }
+    ],
+    "POST /api/v1/chat/smart-evidence/create-plan": [
+      {
+        "router": "chat",
+        "function": "create_smart_evidence_plan",
+        "file": "chat.py",
+        "prefix": "/api/v1/chat",
+        "path": "/smart-evidence/create-plan"
+      }
+    ],
+    "GET /api/v1/chat/smart-evidence/plan/{plan_id}": [
+      {
+        "router": "chat",
+        "function": "get_smart_evidence_plan",
+        "file": "chat.py",
+        "prefix": "/api/v1/chat",
+        "path": "/smart-evidence/plan/{plan_id}"
+      }
+    ],
+    "GET /api/v1/chat/smart-evidence/next-tasks/{plan_id}": [
+      {
+        "router": "chat",
+        "function": "get_next_priority_tasks",
+        "file": "chat.py",
+        "prefix": "/api/v1/chat",
+        "path": "/smart-evidence/next-tasks/{plan_id}"
+      }
+    ],
+    "POST /api/v1/chat/smart-evidence/update-task/{plan_id}/{task_id}": [
+      {
+        "router": "chat",
+        "function": "update_evidence_task_status",
+        "file": "chat.py",
+        "prefix": "/api/v1/chat",
+        "path": "/smart-evidence/update-task/{plan_id}/{task_id}"
+      }
+    ],
+    "GET /api/v1/chat/quality/trends": [
+      {
+        "router": "chat",
+        "function": "get_quality_trends",
+        "file": "chat.py",
+        "prefix": "/api/v1/chat",
+        "path": "/quality/trends"
+      }
+    ],
+    "POST /api/v1/chat/quality/feedback": [
+      {
+        "router": "chat",
+        "function": "submit_quality_feedback",
+        "file": "chat.py",
+        "prefix": "/api/v1/chat",
+        "path": "/quality/feedback"
+      }
+    ],
+    "GET /api/v1/chat/quality/assessment/{response_id}": [
+      {
+        "router": "chat",
+        "function": "get_quality_assessment",
+        "file": "chat.py",
+        "prefix": "/api/v1/chat",
+        "path": "/quality/assessment/{response_id}"
+      }
+    ],
+    "GET /api/v1/chat/quality/metrics": [
+      {
+        "router": "chat",
+        "function": "get_quality_metrics",
+        "file": "chat.py",
+        "prefix": "/api/v1/chat",
+        "path": "/quality/metrics"
+      }
+    ],
+    "POST /api/v1/ai/cost-websocket/admin/background-tasks/start": [
+      {
+        "router": "ai_cost_websocket",
+        "function": "start_background_tasks",
+        "file": "ai_cost_websocket.py",
+        "prefix": "/api/v1/ai/cost-websocket",
+        "path": "/admin/background-tasks/start"
+      }
+    ],
+    "POST /api/v1/ai/cost-websocket/admin/background-tasks/stop": [
+      {
+        "router": "ai_cost_websocket",
+        "function": "stop_background_tasks",
+        "file": "ai_cost_websocket.py",
+        "prefix": "/api/v1/ai/cost-websocket",
+        "path": "/admin/background-tasks/stop"
+      }
+    ],
+    "GET /api/v1/ai/cost-websocket/connections/stats": [
+      {
+        "router": "ai_cost_websocket",
+        "function": "get_connection_stats",
+        "file": "ai_cost_websocket.py",
+        "prefix": "/api/v1/ai/cost-websocket",
+        "path": "/connections/stats"
+      }
+    ],
+    "POST /api/v1/ai/cost-websocket/broadcast/alert": [
+      {
+        "router": "ai_cost_websocket",
+        "function": "broadcast_budget_alert",
+        "file": "ai_cost_websocket.py",
+        "prefix": "/api/v1/ai/cost-websocket",
+        "path": "/broadcast/alert"
+      }
+    ],
+    "POST /api/v1/ai/cost-websocket/broadcast/cost-spike": [
+      {
+        "router": "ai_cost_websocket",
+        "function": "broadcast_cost_spike",
+        "file": "ai_cost_websocket.py",
+        "prefix": "/api/v1/ai/cost-websocket",
+        "path": "/broadcast/cost-spike"
+      }
+    ],
+    "GET /api/v1/performance/overview": [
+      {
+        "router": "performance_monitoring",
+        "function": "get_performance_overview",
+        "file": "performance_monitoring.py",
+        "prefix": "/api/v1/performance",
+        "path": "/overview"
+      }
+    ],
+    "GET /api/v1/performance/database": [
+      {
+        "router": "performance_monitoring",
+        "function": "get_database_performance",
+        "file": "performance_monitoring.py",
+        "prefix": "/api/v1/performance",
+        "path": "/database"
+      }
+    ],
+    "GET /api/v1/performance/cache": [
+      {
+        "router": "performance_monitoring",
+        "function": "get_cache_performance",
+        "file": "performance_monitoring.py",
+        "prefix": "/api/v1/performance",
+        "path": "/cache"
+      }
+    ],
+    "GET /api/v1/performance/api": [
+      {
+        "router": "performance_monitoring",
+        "function": "get_api_performance",
+        "file": "performance_monitoring.py",
+        "prefix": "/api/v1/performance",
+        "path": "/api"
+      }
+    ],
+    "GET /api/v1/performance/system": [
+      {
+        "router": "performance_monitoring",
+        "function": "get_system_metrics",
+        "file": "performance_monitoring.py",
+        "prefix": "/api/v1/performance",
+        "path": "/system"
+      }
+    ],
+    "GET /api/v1/performance/recommendations": [
+      {
+        "router": "performance_monitoring",
+        "function": "get_optimization_recommendations",
+        "file": "performance_monitoring.py",
+        "prefix": "/api/v1/performance",
+        "path": "/recommendations"
+      }
+    ],
+    "GET /api/v1/performance/trends": [
+      {
+        "router": "performance_monitoring",
+        "function": "get_performance_trends",
+        "file": "performance_monitoring.py",
+        "prefix": "/api/v1/performance",
+        "path": "/trends"
+      }
+    ],
+    "POST /api/v1/performance/alerts/configure": [
+      {
+        "router": "performance_monitoring",
+        "function": "configure_performance_alerts",
+        "file": "performance_monitoring.py",
+        "prefix": "/api/v1/performance",
+        "path": "/alerts/configure"
+      }
+    ],
+    "GET /api/v1/performance/health": [
+      {
+        "router": "performance_monitoring",
+        "function": "performance_monitoring_health",
+        "file": "performance_monitoring.py",
+        "prefix": "/api/v1/performance",
+        "path": "/health"
+      }
+    ],
+    "POST /api/v1/performance/monitoring/start": [
+      {
+        "router": "performance_monitoring",
+        "function": "start_performance_monitoring",
+        "file": "performance_monitoring.py",
+        "prefix": "/api/v1/performance",
+        "path": "/monitoring/start"
+      }
+    ],
+    "POST /api/v1/performance/monitoring/stop": [
+      {
+        "router": "performance_monitoring",
+        "function": "stop_performance_monitoring",
+        "file": "performance_monitoring.py",
+        "prefix": "/api/v1/performance",
+        "path": "/monitoring/stop"
+      }
+    ],
+    "DELETE /api/test-utils/cleanup-test-users": [
+      {
+        "router": "test_utils",
+        "function": "cleanup_test_users",
+        "file": "test_utils.py",
+        "prefix": "/api/test-utils",
+        "path": "/cleanup-test-users"
+      }
+    ],
+    "POST /api/test-utils/create-test-user": [
+      {
+        "router": "test_utils",
+        "function": "create_test_user",
+        "file": "test_utils.py",
+        "prefix": "/api/test-utils",
+        "path": "/create-test-user"
+      }
+    ],
+    "POST /api/test-utils/clear-rate-limits": [
+      {
+        "router": "test_utils",
+        "function": "clear_rate_limits",
+        "file": "test_utils.py",
+        "prefix": "/api/test-utils",
+        "path": "/clear-rate-limits"
+      }
+    ]
+  },
+  "duplicates": {
+    "exact_duplicates": [],
+    "semantic_duplicates": [
+      {
+        "function_pattern": "getcurrentuser",
+        "endpoints": [
+          {
+            "endpoint": "GET /api/v1/auth/me",
+            "router": "auth"
+          },
+          {
+            "endpoint": "GET /api/v1/users/me",
+            "router": "users"
+          }
+        ]
+      },
+      {
+        "function_pattern": "getcircuitbreakerstatus",
+        "endpoints": [
+          {
+            "endpoint": "GET /api/v1/ai-assessments/circuit-breaker/status",
+            "router": "ai_assessments"
+          },
+          {
+            "endpoint": "GET /api/ai/assessments/circuit-breaker/status",
+            "router": "ai_assessments"
+          },
+          {
+            "endpoint": "GET /api/v1/ai/optimization/circuit-breaker/status",
+            "router": "ai_optimization"
+          }
+        ]
+      },
+      {
+        "function_pattern": "resetcircuitbreaker",
+        "endpoints": [
+          {
+            "endpoint": "POST /api/v1/ai-assessments/circuit-breaker/reset",
+            "router": "ai_assessments"
+          },
+          {
+            "endpoint": "POST /api/ai/assessments/circuit-breaker/reset",
+            "router": "ai_assessments"
+          },
+          {
+            "endpoint": "POST /api/v1/ai/optimization/circuit-breaker/reset",
+            "router": "ai_optimization"
+          }
+        ]
+      },
+      {
+        "function_pattern": "getaicachemetrics",
+        "endpoints": [
+          {
+            "endpoint": "GET /api/v1/ai-assessments/cache/metrics",
+            "router": "ai_assessments"
+          },
+          {
+            "endpoint": "GET /api/ai/assessments/cache/metrics",
+            "router": "ai_assessments"
+          },
+          {
+            "endpoint": "GET /api/v1/chat/cache/metrics",
+            "router": "chat"
+          }
+        ]
+      },
+      {
+        "function_pattern": "getqualitytrends",
+        "endpoints": [
+          {
+            "endpoint": "GET /api/v1/evidence/quality/trends",
+            "router": "evidence"
+          },
+          {
+            "endpoint": "GET /api/v1/chat/quality/trends",
+            "router": "chat"
+          }
+        ]
+      },
+      {
+        "function_pattern": "generatereport",
+        "endpoints": [
+          {
+            "endpoint": "POST /api/v1/readiness/report",
+            "router": "readiness"
+          },
+          {
+            "endpoint": "POST /api/v1/reports/generate",
+            "router": "reporting"
+          }
+        ]
+      }
+    ],
+    "namespace_duplicates": [
+      {
+        "resource": "auth/login",
+        "occurrences": [
+          {
+            "namespace": "/api/v1/",
+            "endpoint": "POST /api/v1/auth/login"
+          },
+          {
+            "namespace": "/api/v1/",
+            "endpoint": "GET /api/v1/auth/login"
+          }
+        ]
+      },
+      {
+        "resource": "assessments/",
+        "occurrences": [
+          {
+            "namespace": "/api/v1/",
+            "endpoint": "GET /api/v1/assessments/"
+          },
+          {
+            "namespace": "/api/v1/",
+            "endpoint": "POST /api/v1/assessments/"
+          }
+        ]
+      },
+      {
+        "resource": "evidence/",
+        "occurrences": [
+          {
+            "namespace": "/api/v1/",
+            "endpoint": "POST /api/v1/evidence/"
+          },
+          {
+            "namespace": "/api/v1/",
+            "endpoint": "GET /api/v1/evidence/"
+          }
+        ]
+      },
+      {
+        "resource": "evidence/requirements",
+        "occurrences": [
+          {
+            "namespace": "/api/v1/",
+            "endpoint": "GET /api/v1/evidence/requirements"
+          },
+          {
+            "namespace": "/api/v1/",
+            "endpoint": "POST /api/v1/evidence/requirements"
+          }
+        ]
+      },
+      {
+        "resource": "evidence/{id}",
+        "occurrences": [
+          {
+            "namespace": "/api/v1/",
+            "endpoint": "GET /api/v1/evidence/{id}"
+          },
+          {
+            "namespace": "/api/v1/",
+            "endpoint": "PUT /api/v1/evidence/{id}"
+          },
+          {
+            "namespace": "/api/v1/",
+            "endpoint": "PATCH /api/v1/evidence/{id}"
+          },
+          {
+            "namespace": "/api/v1/",
+            "endpoint": "DELETE /api/v1/evidence/{id}"
+          }
+        ]
+      },
+      {
+        "resource": "evidence-collection/plans",
+        "occurrences": [
+          {
+            "namespace": "/api/v1/",
+            "endpoint": "POST /api/v1/evidence-collection/plans"
+          },
+          {
+            "namespace": "/api/v1/",
+            "endpoint": "GET /api/v1/evidence-collection/plans"
+          }
+        ]
+      },
+      {
+        "resource": "reports/schedules",
+        "occurrences": [
+          {
+            "namespace": "/api/v1/",
+            "endpoint": "POST /api/v1/reports/schedules"
+          },
+          {
+            "namespace": "/api/v1/",
+            "endpoint": "GET /api/v1/reports/schedules"
+          }
+        ]
+      },
+      {
+        "resource": "chat/conversations",
+        "occurrences": [
+          {
+            "namespace": "/api/v1/",
+            "endpoint": "POST /api/v1/chat/conversations"
+          },
+          {
+            "namespace": "/api/v1/",
+            "endpoint": "GET /api/v1/chat/conversations"
+          }
+        ]
+      },
+      {
+        "resource": "chat/conversations/{conversation_id}",
+        "occurrences": [
+          {
+            "namespace": "/api/v1/",
+            "endpoint": "GET /api/v1/chat/conversations/{conversation_id}"
+          },
+          {
+            "namespace": "/api/v1/",
+            "endpoint": "DELETE /api/v1/chat/conversations/{conversation_id}"
+          }
+        ]
+      }
+    ],
+    "unused_endpoints": []
+  },
+  "summary": {
+    "total_endpoints": 166,
+    "duplicates": {
+      "exact_duplicates": [],
+      "semantic_duplicates": [
+        {
+          "function_pattern": "getcurrentuser",
+          "endpoints": [
+            {
+              "endpoint": "GET /api/v1/auth/me",
+              "router": "auth"
+            },
+            {
+              "endpoint": "GET /api/v1/users/me",
+              "router": "users"
+            }
+          ]
+        },
+        {
+          "function_pattern": "getcircuitbreakerstatus",
+          "endpoints": [
+            {
+              "endpoint": "GET /api/v1/ai-assessments/circuit-breaker/status",
+              "router": "ai_assessments"
+            },
+            {
+              "endpoint": "GET /api/ai/assessments/circuit-breaker/status",
+              "router": "ai_assessments"
+            },
+            {
+              "endpoint": "GET /api/v1/ai/optimization/circuit-breaker/status",
+              "router": "ai_optimization"
+            }
+          ]
+        },
+        {
+          "function_pattern": "resetcircuitbreaker",
+          "endpoints": [
+            {
+              "endpoint": "POST /api/v1/ai-assessments/circuit-breaker/reset",
+              "router": "ai_assessments"
+            },
+            {
+              "endpoint": "POST /api/ai/assessments/circuit-breaker/reset",
+              "router": "ai_assessments"
+            },
+            {
+              "endpoint": "POST /api/v1/ai/optimization/circuit-breaker/reset",
+              "router": "ai_optimization"
+            }
+          ]
+        },
+        {
+          "function_pattern": "getaicachemetrics",
+          "endpoints": [
+            {
+              "endpoint": "GET /api/v1/ai-assessments/cache/metrics",
+              "router": "ai_assessments"
+            },
+            {
+              "endpoint": "GET /api/ai/assessments/cache/metrics",
+              "router": "ai_assessments"
+            },
+            {
+              "endpoint": "GET /api/v1/chat/cache/metrics",
+              "router": "chat"
+            }
+          ]
+        },
+        {
+          "function_pattern": "getqualitytrends",
+          "endpoints": [
+            {
+              "endpoint": "GET /api/v1/evidence/quality/trends",
+              "router": "evidence"
+            },
+            {
+              "endpoint": "GET /api/v1/chat/quality/trends",
+              "router": "chat"
+            }
+          ]
+        },
+        {
+          "function_pattern": "generatereport",
+          "endpoints": [
+            {
+              "endpoint": "POST /api/v1/readiness/report",
+              "router": "readiness"
+            },
+            {
+              "endpoint": "POST /api/v1/reports/generate",
+              "router": "reporting"
+            }
+          ]
+        }
+      ],
+      "namespace_duplicates": [
+        {
+          "resource": "auth/login",
+          "occurrences": [
+            {
+              "namespace": "/api/v1/",
+              "endpoint": "POST /api/v1/auth/login"
+            },
+            {
+              "namespace": "/api/v1/",
+              "endpoint": "GET /api/v1/auth/login"
+            }
+          ]
+        },
+        {
+          "resource": "assessments/",
+          "occurrences": [
+            {
+              "namespace": "/api/v1/",
+              "endpoint": "GET /api/v1/assessments/"
+            },
+            {
+              "namespace": "/api/v1/",
+              "endpoint": "POST /api/v1/assessments/"
+            }
+          ]
+        },
+        {
+          "resource": "evidence/",
+          "occurrences": [
+            {
+              "namespace": "/api/v1/",
+              "endpoint": "POST /api/v1/evidence/"
+            },
+            {
+              "namespace": "/api/v1/",
+              "endpoint": "GET /api/v1/evidence/"
+            }
+          ]
+        },
+        {
+          "resource": "evidence/requirements",
+          "occurrences": [
+            {
+              "namespace": "/api/v1/",
+              "endpoint": "GET /api/v1/evidence/requirements"
+            },
+            {
+              "namespace": "/api/v1/",
+              "endpoint": "POST /api/v1/evidence/requirements"
+            }
+          ]
+        },
+        {
+          "resource": "evidence/{id}",
+          "occurrences": [
+            {
+              "namespace": "/api/v1/",
+              "endpoint": "GET /api/v1/evidence/{id}"
+            },
+            {
+              "namespace": "/api/v1/",
+              "endpoint": "PUT /api/v1/evidence/{id}"
+            },
+            {
+              "namespace": "/api/v1/",
+              "endpoint": "PATCH /api/v1/evidence/{id}"
+            },
+            {
+              "namespace": "/api/v1/",
+              "endpoint": "DELETE /api/v1/evidence/{id}"
+            }
+          ]
+        },
+        {
+          "resource": "evidence-collection/plans",
+          "occurrences": [
+            {
+              "namespace": "/api/v1/",
+              "endpoint": "POST /api/v1/evidence-collection/plans"
+            },
+            {
+              "namespace": "/api/v1/",
+              "endpoint": "GET /api/v1/evidence-collection/plans"
+            }
+          ]
+        },
+        {
+          "resource": "reports/schedules",
+          "occurrences": [
+            {
+              "namespace": "/api/v1/",
+              "endpoint": "POST /api/v1/reports/schedules"
+            },
+            {
+              "namespace": "/api/v1/",
+              "endpoint": "GET /api/v1/reports/schedules"
+            }
+          ]
+        },
+        {
+          "resource": "chat/conversations",
+          "occurrences": [
+            {
+              "namespace": "/api/v1/",
+              "endpoint": "POST /api/v1/chat/conversations"
+            },
+            {
+              "namespace": "/api/v1/",
+              "endpoint": "GET /api/v1/chat/conversations"
+            }
+          ]
+        },
+        {
+          "resource": "chat/conversations/{conversation_id}",
+          "occurrences": [
+            {
+              "namespace": "/api/v1/",
+              "endpoint": "GET /api/v1/chat/conversations/{conversation_id}"
+            },
+            {
+              "namespace": "/api/v1/",
+              "endpoint": "DELETE /api/v1/chat/conversations/{conversation_id}"
+            }
+          ]
+        }
+      ],
+      "unused_endpoints": []
+    },
+    "unused_count": 166
+  }
+}

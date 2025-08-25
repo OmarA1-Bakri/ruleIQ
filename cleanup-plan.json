@@ -1,0 +1,57 @@
+{
+  "semantic_consolidation": {
+    "getcurrentuser": {
+      "keep": "GET /api/v1/auth/me",
+      "remove": [
+        "GET /api/v1/users/me"
+      ],
+      "reason": "Auth endpoint is the canonical source for current user"
+    },
+    "getcircuitbreakerstatus": {
+      "keep": "GET /api/v1/ai/optimization/circuit-breaker/status",
+      "remove": [
+        "GET /api/v1/ai-assessments/circuit-breaker/status",
+        "GET /api/ai/assessments/circuit-breaker/status"
+      ],
+      "reason": "Centralize circuit breaker in optimization namespace"
+    },
+    "resetcircuitbreaker": {
+      "keep": "POST /api/v1/ai/optimization/circuit-breaker/reset",
+      "remove": [
+        "POST /api/v1/ai-assessments/circuit-breaker/reset",
+        "POST /api/ai/assessments/circuit-breaker/reset"
+      ],
+      "reason": "Centralize circuit breaker in optimization namespace"
+    },
+    "getaicachemetrics": {
+      "keep": "GET /api/v1/ai/optimization/cache/metrics",
+      "remove": [
+        "GET /api/v1/ai-assessments/cache/metrics",
+        "GET /api/ai/assessments/cache/metrics",
+        "GET /api/v1/chat/cache/metrics"
+      ],
+      "reason": "Centralize cache metrics in optimization namespace"
+    },
+    "getqualitytrends": {
+      "keep": "GET /api/v1/evidence/quality/trends",
+      "remove": [
+        "GET /api/v1/chat/quality/trends"
+      ],
+      "reason": "Evidence is the source of truth for quality metrics"
+    }
+  },
+  "namespace_cleanup": [
+    "/api/ai/assessments/",
+    "/api/v1/ai-assessments/"
+  ],
+  "safe_removals": [
+    "DELETE /api/test-utils/cleanup-test-users",
+    "GET /api/test-utils/health",
+    "GET /api/ai/assessments/cache/metrics",
+    "GET /api/ai/assessments/circuit-breaker/status",
+    "POST /api/ai/assessments/circuit-breaker/reset",
+    "GET /api/v1/ai-assessments/cache/metrics",
+    "GET /api/v1/ai-assessments/circuit-breaker/status",
+    "POST /api/v1/ai-assessments/circuit-breaker/reset"
+  ]
+}

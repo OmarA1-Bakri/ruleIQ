@@ -41,7 +41,7 @@ export const handlers = [
     return HttpResponse.json({ message: 'Logged out successfully' });
   }),
 
-  http.get(`${baseURL}/v1/users/me`, () => {
+  http.get(`${baseURL}/v1/auth/me`, () => {
     return HttpResponse.json({
       data: {
         id: 'user-123',

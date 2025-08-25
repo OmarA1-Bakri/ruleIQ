@@ -1,0 +1,3379 @@
+{
+  "info": {
+    "name": "ruleIQ API Comprehensive Collection",
+    "version": "3.0.0-complete",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Complete API collection for ruleIQ with all 258 endpoints.\n\n## 🔐 Doppler Integration\nThis collection includes Doppler secret management integration:\n\n1. **Setup Doppler Environment Variables:**\n   - Set `DOPPLER_TOKEN` in your Postman environment\n   - Or use `doppler run -- newman run collection.json`\n\n2. **Pre-request Script Auto-loads Secrets:**\n   - JWT tokens, API keys, and database URLs from Doppler\n   - Automatic token refresh when expired\n   - Secure credential management\n\n## Coverage Statistics\n- Total Endpoints: 258\n- Authentication: 7 endpoints\n- AI Assessments: 16 endpoints\n- Evidence Management: 22 endpoints\n- Chat/AI Interactions: 28 endpoints\n- Admin Functions: 27+ endpoints\n- Performance Monitoring: 11 endpoints\n- Business Profiles: 7 endpoints\n- And 140+ additional endpoints across all modules\n\n## Base URLs\n- Development: http://localhost:8000\n- Production: https://api.ruleiq.com"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{jwt_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// 🔐 Doppler Integration - Auto-load secrets from environment",
+          "// This script runs before each request to ensure we have fresh credentials",
+          "",
+          "// Method 1: Use Doppler environment variables (when using doppler run)",
+          "if (typeof process !== 'undefined' && process.env) {",
+          "    console.log('🔐 Loading secrets from Doppler environment...');",
+          "    ",
+          "    // Set API credentials from Doppler (using correct Doppler variable names)",
+          "    if (process.env.JWT_SECRET_KEY) {",
+          "        pm.environment.set('jwt_secret', process.env.JWT_SECRET_KEY);",
+          "    }",
+          "    // Note: Doppler uses GOOGLE_AI_API_KEY, not GOOGLE_API_KEY",
+          "    if (process.env.GOOGLE_AI_API_KEY) {",
+          "        pm.environment.set('google_api_key', process.env.GOOGLE_AI_API_KEY);",
+          "        console.log('✅ Google AI API key loaded from Doppler');",
+          "    } else if (process.env.GOOGLE_API_KEY) {",
+          "        pm.environment.set('google_api_key', process.env.GOOGLE_API_KEY);",
+          "    }",
+          "    if (process.env.DATABASE_URL) {",
+          "        pm.environment.set('database_url', process.env.DATABASE_URL);",
+          "    }",
+          "    if (process.env.REDIS_URL) {",
+          "        pm.environment.set('redis_url', process.env.REDIS_URL);",
+          "    }",
+          "}",
+          "",
+          "// Method 2: Fetch from Doppler API (requires DOPPLER_TOKEN)",
+          "const dopplerToken = pm.environment.get('DOPPLER_TOKEN');",
+          "if (dopplerToken && !pm.environment.get('secrets_loaded')) {",
+          "    console.log('🔐 Fetching secrets from Doppler API...');",
+          "    ",
+          "    pm.sendRequest({",
+          "        url: 'https://api.doppler.com/v3/configs/config/secrets',",
+          "        method: 'GET',",
+          "        header: {",
+          "            'Authorization': 'Bearer ' + dopplerToken,",
+          "            'Accept': 'application/json'",
+          "        }",
+          "    }, function (err, res) {",
+          "        if (!err && res.code === 200) {",
+          "            const secrets = res.json().secrets;",
+          "            console.log('✅ Loaded ' + Object.keys(secrets).length + ' secrets from Doppler');",
+          "            ",
+          "            // Set environment variables from Doppler secrets",
+          "            Object.keys(secrets).forEach(key => {",
+          "                pm.environment.set(key.toLowerCase(), secrets[key].computed);",
+          "            });",
+          "            ",
+          "            pm.environment.set('secrets_loaded', 'true');",
+          "        } else {",
+          "            console.warn('⚠️ Failed to load secrets from Doppler:', err || res.code);",
+          "        }",
+          "    });",
+          "}",
+          "",
+          "// Token validation and refresh logic",
+          "const currentToken = pm.environment.get('jwt_token');",
+          "if (currentToken) {",
+          "    try {",
+          "        const tokenPayload = JSON.parse(atob(currentToken.split('.')[1]));",
+          "        const now = Math.floor(Date.now() / 1000);",
+          "        ",
+          "        // Check if token expires in next 5 minutes",
+          "        if (tokenPayload.exp && tokenPayload.exp - now < 300) {",
+          "            console.log('🔄 JWT token expires soon, should refresh...');",
+          "            pm.environment.set('token_needs_refresh', 'true');",
+          "        }",
+          "    } catch (e) {",
+          "        console.warn('⚠️ Invalid JWT token format');",
+          "    }",
+          "}"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string",
+      "description": "API base URL - automatically loaded from Doppler"
+    },
+    {
+      "key": "jwt_token",
+      "value": "",
+      "type": "string",
+      "description": "JWT Bearer token - obtained via login endpoint"
+    },
+    {
+      "key": "user_id",
+      "value": "",
+      "type": "string",
+      "description": "Current user ID"
+    },
+    {
+      "key": "business_profile_id",
+      "value": "",
+      "type": "string",
+      "description": "Current business profile ID"
+    },
+    {
+      "key": "DOPPLER_TOKEN",
+      "value": "",
+      "type": "string",
+      "description": "Doppler service token for fetching secrets"
+    },
+    {
+      "key": "secrets_loaded",
+      "value": "false",
+      "type": "string",
+      "description": "Flag to prevent multiple Doppler API calls"
+    }
+  ],
+  "item": [
+    {
+      "name": "🔐 Authentication",
+      "description": "Complete authentication endpoints with JWT token management",
+      "item": [
+        {
+          "name": "Login with Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const responseJson = pm.response.json();",
+                  "    if (responseJson.access_token) {",
+                  "        pm.environment.set('jwt_token', responseJson.access_token);",
+                  "        console.log('✅ JWT token saved to environment');",
+                  "    }",
+                  "    if (responseJson.user_id) {",
+                  "        pm.environment.set('user_id', responseJson.user_id);",
+                  "    }",
+                  "    if (responseJson.business_profile_id) {",
+                  "        pm.environment.set('business_profile_id', responseJson.business_profile_id);",
+                  "    }",
+                  "    pm.test('Login successful', function () {",
+                  "        pm.response.to.have.status(200);",
+                  "        pm.expect(responseJson).to.have.property('access_token');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "username",
+                  "value": "{{test_user_email}}",
+                  "type": "text"
+                },
+                {
+                  "key": "password",
+                  "value": "{{test_user_password}}",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/token\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"auth\", \"token\"]\n            }"
+          }
+        },
+        {
+          "name": "Login Standard",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "
+              "raw": "{{base_url}}/api/v1/auth/login\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"auth\", \"login\"]\n            }"
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "
+              "raw": "{{base_url}}/api/v1/auth/refresh\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"auth\", \"refresh\"]\n            }"
+          }
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/me\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"auth\", \"me\"]\n            }"
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/logout\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"auth\", \"logout\"]\n            }"
+          }
+        },
+        {
+          "name": "Assign Default Role",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "
+              "raw": "{{base_url}}/api/v1/auth/assign-default-role\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"auth\", \"assign-default-role\"]\n            }"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📋 Evidence Management",
+      "description": "Complete evidence collection and management system (22 endpoints)",
+      "item": [
+        {
+          "name": "Create Evidence",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "
+              "raw": "{{base_url}}/api/v1/evidence/\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"evidence\", \"\"]\n            }"
+          }
+        },
+        {
+          "name": "List Evidence",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/evidence/?page=1&page_size=20\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"evidence\", \"\"],\n              \"query\": [\n                {\n                  \"key\": \"page\",\n                  \"value\": \"1\"\n                },\n                {\n                  \"key\": \"page_size\",\n                  \"value\": \"20\"\n              ]\n            }"
+          }
+        },
+        {
+          "name": "Get Evidence Statistics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/evidence/stats\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"evidence\", \"stats\"]\n            }"
+          }
+        },
+        {
+          "name": "Search Evidence",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/evidence/search?query=sample&framework_id=gdpr\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"evidence\", \"search\"],\n              \"query\": [\n                {\n                  \"key\": \"query\",\n                  \"value\": \"sample\"\n                },\n                {\n                  \"key\": \"framework_id\",\n                  \"value\": \"gdpr\"\n              ]\n            }"
+          }
+        },
+        {
+          "name": "Validate Evidence",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "
+              "raw": "{{base_url}}/api/v1/evidence/validate\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"evidence\", \"validate\"]\n            }"
+          }
+        },
+        {
+          "name": "Get Evidence Requirements",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/evidence/requirements?framework_id=gdpr\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"evidence\", \"requirements\"],\n              \"query\": [\n                {\n                  \"key\": \"framework_id\",\n                  \"value\": \"gdpr\"\n              ]\n            }"
+          }
+        },
+        {
+          "name": "Create Evidence Requirements",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "
+              "raw": "{{base_url}}/api/v1/evidence/requirements\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"evidence\", \"requirements\"]\n            }"
+          }
+        },
+        {
+          "name": "Get Evidence by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/evidence/{{evidence_id}}\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"evidence\", \"{{evidence_id}}\"]\n            }"
+          }
+        },
+        {
+          "name": "Update Evidence",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "
+              "raw": "{{base_url}}/api/v1/evidence/{{evidence_id}}\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"evidence\", \"{{evidence_id}}\"]\n            }"
+          }
+        },
+        {
+          "name": "Patch Evidence",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "
+              "raw": "{{base_url}}/api/v1/evidence/{{evidence_id}}\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"evidence\", \"{{evidence_id}}\"]\n            }"
+          }
+        },
+        {
+          "name": "Delete Evidence",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/evidence/{{evidence_id}}\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"evidence\", \"{{evidence_id}}\"]\n            }"
+          }
+        },
+        {
+          "name": "Bulk Update Evidence",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "
+              "raw": "{{base_url}}/api/v1/evidence/bulk-update\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"evidence\", \"bulk-update\"]\n            }"
+          }
+        },
+        {
+          "name": "Evidence Automation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "
+              "raw": "{{base_url}}/api/v1/evidence/{{evidence_id}}/automation\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"evidence\", \"{{evidence_id}}\", \"automation\"]\n            }"
+          }
+        },
+        {
+          "name": "Upload Evidence File",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": ""
+                },
+                {
+                  "key": "description",
+                  "value": "Uploaded evidence file",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/evidence/{{evidence_id}}/upload\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"evidence\", \"{{evidence_id}}\", \"upload\"]\n            }"
+          }
+        },
+        {
+          "name": "Evidence Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/evidence/dashboard/{{framework_id}}\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"evidence\", \"dashboard\", \"{{framework_id}}\"]\n            }"
+          }
+        },
+        {
+          "name": "Classify Evidence",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "
+              "raw": "{{base_url}}/api/v1/evidence/{{evidence_id}}/classify\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"evidence\", \"{{evidence_id}}\", \"classify\"]\n            }"
+          }
+        },
+        {
+          "name": "Bulk Classify Evidence",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "
+              "raw": "{{base_url}}/api/v1/evidence/classify/bulk\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"evidence\", \"classify\", \"bulk\"]\n            }"
+          }
+        },
+        {
+          "name": "Evidence Control Mapping",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "
+              "raw": "{{base_url}}/api/v1/evidence/{{evidence_id}}/control-mapping\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"evidence\", \"{{evidence_id}}\", \"control-mapping\"]\n            }"
+          }
+        },
+        {
+          "name": "Classification Statistics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/evidence/classification/stats\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"evidence\", \"classification\", \"stats\"]\n            }"
+          }
+        },
+        {
+          "name": "Evidence Quality Analysis",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/evidence/{{evidence_id}}/quality-analysis\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"evidence\", \"{{evidence_id}}\", \"quality-analysis\"]\n            }"
+          }
+        },
+        {
+          "name": "Duplicate Detection",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "
+              "raw": "{{base_url}}/api/v1/evidence/{{evidence_id}}/duplicate-detection\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"evidence\", \"{{evidence_id}}\", \"duplicate-detection\"]\n            }"
+          }
+        },
+        {
+          "name": "Batch Duplicate Detection",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "
+              "raw": "{{base_url}}/api/v1/evidence/duplicate-detection/batch\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"evidence\", \"duplicate-detection\", \"batch\"]\n            }"
+          }
+        },
+        {
+          "name": "Quality Benchmark",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/evidence/quality/benchmark\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"evidence\", \"quality\", \"benchmark\"]\n            }"
+          }
+        },
+        {
+          "name": "Quality Trends",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/evidence/quality/trends\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"evidence\", \"quality\", \"trends\"]\n            }"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🤖 AI Assessments",
+      "description": "Complete AI-powered assessment system (16 endpoints)",
+      "item": [
+        {
+          "name": "AI Help for Framework",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "
+              "raw": "{{base_url}}/api/v1/ai-assessments/{{framework_id}}/help\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"ai-assessments\", \"{{framework_id}}\", \"help\"]\n            }"
+          }
+        },
+        {
+          "name": "AI Help Stream for Framework",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "text/event-stream"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \\\"question\\\": \\\"What are the key GDPR compliance requirements?\\\",\n  \\\"context\\\": {\n    \\\"business_size\\\": \\\"startup\\\",\n    \\\"industry\\\": \\\"fintech\\\"\n  }"
+}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/ai-assessments/{{framework_id}}/help/stream\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"ai-assessments\", \"{{framework_id}}\", \"help\", \"stream\"]\n            }"
+          }
+        },
+        {
+          "name": "AI Follow-up",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \\\"previous_conversation_id\\\": \\\"{{conversation_id}}\\\",\n  \\\"followup_question\\\": \\\"Can you provide more details on implementation?\\\"\n}""
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/ai-assessments/followup\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"ai-assessments\", \"followup\"]\n            }"
+          }
+        },
+        {
+          "name": "AI Analysis",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \\\"assessment_results\\\": {\n    \\\"gdpr_data_collection\\\": {\n      \\\"answer\\\": \\\"yes\\\",\n      \\\"evidence\\\": \\\"We collect email addresses and company details\\\"\n    }"
+  },
+  \"framework_id\": \"gdpr\",
+  \"business_profile_id\": \"{{business_profile_id}}\"
+}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/ai-assessments/analysis\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"ai-assessments\", \"analysis\"]\n            }"
+          }
+        },
+        {
+          "name": "AI Analysis Stream",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const apiKey = pm.environment.get('google_api_key');",
+                  "if (!apiKey) {",
+                  "    console.error('❌ Google API key not found');",
+                  "} else {",
+                  "    console.log('✅ Google API key loaded successfully');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "text/event-stream"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \\\"assessment_results\\\": [\n    {\n      \\\"question_id\\\": \\\"gdpr_data_collection\\\",\n      \\\"answer\\\": \\\"yes\\\",\n      \\\"evidence\\\": \\\"We collect email addresses and company details for service delivery\\\"\n  ],\n  \\\"framework_id\\\": \\\"gdpr\\\",\n  \\\"session_id\\\": \\\"{{$guid}}\\\"\n}""
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/ai-assessments/analysis/stream\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"ai-assessments\", \"analysis\", \"stream\"]\n            }"
+          }
+        },
+        {
+          "name": "AI Recommendations",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \\\"framework_id\\\": \\\"gdpr\\\",\n  \\\"business_profile_id\\\": \\\"{{business_profile_id}}\\\",\n  \\\"assessment_data\\\": {\n    \\\"compliance_gaps\\\": [\\\"data_retention_policy\\\"]\n  }"
+}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/ai-assessments/recommendations\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"ai-assessments\", \"recommendations\"]\n            }"
+          }
+        },
+        {
+          "name": "AI Recommendations Stream",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "text/event-stream"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \\\"framework_id\\\": \\\"gdpr\\\",\n  \\\"business_profile_id\\\": \\\"{{business_profile_id}}\\\",\n  \\\"priority_level\\\": \\\"high\\\"\n}""
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/ai-assessments/recommendations/stream\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"ai-assessments\", \"recommendations\", \"stream\"]\n            }"
+          }
+        },
+        {
+          "name": "AI Feedback",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \\\"response_id\\\": \\\"{{response_id}}\\\",\n  \\\"feedback_type\\\": \\\"helpful\\\",\n  \\\"rating\\\": 5,\n  \\\"comments\\\": \\\"Very useful recommendations\\\"\n}""
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/ai-assessments/feedback\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"ai-assessments\", \"feedback\"]\n            }"
+          }
+        },
+        {
+          "name": "AI Metrics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/ai-assessments/metrics\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"ai-assessments\", \"metrics\"]\n            }"
+          }
+        },
+        {
+          "name": "AI Rate Limit Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/ai-assessments/rate-limit-stats\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"ai-assessments\", \"rate-limit-stats\"]\n            }"
+          }
+        },
+        {
+          "name": "AI Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/ai-assessments/health\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"ai-assessments\", \"health\"]\n            }"
+          }
+        },
+        {
+          "name": "Circuit Breaker Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/ai-assessments/circuit-breaker/status\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"ai-assessments\", \"circuit-breaker\", \"status\"]\n            }"
+          }
+        },
+        {
+          "name": "Reset Circuit Breaker",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/ai-assessments/circuit-breaker/reset\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"ai-assessments\", \"circuit-breaker\", \"reset\"]\n            }"
+          }
+        },
+        {
+          "name": "Model Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/ai-assessments/models/{{model_name}}/health\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"ai-assessments\", \"models\", \"{{model_name}}\", \"health\"]\n            }"
+          }
+        },
+        {
+          "name": "Cache Metrics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/ai-assessments/cache/metrics\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"ai-assessments\", \"cache\", \"metrics\"]\n            }"
+          }
+        }
+      ]
+    },
+    {
+      "name": "💬 Chat & AI Interactions",
+      "description": "Complete chat and AI interaction system (28 endpoints)",
+      "item": [
+        {
+          "name": "Create Conversation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \\\"title\\\": \\\"GDPR Compliance Discussion\\\",\n  \\\"framework_id\\\": \\\"gdpr\\\",\n  \\\"business_profile_id\\\": \\\"{{business_profile_id}}\\\"\n}""
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/chat/conversations\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"chat\", \"conversations\"]\n            }"
+          }
+        },
+        {
+          "name": "List Conversations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/chat/conversations?page=1&page_size=20\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"chat\", \"conversations\"],\n              \"query\": [\n                {\n                  \"key\": \"page\",\n                  \"value\": \"1\"\n                },\n                {\n                  \"key\": \"page_size\",\n                  \"value\": \"20\"\n              ]\n            }"
+          }
+        },
+        {
+          "name": "Get Conversation",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/chat/conversations/{{conversation_id}}\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"chat\", \"conversations\", \"{{conversation_id}}\"]\n            }"
+          }
+        },
+        {
+          "name": "Send Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \\\"message\\\": \\\"What are the key GDPR requirements for my business?\\\",\n  \\\"message_type\\\": \\\"question\\\",\n  \\\"context\\\": {\n    \\\"framework_id\\\": \\\"gdpr\\\",\n    \\\"business_type\\\": \\\"saas\\\"\n  }"
+}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/chat/conversations/{{conversation_id}}/messages\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"chat\", \"conversations\", \"{{conversation_id}}\", \"messages\"]\n            }"
+          }
+        },
+        {
+          "name": "Delete Conversation",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/chat/conversations/{{conversation_id}}\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"chat\", \"conversations\", \"{{conversation_id}}\"]\n            }"
+          }
+        },
+        {
+          "name": "Evidence Recommendations",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \\\"framework_id\\\": \\\"gdpr\\\",\n  \\\"business_profile_id\\\": \\\"{{business_profile_id}}\\\",\n  \\\"current_evidence\\\": []\n}""
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/chat/evidence-recommendations\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"chat\", \"evidence-recommendations\"]\n            }"
+          }
+        },
+        {
+          "name": "Compliance Analysis",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \\\"framework_id\\\": \\\"gdpr\\\",\n  \\\"business_profile_id\\\": \\\"{{business_profile_id}}\\\",\n  \\\"analysis_type\\\": \\\"gap_analysis\\\"\n}""
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/chat/compliance-analysis\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"chat\", \"compliance-analysis\"]\n            }"
+          }
+        },
+        {
+          "name": "Context Aware Recommendations",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \\\"context\\\": {\n    \\\"current_stage\\\": \\\"implementation\\\",\n    \\\"framework_id\\\": \\\"gdpr\\\"\n  }"
+}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/chat/context-aware-recommendations\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"chat\", \"context-aware-recommendations\"]\n            }"
+          }
+        },
+        {
+          "name": "Evidence Collection Workflow",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \\\"framework_id\\\": \\\"gdpr\\\",\n  \\\"workflow_type\\\": \\\"automated\\\",\n  \\\"priority\\\": \\\"high\\\"\n}""
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/chat/evidence-collection-workflow\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"chat\", \"evidence-collection-workflow\"]\n            }"
+          }
+        },
+        {
+          "name": "Generate Policy",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \\\"policy_type\\\": \\\"privacy_policy\\\",\n  \\\"framework_id\\\": \\\"gdpr\\\",\n  \\\"business_profile_id\\\": \\\"{{business_profile_id}}\\\",\n  \\\"customizations\\\": {\n    \\\"industry\\\": \\\"saas\\\",\n    \\\"data_types\\\": [\\\"personal_data\\\", \\\"usage_data\\\"]\n  }"
+}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/chat/generate-policy\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"chat\", \"generate-policy\"]\n            }"
+          }
+        },
+        {
+          "name": "Smart Guidance",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/chat/smart-guidance/{{framework}}\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"chat\", \"smart-guidance\", \"{{framework}}\"]\n            }"
+          }
+        },
+        {
+          "name": "Cache Metrics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/chat/cache/metrics\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"chat\", \"cache\", \"metrics\"]\n            }"
+          }
+        },
+        {
+          "name": "Clear Cache",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/chat/cache/clear\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"chat\", \"cache\", \"clear\"]\n            }"
+          }
+        },
+        {
+          "name": "Performance Metrics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/chat/performance/metrics\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"chat\", \"performance\", \"metrics\"]\n            }"
+          }
+        },
+        {
+          "name": "Performance Optimize",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/chat/performance/optimize\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"chat\", \"performance\", \"optimize\"]\n            }"
+          }
+        },
+        {
+          "name": "Analytics Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/chat/analytics/dashboard\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"chat\", \"analytics\", \"dashboard\"]\n            }"
+          }
+        },
+        {
+          "name": "Analytics Usage",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/chat/analytics/usage\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"chat\", \"analytics\", \"usage\"]\n            }"
+          }
+        },
+        {
+          "name": "Analytics Cost",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/chat/analytics/cost\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"chat\", \"analytics\", \"cost\"]\n            }"
+          }
+        },
+        {
+          "name": "Analytics Alerts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/chat/analytics/alerts\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"chat\", \"analytics\", \"alerts\"]\n            }"
+          }
+        },
+        {
+          "name": "Resolve Alert",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/chat/analytics/alerts/{{alert_id}}/resolve\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"chat\", \"analytics\", \"alerts\", \"{{alert_id}}\", \"resolve\"]\n            }"
+          }
+        },
+        {
+          "name": "Create Smart Evidence Plan",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \\\"framework_id\\\": \\\"gdpr\\\",\n  \\\"business_profile_id\\\": \\\"{{business_profile_id}}\\\",\n  \\\"plan_type\\\": \\\"comprehensive\\\"\n}""
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/chat/smart-evidence/create-plan\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"chat\", \"smart-evidence\", \"create-plan\"]\n            }"
+          }
+        },
+        {
+          "name": "Get Evidence Plan",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/chat/smart-evidence/plan/{{plan_id}}\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"chat\", \"smart-evidence\", \"plan\", \"{{plan_id}}\"]\n            }"
+          }
+        },
+        {
+          "name": "Get Next Tasks",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/chat/smart-evidence/next-tasks/{{plan_id}}\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"chat\", \"smart-evidence\", \"next-tasks\", \"{{plan_id}}\"]\n            }"
+          }
+        },
+        {
+          "name": "Update Task",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \\\"status\\\": \\\"completed\\\",\n  \\\"evidence_data\\\": {\n    \\\"type\\\": \\\"document\\\",\n    \\\"content\\\": \\\"Privacy policy document uploaded\\\"\n  }"
+}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/chat/smart-evidence/update-task/{{plan_id}}/{{task_id}}\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"chat\", \"smart-evidence\", \"update-task\", \"{{plan_id}}\", \"{{task_id}}\"]\n            }"
+          }
+        },
+        {
+          "name": "Quality Trends",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/chat/quality/trends\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"chat\", \"quality\", \"trends\"]\n            }"
+          }
+        },
+        {
+          "name": "Quality Feedback",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \\\"response_id\\\": \\\"{{response_id}}\\\",\n  \\\"rating\\\": 5,\n  \\\"feedback\\\": \\\"Very helpful response\\\",\n  \\\"improvement_suggestions\\\": [\\\"More examples would be helpful\\\"]\n}""
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/chat/quality/feedback\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"chat\", \"quality\", \"feedback\"]\n            }"
+          }
+        },
+        {
+          "name": "Quality Assessment",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/chat/quality/assessment/{{response_id}}\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"chat\", \"quality\", \"assessment\", \"{{response_id}}\"]\n            }"
+          }
+        },
+        {
+          "name": "Quality Metrics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/chat/quality/metrics\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"chat\", \"quality\", \"metrics\"]\n            }"
+          }
+        }
+      ]
+    },
+    {
+      "name": "👨‍💼 Admin Functions",
+      "description": "Complete admin management system (27+ endpoints)",
+      "item": [
+        {
+          "name": "📊 User Management",
+          "item": [
+            {
+              "name": "List All Users",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/admin/users\",\n                  \"host\": [\"{{base_url}}\"],\n                  \"path\": [\"api\", \"v1\", \"admin\", \"users\"]\n                }"
+              }
+            },
+            {
+              "name": "Get User by ID",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/admin/users/{{user_id}}\",\n                  \"host\": [\"{{base_url}}\"],\n                  \"path\": [\"api\", \"v1\", \"admin\", \"users\", \"{{user_id}}\"]\n                }"
+              }
+            },
+            {
+              "name": "Create User",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "
+                  "raw": "{{base_url}}/api/v1/admin/users\",\n                  \"host\": [\"{{base_url}}\"],\n                  \"path\": [\"api\", \"v1\", \"admin\", \"users\"]\n                }"
+              }
+            },
+            {
+              "name": "Update User",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "
+                  "raw": "{{base_url}}/api/v1/admin/users/{{user_id}}\",\n                  \"host\": [\"{{base_url}}\"],\n                  \"path\": [\"api\", \"v1\", \"admin\", \"users\", \"{{user_id}}\"]\n                }"
+              }
+            },
+            {
+              "name": "Delete User",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/admin/users/{{user_id}}\",\n                  \"host\": [\"{{base_url}}\"],\n                  \"path\": [\"api\", \"v1\", \"admin\", \"users\", \"{{user_id}}\"]\n                }"
+              }
+            },
+            {
+              "name": "Get All Roles",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/admin/users/roles\",\n                  \"host\": [\"{{base_url}}\"],\n                  \"path\": [\"api\", \"v1\", \"admin\", \"users\", \"roles\"]\n                }"
+              }
+            },
+            {
+              "name": "Create Role",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "
+                  "raw": "{{base_url}}/api/v1/admin/users/roles\",\n                  \"host\": [\"{{base_url}}\"],\n                  \"path\": [\"api\", \"v1\", \"admin\", \"users\", \"roles\"]\n                }"
+              }
+            },
+            {
+              "name": "Assign Role to User",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "
+                  "raw": "{{base_url}}/api/v1/admin/users/{{user_id}}/roles\",\n                  \"host\": [\"{{base_url}}\"],\n                  \"path\": [\"api\", \"v1\", \"admin\", \"users\", \"{{user_id}}\", \"roles\"]\n                }"
+              }
+            },
+            {
+              "name": "Remove Role from User",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/admin/users/{{user_id}}/roles/{{role_id}}\",\n                  \"host\": [\"{{base_url}}\"],\n                  \"path\": [\"api\", \"v1\", \"admin\", \"users\", \"{{user_id}}\", \"roles\", \"{{role_id}}\"]\n                }"
+              }
+            },
+            {
+              "name": "Get Admin Statistics",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/admin/users/statistics\",\n                  \"host\": [\"{{base_url}}\"],\n                  \"path\": [\"api\", \"v1\", \"admin\", \"users\", \"statistics\"]\n                }"
+              }
+            },
+            {
+              "name": "Get Audit Logs",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/admin/users/audit-logs\",\n                  \"host\": [\"{{base_url}}\"],\n                  \"path\": [\"api\", \"v1\", \"admin\", \"users\", \"audit-logs\"]\n                }"
+              }
+            },
+            {
+              "name": "Initialize RBAC",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/admin/users/initialize-rbac\",\n                  \"host\": [\"{{base_url}}\"],\n                  \"path\": [\"api\", \"v1\", \"admin\", \"users\", \"initialize-rbac\"]\n                }"
+              }
+            },
+            {
+              "name": "Cleanup Expired Roles",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/admin/users/cleanup-expired-roles\",\n                  \"host\": [\"{{base_url}}\"],\n                  \"path\": [\"api\", \"v1\", \"admin\", \"users\", \"cleanup-expired-roles\"]\n                }"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🔑 Token Management",
+          "item": [
+            {
+              "name": "Get Token Statistics",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/admin/tokens/statistics\",\n                  \"host\": [\"{{base_url}}\"],\n                  \"path\": [\"api\", \"v1\", \"admin\", \"tokens\", \"statistics\"]\n                }"
+              }
+            },
+            {
+              "name": "Get Token Entry",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/admin/tokens/entry/{{token_hash}}\",\n                  \"host\": [\"{{base_url}}\"],\n                  \"path\": [\"api\", \"v1\", \"admin\", \"tokens\", \"entry\", \"{{token_hash}}\"]\n                }"
+              }
+            },
+            {
+              "name": "Blacklist Token",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "
+                  "raw": "{{base_url}}/api/v1/admin/tokens/blacklist\",\n                  \"host\": [\"{{base_url}}\"],\n                  \"path\": [\"api\", \"v1\", \"admin\", \"tokens\", \"blacklist\"]\n                }"
+              }
+            },
+            {
+              "name": "Remove from Blacklist",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "
+                  "raw": "{{base_url}}/api/v1/admin/tokens/blacklist\",\n                  \"host\": [\"{{base_url}}\"],\n                  \"path\": [\"api\", \"v1\", \"admin\", \"tokens\", \"blacklist\"]\n                }"
+              }
+            },
+            {
+              "name": "Blacklist User Tokens",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "
+                  "raw": "{{base_url}}/api/v1/admin/tokens/blacklist/user\",\n                  \"host\": [\"{{base_url}}\"],\n                  \"path\": [\"api\", \"v1\", \"admin\", \"tokens\", \"blacklist\", \"user\"]\n                }"
+              }
+            },
+            {
+              "name": "Cleanup Expired Tokens",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/admin/tokens/cleanup\",\n                  \"host\": [\"{{base_url}}\"],\n                  \"path\": [\"api\", \"v1\", \"admin\", \"tokens\", \"cleanup\"]\n                }"
+              }
+            },
+            {
+              "name": "Token Health Check",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/admin/tokens/health\",\n                  \"host\": [\"{{base_url}}\"],\n                  \"path\": [\"api\", \"v1\", \"admin\", \"tokens\", \"health\"]\n                }"
+              }
+            },
+            {
+              "name": "Get Token Patterns",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/admin/tokens/patterns\",\n                  \"host\": [\"{{base_url}}\"],\n                  \"path\": [\"api\", \"v1\", \"admin\", \"tokens\", \"patterns\"]\n                }"
+              }
+            }
+          ]
+        },
+        {
+          "name": "🔐 Data Access Control",
+          "item": [
+            {
+              "name": "Grant Data Access",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "
+                  "raw": "{{base_url}}/api/v1/admin/data-access/grant\",\n                  \"host\": [\"{{base_url}}\"],\n                  \"path\": [\"api\", \"v1\", \"admin\", \"data-access\", \"grant\"]\n                }"
+              }
+            },
+            {
+              "name": "Revoke Data Access",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "
+                  "raw": "{{base_url}}/api/v1/admin/data-access/revoke\",\n                  \"host\": [\"{{base_url}}\"],\n                  \"path\": [\"api\", \"v1\", \"admin\", \"data-access\", \"revoke\"]\n                }"
+              }
+            },
+            {
+              "name": "Get User Data Access",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/admin/data-access/user/{{user_id}}\",\n                  \"host\": [\"{{base_url}}\"],\n                  \"path\": [\"api\", \"v1\", \"admin\", \"data-access\", \"user\", \"{{user_id}}\"]\n                }"
+              }
+            },
+            {
+              "name": "Get Access Levels",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/admin/data-access/levels\",\n                  \"host\": [\"{{base_url}}\"],\n                  \"path\": [\"api\", \"v1\", \"admin\", \"data-access\", \"levels\"]\n                }"
+              }
+            },
+            {
+              "name": "Get Access Audit",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/api/v1/admin/data-access/audit\",\n                  \"host\": [\"{{base_url}}\"],\n                  \"path\": [\"api\", \"v1\", \"admin\", \"data-access\", \"audit\"]\n                }"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "⚡ Performance Monitoring",
+      "description": "Complete performance monitoring system (11 endpoints)",
+      "item": [
+        {
+          "name": "Performance Overview",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/performance/overview\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"performance\", \"overview\"]\n            }"
+          }
+        },
+        {
+          "name": "Database Performance",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/performance/database\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"performance\", \"database\"]\n            }"
+          }
+        },
+        {
+          "name": "Cache Performance",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/performance/cache\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"performance\", \"cache\"]\n            }"
+          }
+        },
+        {
+          "name": "API Performance",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/performance/api\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"performance\", \"api\"]\n            }"
+          }
+        },
+        {
+          "name": "System Metrics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/performance/system\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"performance\", \"system\"]\n            }"
+          }
+        },
+        {
+          "name": "Optimization Recommendations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/performance/recommendations\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"performance\", \"recommendations\"]\n            }"
+          }
+        },
+        {
+          "name": "Performance Trends",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/performance/trends\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"performance\", \"trends\"]\n            }"
+          }
+        },
+        {
+          "name": "Configure Alerts",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "
+              "raw": "{{base_url}}/api/v1/performance/alerts/configure\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"performance\", \"alerts\", \"configure\"]\n            }"
+          }
+        },
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/performance/health\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"performance\", \"health\"]\n            }"
+          }
+        },
+        {
+          "name": "Start Monitoring",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "
+              "raw": "{{base_url}}/api/v1/performance/monitoring/start\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"performance\", \"monitoring\", \"start\"]\n            }"
+          }
+        },
+        {
+          "name": "Stop Monitoring",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/performance/monitoring/stop\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"performance\", \"monitoring\", \"stop\"]\n            }"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🏢 Business Profiles",
+      "description": "Complete business profile management system (7 endpoints)",
+      "item": [
+        {
+          "name": "Create Business Profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "
+              "raw": "{{base_url}}/api/v1/business-profiles\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"business-profiles\"]\n            }"
+          }
+        },
+        {
+          "name": "Get Current Business Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/business-profiles\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"business-profiles\"]\n            }"
+          }
+        },
+        {
+          "name": "Get Business Profile by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/business-profiles/{{profile_id}}\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"business-profiles\", \"{{profile_id}}\"]\n            }"
+          }
+        },
+        {
+          "name": "Update Current Business Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "
+              "raw": "{{base_url}}/api/v1/business-profiles\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"business-profiles\"]\n            }"
+          }
+        },
+        {
+          "name": "Update Business Profile by ID",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "
+              "raw": "{{base_url}}/api/v1/business-profiles/{{profile_id}}\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"business-profiles\", \"{{profile_id}}\"]\n            }"
+          }
+        },
+        {
+          "name": "Delete Business Profile",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/business-profiles/{{profile_id}}\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"business-profiles\", \"{{profile_id}}\"]\n            }"
+          }
+        },
+        {
+          "name": "Patch Business Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "
+              "raw": "{{base_url}}/api/v1/business-profiles/{{profile_id}}\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"business-profiles\", \"{{profile_id}}\"]\n            }"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📊 Assessment Management",
+      "description": "Core assessment functionality including creation, management, and completion",
+      "item": [
+        {
+          "name": "Quick Assessment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "
+              "raw": "{{base_url}}/api/v1/assessments/quick\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"assessments\", \"quick\"]\n            }"
+          }
+        },
+        {
+          "name": "List Assessments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/assessments/\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"assessments\", \"\"]\n            }"
+          }
+        },
+        {
+          "name": "Create Assessment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "
+              "raw": "{{base_url}}/api/v1/assessments/\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"assessments\", \"\"]\n            }"
+          }
+        },
+        {
+          "name": "Start Assessment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "
+              "raw": "{{base_url}}/api/v1/assessments/start\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"assessments\", \"start\"]\n            }"
+          }
+        },
+        {
+          "name": "Get Current Session",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/assessments/current\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"assessments\", \"current\"]\n            }"
+          }
+        },
+        {
+          "name": "Get Assessment Questions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/assessments/questions/{{stage}}\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"assessments\", \"questions\", \"{{stage}}\"]\n            }"
+          }
+        },
+        {
+          "name": "Update Assessment Response",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "
+              "raw": "{{base_url}}/api/v1/assessments/{{session_id}}/response\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"assessments\", \"{{session_id}}\", \"response\"]\n            }"
+          }
+        },
+        {
+          "name": "Update Multiple Responses",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "
+              "raw": "{{base_url}}/api/v1/assessments/{{session_id}}/responses\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"assessments\", \"{{session_id}}\", \"responses\"]\n            }"
+          }
+        },
+        {
+          "name": "Get Assessment Session",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/assessments/{{session_id}}\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"assessments\", \"{{session_id}}\"]\n            }"
+          }
+        },
+        {
+          "name": "Get Assessment Recommendations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/assessments/{{session_id}}/recommendations\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"assessments\", \"{{session_id}}\", \"recommendations\"]\n            }"
+          }
+        },
+        {
+          "name": "Complete Assessment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "
+              "raw": "{{base_url}}/api/v1/assessments/{{session_id}}/complete\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"assessments\", \"{{session_id}}\", \"complete\"]\n            }"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🤖 AI Assessment Services",
+      "description": "AI-powered assessment analysis, recommendations, and circuit breaker management",
+      "item": [
+        {
+          "name": "AI Help for Framework",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "
+              "raw": "{{base_url}}/api/v1/ai-assessments/{{framework_id}}/help\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"ai-assessments\", \"{{framework_id}}\", \"help\"]\n            }"
+          }
+        },
+        {
+          "name": "AI Help Stream",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "text/event-stream"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "
+              "raw": "{{base_url}}/api/v1/ai-assessments/{{framework_id}}/help/stream\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"ai-assessments\", \"{{framework_id}}\", \"help\", \"stream\"]\n            }"
+          }
+        },
+        {
+          "name": "AI Follow-up Question",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "
+              "raw": "{{base_url}}/api/v1/ai-assessments/followup\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"ai-assessments\", \"followup\"]\n            }"
+          }
+        },
+        {
+          "name": "AI Analysis",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "
+              "raw": "{{base_url}}/api/v1/ai-assessments/analysis\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"ai-assessments\", \"analysis\"]\n            }"
+          }
+        },
+        {
+          "name": "AI Analysis Stream",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "text/event-stream"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "
+              "raw": "{{base_url}}/api/v1/ai-assessments/analysis/stream\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"ai-assessments\", \"analysis\", \"stream\"]\n            }"
+          }
+        },
+        {
+          "name": "AI Recommendations",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "
+              "raw": "{{base_url}}/api/v1/ai-assessments/recommendations\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"ai-assessments\", \"recommendations\"]\n            }"
+          }
+        },
+        {
+          "name": "AI Recommendations Stream",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "text/event-stream"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "
+              "raw": "{{base_url}}/api/v1/ai-assessments/recommendations/stream\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"ai-assessments\", \"recommendations\", \"stream\"]\n            }"
+          }
+        },
+        {
+          "name": "AI Feedback",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "
+              "raw": "{{base_url}}/api/v1/ai-assessments/feedback\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"ai-assessments\", \"feedback\"]\n            }"
+          }
+        },
+        {
+          "name": "AI Metrics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/ai-assessments/metrics\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"ai-assessments\", \"metrics\"]\n            }"
+          }
+        },
+        {
+          "name": "Rate Limit Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/ai-assessments/rate-limit-stats\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"ai-assessments\", \"rate-limit-stats\"]\n            }"
+          }
+        },
+        {
+          "name": "AI Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/ai-assessments/health\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"ai-assessments\", \"health\"]\n            }"
+          }
+        },
+        {
+          "name": "Circuit Breaker Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/ai-assessments/circuit-breaker/status\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"ai-assessments\", \"circuit-breaker\", \"status\"]\n            }"
+          }
+        },
+        {
+          "name": "Reset Circuit Breaker",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/ai-assessments/circuit-breaker/reset\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"ai-assessments\", \"circuit-breaker\", \"reset\"]\n            }"
+          }
+        },
+        {
+          "name": "Model Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/ai-assessments/models/{{model_name}}/health\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"ai-assessments\", \"models\", \"{{model_name}}\", \"health\"]\n            }"
+          }
+        },
+        {
+          "name": "Cache Metrics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/ai-assessments/cache/metrics\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"ai-assessments\", \"cache\", \"metrics\"]\n            }"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🏗️ Compliance Frameworks",
+      "description": "Framework management and recommendations for compliance assessments",
+      "item": [
+        {
+          "name": "List All Frameworks",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/frameworks/\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"frameworks\", \"\"]\n            }"
+          }
+        },
+        {
+          "name": "Get Framework Recommendations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/frameworks/recommendations\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"frameworks\", \"recommendations\"]\n            }"
+          }
+        },
+        {
+          "name": "Get Business Profile Recommendations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/frameworks/recommendations/{{business_profile_id}}\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"frameworks\", \"recommendations\", \"{{business_profile_id}}\"]\n            }"
+          }
+        },
+        {
+          "name": "Get All Public Frameworks",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/frameworks/all-public\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"frameworks\", \"all-public\"]\n            }"
+          }
+        },
+        {
+          "name": "Get Framework by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/frameworks/{{framework_id}}\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"frameworks\", \"{{framework_id}}\"]\n            }"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📄 Policy Management",
+      "description": "Generated policy creation, management, and approval workflows",
+      "item": [
+        {
+          "name": "Generate Policy",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "
+              "raw": "{{base_url}}/api/v1/policies/generate\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"policies\", \"generate\"]\n            }"
+          }
+        },
+        {
+          "name": "List Policies",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/policies/?business_profile_id={{business_profile_id}}&framework_id={{framework_id}}&status=approved\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"policies\", \"\"],\n              \"query\": [\n                {\n                  \"key\": \"business_profile_id\",\n                  \"value\": \"{{business_profile_id}}\"\n                },\n                {\n                  \"key\": \"framework_id\",\n                  \"value\": \"{{framework_id}}\"\n                },\n                {\n                  \"key\": \"status\",\n                  \"value\": \"approved\"\n              ]\n            }"
+          }
+        },
+        {
+          "name": "Get Policy by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/policies/{{policy_id}}\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"policies\", \"{{policy_id}}\"]\n            }"
+          }
+        },
+        {
+          "name": "Update Policy Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "
+              "raw": "{{base_url}}/api/v1/policies/{{policy_id}}/status\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"policies\", \"{{policy_id}}\", \"status\"]\n            }"
+          }
+        },
+        {
+          "name": "Approve Policy",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "
+              "raw": "{{base_url}}/api/v1/policies/{{policy_id}}/approve\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"policies\", \"{{policy_id}}\", \"approve\"]\n            }"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📋 Assessments",
+      "item": [
+        {
+          "name": "Quick Assessment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "
+              "raw": "{{base_url}}/api/v1/assessments/quick\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"assessments\", \"quick\"]\n            },\n            \"description\": \"Perform a quick compliance assessment with immediate feedback\"\n          }"
+        },
+        {
+          "name": "List Assessment Sessions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/assessments/\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"assessments\", \"\"]\n            },\n            \"description\": \"Get all assessment sessions for current business profile\"\n          }"
+        },
+        {
+          "name": "Create Assessment Session",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "
+              "raw": "{{base_url}}/api/v1/assessments/\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"assessments\", \"\"]\n            },\n            \"description\": \"Create a new assessment session\"\n          }"
+        },
+        {
+          "name": "Get Current Assessment",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/assessments/current\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"assessments\", \"current\"]\n            },\n            \"description\": \"Get the current active assessment session\"\n          }"
+        },
+        {
+          "name": "Get Assessment Questions by Stage",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/assessments/questions/data-protection\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"assessments\", \"questions\", \"data-protection\"]\n            },\n            \"description\": \"Get questions for a specific assessment stage\"\n          }"
+        },
+        {
+          "name": "Submit Assessment Response",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "
+              "raw": "{{base_url}}/api/v1/assessments/{{session_id}}/response\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"assessments\", \"{{session_id}}\", \"response\"]\n            },\n            \"description\": \"Submit a response to an assessment question\"\n          }"
+        },
+        {
+          "name": "Submit Multiple Assessment Responses",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "
+              "raw": "{{base_url}}/api/v1/assessments/{{session_id}}/responses\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"assessments\", \"{{session_id}}\", \"responses\"]\n            },\n            \"description\": \"Submit multiple assessment responses at once\"\n          }"
+        },
+        {
+          "name": "Get Assessment Session Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/assessments/{{session_id}}\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"assessments\", \"{{session_id}}\"]\n            },\n            \"description\": \"Get details of a specific assessment session\"\n          }"
+        },
+        {
+          "name": "Get Assessment Recommendations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/assessments/{{session_id}}/recommendations\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"assessments\", \"{{session_id}}\", \"recommendations\"]\n            },\n            \"description\": \"Get AI-powered recommendations for improving compliance\"\n          }"
+        },
+        {
+          "name": "Complete Assessment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "
+              "raw": "{{base_url}}/api/v1/assessments/{{session_id}}/complete\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"assessments\", \"{{session_id}}\", \"complete\"]\n            },\n            \"description\": \"Mark an assessment session as complete\"\n          }"
+        }
+      ]
+    },
+    {
+      "name": "🏛️ Compliance Frameworks",
+      "item": [
+        {
+          "name": "List Available Frameworks",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/frameworks/\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"frameworks\", \"\"]\n            },\n            \"description\": \"Get all available compliance frameworks\"\n          }"
+        },
+        {
+          "name": "Get Framework Recommendations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/frameworks/recommendations\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"frameworks\", \"recommendations\"]\n            },\n            \"description\": \"Get AI-powered framework recommendations for current business profile\"\n          }"
+        },
+        {
+          "name": "Get Framework Recommendations by Business Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/frameworks/recommendations/{{business_profile_id}}\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"frameworks\", \"recommendations\", \"{{business_profile_id}}\"]\n            },\n            \"description\": \"Get framework recommendations for a specific business profile\"\n          }"
+        },
+        {
+          "name": "List All Public Frameworks",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/frameworks/all-public\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"frameworks\", \"all-public\"]\n            },\n            \"description\": \"Get all publicly available compliance frameworks\"\n          }"
+        },
+        {
+          "name": "Get Framework Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/frameworks/{{framework_id}}\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"frameworks\", \"{{framework_id}}\"]\n            },\n            \"description\": \"Get detailed information about a specific framework\"\n          }"
+        }
+      ]
+    },
+    {
+      "name": "📄 Evidence Management",
+      "item": [
+        {
+          "name": "Create Evidence",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "
+              "raw": "{{base_url}}/api/v1/evidence/\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"evidence\", \"\"]\n            },\n            \"description\": \"Create a new evidence item\"\n          }"
+        },
+        {
+          "name": "List Evidence",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/evidence/?framework_id=gdpr&limit=50\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"evidence\", \"\"],\n              \"query\": [\n                {\n                  \"key\": \"framework_id\",\n                  \"value\": \"gdpr\"\n                },\n                {\n                  \"key\": \"limit\",\n                  \"value\": \"50\"\n              ]\n            },\n            \"description\": \"List evidence items with optional filtering\"\n          }"
+        },
+        {
+          "name": "Get Evidence Statistics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/evidence/stats\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"evidence\", \"stats\"]\n            },\n            \"description\": \"Get statistics about evidence collection progress\"\n          }"
+        },
+        {
+          "name": "Search Evidence",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/evidence/search?q=data protection&framework_id=gdpr\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"evidence\", \"search\"],\n              \"query\": [\n                {\n                  \"key\": \"q\",\n                  \"value\": \"data protection\"\n                },\n                {\n                  \"key\": \"framework_id\",\n                  \"value\": \"gdpr\"\n              ]\n            },\n            \"description\": \"Search evidence items by content and metadata\"\n          }"
+        },
+        {
+          "name": "Validate Evidence",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "
+              "raw": "{{base_url}}/api/v1/evidence/validate\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"evidence\", \"validate\"]\n            },\n            \"description\": \"Validate evidence items against compliance criteria\"\n          }"
+        },
+        {
+          "name": "Get Evidence Requirements",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/evidence/requirements?framework_id=gdpr\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"evidence\", \"requirements\"],\n              \"query\": [\n                {\n                  \"key\": \"framework_id\",\n                  \"value\": \"gdpr\"\n              ]\n            },\n            \"description\": \"Get evidence requirements for a framework\"\n          }"
+        },
+        {
+          "name": "Create Evidence Requirements",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "
+              "raw": "{{base_url}}/api/v1/evidence/requirements\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"evidence\", \"requirements\"]\n            },\n            \"description\": \"Create evidence requirements for a control\"\n          }"
+        },
+        {
+          "name": "Get Evidence Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/evidence/{{evidence_id}}\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"evidence\", \"{{evidence_id}}\"]\n            },\n            \"description\": \"Get detailed information about a specific evidence item\"\n          }"
+        },
+        {
+          "name": "Update Evidence",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "
+              "raw": "{{base_url}}/api/v1/evidence/{{evidence_id}}\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"evidence\", \"{{evidence_id}}\"]\n            },\n            \"description\": \"Update an existing evidence item\"\n          }"
+        },
+        {
+          "name": "Patch Evidence",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "
+              "raw": "{{base_url}}/api/v1/evidence/{{evidence_id}}\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"evidence\", \"{{evidence_id}}\"]\n            },\n            \"description\": \"Partially update evidence item properties\"\n          }"
+        },
+        {
+          "name": "Delete Evidence",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/evidence/{{evidence_id}}\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"evidence\", \"{{evidence_id}}\"]\n            },\n            \"description\": \"Delete an evidence item\"\n          }"
+        },
+        {
+          "name": "Bulk Update Evidence",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "
+              "raw": "{{base_url}}/api/v1/evidence/bulk-update\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"evidence\", \"bulk-update\"]\n            },\n            \"description\": \"Update multiple evidence items at once\"\n          }"
+        },
+        {
+          "name": "Create Evidence Automation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "
+              "raw": "{{base_url}}/api/v1/evidence/{{evidence_id}}/automation\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"evidence\", \"{{evidence_id}}\", \"automation\"]\n            },\n            \"description\": \"Set up automated evidence collection\"\n          }"
+        },
+        {
+          "name": "Upload Evidence File",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "multipart/form-data"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": []
+                },
+                {
+                  "key": "title",
+                  "value": "Policy Document",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "Updated compliance policy",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/evidence/{{evidence_id}}/upload\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"evidence\", \"{{evidence_id}}\", \"upload\"]\n            },\n            \"description\": \"Upload a file as evidence\"\n          }"
+        }
+      ]
+    },
+    {
+      "name": "🚀 Implementation Management",
+      "item": [
+        {
+          "name": "Create Implementation Plan",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "
+              "raw": "{{base_url}}/api/v1/implementation/plans\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"implementation\", \"plans\"]\n            },\n            \"description\": \"Create a new compliance implementation plan\"\n          }"
+        },
+        {
+          "name": "List Implementation Plans",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/implementation/plans?status=active\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"implementation\", \"plans\"],\n              \"query\": [\n                {\n                  \"key\": \"status\",\n                  \"value\": \"active\"\n              ]\n            },\n            \"description\": \"Get all implementation plans with optional filtering\"\n          }"
+        },
+        {
+          "name": "Get Implementation Plan Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/implementation/plans/{{plan_id}}\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"implementation\", \"plans\", \"{{plan_id}}\"]\n            },\n            \"description\": \"Get detailed information about a specific implementation plan\"\n          }"
+        },
+        {
+          "name": "Update Implementation Task",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "
+              "raw": "{{base_url}}/api/v1/implementation/plans/{{plan_id}}/tasks/{{task_id}}\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"implementation\", \"plans\", \"{{plan_id}}\", \"tasks\", \"{{task_id}}\"]\n            },\n            \"description\": \"Update the status and progress of an implementation task\"\n          }"
+        }
+      ]
+    },
+    {
+      "name": "✅ Compliance Status",
+      "item": [
+        {
+          "name": "Get Compliance Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/compliance/status?framework_id=gdpr\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"compliance\", \"status\"],\n              \"query\": [\n                {\n                  \"key\": \"framework_id\",\n                  \"value\": \"gdpr\"\n              ]\n            },\n            \"description\": \"Get comprehensive compliance status for specified framework\"\n          }"
+        },
+        {
+          "name": "Query Compliance Data",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "
+              "raw": "{{base_url}}/api/v1/compliance/query\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"compliance\", \"query\"]\n            },\n            \"description\": \"Execute advanced compliance queries with filtering and analysis\"\n          }"
+        }
+      ]
+    },
+    {
+      "name": "📊 Reporting & Analytics",
+      "item": [
+        {
+          "name": "List Report Templates",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/reports/templates\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"reports\", \"templates\"]\n            },\n            \"description\": \"Get all available report templates\"\n          }"
+        },
+        {
+          "name": "Generate Compliance Report",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "
+              "raw": "{{base_url}}/api/v1/reports/generate\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"reports\", \"generate\"]\n            },\n            \"description\": \"Generate a comprehensive compliance report\"\n          }"
+        },
+        {
+          "name": "Generate PDF Report",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "
+              "raw": "{{base_url}}/api/v1/reports/generate/pdf\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"reports\", \"generate\", \"pdf\"]\n            },\n            \"description\": \"Generate and download PDF version of a report\"\n          }"
+        },
+        {
+          "name": "Preview Report",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/reports/preview/compliance_status?framework_id=gdpr\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"reports\", \"preview\", \"compliance_status\"],\n              \"query\": [\n                {\n                  \"key\": \"framework_id\",\n                  \"value\": \"gdpr\"\n              ]\n            },\n            \"description\": \"Get a preview of report content before generation\"\n          }"
+        },
+        {
+          "name": "Customize Report Template",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "
+              "raw": "{{base_url}}/api/v1/reports/customize-template/{{template_name}}\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"reports\", \"customize-template\", \"{{template_name}}\"]\n            },\n            \"description\": \"Customize a report template with specific sections and branding\"\n          }"
+        },
+        {
+          "name": "Create Report Schedule",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "
+              "raw": "{{base_url}}/api/v1/reports/schedules\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"reports\", \"schedules\"]\n            },\n            \"description\": \"Create a scheduled report for automatic generation\"\n          }"
+        },
+        {
+          "name": "List Report Schedules",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/reports/schedules\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"reports\", \"schedules\"]\n            },\n            \"description\": \"Get all configured report schedules\"\n          }"
+        },
+        {
+          "name": "Delete Report Schedule",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/reports/schedules/{{schedule_id}}\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"reports\", \"schedules\", \"{{schedule_id}}\"]\n            },\n            \"description\": \"Delete a report schedule\"\n          }"
+        },
+        {
+          "name": "Execute Report Schedule",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "
+              "raw": "{{base_url}}/api/v1/reports/schedules/{{schedule_id}}/execute\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"reports\", \"schedules\", \"{{schedule_id}}\", \"execute\"]\n            },\n            \"description\": \"Manually execute a scheduled report\"\n          }"
+        }
+      ]
+    },
+    {
+      "name": "🏛️ Admin User Management",
+      "description": "Administrative user management endpoints",
+      "item": [
+        {
+          "name": "List All Users",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/users/\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"admin\", \"users\", \"\"]\n            },\n            \"header\": [\n              {\"key\": \"Accept\", \"value\": \"application/json\"}\n            ]\n          }"
+        },
+        {
+          "name": "Get Specific User",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/users/{{user_id}}\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"admin\", \"users\", \"{{user_id}}\"]\n            }"
+          }
+        },
+        {
+          "name": "Create New User",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "
+              "raw": "{\\n  \\\"email\\\": \\\"newuser@example.com\\\",\\n  \\\"full_name\\\": \\\"New User\\\",\\n  \\\"is_active\\\": true,\\n  \\\"role\\\": \\\"user\\\"\\n}\"\n            }"
+          }
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "url": {
+              "raw": "
+              "raw": "{\\n  \\\"email\\\": \\\"updated@example.com\\\",\\n  \\\"full_name\\\": \\\"Updated Name\\\",\\n  \\\"is_active\\\": true\\n}\"\n            }"
+          }
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/users/{{user_id}}\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"admin\", \"users\", \"{{user_id}}\"]\n            }"
+          }
+        },
+        {
+          "name": "List All Roles",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/users/roles/\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"admin\", \"users\", \"roles\", \"\"]\n            }"
+          }
+        },
+        {
+          "name": "Create Role",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "
+              "raw": "{\\n  \\\"name\\\": \\\"custom_role\\\",\\n  \\\"description\\\": \\\"Custom role for specific permissions\\\",\\n  \\\"permissions\\\": [\\\"read_users\\\", \\\"write_assessments\\\"]\\n}\"\n            }"
+          }
+        },
+        {
+          "name": "Assign Role to User",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "
+              "raw": "{\\n  \\\"role_id\\\": \\\"admin\\\"\\n}\"\n            }"
+          }
+        },
+        {
+          "name": "Remove Role from User",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/users/{{user_id}}/roles/{{role_id}}\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"admin\", \"users\", \"{{user_id}}\", \"roles\", \"{{role_id}}\"]\n            }"
+          }
+        },
+        {
+          "name": "Get Admin Statistics",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/users/statistics\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"admin\", \"users\", \"statistics\"]\n            }"
+          }
+        },
+        {
+          "name": "Get Audit Logs",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/users/audit-logs\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"admin\", \"users\", \"audit-logs\"]\n            }"
+          }
+        },
+        {
+          "name": "Initialize RBAC",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/users/initialize-rbac\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"admin\", \"users\", \"initialize-rbac\"]\n            }"
+          }
+        },
+        {
+          "name": "Cleanup Expired Roles",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/users/cleanup-expired-roles\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"admin\", \"users\", \"cleanup-expired-roles\"]\n            }"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🛡️ Admin Token Management",
+      "description": "Administrative token blacklist and management endpoints",
+      "item": [
+        {
+          "name": "Get Token Statistics",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/tokens/statistics\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"admin\", \"tokens\", \"statistics\"]\n            }"
+          }
+        },
+        {
+          "name": "Get Token Entry",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/tokens/entry/{{token_hash}}\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"admin\", \"tokens\", \"entry\", \"{{token_hash}}\"]\n            }"
+          }
+        },
+        {
+          "name": "Blacklist Token",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "
+              "raw": "{\\n  \\\"token\\\": \\\"jwt_token_to_blacklist\\\",\\n  \\\"reason\\\": \\\"Security breach\\\"\\n}\"\n            }"
+          }
+        },
+        {
+          "name": "Remove from Blacklist",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "
+              "raw": "{\\n  \\\"token_hash\\\": \\\"hash_to_remove\\\"\\n}\"\n            }"
+          }
+        },
+        {
+          "name": "Blacklist User Tokens",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "
+              "raw": "{\\n  \\\"user_id\\\": \\\"user_uuid\\\",\\n  \\\"reason\\\": \\\"Account compromise\\\"\\n}\"\n            }"
+          }
+        },
+        {
+          "name": "Cleanup Expired Tokens",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/tokens/cleanup\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"admin\", \"tokens\", \"cleanup\"]\n            }"
+          }
+        },
+        {
+          "name": "Token Health Check",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/tokens/health\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"admin\", \"tokens\", \"health\"]\n            }"
+          }
+        },
+        {
+          "name": "Get Token Patterns",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/tokens/patterns\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"admin\", \"tokens\", \"patterns\"]\n            }"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🗄️ Admin Data Access",
+      "description": "Administrative data access control endpoints",
+      "item": [
+        {
+          "name": "Grant Data Access",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "
+              "raw": "{\\n  \\\"user_id\\\": \\\"user_uuid\\\",\\n  \\\"access_level\\\": \\\"read_write\\\",\\n  \\\"resource_type\\\": \\\"assessments\\\",\\n  \\\"expiry_days\\\": 30\\n}\"\n            }"
+          }
+        },
+        {
+          "name": "Revoke Data Access",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "
+              "raw": "{\\n  \\\"user_id\\\": \\\"user_uuid\\\",\\n  \\\"resource_type\\\": \\\"assessments\\\"\\n}\"\n            }"
+          }
+        },
+        {
+          "name": "Get User Data Access Info",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/data-access/user/{{user_id}}\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"admin\", \"data-access\", \"user\", \"{{user_id}}\"]\n            }"
+          }
+        },
+        {
+          "name": "Get Access Levels",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/data-access/levels\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"admin\", \"data-access\", \"levels\"]\n            }"
+          }
+        },
+        {
+          "name": "Get Access Audit",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/data-access/audit\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"admin\", \"data-access\", \"audit\"]\n            }"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🆓 Freemium Services",
+      "description": "Freemium tier endpoints for trial users",
+      "item": [
+        {
+          "name": "Quick Assessment (Free)",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "
+              "raw": "{\\n  \\\"industry\\\": \\\"technology\\\",\\n  \\\"company_size\\\": \\\"50-200\\\",\\n  \\\"compliance_focus\\\": \\\"gdpr\\\"\\n}\"\n            }"
+          }
+        },
+        {
+          "name": "AI Assistance (Limited)",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "
+              "raw": "{\\n  \\\"question\\\": \\\"What is GDPR compliance?\\\",\\n  \\\"context\\\": \\\"small business\\\"\\n}\"\n            }"
+          }
+        },
+        {
+          "name": "Basic Report Generation",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/freemium/basic-report\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"freemium\", \"basic-report\"]\n            }"
+          }
+        },
+        {
+          "name": "Upgrade Options",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "
+              "raw": "{\\n  \\\"current_usage\\\": 15,\\n  \\\"desired_features\\\": [\\\"full_ai\\\", \\\"advanced_reports\\\"]\\n}\"\n            }"
+          }
+        },
+        {
+          "name": "Usage Statistics",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/freemium/usage-stats\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"freemium\", \"usage-stats\"]\n            }"
+          }
+        },
+        {
+          "name": "Feature Limits",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/freemium/limits\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"freemium\", \"limits\"]\n            }"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🇬🇧 UK Compliance",
+      "description": "UK-specific compliance and regulatory endpoints",
+      "item": [
+        {
+          "name": "UK GDPR Assessment",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/uk-compliance/gdpr-assessment\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"uk-compliance\", \"gdpr-assessment\"]\n            }"
+          }
+        },
+        {
+          "name": "Companies House Integration",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/uk-compliance/companies-house\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"uk-compliance\", \"companies-house\"]\n            }"
+          }
+        },
+        {
+          "name": "HMRC Compliance Check",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "
+              "raw": "{\\n  \\\"company_number\\\": \\\"12345678\\\",\\n  \\\"check_type\\\": \\\"vat_registration\\\"\\n}\"\n            }"
+          }
+        },
+        {
+          "name": "Update UK Compliance Status",
+          "request": {
+            "method": "PUT",
+            "url": {
+              "raw": "
+              "raw": "{\\n  \\\"compliance_area\\\": \\\"data_protection\\\",\\n  \\\"status\\\": \\\"compliant\\\",\\n  \\\"last_reviewed\\\": \\\"2025-08-23\\\"\\n}\"\n            }"
+          }
+        },
+        {
+          "name": "Delete UK Compliance Record",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/api/v1/uk-compliance/record/{{record_id}}\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"uk-compliance\", \"record\", \"{{record_id}}\"]\n            }"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📈 Readiness Assessment",
+      "description": "Compliance readiness assessment endpoints",
+      "item": [
+        {
+          "name": "Get Readiness Assessment",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/readiness/assessment\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"readiness\", \"assessment\"]\n            }"
+          }
+        },
+        {
+          "name": "Get Assessment History",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/readiness/history\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"readiness\", \"history\"]\n            }"
+          }
+        },
+        {
+          "name": "Generate Readiness Report",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "
+              "raw": "{\\n  \\\"framework\\\": \\\"gdpr\\\",\\n  \\\"include_recommendations\\\": true\\n}\"\n            }"
+          }
+        },
+        {
+          "name": "Create Readiness Report",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "
+              "raw": "{\\n  \\\"assessment_id\\\": \\\"assessment_uuid\\\",\\n  \\\"report_type\\\": \\\"detailed\\\",\\n  \\\"include_action_items\\\": true\\n}\"\n            }"
+          }
+        },
+        {
+          "name": "Download Readiness Report",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/readiness/reports/{{report_id}}/download\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"readiness\", \"reports\", \"{{report_id}}\", \"download\"]\n            }"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🧪 Test Utilities",
+      "description": "Development and testing utility endpoints",
+      "item": [
+        {
+          "name": "Cleanup Test Users",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/api/v1/test-utils/cleanup-test-users\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"test-utils\", \"cleanup-test-users\"]\n            }"
+          }
+        },
+        {
+          "name": "Create Test User",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "
+              "raw": "{\\n  \\\"email\\\": \\\"test@example.com\\\",\\n  \\\"role\\\": \\\"user\\\",\\n  \\\"organization\\\": \\\"Test Corp\\\"\\n}\"\n            }"
+          }
+        },
+        {
+          "name": "Clear Rate Limits",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "
+              "raw": "{\\n  \\\"user_id\\\": \\\"{{user_id}}\\\",\\n  \\\"clear_all\\\": false\\n}\"\n            }"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔐 Google Authentication",
+      "description": "Google OAuth integration endpoints",
+      "item": [
+        {
+          "name": "Google OAuth Login",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/google/login?redirect_uri={{redirect_uri}}\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"auth\", \"google\", \"login\"],\n              \"query\": [\n                {\n                  \"key\": \"redirect_uri\",\n                  \"value\": \"{{redirect_uri}}\"\n              ]\n            }"
+          }
+        },
+        {
+          "name": "Google OAuth Callback",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/google/callback?code={{auth_code}}&state={{state}}\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"auth\", \"google\", \"callback\"],\n              \"query\": [\n                {\n                  \"key\": \"code\",\n                  \"value\": \"{{auth_code}}\"\n                },\n                {\n                  \"key\": \"state\",\n                  \"value\": \"{{state}}\"\n              ]\n            }"
+          }
+        },
+        {
+          "name": "Mobile Google Login",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "
+              "raw": "{\\n  \\\"id_token\\\": \\\"google_id_token_here\\\",\\n  \\\"access_token\\\": \\\"google_access_token_here\\\"\\n}\"\n            }"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🤖 Agentic Assessments",
+      "description": "AI-powered assessment automation endpoints",
+      "item": [
+        {
+          "name": "Start Agentic Assessment",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/agentic-assessments/start?framework={{framework_id}}&business_profile_id={{business_profile_id}}\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"agentic-assessments\", \"start\"],\n              \"query\": [\n                {\n                  \"key\": \"framework\",\n                  \"value\": \"{{framework_id}}\"\n                },\n                {\n                  \"key\": \"business_profile_id\",\n                  \"value\": \"{{business_profile_id}}\"\n              ]\n            }"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔐 Secrets Vault",
+      "description": "Secure secrets management endpoints",
+      "item": [
+        {
+          "name": "Get Vault Status",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/secrets-vault/status\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"secrets-vault\", \"status\"]\n            }"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔗 Agentic RAG",
+      "description": "Advanced RAG (Retrieval-Augmented Generation) endpoints",
+      "item": [
+        {
+          "name": "Document RAG Query",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "
+              "raw": "{\\n  \\\"query\\\": \\\"What are the GDPR requirements for data processing?\\\",\\n  \\\"document_types\\\": [\\\"regulation\\\", \\\"guidance\\\"],\\n  \\\"max_results\\\": 5\\n}\"\n            }"
+          }
+        },
+        {
+          "name": "Multi-Document RAG",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "
+              "raw": "{\\n  \\\"queries\\\": [\\n    \\\"Data retention policies\\\",\\n    \\\"Breach notification requirements\\\"\\n  ],\\n  \\\"framework\\\": \\\"gdpr\\\",\\n  \\\"combine_results\\\": true\\n}\"\n            }"
+          }
+        },
+        {
+          "name": "Framework-Specific RAG",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "
+              "raw": "{\\n  \\\"framework\\\": \\\"iso27001\\\",\\n  \\\"query\\\": \\\"Access control requirements\\\",\\n  \\\"section\\\": \\\"A.9\\\",\\n  \\\"context_window\\\": 2048\\n}\"\n            }"
+          }
+        }
+      ]
+    },
+    {
+      "name": "💰 AI Cost WebSocket",
+      "description": "Real-time AI cost monitoring via WebSocket",
+      "item": [
+        {
+          "name": "Start Background Tasks",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/api/v1/ai/cost-websocket/admin/background-tasks/start\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"ai\", \"cost-websocket\", \"admin\", \"background-tasks\", \"start\"]\n            }"
+          }
+        },
+        {
+          "name": "Stop Background Tasks",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/api/v1/ai/cost-websocket/admin/background-tasks/stop\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"ai\", \"cost-websocket\", \"admin\", \"background-tasks\", \"stop\"]\n            }"
+          }
+        },
+        {
+          "name": "Get Connection Stats",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/ai/cost-websocket/connections/stats\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"ai\", \"cost-websocket\", \"connections\", \"stats\"]\n            }"
+          }
+        },
+        {
+          "name": "Broadcast Alert",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "
+              "raw": "{\\n  \\\"type\\\": \\\"cost_threshold\\\",\\n  \\\"message\\\": \\\"Monthly AI costs exceeded $500\\\",\\n  \\\"severity\\\": \\\"high\\\",\\n  \\\"data\\\": {\\n    \\\"current_cost\\\": 525.50,\\n    \\\"threshold\\\": 500.00\\n  }\\n}\"\n            }"
+          }
+        },
+        {
+          "name": "Broadcast Cost Spike",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "
+              "raw": "{\\n  \\\"spike_percentage\\\": 150.0,\\n  \\\"time_window\\\": \\\"1h\\\",\\n  \\\"affected_models\\\": [\\\"gpt-4\\\", \\\"claude-3\\\"],\\n  \\\"total_cost\\\": 75.25\\n}\"\n            }"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🌐 Foundation Evidence",
+      "description": "Cloud provider integration for evidence collection",
+      "item": [
+        {
+          "name": "Configure AWS Integration",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "
+              "raw": "{\\n  \\\"access_key_id\\\": \\\"AKIA...\\\",\\n  \\\"secret_access_key\\\": \\\"...\\\",\\n  \\\"region\\\": \\\"us-east-1\\\",\\n  \\\"account_id\\\": \\\"123456789012\\\"\\n}\"\n            }"
+          }
+        },
+        {
+          "name": "Configure Okta Integration",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "
+              "raw": "{\\n  \\\"domain\\\": \\\"company.okta.com\\\",\\n  \\\"api_token\\\": \\\"00ABC...\\\",\\n  \\\"client_id\\\": \\\"0oa...\\\"\\n}\"\n            }"
+          }
+        },
+        {
+          "name": "Configure Google Workspace",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "
+              "raw": "{\\n  \\\"client_id\\\": \\\"123456789012-abc...\\\",\\n  \\\"client_secret\\\": \\\"GOCSPX-...\\\",\\n  \\\"domain\\\": \\\"company.com\\\",\\n  \\\"service_account_email\\\": \\\"service@company.iam.gserviceaccount.com\\\"\\n}\"\n            }"
+          }
+        },
+        {
+          "name": "Configure Microsoft 365",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "
+              "raw": "{\\n  \\\"tenant_id\\\": \\\"12345678-1234-1234-1234-123456789012\\\",\\n  \\\"client_id\\\": \\\"87654321-4321-4321-4321-210987654321\\\",\\n  \\\"client_secret\\\": \\\"secret_value\\\",\\n  \\\"domain\\\": \\\"company.onmicrosoft.com\\\"\\n}\"\n            }"
+          }
+        },
+        {
+          "name": "Start Evidence Collection",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "
+              "raw": "{\\n  \\\"providers\\\": [\\\"aws\\\", \\\"okta\\\"],\\n  \\\"evidence_types\\\": [\\\"access_logs\\\", \\\"configurations\\\", \\\"policies\\\"],\\n  \\\"date_range\\\": {\\n    \\\"start\\\": \\\"2025-07-01\\\",\\n    \\\"end\\\": \\\"2025-08-01\\\"\\n  }\\n}\"\n            }"
+          }
+        },
+        {
+          "name": "Get Collection Status",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/foundation-evidence/collect/{{collection_id}}/status\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"foundation-evidence\", \"collect\", \"{{collection_id}}\", \"status\"]\n            }"
+          }
+        },
+        {
+          "name": "Get Collection Results",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/foundation-evidence/collect/{{collection_id}}/results\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"foundation-evidence\", \"collect\", \"{{collection_id}}\", \"results\"]\n            }"
+          }
+        },
+        {
+          "name": "Foundation Evidence Health Check",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/foundation-evidence/health\",\n              \"host\": [\"{{base_url}}\"],\n              \"path\": [\"api\", \"v1\", \"foundation-evidence\", \"health\"]\n            }"
+          }
+        }
+      ]
+    }
+  ]
+}

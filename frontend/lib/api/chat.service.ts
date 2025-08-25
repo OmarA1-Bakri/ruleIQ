@@ -192,7 +192,7 @@ class ChatService {
    * Get AI cache metrics
    */
   async getCacheMetrics(): Promise<any> {
-    const response = await apiClient.get<any>('/chat/cache/metrics');
+    const response = await apiClient.get<any>('/ai/optimization/cache/metrics');
     return response;
   }
 
@@ -204,7 +204,7 @@ class ChatService {
     pattern: string;
     cleared_at: string;
   }> {
-    const response = await apiClient.delete<any>(`/chat/cache/clear?pattern=${encodeURIComponent(pattern)}`);
+    const response = await apiClient.delete<any>(`/ai/optimization/cache/clear?pattern=${encodeURIComponent(pattern)}`);
     return response;
   }
 

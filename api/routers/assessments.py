@@ -155,7 +155,7 @@ async def get_questions(
     return questions
 
 
-@router.put("/{session_id}/response")
+@router.put("/{id}/response")
 async def update_response(
     session_id: UUID,
     response_data: AssessmentResponseUpdate,
@@ -169,7 +169,7 @@ async def update_response(
     return session
 
 
-@router.post("/{session_id}/responses")
+@router.post("/{id}/responses")
 async def update_responses(
     session_id: UUID,
     response_data: dict,
@@ -193,7 +193,7 @@ async def update_responses(
     return session
 
 
-@router.get("/{session_id}", response_model=AssessmentSessionResponse)
+@router.get("/{id}", response_model=AssessmentSessionResponse)
 async def get_assessment_session(
     session_id: UUID,
     current_user: UserWithRoles = Depends(require_permission("assessment_list")),
@@ -209,7 +209,7 @@ async def get_assessment_session(
     return session
 
 
-@router.get("/{session_id}/recommendations")
+@router.get("/{id}/recommendations")
 async def get_assessment_recommendations(
     session_id: UUID,
     current_user: UserWithRoles = Depends(require_permission("assessment_list")),
@@ -256,7 +256,7 @@ async def get_assessment_recommendations(
     return {"recommendations": recommendations}
 
 
-@router.post("/{session_id}/complete", response_model=AssessmentSessionResponse)
+@router.post("/{id}/complete", response_model=AssessmentSessionResponse)
 async def complete_assessment(
     session_id: UUID,
     current_user: UserWithRoles = Depends(require_permission("assessment_update")),

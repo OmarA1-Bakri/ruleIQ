@@ -1,0 +1,169 @@
+{
+  "summary": {
+    "total_tests": 12,
+    "successful_tests": 6,
+    "success_rate": 50.0,
+    "timestamp": "2025-08-23 09:18:01"
+  },
+  "categories": {
+    "authentication": {
+      "successful": 2,
+      "total": 2,
+      "success_rate": 100.0,
+      "avg_response_time_ms": 1165
+    },
+    "business_profiles": {
+      "successful": 0,
+      "total": 2,
+      "success_rate": 0.0,
+      "avg_response_time_ms": 1746
+    },
+    "assessments": {
+      "successful": 0,
+      "total": 2,
+      "success_rate": 0.0,
+      "avg_response_time_ms": 1754
+    },
+    "ai_services": {
+      "successful": 1,
+      "total": 2,
+      "success_rate": 50.0,
+      "avg_response_time_ms": 1162
+    },
+    "compliance_frameworks": {
+      "successful": 1,
+      "total": 2,
+      "success_rate": 50.0,
+      "avg_response_time_ms": 1160
+    },
+    "health": {
+      "successful": 2,
+      "total": 2,
+      "success_rate": 100.0,
+      "avg_response_time_ms": 744
+    }
+  },
+  "detailed_results": {
+    "authentication": [
+      {
+        "endpoint": "/api/v1/auth/me",
+        "method": "GET",
+        "status_code": 200,
+        "response_time_ms": 1492,
+        "success": true,
+        "content_length": 133,
+        "error": null
+      },
+      {
+        "endpoint": "/api/v1/auth/logout",
+        "method": "POST",
+        "status_code": 200,
+        "response_time_ms": 838,
+        "success": true,
+        "content_length": 37,
+        "error": null
+      }
+    ],
+    "business_profiles": [
+      {
+        "endpoint": "/api/v1/business-profiles",
+        "method": "GET",
+        "status_code": 401,
+        "response_time_ms": 2334,
+        "success": false,
+        "content_length": 30,
+        "error": null
+      },
+      {
+        "endpoint": "/api/v1/business-profiles/current",
+        "method": "GET",
+        "status_code": 401,
+        "response_time_ms": 1158,
+        "success": false,
+        "content_length": 30,
+        "error": null
+      }
+    ],
+    "assessments": [
+      {
+        "endpoint": "/api/v1/assessments",
+        "method": "GET",
+        "status_code": 401,
+        "response_time_ms": 2330,
+        "success": false,
+        "content_length": 30,
+        "error": null
+      },
+      {
+        "endpoint": "/api/v1/assessments/templates",
+        "method": "GET",
+        "status_code": 401,
+        "response_time_ms": 1178,
+        "success": false,
+        "content_length": 30,
+        "error": null
+      }
+    ],
+    "ai_services": [
+      {
+        "endpoint": "/api/v1/ai-assessments/analysis/stream",
+        "method": "POST",
+        "status_code": 401,
+        "response_time_ms": 1165,
+        "success": false,
+        "content_length": 177,
+        "error": null
+      },
+      {
+        "endpoint": "/api/v1/ai-cost/current",
+        "method": "GET",
+        "status_code": 404,
+        "response_time_ms": 1159,
+        "success": true,
+        "content_length": 22,
+        "error": null
+      }
+    ],
+    "compliance_frameworks": [
+      {
+        "endpoint": "/api/v1/compliance-frameworks",
+        "method": "GET",
+        "status_code": 404,
+        "response_time_ms": 1159,
+        "success": false,
+        "content_length": 22,
+        "error": null
+      },
+      {
+        "endpoint": "/api/v1/compliance-frameworks/gdpr",
+        "method": "GET",
+        "status_code": 404,
+        "response_time_ms": 1162,
+        "success": true,
+        "content_length": 22,
+        "error": null
+      }
+    ],
+    "admin": [],
+    "health": [
+      {
+        "endpoint": "/health",
+        "method": "GET",
+        "status_code": 200,
+        "response_time_ms": 331,
+        "success": true,
+        "content_length": 248,
+        "error": null
+      },
+      {
+        "endpoint": "/api/v1/health",
+        "method": "GET",
+        "status_code": 200,
+        "response_time_ms": 1156,
+        "success": true,
+        "content_length": 126,
+        "error": null
+      }
+    ]
+  }
+}

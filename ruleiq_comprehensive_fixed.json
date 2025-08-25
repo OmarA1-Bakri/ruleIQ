@@ -1,0 +1,327 @@
+{
+  "info": {
+    "name": "RuleIQ API - Comprehensive Fixed",
+    "description": "Complete API collection with all 254 endpoints and correct paths",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {"key": "base_url", "value": "http://localhost:8000"},
+    {"key": "jwt_token", "value": ""},
+    {"key": "framework_id", "value": "gdpr"},
+    {"key": "session_token", "value": "test-session-123"},
+    {"key": "assessment_id", "value": ""},
+    {"key": "business_profile_id", "value": ""}
+  ],
+  "item": [
+    {
+      "name": "🔐 Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response.access_token) {",
+                  "    pm.collectionVariables.set('jwt_token', response.access_token);",
+                  "    console.log('JWT token saved');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"newtest@ruleiq.com\", \"password\": \"NewTestPass123!\"}"
+            },
+            "url": "{{base_url}}/api/v1/auth/login"
+          }
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/auth/me"
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/auth/logout"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🤖 IQ Agent",
+      "item": [
+        {
+          "name": "Query Compliance",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"query\": \"What are my GDPR compliance gaps?\", \"context\": {}}"
+            },
+            "url": "{{base_url}}/api/v1/iq-agent/query"
+          }
+        },
+        {
+          "name": "Store Memory",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"content\": {\"type\": \"compliance_insight\", \"data\": \"Test insight\"}, \"importance_score\": 0.8}"
+            },
+            "url": "{{base_url}}/api/v1/iq-agent/memory/store"
+          }
+        },
+        {
+          "name": "Retrieve Memories",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"query\": \"GDPR compliance\", \"max_memories\": 5}"
+            },
+            "url": "{{base_url}}/api/v1/iq-agent/memory/retrieve"
+          }
+        },
+        {
+          "name": "Initialize Graph",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": "{{base_url}}/api/v1/iq-agent/graph/initialize"
+          }
+        },
+        {
+          "name": "IQ Health",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/iq-agent/health"
+          }
+        },
+        {
+          "name": "IQ Status",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/iq-agent/status"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🆓 Freemium",
+      "item": [
+        {
+          "name": "Capture Lead",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"lead@example.com\", \"utm_source\": \"google\", \"utm_medium\": \"cpc\"}"
+            },
+            "url": "{{base_url}}/api/v1/freemium/leads"
+          }
+        },
+        {
+          "name": "Start Session",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response.session_token) {",
+                  "    pm.collectionVariables.set('session_token', response.session_token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"framework_id\": \"gdpr\", \"industry\": \"technology\", \"company_size\": \"small\"}"
+            },
+            "url": "{{base_url}}/api/v1/freemium/sessions"
+          }
+        },
+        {
+          "name": "Get Progress",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/v1/freemium/sessions/{{session_token}}"
+          }
+        },
+        {
+          "name": "Submit Answer",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"question_id\": \"q1\", \"answer_value\": \"yes\"}"
+            },
+            "url": "{{base_url}}/api/v1/freemium/sessions/{{session_token}}/answers"
+          }
+        },
+        {
+          "name": "Get Results",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/v1/freemium/sessions/{{session_token}}/results"
+          }
+        },
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/v1/freemium/health"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🧠 AI Assessments",
+      "item": [
+        {
+          "name": "Get Help",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"question\": \"What is data protection?\", \"context\": {}}"
+            },
+            "url": "{{base_url}}/api/v1/ai-assessments/{{framework_id}}/help"
+          }
+        },
+        {
+          "name": "Get Help Stream",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"question\": \"What is data protection?\", \"context\": {}}"
+            },
+            "url": "{{base_url}}/api/v1/ai-assessments/{{framework_id}}/help/stream"
+          }
+        },
+        {
+          "name": "Follow-up",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"assessment_id\": \"test-123\", \"context\": {}}"
+            },
+            "url": "{{base_url}}/api/v1/ai-assessments/followup"
+          }
+        },
+        {
+          "name": "Analysis",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"assessment_id\": \"test-123\", \"data\": {}}"
+            },
+            "url": "{{base_url}}/api/v1/ai-assessments/analysis"
+          }
+        },
+        {
+          "name": "Health",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/ai-assessments/health"
+          }
+        },
+        {
+          "name": "Metrics",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/ai-assessments/metrics"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📊 System Health",
+      "item": [
+        {
+          "name": "Root Health",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/health"
+          }
+        },
+        {
+          "name": "API Health",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/v1/health"
+          }
+        },
+        {
+          "name": "Detailed Health",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/v1/health/detailed"
+          }
+        }
+      ]
+    }
+  ]
+}

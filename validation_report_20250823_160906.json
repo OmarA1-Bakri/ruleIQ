@@ -1,0 +1,391 @@
+{
+  "timestamp": "2025-08-23T16:09:06.902924",
+  "summary": {
+    "total_tests": 21,
+    "successful": 20,
+    "failed": 1,
+    "avg_response_time": 0.9245922857142856
+  },
+  "status_distribution": {
+    "200": 9,
+    "422": 2,
+    "401": 7,
+    "503": 1,
+    "201": 2
+  },
+  "detailed_results": [
+    {
+      "name": "Root Health",
+      "method": "GET",
+      "path": "/health",
+      "status_code": 200,
+      "success": true,
+      "response_time": 0.779689,
+      "response_data": {
+        "status": "healthy",
+        "message": "All systems operational",
+        "timestamp": "2025-08-23T15:08:48.221257",
+        "version": "1.0.0",
+        "database": {
+          "engine_initialized": true,
+          "pool_utilization": 0,
+          "active_sessions": 0,
+          "recent_alerts": {
+            "critical": 0,
+            "warning": 0,
+            "total": 0
+          }
+        }
+      },
+      "error": null
+    },
+    {
+      "name": "API Health",
+      "method": "GET",
+      "path": "/api/v1/health",
+      "status_code": 200,
+      "success": true,
+      "response_time": 0.00471,
+      "response_data": {
+        "status": "healthy",
+        "message": "API v1 operational",
+        "timestamp": "2025-08-23T15:08:48.228257",
+        "version": "2.0.0",
+        "database": null
+      },
+      "error": null
+    },
+    {
+      "name": "Detailed Health",
+      "method": "GET",
+      "path": "/api/v1/health/detailed",
+      "status_code": 200,
+      "success": true,
+      "response_time": 0.341441,
+      "response_data": {
+        "status": "healthy",
+        "message": "All API v1 components operational",
+        "timestamp": "2025-08-23T15:08:48.571306",
+        "version": "2.0.0",
+        "database": {
+          "engine_initialized": true,
+          "recent_alerts": {
+            "critical": 0,
+            "warning": 0,
+            "total": 0
+          }
+        }
+      },
+      "error": null
+    },
+    {
+      "name": "Login",
+      "method": "POST",
+      "path": "/api/v1/auth/login",
+      "status_code": 200,
+      "success": true,
+      "response_time": 0.577127,
+      "response_data": {
+        "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlOThlMjgwMS01YTVmLTRiNDUtYWRiZi1kY2U2YWMxNGY2YjEiLCJleHAiOjE3NTU5NjM1MjksInR5cGUiOiJhY2Nlc3MiLCJpYXQiOjE3NTU5NjE3Mjl9.W0AM5c7-l6aDFespYgyb8Ww4V3gFkfDpJlQGCW5oVm8",
+        "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlOThlMjgwMS01YTVmLTRiNDUtYWRiZi1kY2U2YWMxNGY2YjEiLCJleHAiOjE3NTY1NjY1MjksInR5cGUiOiJyZWZyZXNoIiwiaWF0IjoxNzU1OTYxNzI5fQ.qEGjGI3HymYUG5xZxgB4gtFl_pm648RQC-VAG7KtRjM",
+        "token_type": "bearer"
+      },
+      "error": null
+    },
+    {
+      "name": "Get Current User",
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "status_code": 200,
+      "success": true,
+      "response_time": 1.614358,
+      "response_data": {
+        "email": "newtest@ruleiq.com",
+        "id": "e98e2801-5a5f-4b45-adbf-dce6ac14f6b1",
+        "is_active": true,
+        "created_at": "2025-08-23T03:10:26.317668"
+      },
+      "error": null
+    },
+    {
+      "name": "Refresh Token",
+      "method": "POST",
+      "path": "/api/v1/auth/refresh",
+      "status_code": 422,
+      "success": false,
+      "response_time": 0.006965,
+      "response_data": {
+        "detail": [
+          {
+            "type": "missing",
+            "loc": [
+              "body"
+            ],
+            "msg": "Field required",
+            "input": null
+          }
+        ]
+      },
+      "error": "{\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\"],\"msg\":\"Field required\",\"input\":null}]}"
+    },
+    {
+      "name": "Logout",
+      "method": "POST",
+      "path": "/api/v1/auth/logout",
+      "status_code": 200,
+      "success": true,
+      "response_time": 0.886233,
+      "response_data": {
+        "message": "Successfully logged out"
+      },
+      "error": null
+    },
+    {
+      "name": "Create Business Profile",
+      "method": "POST",
+      "path": "/api/v1/business-profiles/",
+      "status_code": 401,
+      "success": true,
+      "response_time": 1.197416,
+      "response_data": {
+        "detail": "Not authenticated"
+      },
+      "error": null
+    },
+    {
+      "name": "Get Current Business Profile",
+      "method": "GET",
+      "path": "/api/v1/business-profiles/",
+      "status_code": 401,
+      "success": true,
+      "response_time": 1.245122,
+      "response_data": {
+        "detail": "Not authenticated"
+      },
+      "error": null
+    },
+    {
+      "name": "Create Assessment",
+      "method": "POST",
+      "path": "/api/v1/assessments/",
+      "status_code": 401,
+      "success": true,
+      "response_time": 1.216638,
+      "response_data": {
+        "detail": "Not authenticated"
+      },
+      "error": null
+    },
+    {
+      "name": "Get Assessment Questions",
+      "method": "GET",
+      "path": "/api/v1/assessments/questions/initial",
+      "status_code": 401,
+      "success": true,
+      "response_time": 1.194663,
+      "response_data": {
+        "detail": "Not authenticated"
+      },
+      "error": null
+    },
+    {
+      "name": "Create Conversation",
+      "method": "POST",
+      "path": "/api/v1/chat/conversations",
+      "status_code": 401,
+      "success": true,
+      "response_time": 1.249041,
+      "response_data": {
+        "detail": "Token has been invalidated.",
+        "error": {
+          "type": "NotAuthenticatedException",
+          "message": "Token has been invalidated.",
+          "request_id": "d669e25c-f8b6-4dd2-941c-9cb9c02026bd"
+        }
+      },
+      "error": null
+    },
+    {
+      "name": "List Conversations",
+      "method": "GET",
+      "path": "/api/v1/chat/conversations",
+      "status_code": 401,
+      "success": true,
+      "response_time": 1.53642,
+      "response_data": {
+        "detail": "Token has been invalidated.",
+        "error": {
+          "type": "NotAuthenticatedException",
+          "message": "Token has been invalidated.",
+          "request_id": "78351353-5847-4a1e-8825-f56c2494aed5"
+        }
+      },
+      "error": null
+    },
+    {
+      "name": "IQ Agent Health",
+      "method": "GET",
+      "path": "/api/v1/iq-agent/health",
+      "status_code": 200,
+      "success": true,
+      "response_time": 0.008465,
+      "response_data": {
+        "success": true,
+        "data": {
+          "status": "unhealthy",
+          "neo4j_connected": false,
+          "graph_statistics": {},
+          "memory_statistics": {},
+          "last_query_time": null
+        },
+        "message": "IQ Agent status: unhealthy",
+        "error": null
+      },
+      "error": null
+    },
+    {
+      "name": "IQ Agent Status",
+      "method": "GET",
+      "path": "/api/v1/iq-agent/status",
+      "status_code": 200,
+      "success": true,
+      "response_time": 0.011313,
+      "response_data": {
+        "status": "degraded",
+        "timestamp": "2025-08-23T15:08:59.337679",
+        "agent": "IQ",
+        "error": "503: IQ Agent initialization failed: 'Neo4jGraphRAGService' object has no attribute 'connect'"
+      },
+      "error": null
+    },
+    {
+      "name": "IQ Agent Query",
+      "method": "POST",
+      "path": "/api/v1/iq-agent/query",
+      "status_code": 401,
+      "success": true,
+      "response_time": 1.260257,
+      "response_data": {
+        "detail": "Token has been invalidated.",
+        "error": {
+          "type": "NotAuthenticatedException",
+          "message": "Token has been invalidated.",
+          "request_id": "d6db9dd7-9756-4491-9162-00dbad96d207"
+        }
+      },
+      "error": null
+    },
+    {
+      "name": "Store Memory",
+      "method": "POST",
+      "path": "/api/v1/iq-agent/memory/store",
+      "status_code": 503,
+      "success": true,
+      "response_time": 1.231655,
+      "response_data": {
+        "detail": "IQ Agent initialization failed: 'Neo4jGraphRAGService' object has no attribute 'connect'"
+      },
+      "error": null
+    },
+    {
+      "name": "Capture Lead",
+      "method": "POST",
+      "path": "/api/v1/freemium/leads",
+      "status_code": 201,
+      "success": true,
+      "response_time": 2.383488,
+      "response_data": {
+        "lead_id": "4e64fbe7-2957-4d88-b16d-b738c397c863",
+        "email": "lead_1755961741.841024@example.com",
+        "lead_score": 20,
+        "lead_status": "cold",
+        "created_at": "2025-08-23T15:09:02.211805"
+      },
+      "error": null
+    },
+    {
+      "name": "Start Freemium Session",
+      "method": "POST",
+      "path": "/api/v1/freemium/sessions",
+      "status_code": 422,
+      "success": true,
+      "response_time": 0.004014,
+      "response_data": {
+        "detail": [
+          {
+            "type": "missing",
+            "loc": [
+              "body",
+              "lead_email"
+            ],
+            "msg": "Field required",
+            "input": {
+              "framework_id": "gdpr",
+              "industry": "technology",
+              "company_size": "small"
+            }
+          },
+          {
+            "type": "missing",
+            "loc": [
+              "body",
+              "business_type"
+            ],
+            "msg": "Field required",
+            "input": {
+              "framework_id": "gdpr",
+              "industry": "technology",
+              "company_size": "small"
+            }
+          },
+          {
+            "type": "string_pattern_mismatch",
+            "loc": [
+              "body",
+              "company_size"
+            ],
+            "msg": "String should match pattern '^(1-10|11-50|51-200|201-500|500+)$'",
+            "input": "small",
+            "ctx": {
+              "pattern": "^(1-10|11-50|51-200|201-500|500+)$"
+            }
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "name": "Freemium Health",
+      "method": "GET",
+      "path": "/api/v1/freemium/health",
+      "status_code": 200,
+      "success": true,
+      "response_time": 0.819195,
+      "response_data": {
+        "status": "healthy",
+        "timestamp": "2025-08-23T15:09:04.967575",
+        "database": "connected",
+        "leads_count": 56,
+        "sessions_count": 93,
+        "version": "1.0.0"
+      },
+      "error": null
+    },
+    {
+      "name": "Create Persistent Lead",
+      "method": "POST",
+      "path": "/api/v1/freemium/leads",
+      "status_code": 201,
+      "success": true,
+      "response_time": 1.848228,
+      "response_data": {
+        "lead_id": "f22f95ff-4559-4941-b5bb-6b55eb2d9f2d",
+        "email": "persist_test_1755961745.052007@example.com",
+        "lead_score": 20,
+        "lead_status": "cold",
+        "created_at": "2025-08-23T15:09:05.342905"
+      },
+      "error": null
+    }
+  ]
+}

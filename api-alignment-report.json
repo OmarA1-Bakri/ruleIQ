@@ -1,0 +1,1077 @@
+{
+  "timestamp": "2025-08-24T03:12:29+01:00",
+  "summary": {
+    "total_frontend_endpoints": 112,
+    "total_backend_endpoints": 151,
+    "trailing_slash_issues": 6,
+    "missing_backend": 83,
+    "path_param_mismatches": 12
+  },
+  "mismatches": {
+    "trailing_slash": [
+      {
+        "service": "policies.service",
+        "frontend": "/api/v1/policies",
+        "backend": "/api/v1/policies/",
+        "line": 31
+      },
+      {
+        "service": "assessments.service",
+        "frontend": "/api/v1/assessments",
+        "backend": "/api/v1/assessments/",
+        "line": 33
+      },
+      {
+        "service": "assessments.service",
+        "frontend": "/api/v1/assessments",
+        "backend": "/api/v1/assessments/",
+        "line": 33
+      },
+      {
+        "service": "evidence.service",
+        "frontend": "/api/v1/evidence",
+        "backend": "/api/v1/evidence/",
+        "line": 52
+      },
+      {
+        "service": "evidence.service",
+        "frontend": "/api/v1/evidence",
+        "backend": "/api/v1/evidence/",
+        "line": 52
+      },
+      {
+        "service": "frameworks.service",
+        "frontend": "/api/v1/frameworks",
+        "backend": "/api/v1/frameworks/",
+        "line": 18
+      }
+    ],
+    "missing_backend": [
+      {
+        "service": "integrations.service",
+        "endpoint": "/integrations",
+        "method": "GET",
+        "line": 22
+      },
+      {
+        "service": "integrations.service",
+        "endpoint": "/integrations/connected",
+        "method": "GET",
+        "line": 30
+      },
+      {
+        "service": "integrations.service",
+        "endpoint": "/integrations/connect",
+        "method": "POST",
+        "line": 30
+      },
+      {
+        "service": "integrations.service",
+        "endpoint": "/integrations/${integrationId}/test",
+        "method": "POST",
+        "line": 61
+      },
+      {
+        "service": "integrations.service",
+        "endpoint": "/integrations/${integrationId}/sync-history",
+        "method": "GET",
+        "line": 100
+      },
+      {
+        "service": "integrations.service",
+        "endpoint": "/integrations/${integrationId}/webhooks",
+        "method": "POST",
+        "line": 115
+      },
+      {
+        "service": "integrations.service",
+        "endpoint": "/integrations/${integrationId}/logs",
+        "method": "GET",
+        "line": 140
+      },
+      {
+        "service": "integrations.service",
+        "endpoint": "/integrations/oauth/callback",
+        "method": "POST",
+        "line": 177
+      },
+      {
+        "service": "policies.service",
+        "endpoint": "/policies/${id}/regenerate-section",
+        "method": "POST",
+        "line": 95
+      },
+      {
+        "service": "policies.service",
+        "endpoint": "/policies/templates",
+        "method": "GET",
+        "line": 126
+      },
+      {
+        "service": "policies.service",
+        "endpoint": "/policies/${id}/clone",
+        "method": "POST",
+        "line": 134
+      },
+      {
+        "service": "policies.service",
+        "endpoint": "/policies/${id}/versions",
+        "method": "GET",
+        "line": 151
+      },
+      {
+        "service": "implementation.service",
+        "endpoint": "/implementation/plans/${planId}",
+        "method": "GET",
+        "line": 85
+      },
+      {
+        "service": "implementation.service",
+        "endpoint": "/implementation/plans",
+        "method": "POST",
+        "line": 75
+      },
+      {
+        "service": "implementation.service",
+        "endpoint": "/implementation/recommendations",
+        "method": "GET",
+        "line": 168
+      },
+      {
+        "service": "implementation.service",
+        "endpoint": "/implementation/resources/${frameworkId}",
+        "method": "GET",
+        "line": 206
+      },
+      {
+        "service": "implementation.service",
+        "endpoint": "/implementation/plans/${planId}/analytics",
+        "method": "GET",
+        "line": 249
+      },
+      {
+        "service": "monitoring.service",
+        "endpoint": "/monitoring/database/status",
+        "method": "GET",
+        "line": 39
+      },
+      {
+        "service": "monitoring.service",
+        "endpoint": "/monitoring/alerts/${alertId}/resolve",
+        "method": "PATCH",
+        "line": 63
+      },
+      {
+        "service": "monitoring.service",
+        "endpoint": "/monitoring/metrics",
+        "method": "GET",
+        "line": 73
+      },
+      {
+        "service": "monitoring.service",
+        "endpoint": "/monitoring/api-performance",
+        "method": "GET",
+        "line": 100
+      },
+      {
+        "service": "monitoring.service",
+        "endpoint": "/monitoring/error-logs",
+        "method": "GET",
+        "line": 126
+      },
+      {
+        "service": "monitoring.service",
+        "endpoint": "/monitoring/health",
+        "method": "GET",
+        "line": 143
+      },
+      {
+        "service": "monitoring.service",
+        "endpoint": "/monitoring/audit-logs",
+        "method": "GET",
+        "line": 172
+      },
+      {
+        "service": "foundation-evidence.service",
+        "endpoint": "/foundation/evidence/aws/configure",
+        "method": "POST",
+        "line": 98
+      },
+      {
+        "service": "foundation-evidence.service",
+        "endpoint": "/foundation/evidence/okta/configure",
+        "method": "POST",
+        "line": 113
+      },
+      {
+        "service": "foundation-evidence.service",
+        "endpoint": "/foundation/evidence/google/configure",
+        "method": "POST",
+        "line": 128
+      },
+      {
+        "service": "foundation-evidence.service",
+        "endpoint": "/foundation/evidence/microsoft/configure",
+        "method": "POST",
+        "line": 143
+      },
+      {
+        "service": "foundation-evidence.service",
+        "endpoint": "/foundation/evidence/health",
+        "method": "GET",
+        "line": 207
+      },
+      {
+        "service": "reports.service",
+        "endpoint": "/reports/history",
+        "method": "GET",
+        "line": 37
+      },
+      {
+        "service": "reports.service",
+        "endpoint": "/reports/${id}",
+        "method": "GET",
+        "line": 47
+      },
+      {
+        "service": "reports.service",
+        "endpoint": "/reports/schedule",
+        "method": "POST",
+        "line": 82
+      },
+      {
+        "service": "reports.service",
+        "endpoint": "/reports/scheduled",
+        "method": "GET",
+        "line": 100
+      },
+      {
+        "service": "reports.service",
+        "endpoint": "/reports/preview",
+        "method": "POST",
+        "line": 154
+      },
+      {
+        "service": "reports.service",
+        "endpoint": "/reports/analytics",
+        "method": "GET",
+        "line": 172
+      },
+      {
+        "service": "business-profiles.service",
+        "endpoint": "/business-profiles",
+        "method": "GET",
+        "line": 28
+      },
+      {
+        "service": "business-profiles.service",
+        "endpoint": "/business-profiles/${id}",
+        "method": "GET",
+        "line": 41
+      },
+      {
+        "service": "business-profiles.service",
+        "endpoint": "/business-profiles",
+        "method": "POST",
+        "line": 28
+      },
+      {
+        "service": "business-profiles.service",
+        "endpoint": "/business-profiles/${id}",
+        "method": "PUT",
+        "line": 41
+      },
+      {
+        "service": "business-profiles.service",
+        "endpoint": "/business-profiles/${id}/compliance",
+        "method": "GET",
+        "line": 95
+      },
+      {
+        "service": "business-profiles.service",
+        "endpoint": "/business-profiles",
+        "method": "POST",
+        "line": 28
+      },
+      {
+        "service": "readiness.service",
+        "endpoint": "/readiness/${businessProfileId}",
+        "method": "GET",
+        "line": 48
+      },
+      {
+        "service": "readiness.service",
+        "endpoint": "/readiness/gaps/${businessProfileId}",
+        "method": "GET",
+        "line": 57
+      },
+      {
+        "service": "readiness.service",
+        "endpoint": "/readiness/roadmap",
+        "method": "POST",
+        "line": 100
+      },
+      {
+        "service": "readiness.service",
+        "endpoint": "/readiness/quick-assessment",
+        "method": "POST",
+        "line": 119
+      },
+      {
+        "service": "readiness.service",
+        "endpoint": "/readiness/trends/${businessProfileId}",
+        "method": "GET",
+        "line": 149
+      },
+      {
+        "service": "readiness.service",
+        "endpoint": "/readiness/benchmarks",
+        "method": "GET",
+        "line": 173
+      },
+      {
+        "service": "chat.service",
+        "endpoint": "/chat/compliance-gap-analysis",
+        "method": "POST",
+        "line": 123
+      },
+      {
+        "service": "chat.service",
+        "endpoint": "/chat/smart-compliance-guidance",
+        "method": "GET",
+        "line": 185
+      },
+      {
+        "service": "chat.service",
+        "endpoint": "/chat/cache/clear?pattern=${encodeURIComponent(pattern)}",
+        "method": "DELETE",
+        "line": 207
+      },
+      {
+        "service": "ai-self-review.service",
+        "endpoint": "/ai/self-review",
+        "method": "POST",
+        "line": 297
+      },
+      {
+        "service": "ai-self-review.service",
+        "endpoint": "/ai/quick-confidence-check",
+        "method": "POST",
+        "line": 352
+      },
+      {
+        "service": "assessments.service",
+        "endpoint": "/assessments/${id}",
+        "method": "PATCH",
+        "line": 43
+      },
+      {
+        "service": "assessments.service",
+        "endpoint": "/assessments/${id}/results",
+        "method": "GET",
+        "line": 106
+      },
+      {
+        "service": "payment.service",
+        "endpoint": "/payments/subscription/cancel",
+        "method": "POST",
+        "line": 100
+      },
+      {
+        "service": "payment.service",
+        "endpoint": "/payments/subscription/reactivate",
+        "method": "POST",
+        "line": 110
+      },
+      {
+        "service": "payment.service",
+        "endpoint": "/payments/payment-methods",
+        "method": "POST",
+        "line": 119
+      },
+      {
+        "service": "payment.service",
+        "endpoint": "/payments/invoices",
+        "method": "GET",
+        "line": 155
+      },
+      {
+        "service": "payment.service",
+        "endpoint": "/payments/invoices/upcoming",
+        "method": "GET",
+        "line": 174
+      },
+      {
+        "service": "payment.service",
+        "endpoint": "/payments/coupons/apply",
+        "method": "POST",
+        "line": 193
+      },
+      {
+        "service": "payment.service",
+        "endpoint": "/payments/subscription/limits",
+        "method": "GET",
+        "line": 218
+      },
+      {
+        "service": "evidence.service",
+        "endpoint": "/evidence/requirements/${frameworkId}",
+        "method": "GET",
+        "line": 201
+      },
+      {
+        "service": "evidence.service",
+        "endpoint": "/evidence/${id}/quality",
+        "method": "GET",
+        "line": 215
+      },
+      {
+        "service": "assessments-ai.service",
+        "endpoint": "/ai/assessments/followup",
+        "method": "POST",
+        "line": 339
+      },
+      {
+        "service": "assessments-ai.service",
+        "endpoint": "/ai/assessments/metrics",
+        "method": "GET",
+        "line": 564
+      },
+      {
+        "service": "dashboard.service",
+        "endpoint": "/dashboard",
+        "method": "GET",
+        "line": 82
+      },
+      {
+        "service": "dashboard.service",
+        "endpoint": "/dashboard/widgets",
+        "method": "GET",
+        "line": 99
+      },
+      {
+        "service": "dashboard.service",
+        "endpoint": "/dashboard/notifications",
+        "method": "GET",
+        "line": 144
+      },
+      {
+        "service": "dashboard.service",
+        "endpoint": "/dashboard/quick-actions",
+        "method": "GET",
+        "line": 176
+      },
+      {
+        "service": "dashboard.service",
+        "endpoint": "/dashboard/recommendations",
+        "method": "GET",
+        "line": 205
+      },
+      {
+        "service": "frameworks.service",
+        "endpoint": "/frameworks/${frameworkId}/controls",
+        "method": "GET",
+        "line": 55
+      },
+      {
+        "service": "frameworks.service",
+        "endpoint": "/frameworks/${frameworkId}/implementation-guide",
+        "method": "GET",
+        "line": 75
+      },
+      {
+        "service": "frameworks.service",
+        "endpoint": "/frameworks/${frameworkId}/compliance-status",
+        "method": "GET",
+        "line": 98
+      },
+      {
+        "service": "frameworks.service",
+        "endpoint": "/frameworks/compare",
+        "method": "POST",
+        "line": 123
+      },
+      {
+        "service": "frameworks.service",
+        "endpoint": "/frameworks/${frameworkId}/maturity-assessment",
+        "method": "GET",
+        "line": 148
+      },
+      {
+        "service": "compliance.service",
+        "endpoint": "/compliance/status/${frameworkId}",
+        "method": "GET",
+        "line": 69
+      },
+      {
+        "service": "compliance.service",
+        "endpoint": "/compliance/tasks",
+        "method": "POST",
+        "line": 88
+      },
+      {
+        "service": "compliance.service",
+        "endpoint": "/compliance/tasks/${taskId}",
+        "method": "PATCH",
+        "line": 109
+      },
+      {
+        "service": "compliance.service",
+        "endpoint": "/compliance/risks",
+        "method": "POST",
+        "line": 125
+      },
+      {
+        "service": "compliance.service",
+        "endpoint": "/compliance/risks/${riskId}",
+        "method": "PATCH",
+        "line": 146
+      },
+      {
+        "service": "compliance.service",
+        "endpoint": "/compliance/timeline",
+        "method": "GET",
+        "line": 174
+      },
+      {
+        "service": "compliance.service",
+        "endpoint": "/compliance/dashboard",
+        "method": "GET",
+        "line": 202
+      },
+      {
+        "service": "compliance.service",
+        "endpoint": "/compliance/certificate/generate",
+        "method": "POST",
+        "line": 220
+      }
+    ],
+    "missing_frontend": [],
+    "path_param_mismatch": [
+      {
+        "service": "policies.service",
+        "frontend": "/api/v1/policies/${id}",
+        "backend": "/api/v1/policies/{policy_id}",
+        "line": 39
+      },
+      {
+        "service": "policies.service",
+        "frontend": "/api/v1/policies/${id}/status",
+        "backend": "/api/v1/policies/{policy_id}/status",
+        "line": 66
+      },
+      {
+        "service": "policies.service",
+        "frontend": "/api/v1/policies/${id}/approve",
+        "backend": "/api/v1/policies/{policy_id}/approve",
+        "line": 80
+      },
+      {
+        "service": "chat.service",
+        "frontend": "/api/v1/chat/conversations/${id}",
+        "backend": "/api/v1/chat/conversations/{conversation_id}",
+        "line": 59
+      },
+      {
+        "service": "assessments.service",
+        "frontend": "/api/v1/assessments/${id}",
+        "backend": "/api/v1/assessments/{session_id}",
+        "line": 43
+      },
+      {
+        "service": "assessments.service",
+        "frontend": "/api/v1/assessments/${id}/complete",
+        "backend": "/api/v1/assessments/{session_id}/complete",
+        "line": 98
+      },
+      {
+        "service": "evidence.service",
+        "frontend": "/api/v1/evidence/${id}",
+        "backend": "/api/v1/evidence/{evidence_id}",
+        "line": 62
+      },
+      {
+        "service": "evidence.service",
+        "frontend": "/api/v1/evidence/${id}",
+        "backend": "/api/v1/evidence/{evidence_id}",
+        "line": 62
+      },
+      {
+        "service": "evidence.service",
+        "frontend": "/api/v1/evidence/${id}/automation",
+        "backend": "/api/v1/evidence/{evidence_id}/automation",
+        "line": 138
+      },
+      {
+        "service": "evidence.service",
+        "frontend": "/api/v1/evidence/dashboard/${frameworkId}",
+        "backend": "/api/v1/evidence/dashboard/{framework_id}",
+        "line": 154
+      },
+      {
+        "service": "evidence.service",
+        "frontend": "/api/v1/evidence/${id}/classify",
+        "backend": "/api/v1/evidence/{evidence_id}/classify",
+        "line": 173
+      },
+      {
+        "service": "frameworks.service",
+        "frontend": "/api/v1/frameworks/${id}",
+        "backend": "/api/v1/frameworks/{framework_id}",
+        "line": 26
+      }
+    ]
+  },
+  "fixes": {
+    "backend_fixes": [
+      {
+        "type": "remove_trailing_slash",
+        "endpoint": "/api/v1/policies/",
+        "fix_to": "/api/v1/policies"
+      },
+      {
+        "type": "remove_trailing_slash",
+        "endpoint": "/api/v1/assessments/",
+        "fix_to": "/api/v1/assessments"
+      },
+      {
+        "type": "remove_trailing_slash",
+        "endpoint": "/api/v1/assessments/",
+        "fix_to": "/api/v1/assessments"
+      },
+      {
+        "type": "remove_trailing_slash",
+        "endpoint": "/api/v1/evidence/",
+        "fix_to": "/api/v1/evidence"
+      },
+      {
+        "type": "remove_trailing_slash",
+        "endpoint": "/api/v1/evidence/",
+        "fix_to": "/api/v1/evidence"
+      },
+      {
+        "type": "remove_trailing_slash",
+        "endpoint": "/api/v1/frameworks/",
+        "fix_to": "/api/v1/frameworks"
+      }
+    ],
+    "frontend_fixes": [],
+    "new_endpoints_needed": [
+      {
+        "method": "GET",
+        "endpoint": "/integrations",
+        "service": "integrations.service"
+      },
+      {
+        "method": "GET",
+        "endpoint": "/integrations/connected",
+        "service": "integrations.service"
+      },
+      {
+        "method": "POST",
+        "endpoint": "/integrations/connect",
+        "service": "integrations.service"
+      },
+      {
+        "method": "POST",
+        "endpoint": "/integrations/${integrationId}/test",
+        "service": "integrations.service"
+      },
+      {
+        "method": "GET",
+        "endpoint": "/integrations/${integrationId}/sync-history",
+        "service": "integrations.service"
+      },
+      {
+        "method": "POST",
+        "endpoint": "/integrations/${integrationId}/webhooks",
+        "service": "integrations.service"
+      },
+      {
+        "method": "GET",
+        "endpoint": "/integrations/${integrationId}/logs",
+        "service": "integrations.service"
+      },
+      {
+        "method": "POST",
+        "endpoint": "/integrations/oauth/callback",
+        "service": "integrations.service"
+      },
+      {
+        "method": "POST",
+        "endpoint": "/policies/${id}/regenerate-section",
+        "service": "policies.service"
+      },
+      {
+        "method": "GET",
+        "endpoint": "/policies/templates",
+        "service": "policies.service"
+      },
+      {
+        "method": "POST",
+        "endpoint": "/policies/${id}/clone",
+        "service": "policies.service"
+      },
+      {
+        "method": "GET",
+        "endpoint": "/policies/${id}/versions",
+        "service": "policies.service"
+      },
+      {
+        "method": "GET",
+        "endpoint": "/implementation/plans/${planId}",
+        "service": "implementation.service"
+      },
+      {
+        "method": "POST",
+        "endpoint": "/implementation/plans",
+        "service": "implementation.service"
+      },
+      {
+        "method": "GET",
+        "endpoint": "/implementation/recommendations",
+        "service": "implementation.service"
+      },
+      {
+        "method": "GET",
+        "endpoint": "/implementation/resources/${frameworkId}",
+        "service": "implementation.service"
+      },
+      {
+        "method": "GET",
+        "endpoint": "/implementation/plans/${planId}/analytics",
+        "service": "implementation.service"
+      },
+      {
+        "method": "GET",
+        "endpoint": "/monitoring/database/status",
+        "service": "monitoring.service"
+      },
+      {
+        "method": "PATCH",
+        "endpoint": "/monitoring/alerts/${alertId}/resolve",
+        "service": "monitoring.service"
+      },
+      {
+        "method": "GET",
+        "endpoint": "/monitoring/metrics",
+        "service": "monitoring.service"
+      },
+      {
+        "method": "GET",
+        "endpoint": "/monitoring/api-performance",
+        "service": "monitoring.service"
+      },
+      {
+        "method": "GET",
+        "endpoint": "/monitoring/error-logs",
+        "service": "monitoring.service"
+      },
+      {
+        "method": "GET",
+        "endpoint": "/monitoring/health",
+        "service": "monitoring.service"
+      },
+      {
+        "method": "GET",
+        "endpoint": "/monitoring/audit-logs",
+        "service": "monitoring.service"
+      },
+      {
+        "method": "POST",
+        "endpoint": "/foundation/evidence/aws/configure",
+        "service": "foundation-evidence.service"
+      },
+      {
+        "method": "POST",
+        "endpoint": "/foundation/evidence/okta/configure",
+        "service": "foundation-evidence.service"
+      },
+      {
+        "method": "POST",
+        "endpoint": "/foundation/evidence/google/configure",
+        "service": "foundation-evidence.service"
+      },
+      {
+        "method": "POST",
+        "endpoint": "/foundation/evidence/microsoft/configure",
+        "service": "foundation-evidence.service"
+      },
+      {
+        "method": "GET",
+        "endpoint": "/foundation/evidence/health",
+        "service": "foundation-evidence.service"
+      },
+      {
+        "method": "GET",
+        "endpoint": "/reports/history",
+        "service": "reports.service"
+      },
+      {
+        "method": "GET",
+        "endpoint": "/reports/${id}",
+        "service": "reports.service"
+      },
+      {
+        "method": "POST",
+        "endpoint": "/reports/schedule",
+        "service": "reports.service"
+      },
+      {
+        "method": "GET",
+        "endpoint": "/reports/scheduled",
+        "service": "reports.service"
+      },
+      {
+        "method": "POST",
+        "endpoint": "/reports/preview",
+        "service": "reports.service"
+      },
+      {
+        "method": "GET",
+        "endpoint": "/reports/analytics",
+        "service": "reports.service"
+      },
+      {
+        "method": "GET",
+        "endpoint": "/business-profiles",
+        "service": "business-profiles.service"
+      },
+      {
+        "method": "GET",
+        "endpoint": "/business-profiles/${id}",
+        "service": "business-profiles.service"
+      },
+      {
+        "method": "POST",
+        "endpoint": "/business-profiles",
+        "service": "business-profiles.service"
+      },
+      {
+        "method": "PUT",
+        "endpoint": "/business-profiles/${id}",
+        "service": "business-profiles.service"
+      },
+      {
+        "method": "GET",
+        "endpoint": "/business-profiles/${id}/compliance",
+        "service": "business-profiles.service"
+      },
+      {
+        "method": "POST",
+        "endpoint": "/business-profiles",
+        "service": "business-profiles.service"
+      },
+      {
+        "method": "GET",
+        "endpoint": "/readiness/${businessProfileId}",
+        "service": "readiness.service"
+      },
+      {
+        "method": "GET",
+        "endpoint": "/readiness/gaps/${businessProfileId}",
+        "service": "readiness.service"
+      },
+      {
+        "method": "POST",
+        "endpoint": "/readiness/roadmap",
+        "service": "readiness.service"
+      },
+      {
+        "method": "POST",
+        "endpoint": "/readiness/quick-assessment",
+        "service": "readiness.service"
+      },
+      {
+        "method": "GET",
+        "endpoint": "/readiness/trends/${businessProfileId}",
+        "service": "readiness.service"
+      },
+      {
+        "method": "GET",
+        "endpoint": "/readiness/benchmarks",
+        "service": "readiness.service"
+      },
+      {
+        "method": "POST",
+        "endpoint": "/chat/compliance-gap-analysis",
+        "service": "chat.service"
+      },
+      {
+        "method": "GET",
+        "endpoint": "/chat/smart-compliance-guidance",
+        "service": "chat.service"
+      },
+      {
+        "method": "DELETE",
+        "endpoint": "/chat/cache/clear?pattern=${encodeURIComponent(pattern)}",
+        "service": "chat.service"
+      },
+      {
+        "method": "POST",
+        "endpoint": "/ai/self-review",
+        "service": "ai-self-review.service"
+      },
+      {
+        "method": "POST",
+        "endpoint": "/ai/quick-confidence-check",
+        "service": "ai-self-review.service"
+      },
+      {
+        "method": "PATCH",
+        "endpoint": "/assessments/${id}",
+        "service": "assessments.service"
+      },
+      {
+        "method": "GET",
+        "endpoint": "/assessments/${id}/results",
+        "service": "assessments.service"
+      },
+      {
+        "method": "POST",
+        "endpoint": "/payments/subscription/cancel",
+        "service": "payment.service"
+      },
+      {
+        "method": "POST",
+        "endpoint": "/payments/subscription/reactivate",
+        "service": "payment.service"
+      },
+      {
+        "method": "POST",
+        "endpoint": "/payments/payment-methods",
+        "service": "payment.service"
+      },
+      {
+        "method": "GET",
+        "endpoint": "/payments/invoices",
+        "service": "payment.service"
+      },
+      {
+        "method": "GET",
+        "endpoint": "/payments/invoices/upcoming",
+        "service": "payment.service"
+      },
+      {
+        "method": "POST",
+        "endpoint": "/payments/coupons/apply",
+        "service": "payment.service"
+      },
+      {
+        "method": "GET",
+        "endpoint": "/payments/subscription/limits",
+        "service": "payment.service"
+      },
+      {
+        "method": "GET",
+        "endpoint": "/evidence/requirements/${frameworkId}",
+        "service": "evidence.service"
+      },
+      {
+        "method": "GET",
+        "endpoint": "/evidence/${id}/quality",
+        "service": "evidence.service"
+      },
+      {
+        "method": "POST",
+        "endpoint": "/ai/assessments/followup",
+        "service": "assessments-ai.service"
+      },
+      {
+        "method": "GET",
+        "endpoint": "/ai/assessments/metrics",
+        "service": "assessments-ai.service"
+      },
+      {
+        "method": "GET",
+        "endpoint": "/dashboard",
+        "service": "dashboard.service"
+      },
+      {
+        "method": "GET",
+        "endpoint": "/dashboard/widgets",
+        "service": "dashboard.service"
+      },
+      {
+        "method": "GET",
+        "endpoint": "/dashboard/notifications",
+        "service": "dashboard.service"
+      },
+      {
+        "method": "GET",
+        "endpoint": "/dashboard/quick-actions",
+        "service": "dashboard.service"
+      },
+      {
+        "method": "GET",
+        "endpoint": "/dashboard/recommendations",
+        "service": "dashboard.service"
+      },
+      {
+        "method": "GET",
+        "endpoint": "/frameworks/${frameworkId}/controls",
+        "service": "frameworks.service"
+      },
+      {
+        "method": "GET",
+        "endpoint": "/frameworks/${frameworkId}/implementation-guide",
+        "service": "frameworks.service"
+      },
+      {
+        "method": "GET",
+        "endpoint": "/frameworks/${frameworkId}/compliance-status",
+        "service": "frameworks.service"
+      },
+      {
+        "method": "POST",
+        "endpoint": "/frameworks/compare",
+        "service": "frameworks.service"
+      },
+      {
+        "method": "GET",
+        "endpoint": "/frameworks/${frameworkId}/maturity-assessment",
+        "service": "frameworks.service"
+      },
+      {
+        "method": "GET",
+        "endpoint": "/compliance/status/${frameworkId}",
+        "service": "compliance.service"
+      },
+      {
+        "method": "POST",
+        "endpoint": "/compliance/tasks",
+        "service": "compliance.service"
+      },
+      {
+        "method": "PATCH",
+        "endpoint": "/compliance/tasks/${taskId}",
+        "service": "compliance.service"
+      },
+      {
+        "method": "POST",
+        "endpoint": "/compliance/risks",
+        "service": "compliance.service"
+      },
+      {
+        "method": "PATCH",
+        "endpoint": "/compliance/risks/${riskId}",
+        "service": "compliance.service"
+      },
+      {
+        "method": "GET",
+        "endpoint": "/compliance/timeline",
+        "service": "compliance.service"
+      },
+      {
+        "method": "GET",
+        "endpoint": "/compliance/dashboard",
+        "service": "compliance.service"
+      },
+      {
+        "method": "POST",
+        "endpoint": "/compliance/certificate/generate",
+        "service": "compliance.service"
+      }
+    ]
+  }
+}

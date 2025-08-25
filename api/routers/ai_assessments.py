@@ -1052,16 +1052,20 @@ async def get_ai_service_health(
         )
 
 
-@router.get("/circuit-breaker/status")
-async def get_circuit_breaker_status(
-    current_user: User = Depends(get_current_active_user), db: AsyncSession = Depends(get_async_db)
-) -> Dict[str, Any]:
-    """
-    Get detailed circuit breaker status for all AI models.
-    """
-    try:
-        assistant = ComplianceAssistant(db)
-        circuit_status = assistant.circuit_breaker.get_health_status()
+# REMOVED: Duplicate endpoint
+# REMOVED: Duplicate endpoint
+# # @router.get("/circuit-breaker/status")
+# # async def get_circuit_breaker_status(
+# #     current_user: User = Depends(get_current_active_user), db: AsyncSession = Depends(get_async_db)
+# # ) -> Dict[str, Any]:
+# #     """
+# #     Get detailed circuit breaker status for all AI models.
+# #     """
+# #     try:
+# #         assistant = ComplianceAssistant(db)
+# #         circuit_status = assistant.circuit_breaker.get_health_status()
+# #
+#
 
         return {
             "status": "success",
@@ -1077,18 +1081,22 @@ async def get_circuit_breaker_status(
         )
 
 
-@router.post("/circuit-breaker/reset")
-async def reset_circuit_breaker(
-    model_name: str = Query(..., description="Model name to reset circuit breaker for"),
-    current_user: User = Depends(get_current_active_user),
-    db: AsyncSession = Depends(get_async_db),
-) -> Dict[str, Any]:
-    """
-    Manually reset circuit breaker for a specific model.
-    """
-    try:
-        assistant = ComplianceAssistant(db)
-        assistant.circuit_breaker.reset_circuit(model_name)
+# REMOVED: Duplicate endpoint
+# REMOVED: Duplicate endpoint
+# # @router.post("/circuit-breaker/reset")
+# # async def reset_circuit_breaker(
+# #     model_name: str = Query(..., description="Model name to reset circuit breaker for"),
+# #     current_user: User = Depends(get_current_active_user),
+# #     db: AsyncSession = Depends(get_async_db),
+# # ) -> Dict[str, Any]:
+# #     """
+# #     Manually reset circuit breaker for a specific model.
+# #     """
+# #     try:
+# #         assistant = ComplianceAssistant(db)
+# #         assistant.circuit_breaker.reset_circuit(model_name)
+# #
+#
 
         return {
             "status": "success",
@@ -1235,12 +1243,16 @@ async def _get_mock_recommendations_response(gaps: List[Dict[str, Any]]) -> Dict
     }
 
 
-@router.get("/cache/metrics")
-async def get_ai_cache_metrics(
-    current_user: User = Depends(get_current_active_user), db: AsyncSession = Depends(get_async_db)
-) -> Dict[str, Any]:
-    """
-    Get AI caching performance metrics and status.
+# REMOVED: Duplicate endpoint
+# REMOVED: Duplicate endpoint
+# # @router.get("/cache/metrics")
+# # async def get_ai_cache_metrics(
+# #     current_user: User = Depends(get_current_active_user), db: AsyncSession = Depends(get_async_db)
+# # ) -> Dict[str, Any]:
+# #     """
+# #     Get AI caching performance metrics and status.
+# #
+#
 
     Returns:
         Cache performance metrics including hit rates, cost savings, and status

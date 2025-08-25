@@ -1,0 +1,2384 @@
+{
+  "info": {
+    "name": "RuleIQ API - Complete Collection (254 Endpoints)",
+    "description": "Complete API collection with all 254 endpoints organized by category",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {"key": "base_url", "value": "http://localhost:8000"},
+    {"key": "jwt_token", "value": ""},
+    {"key": "framework_id", "value": "gdpr"},
+    {"key": "session_token", "value": "test-session-123"},
+    {"key": "assessment_id", "value": ""},
+    {"key": "business_profile_id", "value": ""},
+    {"key": "plan_id", "value": ""},
+    {"key": "policy_id", "value": ""},
+    {"key": "evidence_id", "value": ""},
+    {"key": "user_id", "value": ""},
+    {"key": "conversation_id", "value": ""},
+    {"key": "report_id", "value": ""},
+    {"key": "collection_id", "value": ""},
+    {"key": "task_id", "value": ""},
+    {"key": "role_id", "value": ""}
+  ],
+  "item": [
+    {
+      "name": "🔐 Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response.access_token) {",
+                  "    pm.collectionVariables.set('jwt_token', response.access_token);",
+                  "    console.log('JWT token saved');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"newtest@ruleiq.com\", \"password\": \"NewTestPass123!\"}"
+            },
+            "url": "{{base_url}}/api/v1/auth/login"
+          }
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/auth/me"
+          }
+        },
+        {
+          "name": "Token",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/x-www-form-urlencoded"}],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {"key": "username", "value": "newtest@ruleiq.com"},
+                {"key": "password", "value": "NewTestPass123!"}
+              ]
+            },
+            "url": "{{base_url}}/api/v1/auth/token"
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"refresh_token\": \"\"}"
+            },
+            "url": "{{base_url}}/api/v1/auth/refresh"
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/auth/logout"
+          }
+        },
+        {
+          "name": "Assign Default Role",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/auth/assign-default-role"
+          }
+        }
+      ]
+    },
+    {
+      "name": "👤 Business Profiles",
+      "item": [
+        {
+          "name": "Create Profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"company_name\": \"Test Company\", \"industry\": \"technology\", \"company_size\": \"small\", \"jurisdiction\": \"UK\"}"
+            },
+            "url": "{{base_url}}/api/v1/business-profiles/"
+          }
+        },
+        {
+          "name": "Get Current Profile",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/business-profiles/"
+          }
+        },
+        {
+          "name": "Get Profile by ID",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/business-profiles/{{business_profile_id}}"
+          }
+        },
+        {
+          "name": "Update Current Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"company_name\": \"Updated Company\", \"industry\": \"finance\"}"
+            },
+            "url": "{{base_url}}/api/v1/business-profiles/"
+          }
+        },
+        {
+          "name": "Update Profile by ID",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"company_name\": \"Updated Company\"}"
+            },
+            "url": "{{base_url}}/api/v1/business-profiles/{{business_profile_id}}"
+          }
+        },
+        {
+          "name": "Delete Profile",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/business-profiles/{{business_profile_id}}"
+          }
+        },
+        {
+          "name": "Patch Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"company_size\": \"medium\"}"
+            },
+            "url": "{{base_url}}/api/v1/business-profiles/{{business_profile_id}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📋 Assessments",
+      "item": [
+        {
+          "name": "Quick Assessment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"framework\": \"gdpr\", \"answers\": {}}"
+            },
+            "url": "{{base_url}}/api/v1/assessments/quick"
+          }
+        },
+        {
+          "name": "List Assessments",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/assessments/"
+          }
+        },
+        {
+          "name": "Create Assessment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"framework_id\": \"gdpr\", \"name\": \"Test Assessment\"}"
+            },
+            "url": "{{base_url}}/api/v1/assessments/"
+          }
+        },
+        {
+          "name": "Get Current Assessment",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/assessments/current"
+          }
+        },
+        {
+          "name": "Get Questions by Stage",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/assessments/questions/initial"
+          }
+        },
+        {
+          "name": "Submit Response",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"question_id\": \"q1\", \"answer\": \"yes\"}"
+            },
+            "url": "{{base_url}}/api/v1/assessments/{{assessment_id}}/response"
+          }
+        },
+        {
+          "name": "Submit Multiple Responses",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"responses\": [{\"question_id\": \"q1\", \"answer\": \"yes\"}]}"
+            },
+            "url": "{{base_url}}/api/v1/assessments/{{assessment_id}}/responses"
+          }
+        },
+        {
+          "name": "Get Assessment by ID",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/assessments/{{assessment_id}}"
+          }
+        },
+        {
+          "name": "Get Recommendations",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/assessments/{{assessment_id}}/recommendations"
+          }
+        },
+        {
+          "name": "Complete Assessment",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/assessments/{{assessment_id}}/complete"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📚 Frameworks",
+      "item": [
+        {
+          "name": "List Frameworks",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/frameworks/"
+          }
+        },
+        {
+          "name": "Get Recommendations",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/frameworks/recommendations"
+          }
+        },
+        {
+          "name": "Get Recommendations by Profile",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/frameworks/recommendations/{{business_profile_id}}"
+          }
+        },
+        {
+          "name": "List All Public Frameworks",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/frameworks/all-public"
+          }
+        },
+        {
+          "name": "Get Framework by ID",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/frameworks/{{framework_id}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📄 Policies",
+      "item": [
+        {
+          "name": "Generate Policy",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"policy_type\": \"data_protection\", \"framework\": \"gdpr\"}"
+            },
+            "url": "{{base_url}}/api/v1/policies/generate"
+          }
+        },
+        {
+          "name": "List Policies",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/policies/"
+          }
+        },
+        {
+          "name": "Get Policy by ID",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/policies/{{policy_id}}"
+          }
+        },
+        {
+          "name": "Update Policy Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"status\": \"approved\"}"
+            },
+            "url": "{{base_url}}/api/v1/policies/{{policy_id}}/status"
+          }
+        },
+        {
+          "name": "Approve Policy",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/policies/{{policy_id}}/approve"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🎯 Implementation Plans",
+      "item": [
+        {
+          "name": "Create Plan",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\": \"GDPR Implementation\", \"framework\": \"gdpr\"}"
+            },
+            "url": "{{base_url}}/api/v1/implementation/plans"
+          }
+        },
+        {
+          "name": "List Plans",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/implementation/plans"
+          }
+        },
+        {
+          "name": "Get Plan by ID",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/implementation/plans/{{plan_id}}"
+          }
+        },
+        {
+          "name": "Update Task",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"status\": \"completed\"}"
+            },
+            "url": "{{base_url}}/api/v1/implementation/plans/{{plan_id}}/tasks/{{task_id}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📁 Evidence",
+      "item": [
+        {
+          "name": "Create Evidence",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\": \"Data Processing Agreement\", \"type\": \"document\", \"framework\": \"gdpr\"}"
+            },
+            "url": "{{base_url}}/api/v1/evidence/"
+          }
+        },
+        {
+          "name": "List Evidence",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/evidence/"
+          }
+        },
+        {
+          "name": "Get Statistics",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/evidence/stats"
+          }
+        },
+        {
+          "name": "Search Evidence",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/evidence/search?q=data"
+          }
+        },
+        {
+          "name": "Validate Evidence",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"evidence_id\": \"test-id\"}"
+            },
+            "url": "{{base_url}}/api/v1/evidence/validate"
+          }
+        },
+        {
+          "name": "Get Requirements",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/evidence/requirements"
+          }
+        },
+        {
+          "name": "Get Evidence by ID",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/evidence/{{evidence_id}}"
+          }
+        },
+        {
+          "name": "Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/evidence/dashboard/{{framework_id}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "✅ Compliance",
+      "item": [
+        {
+          "name": "Get Status",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/compliance/status"
+          }
+        },
+        {
+          "name": "Query Compliance",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"query\": \"What are my compliance gaps?\"}"
+            },
+            "url": "{{base_url}}/api/v1/compliance/query"
+          }
+        }
+      ]
+    },
+    {
+      "name": "👥 Users",
+      "item": [
+        {
+          "name": "Get Me",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/users/me"
+          }
+        },
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/users/profile"
+          }
+        },
+        {
+          "name": "Get Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/users/dashboard"
+          }
+        },
+        {
+          "name": "Deactivate Account",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/users/me/deactivate"
+          }
+        }
+      ]
+    },
+    {
+      "name": "💬 Chat",
+      "item": [
+        {
+          "name": "Create Conversation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"framework\": \"gdpr\"}"
+            },
+            "url": "{{base_url}}/api/v1/chat/conversations"
+          }
+        },
+        {
+          "name": "List Conversations",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/chat/conversations"
+          }
+        },
+        {
+          "name": "Get Conversation",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/chat/conversations/{{conversation_id}}"
+          }
+        },
+        {
+          "name": "Send Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"message\": \"What is GDPR?\"}"
+            },
+            "url": "{{base_url}}/api/v1/chat/conversations/{{conversation_id}}/messages"
+          }
+        },
+        {
+          "name": "Delete Conversation",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/chat/conversations/{{conversation_id}}"
+          }
+        },
+        {
+          "name": "Evidence Recommendations",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"framework\": \"gdpr\"}"
+            },
+            "url": "{{base_url}}/api/v1/chat/evidence-recommendations"
+          }
+        },
+        {
+          "name": "Compliance Analysis",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"framework\": \"gdpr\", \"query\": \"compliance status\"}"
+            },
+            "url": "{{base_url}}/api/v1/chat/compliance-analysis"
+          }
+        },
+        {
+          "name": "Smart Guidance",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/chat/smart-guidance/{{framework_id}}"
+          }
+        },
+        {
+          "name": "Cache Metrics",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/chat/cache/metrics"
+          }
+        },
+        {
+          "name": "Performance Metrics",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/chat/performance/metrics"
+          }
+        },
+        {
+          "name": "Analytics Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/chat/analytics/dashboard"
+          }
+        },
+        {
+          "name": "Quality Metrics",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/chat/quality/metrics"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📊 Reporting",
+      "item": [
+        {
+          "name": "List Templates",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/reporting/templates"
+          }
+        },
+        {
+          "name": "Generate Report",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"report_type\": \"compliance_summary\", \"framework\": \"gdpr\"}"
+            },
+            "url": "{{base_url}}/api/v1/reporting/generate"
+          }
+        },
+        {
+          "name": "Generate PDF",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"report_type\": \"compliance_summary\", \"framework\": \"gdpr\"}"
+            },
+            "url": "{{base_url}}/api/v1/reporting/generate/pdf"
+          }
+        },
+        {
+          "name": "Preview Report",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/reporting/preview/compliance_summary"
+          }
+        },
+        {
+          "name": "Create Schedule",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\": \"Weekly Report\", \"frequency\": \"weekly\"}"
+            },
+            "url": "{{base_url}}/api/v1/reporting/schedules"
+          }
+        },
+        {
+          "name": "List Schedules",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/reporting/schedules"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔗 Integrations",
+      "item": [
+        {
+          "name": "Configure Integration",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"service\": \"slack\", \"config\": {}}"
+            },
+            "url": "{{base_url}}/api/v1/integrations/configure"
+          }
+        },
+        {
+          "name": "Remove Integration",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/integrations/slack"
+          }
+        },
+        {
+          "name": "List Integrations",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/integrations/"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔒 RBAC Auth",
+      "item": [
+        {
+          "name": "Login with RBAC",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"newtest@ruleiq.com\", \"password\": \"NewTestPass123!\"}"
+            },
+            "url": "{{base_url}}/api/v1/rbac-auth/login"
+          }
+        },
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"newuser@example.com\", \"password\": \"SecurePass123!\", \"full_name\": \"New User\"}"
+            },
+            "url": "{{base_url}}/api/v1/rbac-auth/register"
+          }
+        },
+        {
+          "name": "Get Current User RBAC",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/rbac-auth/me"
+          }
+        },
+        {
+          "name": "Logout RBAC",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/rbac-auth/logout"
+          }
+        },
+        {
+          "name": "Assign Role",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"user_id\": \"{{user_id}}\", \"role_name\": \"admin\"}"
+            },
+            "url": "{{base_url}}/api/v1/rbac-auth/assign-role"
+          }
+        },
+        {
+          "name": "Revoke Role",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/rbac-auth/revoke-role/{{user_id}}/{{role_id}}"
+          }
+        },
+        {
+          "name": "List Roles",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/rbac-auth/roles"
+          }
+        },
+        {
+          "name": "Get Permissions",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/rbac-auth/permissions"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🛡️ Security",
+      "item": [
+        {
+          "name": "RBAC Status",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/security/role-based-access-control"
+          }
+        },
+        {
+          "name": "Business Logic Vulnerabilities",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"scan_type\": \"full\"}"
+            },
+            "url": "{{base_url}}/api/v1/security/business-logic-vulnerabilities"
+          }
+        },
+        {
+          "name": "Security Status",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/security/security-status"
+          }
+        },
+        {
+          "name": "Rate Limit Test",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/security/rate-limit-test"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🇬🇧 UK Compliance",
+      "item": [
+        {
+          "name": "Get Companies House Data",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/uk-compliance/companies-house/00445790"
+          }
+        },
+        {
+          "name": "Get UK Regulations",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/uk-compliance/regulations"
+          }
+        },
+        {
+          "name": "Check Compliance",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"company_number\": \"00445790\", \"check_type\": \"full\"}"
+            },
+            "url": "{{base_url}}/api/v1/uk-compliance/check"
+          }
+        },
+        {
+          "name": "Update Compliance Status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"status\": \"compliant\"}"
+            },
+            "url": "{{base_url}}/api/v1/uk-compliance/status/{{profile_id}}"
+          }
+        },
+        {
+          "name": "Delete Compliance Record",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/uk-compliance/record/{{record_id}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🚀 Readiness",
+      "item": [
+        {
+          "name": "Assessment",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/readiness/assessment"
+          }
+        },
+        {
+          "name": "History",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/readiness/history"
+          }
+        },
+        {
+          "name": "Generate Report",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"format\": \"pdf\"}"
+            },
+            "url": "{{base_url}}/api/v1/readiness/report"
+          }
+        },
+        {
+          "name": "Create Report",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\": \"Readiness Report\"}"
+            },
+            "url": "{{base_url}}/api/v1/readiness/reports"
+          }
+        },
+        {
+          "name": "Download Report",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/readiness/reports/{{report_id}}/download"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📋 Evidence Collection",
+      "item": [
+        {
+          "name": "Create Collection Plan",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"framework\": \"gdpr\", \"name\": \"GDPR Evidence Plan\"}"
+            },
+            "url": "{{base_url}}/api/v1/evidence-collection/plans"
+          }
+        },
+        {
+          "name": "Get Plan",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/evidence-collection/plans/{{plan_id}}"
+          }
+        },
+        {
+          "name": "List Plans",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/evidence-collection/plans"
+          }
+        },
+        {
+          "name": "Get Priority Tasks",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/evidence-collection/plans/{{plan_id}}/priority-tasks"
+          }
+        },
+        {
+          "name": "Update Task",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"status\": \"completed\"}"
+            },
+            "url": "{{base_url}}/api/v1/evidence-collection/plans/{{plan_id}}/tasks/{{task_id}}"
+          }
+        },
+        {
+          "name": "Automation Recommendations",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/evidence-collection/automation-recommendations/{{framework_id}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📈 Performance Monitoring",
+      "item": [
+        {
+          "name": "Overview",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/performance/overview"
+          }
+        },
+        {
+          "name": "Database Performance",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/performance/database"
+          }
+        },
+        {
+          "name": "Cache Performance",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/performance/cache"
+          }
+        },
+        {
+          "name": "API Performance",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/performance/api"
+          }
+        },
+        {
+          "name": "System Metrics",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/performance/system"
+          }
+        },
+        {
+          "name": "Recommendations",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/performance/recommendations"
+          }
+        },
+        {
+          "name": "Trends",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/performance/trends"
+          }
+        },
+        {
+          "name": "Configure Alerts",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"alert_type\": \"response_time\", \"threshold\": 500}"
+            },
+            "url": "{{base_url}}/api/v1/performance/alerts/configure"
+          }
+        },
+        {
+          "name": "Health",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/performance/health"
+          }
+        },
+        {
+          "name": "Start Monitoring",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/performance/monitoring/start"
+          }
+        },
+        {
+          "name": "Stop Monitoring",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/performance/monitoring/stop"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔧 Admin - User Management",
+      "item": [
+        {
+          "name": "List Users",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/admin/users/"
+          }
+        },
+        {
+          "name": "Get User",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/admin/users/{{user_id}}"
+          }
+        },
+        {
+          "name": "Create User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"admin@example.com\", \"password\": \"AdminPass123!\", \"role\": \"admin\"}"
+            },
+            "url": "{{base_url}}/api/v1/admin/users/"
+          }
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"updated@example.com\"}"
+            },
+            "url": "{{base_url}}/api/v1/admin/users/{{user_id}}"
+          }
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/admin/users/{{user_id}}"
+          }
+        },
+        {
+          "name": "List Roles",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/admin/users/roles/"
+          }
+        },
+        {
+          "name": "Create Role",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\": \"viewer\", \"permissions\": [\"read\"]}"
+            },
+            "url": "{{base_url}}/api/v1/admin/users/roles/"
+          }
+        },
+        {
+          "name": "Assign Role to User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"role_id\": \"{{role_id}}\"}"
+            },
+            "url": "{{base_url}}/api/v1/admin/users/{{user_id}}/roles"
+          }
+        },
+        {
+          "name": "Remove Role from User",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/admin/users/{{user_id}}/roles/{{role_id}}"
+          }
+        },
+        {
+          "name": "Get Statistics",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/admin/users/statistics"
+          }
+        },
+        {
+          "name": "Get Audit Logs",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/admin/users/audit-logs"
+          }
+        },
+        {
+          "name": "Initialize RBAC",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/admin/users/initialize-rbac"
+          }
+        },
+        {
+          "name": "Cleanup Expired Roles",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/admin/users/cleanup-expired-roles"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔑 Admin - Token Management",
+      "item": [
+        {
+          "name": "Get Statistics",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/admin/tokens/statistics"
+          }
+        },
+        {
+          "name": "Get Blacklist Entry",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/admin/tokens/entry/token_hash_here"
+          }
+        },
+        {
+          "name": "Add to Blacklist",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"token\": \"token_to_blacklist\"}"
+            },
+            "url": "{{base_url}}/api/v1/admin/tokens/blacklist"
+          }
+        },
+        {
+          "name": "Clear Blacklist",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/admin/tokens/blacklist"
+          }
+        },
+        {
+          "name": "Blacklist User Tokens",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"user_id\": \"{{user_id}}\"}"
+            },
+            "url": "{{base_url}}/api/v1/admin/tokens/blacklist/user"
+          }
+        },
+        {
+          "name": "Cleanup Expired",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/admin/tokens/cleanup"
+          }
+        },
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/admin/tokens/health"
+          }
+        },
+        {
+          "name": "Get Patterns",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/admin/tokens/patterns"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🗂️ Admin - Data Access",
+      "item": [
+        {
+          "name": "Grant Access",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"user_id\": \"{{user_id}}\", \"access_level\": \"read\"}"
+            },
+            "url": "{{base_url}}/api/v1/admin/data-access/grant"
+          }
+        },
+        {
+          "name": "Revoke Access",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"user_id\": \"{{user_id}}\"}"
+            },
+            "url": "{{base_url}}/api/v1/admin/data-access/revoke"
+          }
+        },
+        {
+          "name": "Get User Access",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/admin/data-access/user/{{user_id}}"
+          }
+        },
+        {
+          "name": "List Access Levels",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/admin/data-access/levels"
+          }
+        },
+        {
+          "name": "Audit Log",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/admin/data-access/audit"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🤖 AI Policy",
+      "item": [
+        {
+          "name": "Generate Policy",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"policy_type\": \"data_protection\", \"framework\": \"gdpr\"}"
+            },
+            "url": "{{base_url}}/api/v1/ai-policy/generate"
+          }
+        },
+        {
+          "name": "Update Policy",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"content\": \"Updated policy content\"}"
+            },
+            "url": "{{base_url}}/api/v1/ai-policy/{{policy_id}}"
+          }
+        },
+        {
+          "name": "Get Policy",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/ai-policy/{{policy_id}}"
+          }
+        },
+        {
+          "name": "List Policies",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/ai-policy/"
+          }
+        },
+        {
+          "name": "Analyze Policy",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"policy_id\": \"{{policy_id}}\"}"
+            },
+            "url": "{{base_url}}/api/v1/ai-policy/analyze"
+          }
+        },
+        {
+          "name": "Compare Policies",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"policy_ids\": [\"policy1\", \"policy2\"]}"
+            },
+            "url": "{{base_url}}/api/v1/ai-policy/compare"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🧠 RAG",
+      "item": [
+        {
+          "name": "Query RAG",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"query\": \"What are GDPR requirements?\"}"
+            },
+            "url": "{{base_url}}/api/v1/agentic-rag/query"
+          }
+        },
+        {
+          "name": "Index Document",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"document\": \"Document content to index\"}"
+            },
+            "url": "{{base_url}}/api/v1/agentic-rag/index"
+          }
+        },
+        {
+          "name": "Search Similar",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"query\": \"Find similar documents\"}"
+            },
+            "url": "{{base_url}}/api/v1/agentic-rag/search"
+          }
+        }
+      ]
+    },
+    {
+      "name": "💰 AI Cost Monitoring",
+      "item": [
+        {
+          "name": "Track Cost",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"model\": \"gpt-4\", \"tokens_used\": 1000}"
+            },
+            "url": "{{base_url}}/api/v1/ai-cost/track"
+          }
+        },
+        {
+          "name": "Get Cost Summary",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/ai-cost/summary"
+          }
+        },
+        {
+          "name": "Get Daily Cost",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/ai-cost/daily"
+          }
+        },
+        {
+          "name": "Set Budget Alert",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"budget_limit\": 100, \"period\": \"monthly\"}"
+            },
+            "url": "{{base_url}}/api/v1/ai-cost/budget-alert"
+          }
+        },
+        {
+          "name": "Get Budget Status",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/ai-cost/budget-status"
+          }
+        },
+        {
+          "name": "Cost by Model",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/ai-cost/by-model"
+          }
+        },
+        {
+          "name": "Cost by User",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/ai-cost/by-user"
+          }
+        },
+        {
+          "name": "Export Report",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"format\": \"csv\", \"period\": \"last_month\"}"
+            },
+            "url": "{{base_url}}/api/v1/ai-cost/export"
+          }
+        },
+        {
+          "name": "Get Trends",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/ai-cost/trends"
+          }
+        },
+        {
+          "name": "Alert History",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/ai-cost/alerts"
+          }
+        },
+        {
+          "name": "Cost Optimization Tips",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/ai-cost/optimization-tips"
+          }
+        },
+        {
+          "name": "Reset Budget",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/ai-cost/reset"
+          }
+        }
+      ]
+    },
+    {
+      "name": "⚡ AI Optimization",
+      "item": [
+        {
+          "name": "Model Selection",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"task_type\": \"text_generation\", \"requirements\": {}}"
+            },
+            "url": "{{base_url}}/api/v1/ai-optimization/model-selection"
+          }
+        },
+        {
+          "name": "Model Health",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/ai-optimization/model-health"
+          }
+        },
+        {
+          "name": "Performance Metrics",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/ai-optimization/performance-metrics"
+          }
+        },
+        {
+          "name": "Fallback Chain",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"primary_model\": \"gpt-4\", \"fallback_models\": [\"gpt-3.5-turbo\"]}"
+            },
+            "url": "{{base_url}}/api/v1/ai-optimization/model-fallback-chain"
+          }
+        },
+        {
+          "name": "Circuit Breaker Status",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/ai-optimization/circuit-breaker/status"
+          }
+        },
+        {
+          "name": "Reset Circuit Breaker",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/ai-optimization/circuit-breaker/reset"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔐 Google Auth",
+      "item": [
+        {
+          "name": "Login with Google",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/v1/google-auth/login"
+          }
+        },
+        {
+          "name": "Google Callback",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/v1/google-auth/callback?code=auth_code_here"
+          }
+        },
+        {
+          "name": "Mobile Login",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"id_token\": \"google_id_token_here\"}"
+            },
+            "url": "{{base_url}}/api/v1/google-auth/mobile-login"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔄 Foundation Evidence",
+      "item": [
+        {
+          "name": "Configure AWS",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"access_key\": \"AWS_KEY\", \"secret_key\": \"AWS_SECRET\", \"region\": \"us-east-1\"}"
+            },
+            "url": "{{base_url}}/api/v1/foundation-evidence/aws/configure"
+          }
+        },
+        {
+          "name": "Configure Okta",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"domain\": \"example.okta.com\", \"api_token\": \"OKTA_TOKEN\"}"
+            },
+            "url": "{{base_url}}/api/v1/foundation-evidence/okta/configure"
+          }
+        },
+        {
+          "name": "Configure Google",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"credentials\": {}}"
+            },
+            "url": "{{base_url}}/api/v1/foundation-evidence/google/configure"
+          }
+        },
+        {
+          "name": "Configure Microsoft",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"tenant_id\": \"TENANT\", \"client_id\": \"CLIENT\", \"client_secret\": \"SECRET\"}"
+            },
+            "url": "{{base_url}}/api/v1/foundation-evidence/microsoft/configure"
+          }
+        },
+        {
+          "name": "Collect Evidence",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"sources\": [\"aws\", \"okta\"], \"framework\": \"gdpr\"}"
+            },
+            "url": "{{base_url}}/api/v1/foundation-evidence/collect"
+          }
+        },
+        {
+          "name": "Collection Status",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/foundation-evidence/collect/{{collection_id}}/status"
+          }
+        },
+        {
+          "name": "Collection Results",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/foundation-evidence/collect/{{collection_id}}/results"
+          }
+        },
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/foundation-evidence/health"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🧪 Test Utils",
+      "item": [
+        {
+          "name": "Cleanup Test Users",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/test-utils/cleanup-test-users"
+          }
+        },
+        {
+          "name": "Create Test User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"test@example.com\", \"role\": \"user\"}"
+            },
+            "url": "{{base_url}}/api/v1/test-utils/create-test-user"
+          }
+        },
+        {
+          "name": "Clear Rate Limits",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/test-utils/clear-rate-limits"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔒 Secrets Vault",
+      "item": [
+        {
+          "name": "Vault Status",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/secrets-vault/status"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📊 System Health",
+      "item": [
+        {
+          "name": "Root Health",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/health"
+          }
+        },
+        {
+          "name": "API Health",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/v1/health"
+          }
+        },
+        {
+          "name": "Detailed Health",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/v1/health/detailed"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🤖 IQ Agent",
+      "item": [
+        {
+          "name": "Query Compliance",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"query\": \"What are my GDPR compliance gaps?\", \"context\": {}}"
+            },
+            "url": "{{base_url}}/api/v1/iq-agent/query"
+          }
+        },
+        {
+          "name": "Store Memory",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"content\": {\"type\": \"compliance_insight\", \"data\": \"Test insight\"}, \"importance_score\": 0.8}"
+            },
+            "url": "{{base_url}}/api/v1/iq-agent/memory/store"
+          }
+        },
+        {
+          "name": "Retrieve Memories",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"query\": \"GDPR compliance\", \"max_memories\": 5}"
+            },
+            "url": "{{base_url}}/api/v1/iq-agent/memory/retrieve"
+          }
+        },
+        {
+          "name": "Initialize Graph",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": "{{base_url}}/api/v1/iq-agent/graph/initialize"
+          }
+        },
+        {
+          "name": "IQ Health",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/iq-agent/health"
+          }
+        },
+        {
+          "name": "IQ Status",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/iq-agent/status"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🆓 Freemium",
+      "item": [
+        {
+          "name": "Capture Lead",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"lead@example.com\", \"utm_source\": \"google\", \"utm_medium\": \"cpc\"}"
+            },
+            "url": "{{base_url}}/api/v1/freemium/leads"
+          }
+        },
+        {
+          "name": "Start Session",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response.session_token) {",
+                  "    pm.collectionVariables.set('session_token', response.session_token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"framework_id\": \"gdpr\", \"industry\": \"technology\", \"company_size\": \"small\"}"
+            },
+            "url": "{{base_url}}/api/v1/freemium/sessions"
+          }
+        },
+        {
+          "name": "Get Progress",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/v1/freemium/sessions/{{session_token}}"
+          }
+        },
+        {
+          "name": "Submit Answer",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"question_id\": \"q1\", \"answer_value\": \"yes\"}"
+            },
+            "url": "{{base_url}}/api/v1/freemium/sessions/{{session_token}}/answers"
+          }
+        },
+        {
+          "name": "Get Results",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/v1/freemium/sessions/{{session_token}}/results"
+          }
+        },
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/v1/freemium/health"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🧠 AI Assessments",
+      "item": [
+        {
+          "name": "Get Help",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"question\": \"What is data protection?\", \"context\": {}}"
+            },
+            "url": "{{base_url}}/api/v1/ai-assessments/{{framework_id}}/help"
+          }
+        },
+        {
+          "name": "Get Help Stream",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"question\": \"What is data protection?\", \"context\": {}}"
+            },
+            "url": "{{base_url}}/api/v1/ai-assessments/{{framework_id}}/help/stream"
+          }
+        },
+        {
+          "name": "Follow-up",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"assessment_id\": \"test-123\", \"context\": {}}"
+            },
+            "url": "{{base_url}}/api/v1/ai-assessments/followup"
+          }
+        },
+        {
+          "name": "Analysis",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"assessment_id\": \"test-123\", \"data\": {}}"
+            },
+            "url": "{{base_url}}/api/v1/ai-assessments/analysis"
+          }
+        },
+        {
+          "name": "Health",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/ai-assessments/health"
+          }
+        },
+        {
+          "name": "Metrics",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/ai-assessments/metrics"
+          }
+        },
+        {
+          "name": "Recommendations",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"assessment_id\": \"test-123\"}"
+            },
+            "url": "{{base_url}}/api/v1/ai-assessments/recommendations"
+          }
+        },
+        {
+          "name": "Feedback",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{jwt_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"response_id\": \"test-123\", \"rating\": 5, \"feedback\": \"Helpful\"}"
+            },
+            "url": "{{base_url}}/api/v1/ai-assessments/feedback"
+          }
+        },
+        {
+          "name": "Rate Limit Stats",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/ai-assessments/rate-limit-stats"
+          }
+        },
+        {
+          "name": "Circuit Breaker Status",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/ai-assessments/circuit-breaker/status"
+          }
+        },
+        {
+          "name": "Reset Circuit Breaker",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/ai-assessments/circuit-breaker/reset"
+          }
+        },
+        {
+          "name": "Model Health",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/ai-assessments/models/gemini/health"
+          }
+        },
+        {
+          "name": "Cache Metrics",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": "{{base_url}}/api/v1/ai-assessments/cache/metrics"
+          }
+        }
+      ]
+    }
+  ]
+}

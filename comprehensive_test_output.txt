@@ -1,0 +1,680 @@
+newman
+
+RuleIQ API - Complete Collection (254 Endpoints)
+
+❏ 🔐 Authentication
+↳ Login
+  POST http://localhost:8000/api/v1/auth/login [200 OK, 1kB, 665ms]
+  ┌
+  │ 'JWT token saved'
+  └
+
+↳ Get Current User
+  GET http://localhost:8000/api/v1/auth/me [500 Internal Server Error, 174B, 395ms]
+
+↳ Token
+  POST http://localhost:8000/api/v1/auth/token [200 OK, 1kB, 586ms]
+
+↳ Refresh Token
+  POST http://localhost:8000/api/v1/auth/refresh [400 Bad Request, 570B, 5ms]
+
+↳ Logout
+  POST http://localhost:8000/api/v1/auth/logout [500 Internal Server Error, 174B, 369ms]
+
+↳ Assign Default Role
+  POST http://localhost:8000/api/v1/auth/assign-default-role [401 Unauthorized, 647B, 10ms]
+
+❏ 👤 Business Profiles
+↳ Create Profile
+  POST http://localhost:8000/api/v1/business-profiles/ [401 Unauthorized, 591B, 13ms]
+
+↳ Get Current Profile
+  GET http://localhost:8000/api/v1/business-profiles/ [401 Unauthorized, 592B, 8ms]
+
+↳ Get Profile by ID
+  GET http://localhost:8000/api/v1/business-profiles/ [401 Unauthorized, 591B, 10ms]
+
+↳ Update Current Profile
+  PUT http://localhost:8000/api/v1/business-profiles/ [401 Unauthorized, 592B, 9ms]
+
+↳ Update Profile by ID
+  PUT http://localhost:8000/api/v1/business-profiles/ [401 Unauthorized, 592B, 10ms]
+
+↳ Delete Profile
+  DELETE http://localhost:8000/api/v1/business-profiles/ [405 Method Not Allowed, 586B, 7ms]
+
+↳ Patch Profile
+  PATCH http://localhost:8000/api/v1/business-profiles/ [405 Method Not Allowed, 586B, 7ms]
+
+❏ 📋 Assessments
+↳ Quick Assessment
+  POST http://localhost:8000/api/v1/assessments/quick [401 Unauthorized, 592B, 8ms]
+
+↳ List Assessments
+  GET http://localhost:8000/api/v1/assessments/ [401 Unauthorized, 592B, 8ms]
+
+↳ Create Assessment
+  POST http://localhost:8000/api/v1/assessments/ [401 Unauthorized, 592B, 11ms]
+
+↳ Get Current Assessment
+  GET http://localhost:8000/api/v1/assessments/current [401 Unauthorized, 592B, 10ms]
+
+↳ Get Questions by Stage
+  GET http://localhost:8000/api/v1/assessments/questions/initial [401 Unauthorized, 592B, 8ms]
+
+↳ Submit Response
+  PUT http://localhost:8000/api/v1/assessments//response [404 Not Found, 555B, 8ms]
+
+↳ Submit Multiple Responses
+  POST http://localhost:8000/api/v1/assessments//responses [404 Not Found, 555B, 8ms]
+
+↳ Get Assessment by ID
+  GET http://localhost:8000/api/v1/assessments/ [401 Unauthorized, 592B, 9ms]
+
+↳ Get Recommendations
+  GET http://localhost:8000/api/v1/assessments//recommendations [404 Not Found, 554B, 8ms]
+
+↳ Complete Assessment
+  POST http://localhost:8000/api/v1/assessments//complete [404 Not Found, 555B, 10ms]
+
+❏ 📚 Frameworks
+↳ List Frameworks
+  GET http://localhost:8000/api/v1/frameworks/ [401 Unauthorized, 591B, 7ms]
+
+↳ Get Recommendations
+  GET http://localhost:8000/api/v1/frameworks/recommendations [401 Unauthorized, 592B, 6ms]
+
+↳ Get Recommendations by Profile
+  GET http://localhost:8000/api/v1/frameworks/recommendations/ [401 Unauthorized, 592B, 16ms]
+
+↳ List All Public Frameworks
+  GET http://localhost:8000/api/v1/frameworks/all-public [401 Unauthorized, 591B, 10ms]
+
+↳ Get Framework by ID
+  GET http://localhost:8000/api/v1/frameworks/gdpr [401 Unauthorized, 592B, 10ms]
+
+❏ 📄 Policies
+↳ Generate Policy
+  POST http://localhost:8000/api/v1/policies/generate [401 Unauthorized, 647B, 22ms]
+
+↳ List Policies
+  GET http://localhost:8000/api/v1/policies/ [401 Unauthorized, 647B, 11ms]
+
+↳ Get Policy by ID
+  GET http://localhost:8000/api/v1/policies/ [401 Unauthorized, 647B, 13ms]
+
+↳ Update Policy Status
+  PATCH http://localhost:8000/api/v1/policies//status [404 Not Found, 554B, 8ms]
+
+↳ Approve Policy
+  PUT http://localhost:8000/api/v1/policies//approve [404 Not Found, 554B, 26ms]
+
+❏ 🎯 Implementation Plans
+↳ Create Plan
+  POST http://localhost:8000/api/v1/implementation/plans [401 Unauthorized, 647B, 13ms]
+
+↳ List Plans
+  GET http://localhost:8000/api/v1/implementation/plans [401 Unauthorized, 647B, 10ms]
+
+↳ Get Plan by ID
+  GET http://localhost:8000/api/v1/implementation/plans/ [401 Unauthorized, 647B, 16ms]
+
+↳ Update Task
+  PATCH http://localhost:8000/api/v1/implementation/plans//tasks/ [404 Not Found, 555B, 12ms]
+
+❏ 📁 Evidence
+↳ Create Evidence
+  POST http://localhost:8000/api/v1/evidence/ [401 Unauthorized, 647B, 14ms]
+
+↳ List Evidence
+  GET http://localhost:8000/api/v1/evidence/ [401 Unauthorized, 647B, 11ms]
+
+↳ Get Statistics
+  GET http://localhost:8000/api/v1/evidence/stats [401 Unauthorized, 647B, 8ms]
+
+↳ Search Evidence
+  GET http://localhost:8000/api/v1/evidence/search?q=data [401 Unauthorized, 647B, 8ms]
+
+↳ Validate Evidence
+  POST http://localhost:8000/api/v1/evidence/validate [401 Unauthorized, 647B, 13ms]
+
+↳ Get Requirements
+  GET http://localhost:8000/api/v1/evidence/requirements [401 Unauthorized, 647B, 11ms]
+
+↳ Get Evidence by ID
+  GET http://localhost:8000/api/v1/evidence/ [401 Unauthorized, 647B, 8ms]
+
+↳ Dashboard
+  GET http://localhost:8000/api/v1/evidence/dashboard/gdpr [401 Unauthorized, 647B, 10ms]
+
+❏ ✅ Compliance
+↳ Get Status
+  GET http://localhost:8000/api/v1/compliance/status [401 Unauthorized, 647B, 8ms]
+
+↳ Query Compliance
+  POST http://localhost:8000/api/v1/compliance/query [401 Unauthorized, 647B, 6ms]
+
+❏ 👥 Users
+↳ Get Me
+  GET http://localhost:8000/api/v1/users/me [401 Unauthorized, 647B, 5ms]
+
+↳ Get Profile
+  GET http://localhost:8000/api/v1/users/profile [401 Unauthorized, 647B, 5ms]
+
+↳ Get Dashboard
+  GET http://localhost:8000/api/v1/users/dashboard [401 Unauthorized, 647B, 5ms]
+
+↳ Deactivate Account
+  PUT http://localhost:8000/api/v1/users/me/deactivate [401 Unauthorized, 647B, 5ms]
+
+❏ 💬 Chat
+↳ Create Conversation
+  POST http://localhost:8000/api/v1/chat/conversations [401 Unauthorized, 647B, 7ms]
+
+↳ List Conversations
+  GET http://localhost:8000/api/v1/chat/conversations [401 Unauthorized, 647B, 6ms]
+
+↳ Get Conversation
+  GET http://localhost:8000/api/v1/chat/conversations/ [401 Unauthorized, 647B, 11ms]
+
+↳ Send Message
+  POST http://localhost:8000/api/v1/chat/conversations//messages [404 Not Found, 555B, 4ms]
+
+↳ Delete Conversation
+  DELETE http://localhost:8000/api/v1/chat/conversations/ [405 Method Not Allowed, 586B, 9ms]
+
+↳ Evidence Recommendations
+  POST http://localhost:8000/api/v1/chat/evidence-recommendations [401 Unauthorized, 647B, 5ms]
+
+↳ Compliance Analysis
+  POST http://localhost:8000/api/v1/chat/compliance-analysis [401 Unauthorized, 647B, 7ms]
+
+↳ Smart Guidance
+  GET http://localhost:8000/api/v1/chat/smart-guidance/gdpr [401 Unauthorized, 647B, 6ms]
+
+↳ Cache Metrics
+  GET http://localhost:8000/api/v1/chat/cache/metrics [401 Unauthorized, 647B, 5ms]
+
+↳ Performance Metrics
+  GET http://localhost:8000/api/v1/chat/performance/metrics [401 Unauthorized, 647B, 6ms]
+
+↳ Analytics Dashboard
+  GET http://localhost:8000/api/v1/chat/analytics/dashboard [401 Unauthorized, 647B, 6ms]
+
+↳ Quality Metrics
+  GET http://localhost:8000/api/v1/chat/quality/metrics [401 Unauthorized, 647B, 5ms]
+
+❏ 📊 Reporting
+↳ List Templates
+  GET http://localhost:8000/api/v1/reporting/templates [404 Not Found, 555B, 6ms]
+
+↳ Generate Report
+  POST http://localhost:8000/api/v1/reporting/generate [404 Not Found, 555B, 6ms]
+
+↳ Generate PDF
+  POST http://localhost:8000/api/v1/reporting/generate/pdf [404 Not Found, 555B, 7ms]
+
+↳ Preview Report
+  GET http://localhost:8000/api/v1/reporting/preview/compliance_summary [404 Not Found, 554B, 5ms]
+
+↳ Create Schedule
+  POST http://localhost:8000/api/v1/reporting/schedules [404 Not Found, 555B, 7ms]
+
+↳ List Schedules
+  GET http://localhost:8000/api/v1/reporting/schedules [404 Not Found, 555B, 7ms]
+
+❏ 🔗 Integrations
+↳ Configure Integration
+  POST http://localhost:8000/api/v1/integrations/configure [405 Method Not Allowed, 588B, 7ms]
+
+↳ Remove Integration
+  DELETE http://localhost:8000/api/v1/integrations/slack [401 Unauthorized, 647B, 8ms]
+
+↳ List Integrations
+  GET http://localhost:8000/api/v1/integrations/ [404 Not Found, 554B, 8ms]
+
+❏ 🔒 RBAC Auth
+↳ Login with RBAC
+  POST http://localhost:8000/api/v1/rbac-auth/login [404 Not Found, 554B, 6ms]
+
+↳ Register User
+  POST http://localhost:8000/api/v1/rbac-auth/register [404 Not Found, 554B, 5ms]
+
+↳ Get Current User RBAC
+  GET http://localhost:8000/api/v1/rbac-auth/me [404 Not Found, 555B, 8ms]
+
+↳ Logout RBAC
+  POST http://localhost:8000/api/v1/rbac-auth/logout [404 Not Found, 555B, 8ms]
+
+↳ Assign Role
+  POST http://localhost:8000/api/v1/rbac-auth/assign-role [404 Not Found, 554B, 8ms]
+
+↳ Revoke Role
+  DELETE http://localhost:8000/api/v1/rbac-auth/revoke-role// [404 Not Found, 555B, 8ms]
+
+↳ List Roles
+  GET http://localhost:8000/api/v1/rbac-auth/roles [404 Not Found, 554B, 9ms]
+
+↳ Get Permissions
+  GET http://localhost:8000/api/v1/rbac-auth/permissions [404 Not Found, 555B, 7ms]
+
+❏ 🛡️ Security
+↳ RBAC Status
+  GET http://localhost:8000/api/v1/security/role-based-access-control [401 Unauthorized, 647B, 6ms]
+
+↳ Business Logic Vulnerabilities
+  POST http://localhost:8000/api/v1/security/business-logic-vulnerabilities [401 Unauthorized, 647B, 10ms]
+
+↳ Security Status
+  GET http://localhost:8000/api/v1/security/security-status [401 Unauthorized, 647B, 8ms]
+
+↳ Rate Limit Test
+  GET http://localhost:8000/api/v1/security/rate-limit-test [401 Unauthorized, 647B, 9ms]
+
+❏ 🇬🇧 UK Compliance
+↳ Get Companies House Data
+  GET http://localhost:8000/api/v1/uk-compliance/companies-house/00445790 [404 Not Found, 553B, 7ms]
+
+↳ Get UK Regulations
+  GET http://localhost:8000/api/v1/uk-compliance/regulations [404 Not Found, 555B, 7ms]
+
+↳ Check Compliance
+  POST http://localhost:8000/api/v1/uk-compliance/check [404 Not Found, 555B, 6ms]
+
+↳ Update Compliance Status
+  PUT http://localhost:8000/api/v1/uk-compliance/status/{{profile_id}} [404 Not Found, 555B, 7ms]
+
+↳ Delete Compliance Record
+  DELETE http://localhost:8000/api/v1/uk-compliance/record/{{record_id}} [404 Not Found, 555B, 8ms]
+
+❏ 🚀 Readiness
+↳ Assessment
+  GET http://localhost:8000/api/v1/readiness/assessment [401 Unauthorized, 647B, 9ms]
+
+↳ History
+  GET http://localhost:8000/api/v1/readiness/history [401 Unauthorized, 647B, 8ms]
+
+↳ Generate Report
+  POST http://localhost:8000/api/v1/readiness/report [401 Unauthorized, 647B, 10ms]
+
+↳ Create Report
+  POST http://localhost:8000/api/v1/readiness/reports [401 Unauthorized, 647B, 10ms]
+
+↳ Download Report
+  GET http://localhost:8000/api/v1/readiness/reports//download [404 Not Found, 555B, 8ms]
+
+❏ 📋 Evidence Collection
+↳ Create Collection Plan
+  POST http://localhost:8000/api/v1/evidence-collection/plans [404 Not Found, 555B, 7ms]
+
+↳ Get Plan
+  GET http://localhost:8000/api/v1/evidence-collection/plans/ [404 Not Found, 555B, 8ms]
+
+↳ List Plans
+  GET http://localhost:8000/api/v1/evidence-collection/plans [404 Not Found, 555B, 7ms]
+
+↳ Get Priority Tasks
+  GET http://localhost:8000/api/v1/evidence-collection/plans//priority-tasks [404 Not Found, 555B, 10ms]
+
+↳ Update Task
+  PATCH http://localhost:8000/api/v1/evidence-collection/plans//tasks/ [404 Not Found, 554B, 8ms]
+
+↳ Automation Recommendations
+  GET http://localhost:8000/api/v1/evidence-collection/automation-recommendations/gdpr [404 Not Found, 554B, 9ms]
+
+❏ 📈 Performance Monitoring
+↳ Overview
+  GET http://localhost:8000/api/v1/performance/overview [404 Not Found, 555B, 7ms]
+
+↳ Database Performance
+  GET http://localhost:8000/api/v1/performance/database [404 Not Found, 555B, 7ms]
+
+↳ Cache Performance
+  GET http://localhost:8000/api/v1/performance/cache [404 Not Found, 554B, 7ms]
+
+↳ API Performance
+  GET http://localhost:8000/api/v1/performance/api [404 Not Found, 555B, 9ms]
+
+↳ System Metrics
+  GET http://localhost:8000/api/v1/performance/system [404 Not Found, 555B, 8ms]
+
+↳ Recommendations
+  GET http://localhost:8000/api/v1/performance/recommendations [404 Not Found, 555B, 8ms]
+
+↳ Trends
+  GET http://localhost:8000/api/v1/performance/trends [404 Not Found, 554B, 9ms]
+
+↳ Configure Alerts
+  POST http://localhost:8000/api/v1/performance/alerts/configure [404 Not Found, 555B, 7ms]
+
+↳ Health
+  GET http://localhost:8000/api/v1/performance/health [404 Not Found, 555B, 8ms]
+
+↳ Start Monitoring
+  POST http://localhost:8000/api/v1/performance/monitoring/start [404 Not Found, 555B, 8ms]
+
+↳ Stop Monitoring
+  POST http://localhost:8000/api/v1/performance/monitoring/stop [404 Not Found, 555B, 7ms]
+
+❏ 🔧 Admin - User Management
+↳ List Users
+  GET http://localhost:8000/api/v1/admin/users/ [404 Not Found, 555B, 7ms]
+
+↳ Get User
+  GET http://localhost:8000/api/v1/admin/users/ [404 Not Found, 555B, 7ms]
+
+↳ Create User
+  POST http://localhost:8000/api/v1/admin/users/ [404 Not Found, 555B, 8ms]
+
+↳ Update User
+  PUT http://localhost:8000/api/v1/admin/users/ [404 Not Found, 555B, 9ms]
+
+↳ Delete User
+  DELETE http://localhost:8000/api/v1/admin/users/ [404 Not Found, 555B, 7ms]
+
+↳ List Roles
+  GET http://localhost:8000/api/v1/admin/users/roles/ [404 Not Found, 555B, 5ms]
+
+↳ Create Role
+  POST http://localhost:8000/api/v1/admin/users/roles/ [404 Not Found, 555B, 6ms]
+
+↳ Assign Role to User
+  POST http://localhost:8000/api/v1/admin/users//roles [404 Not Found, 555B, 5ms]
+
+↳ Remove Role from User
+  DELETE http://localhost:8000/api/v1/admin/users//roles/ [404 Not Found, 555B, 5ms]
+
+↳ Get Statistics
+  GET http://localhost:8000/api/v1/admin/users/statistics [404 Not Found, 554B, 5ms]
+
+↳ Get Audit Logs
+  GET http://localhost:8000/api/v1/admin/users/audit-logs [404 Not Found, 555B, 6ms]
+
+↳ Initialize RBAC
+  POST http://localhost:8000/api/v1/admin/users/initialize-rbac [404 Not Found, 555B, 6ms]
+
+↳ Cleanup Expired Roles
+  POST http://localhost:8000/api/v1/admin/users/cleanup-expired-roles [404 Not Found, 555B, 5ms]
+
+❏ 🔑 Admin - Token Management
+↳ Get Statistics
+  GET http://localhost:8000/api/v1/admin/tokens/statistics [404 Not Found, 555B, 6ms]
+
+↳ Get Blacklist Entry
+  GET http://localhost:8000/api/v1/admin/tokens/entry/token_hash_here [404 Not Found, 554B, 5ms]
+
+↳ Add to Blacklist
+  POST http://localhost:8000/api/v1/admin/tokens/blacklist [404 Not Found, 555B, 7ms]
+
+↳ Clear Blacklist
+  DELETE http://localhost:8000/api/v1/admin/tokens/blacklist [404 Not Found, 555B, 6ms]
+
+↳ Blacklist User Tokens
+  POST http://localhost:8000/api/v1/admin/tokens/blacklist/user [404 Not Found, 555B, 6ms]
+
+↳ Cleanup Expired
+  POST http://localhost:8000/api/v1/admin/tokens/cleanup [404 Not Found, 554B, 5ms]
+
+↳ Health Check
+  GET http://localhost:8000/api/v1/admin/tokens/health [404 Not Found, 555B, 5ms]
+
+↳ Get Patterns
+  GET http://localhost:8000/api/v1/admin/tokens/patterns [404 Not Found, 555B, 6ms]
+
+❏ 🗂️ Admin - Data Access
+↳ Grant Access
+  POST http://localhost:8000/api/v1/admin/data-access/grant [404 Not Found, 555B, 8ms]
+
+↳ Revoke Access
+  DELETE http://localhost:8000/api/v1/admin/data-access/revoke [404 Not Found, 554B, 7ms]
+
+↳ Get User Access
+  GET http://localhost:8000/api/v1/admin/data-access/user/ [404 Not Found, 555B, 7ms]
+
+↳ List Access Levels
+  GET http://localhost:8000/api/v1/admin/data-access/levels [404 Not Found, 554B, 6ms]
+
+↳ Audit Log
+  GET http://localhost:8000/api/v1/admin/data-access/audit [404 Not Found, 555B, 5ms]
+
+❏ 🤖 AI Policy
+↳ Generate Policy
+  POST http://localhost:8000/api/v1/ai-policy/generate [404 Not Found, 555B, 5ms]
+
+↳ Update Policy
+  PUT http://localhost:8000/api/v1/ai-policy/ [404 Not Found, 555B, 5ms]
+
+↳ Get Policy
+  GET http://localhost:8000/api/v1/ai-policy/ [404 Not Found, 555B, 5ms]
+
+↳ List Policies
+  GET http://localhost:8000/api/v1/ai-policy/ [404 Not Found, 555B, 7ms]
+
+↳ Analyze Policy
+  POST http://localhost:8000/api/v1/ai-policy/analyze [404 Not Found, 555B, 8ms]
+
+↳ Compare Policies
+  POST http://localhost:8000/api/v1/ai-policy/compare [404 Not Found, 555B, 7ms]
+
+❏ 🧠 RAG
+↳ Query RAG
+  POST http://localhost:8000/api/v1/agentic-rag/query [404 Not Found, 555B, 7ms]
+
+↳ Index Document
+  POST http://localhost:8000/api/v1/agentic-rag/index [404 Not Found, 555B, 7ms]
+
+↳ Search Similar
+  POST http://localhost:8000/api/v1/agentic-rag/search [404 Not Found, 555B, 7ms]
+
+❏ 💰 AI Cost Monitoring
+↳ Track Cost
+  POST http://localhost:8000/api/v1/ai-cost/track [404 Not Found, 555B, 7ms]
+
+↳ Get Cost Summary
+  GET http://localhost:8000/api/v1/ai-cost/summary [404 Not Found, 555B, 8ms]
+
+↳ Get Daily Cost
+  GET http://localhost:8000/api/v1/ai-cost/daily [404 Not Found, 555B, 9ms]
+
+↳ Set Budget Alert
+  POST http://localhost:8000/api/v1/ai-cost/budget-alert [404 Not Found, 555B, 8ms]
+
+↳ Get Budget Status
+  GET http://localhost:8000/api/v1/ai-cost/budget-status [404 Not Found, 555B, 7ms]
+
+↳ Cost by Model
+  GET http://localhost:8000/api/v1/ai-cost/by-model [404 Not Found, 554B, 6ms]
+
+↳ Cost by User
+  GET http://localhost:8000/api/v1/ai-cost/by-user [404 Not Found, 555B, 7ms]
+
+↳ Export Report
+  POST http://localhost:8000/api/v1/ai-cost/export [404 Not Found, 553B, 7ms]
+
+↳ Get Trends
+  GET http://localhost:8000/api/v1/ai-cost/trends [404 Not Found, 555B, 7ms]
+
+↳ Alert History
+  GET http://localhost:8000/api/v1/ai-cost/alerts [404 Not Found, 554B, 7ms]
+
+↳ Cost Optimization Tips
+  GET http://localhost:8000/api/v1/ai-cost/optimization-tips [404 Not Found, 555B, 6ms]
+
+↳ Reset Budget
+  DELETE http://localhost:8000/api/v1/ai-cost/reset [404 Not Found, 555B, 8ms]
+
+❏ ⚡ AI Optimization
+↳ Model Selection
+  POST http://localhost:8000/api/v1/ai-optimization/model-selection [404 Not Found, 554B, 7ms]
+
+↳ Model Health
+  GET http://localhost:8000/api/v1/ai-optimization/model-health [404 Not Found, 555B, 6ms]
+
+↳ Performance Metrics
+  GET http://localhost:8000/api/v1/ai-optimization/performance-metrics [404 Not Found, 555B, 7ms]
+
+↳ Fallback Chain
+  POST http://localhost:8000/api/v1/ai-optimization/model-fallback-chain [404 Not Found, 555B, 10ms]
+
+↳ Circuit Breaker Status
+  GET http://localhost:8000/api/v1/ai-optimization/circuit-breaker/status [404 Not Found, 555B, 9ms]
+
+↳ Reset Circuit Breaker
+  POST http://localhost:8000/api/v1/ai-optimization/circuit-breaker/reset [404 Not Found, 555B, 12ms]
+
+❏ 🔐 Google Auth
+↳ Login with Google
+  GET http://localhost:8000/api/v1/google-auth/login [404 Not Found, 555B, 8ms]
+
+↳ Google Callback
+  GET http://localhost:8000/api/v1/google-auth/callback?code=auth_code_here [404 Not Found, 555B, 6ms]
+
+↳ Mobile Login
+  POST http://localhost:8000/api/v1/google-auth/mobile-login [404 Not Found, 555B, 11ms]
+
+❏ 🔄 Foundation Evidence
+↳ Configure AWS
+  POST http://localhost:8000/api/v1/foundation-evidence/aws/configure [404 Not Found, 555B, 13ms]
+
+↳ Configure Okta
+  POST http://localhost:8000/api/v1/foundation-evidence/okta/configure [404 Not Found, 554B, 19ms]
+
+↳ Configure Google
+  POST http://localhost:8000/api/v1/foundation-evidence/google/configure [404 Not Found, 555B, 8ms]
+
+↳ Configure Microsoft
+  POST http://localhost:8000/api/v1/foundation-evidence/microsoft/configure [404 Not Found, 555B, 6ms]
+
+↳ Collect Evidence
+  POST http://localhost:8000/api/v1/foundation-evidence/collect [404 Not Found, 555B, 8ms]
+
+↳ Collection Status
+  GET http://localhost:8000/api/v1/foundation-evidence/collect//status [404 Not Found, 555B, 7ms]
+
+↳ Collection Results
+  GET http://localhost:8000/api/v1/foundation-evidence/collect//results [404 Not Found, 555B, 7ms]
+
+↳ Health Check
+  GET http://localhost:8000/api/v1/foundation-evidence/health [404 Not Found, 555B, 7ms]
+
+❏ 🧪 Test Utils
+↳ Cleanup Test Users
+  DELETE http://localhost:8000/api/v1/test-utils/cleanup-test-users [404 Not Found, 555B, 6ms]
+
+↳ Create Test User
+  POST http://localhost:8000/api/v1/test-utils/create-test-user [404 Not Found, 555B, 9ms]
+
+↳ Clear Rate Limits
+  POST http://localhost:8000/api/v1/test-utils/clear-rate-limits [404 Not Found, 555B, 8ms]
+
+❏ 🔒 Secrets Vault
+↳ Vault Status
+  GET http://localhost:8000/api/v1/secrets-vault/status [401 Unauthorized, 647B, 10ms]
+
+❏ 📊 System Health
+↳ Root Health
+  GET http://localhost:8000/health [200 OK, 772B, 366ms]
+
+↳ API Health
+  GET http://localhost:8000/api/v1/health [200 OK, 653B, 4ms]
+
+↳ Detailed Health
+  GET http://localhost:8000/api/v1/health/detailed [200 OK, 741B, 334ms]
+
+❏ 🤖 IQ Agent
+↳ Query Compliance
+  POST http://localhost:8000/api/v1/iq-agent/query [401 Unauthorized, 647B, 8ms]
+
+↳ Store Memory
+  POST http://localhost:8000/api/v1/iq-agent/memory/store [503 Service Unavailable, 644B, 10ms]
+
+↳ Retrieve Memories
+  POST http://localhost:8000/api/v1/iq-agent/memory/retrieve [503 Service Unavailable, 643B, 7ms]
+
+↳ Initialize Graph
+  POST http://localhost:8000/api/v1/iq-agent/graph/initialize [401 Unauthorized, 647B, 8ms]
+
+↳ IQ Health
+  GET http://localhost:8000/api/v1/iq-agent/health [200 OK, 717B, 8ms]
+
+↳ IQ Status
+  GET http://localhost:8000/api/v1/iq-agent/status [200 OK, 706B, 7ms]
+
+❏ 🆓 Freemium
+↳ Capture Lead
+  POST http://localhost:8000/api/v1/freemium/leads [201 Created, 688B, 2.2s]
+
+↳ Start Session
+  POST http://localhost:8000/api/v1/freemium/sessions [422 Unprocessable Entity, 1.07kB, 11ms]
+
+↳ Get Progress
+  GET http://localhost:8000/api/v1/freemium/sessions/test-session-123 [404 Not Found, 571B, 590ms]
+
+↳ Submit Answer
+  POST http://localhost:8000/api/v1/freemium/sessions/test-session-123/answers [422 Unprocessable Entity, 672B, 10ms]
+
+↳ Get Results
+  GET http://localhost:8000/api/v1/freemium/sessions/test-session-123/results [404 Not Found, 572B, 497ms]
+
+↳ Health Check
+  GET http://localhost:8000/api/v1/freemium/health [200 OK, 663B, 825ms]
+
+❏ 🧠 AI Assessments
+↳ Get Help
+  POST http://localhost:8000/api/v1/ai-assessments/gdpr/help [401 Unauthorized, 647B, 10ms]
+
+↳ Get Help Stream
+  POST http://localhost:8000/api/v1/ai-assessments/gdpr/help/stream [401 Unauthorized, 647B, 11ms]
+
+↳ Follow-up
+  POST http://localhost:8000/api/v1/ai-assessments/followup [401 Unauthorized, 647B, 7ms]
+
+↳ Analysis
+  POST http://localhost:8000/api/v1/ai-assessments/analysis [401 Unauthorized, 647B, 9ms]
+
+↳ Health
+  GET http://localhost:8000/api/v1/ai-assessments/health [401 Unauthorized, 647B, 9ms]
+
+↳ Metrics
+  GET http://localhost:8000/api/v1/ai-assessments/metrics [401 Unauthorized, 647B, 9ms]
+
+↳ Recommendations
+  POST http://localhost:8000/api/v1/ai-assessments/recommendations [401 Unauthorized, 647B, 8ms]
+
+↳ Feedback
+  POST http://localhost:8000/api/v1/ai-assessments/feedback [401 Unauthorized, 647B, 8ms]
+
+↳ Rate Limit Stats
+  GET http://localhost:8000/api/v1/ai-assessments/rate-limit-stats [401 Unauthorized, 647B, 8ms]
+
+↳ Circuit Breaker Status
+  GET http://localhost:8000/api/v1/ai-assessments/circuit-breaker/status [401 Unauthorized, 647B, 7ms]
+
+↳ Reset Circuit Breaker
+  POST http://localhost:8000/api/v1/ai-assessments/circuit-breaker/reset [401 Unauthorized, 647B, 8ms]
+
+↳ Model Health
+  GET http://localhost:8000/api/v1/ai-assessments/models/gemini/health [401 Unauthorized, 647B, 7ms]
+
+↳ Cache Metrics
+  GET http://localhost:8000/api/v1/ai-assessments/cache/metrics [401 Unauthorized, 647B, 10ms]
+
+┌─────────────────────────┬───────────────────┬──────────────────┐
+│                         │          executed │           failed │
+├─────────────────────────┼───────────────────┼──────────────────┤
+│              iterations │                 1 │                0 │
+├─────────────────────────┼───────────────────┼──────────────────┤
+│                requests │               207 │                0 │
+├─────────────────────────┼───────────────────┼──────────────────┤
+│            test-scripts │                 2 │                0 │
+├─────────────────────────┼───────────────────┼──────────────────┤
+│      prerequest-scripts │                 0 │                0 │
+├─────────────────────────┼───────────────────┼──────────────────┤
+│              assertions │                 0 │                0 │
+├─────────────────────────┴───────────────────┴──────────────────┤
+│ total run duration: 10.7s                                      │
+├────────────────────────────────────────────────────────────────┤
+│ total data received: 17.58kB (approx)                          │
+├────────────────────────────────────────────────────────────────┤
+│ average response time: 40ms [min: 4ms, max: 2.2s, s.d.: 189ms] │
+└────────────────────────────────────────────────────────────────┘

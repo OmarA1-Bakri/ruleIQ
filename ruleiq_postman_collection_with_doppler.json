@@ -248,12 +248,12 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"assessment_responses\": [\n    {\n      \"question_id\": \"gdpr_data_collection\",\n      \"answer\": \"yes\",\n      \"evidence\": \"We collect email addresses and company details for service delivery\"\n    }\n  ],\n  \"framework\": \"gdpr\",\n  \"session_id\": \"{{$guid}}\"\n}"
+              "raw": "{\n  \"assessment_results\": [\n    {\n      \"question_id\": \"gdpr_data_collection\",\n      \"answer\": \"yes\",\n      \"evidence\": \"We collect email addresses and company details for service delivery\"\n    }\n  ],\n  \"framework_id\": \"gdpr\",\n  \"session_id\": \"{{$guid}}\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/api/v1/ai-assessments/analyze-stream",
+              "raw": "{{base_url}}/api/v1/ai-assessments/analysis/stream",
               "host": ["{{base_url}}"],
-              "path": ["api", "v1", "ai-assessments", "analyze-stream"]
+              "path": ["api", "v1", "ai-assessments", "analysis", "stream"]
             },
             "description": "🔐 **AI Analysis with Doppler Integration**\n\nStreams AI-powered compliance analysis using:\n- Google API key from Doppler secrets\n- Automatic fallback handling\n- Circuit breaker protection\n\nThis endpoint uses the Google Gemini API key stored securely in Doppler."
           }

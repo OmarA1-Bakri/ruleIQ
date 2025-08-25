@@ -1,0 +1,1222 @@
+{
+  "timestamp": "2025-08-24T02:02:25.074Z",
+  "summary": {
+    "totalFrontendCalls": 105,
+    "totalBackendEndpoints": 244,
+    "perfectMatches": 12,
+    "trailingSlashIssues": 5,
+    "pathParameterIssues": 1,
+    "completelyMissing": 87,
+    "unusedBackend": 226,
+    "healthScore": 11.4
+  },
+  "details": {
+    "perfectMatch": [
+      {
+        "frontend": "/assessments/quick",
+        "backend": "/api/v1/assessments/quick",
+        "locations": [
+          {
+            "file": "assessments.service.ts",
+            "method": "POST",
+            "line": 114
+          }
+        ]
+      },
+      {
+        "frontend": "/chat/conversations",
+        "backend": "/api/v1/chat/conversations",
+        "locations": [
+          {
+            "file": "chat.service.ts",
+            "method": "POST",
+            "line": 70
+          }
+        ]
+      },
+      {
+        "frontend": "/chat/evidence-recommendations",
+        "backend": "/api/v1/chat/evidence-recommendations",
+        "locations": [
+          {
+            "file": "chat.service.ts",
+            "method": "POST",
+            "line": 109
+          }
+        ]
+      },
+      {
+        "frontend": "/chat/cache/metrics",
+        "backend": "/api/v1/chat/cache/metrics",
+        "locations": [
+          {
+            "file": "chat.service.ts",
+            "method": "GET",
+            "line": 195
+          }
+        ]
+      },
+      {
+        "frontend": "/chat/performance/metrics",
+        "backend": "/api/v1/chat/performance/metrics",
+        "locations": [
+          {
+            "file": "chat.service.ts",
+            "method": "GET",
+            "line": 215
+          }
+        ]
+      },
+      {
+        "frontend": "/compliance/status",
+        "backend": "/api/v1/compliance/status",
+        "locations": [
+          {
+            "file": "compliance.service.ts",
+            "method": "GET",
+            "line": 56
+          }
+        ]
+      },
+      {
+        "frontend": "/evidence/bulk-update",
+        "backend": "/api/v1/evidence/bulk-update",
+        "locations": [
+          {
+            "file": "evidence.service.ts",
+            "method": "POST",
+            "line": 97
+          }
+        ]
+      },
+      {
+        "frontend": "/implementation/plans",
+        "backend": "/api/v1/implementation/plans",
+        "locations": [
+          {
+            "file": "implementation.service.ts",
+            "method": "POST",
+            "line": 95
+          }
+        ]
+      },
+      {
+        "frontend": "/integrations/connect",
+        "backend": "/api/v1/integrations/connect",
+        "locations": [
+          {
+            "file": "integrations.service.ts",
+            "method": "POST",
+            "line": 42
+          }
+        ]
+      },
+      {
+        "frontend": "/policies/generate",
+        "backend": "/api/v1/policies/generate",
+        "locations": [
+          {
+            "file": "policies.service.ts",
+            "method": "POST",
+            "line": 47
+          }
+        ]
+      },
+      {
+        "frontend": "/reports/generate",
+        "backend": "/api/v1/reports/generate",
+        "locations": [
+          {
+            "file": "reports.service.ts",
+            "method": "POST",
+            "line": 55
+          }
+        ]
+      },
+      {
+        "frontend": "/reports/templates",
+        "backend": "/api/v1/reports/templates",
+        "locations": [
+          {
+            "file": "reports.service.ts",
+            "method": "GET",
+            "line": 135
+          }
+        ]
+      }
+    ],
+    "trailingSlashIssue": [
+      {
+        "frontend": "/assessments",
+        "actualCall": "/api/v1/assessments",
+        "backend": "/api/v1/assessments/",
+        "locations": [
+          {
+            "file": "assessments.service.ts",
+            "method": "GET",
+            "line": 33
+          },
+          {
+            "file": "assessments.service.ts",
+            "method": "POST",
+            "line": 51
+          }
+        ]
+      },
+      {
+        "frontend": "/business-profiles",
+        "actualCall": "/api/v1/business-profiles",
+        "backend": "/api/v1/business-profiles/",
+        "locations": [
+          {
+            "file": "business-profiles.service.ts",
+            "method": "GET",
+            "line": 28
+          },
+          {
+            "file": "business-profiles.service.ts",
+            "method": "POST",
+            "line": 55
+          },
+          {
+            "file": "business-profiles.service.ts",
+            "method": "POST",
+            "line": 128
+          }
+        ]
+      },
+      {
+        "frontend": "/evidence",
+        "actualCall": "/api/v1/evidence",
+        "backend": "/api/v1/evidence/",
+        "locations": [
+          {
+            "file": "evidence.service.ts",
+            "method": "GET",
+            "line": 52
+          },
+          {
+            "file": "evidence.service.ts",
+            "method": "POST",
+            "line": 70
+          }
+        ]
+      },
+      {
+        "frontend": "/frameworks",
+        "actualCall": "/api/v1/frameworks",
+        "backend": "/api/v1/frameworks/",
+        "locations": [
+          {
+            "file": "frameworks.service.ts",
+            "method": "GET",
+            "line": 18
+          }
+        ]
+      },
+      {
+        "frontend": "/policies",
+        "actualCall": "/api/v1/policies",
+        "backend": "/api/v1/policies/",
+        "locations": [
+          {
+            "file": "policies.service.ts",
+            "method": "GET",
+            "line": 31
+          }
+        ]
+      }
+    ],
+    "prefixIssue": [
+      {
+        "frontend": "/chat/cache/clear?pattern=${encodeURIComponent(pattern)}",
+        "actualCall": "/api/v1/chat/cache/clear?pattern=${encodeURIComponent(pattern)}",
+        "similar": [
+          "/api/v1/chat/cache/clear"
+        ],
+        "locations": [
+          {
+            "file": "chat.service.ts",
+            "method": "DELETE",
+            "line": 207
+          }
+        ]
+      }
+    ],
+    "completelyMissing": [
+      {
+        "frontend": "/ai/self-review",
+        "actualCall": "/api/v1/ai/self-review",
+        "locations": [
+          {
+            "file": "ai-self-review.service.ts",
+            "method": "POST",
+            "line": 297
+          }
+        ]
+      },
+      {
+        "frontend": "/ai/quick-confidence-check",
+        "actualCall": "/api/v1/ai/quick-confidence-check",
+        "locations": [
+          {
+            "file": "ai-self-review.service.ts",
+            "method": "POST",
+            "line": 347
+          }
+        ]
+      },
+      {
+        "frontend": "/ai/assessments/followup",
+        "actualCall": "/api/v1/ai/assessments/followup",
+        "locations": [
+          {
+            "file": "assessments-ai.service.ts",
+            "method": "POST",
+            "line": 339
+          }
+        ]
+      },
+      {
+        "frontend": "/ai/assessments/metrics",
+        "actualCall": "/api/v1/ai/assessments/metrics",
+        "locations": [
+          {
+            "file": "assessments-ai.service.ts",
+            "method": "GET",
+            "line": 559
+          }
+        ]
+      },
+      {
+        "frontend": "/assessments/${id}",
+        "actualCall": "/api/v1/assessments/${id}",
+        "locations": [
+          {
+            "file": "assessments.service.ts",
+            "method": "GET",
+            "line": 43
+          },
+          {
+            "file": "assessments.service.ts",
+            "method": "PATCH",
+            "line": 59
+          }
+        ]
+      },
+      {
+        "frontend": "/assessments/${id}/complete",
+        "actualCall": "/api/v1/assessments/${id}/complete",
+        "locations": [
+          {
+            "file": "assessments.service.ts",
+            "method": "POST",
+            "line": 98
+          }
+        ]
+      },
+      {
+        "frontend": "/assessments/${id}/results",
+        "actualCall": "/api/v1/assessments/${id}/results",
+        "locations": [
+          {
+            "file": "assessments.service.ts",
+            "method": "GET",
+            "line": 106
+          }
+        ]
+      },
+      {
+        "frontend": "/business-profiles/${id}",
+        "actualCall": "/api/v1/business-profiles/${id}",
+        "locations": [
+          {
+            "file": "business-profiles.service.ts",
+            "method": "GET",
+            "line": 41
+          },
+          {
+            "file": "business-profiles.service.ts",
+            "method": "PUT",
+            "line": 74
+          }
+        ]
+      },
+      {
+        "frontend": "/business-profiles/${id}/compliance",
+        "actualCall": "/api/v1/business-profiles/${id}/compliance",
+        "locations": [
+          {
+            "file": "business-profiles.service.ts",
+            "method": "GET",
+            "line": 95
+          }
+        ]
+      },
+      {
+        "frontend": "/chat/conversations/${id}",
+        "actualCall": "/api/v1/chat/conversations/${id}",
+        "locations": [
+          {
+            "file": "chat.service.ts",
+            "method": "GET",
+            "line": 56
+          }
+        ]
+      },
+      {
+        "frontend": "/chat/compliance-gap-analysis",
+        "actualCall": "/api/v1/chat/compliance-gap-analysis",
+        "locations": [
+          {
+            "file": "chat.service.ts",
+            "method": "POST",
+            "line": 123
+          }
+        ]
+      },
+      {
+        "frontend": "/chat/smart-compliance-guidance",
+        "actualCall": "/api/v1/chat/smart-compliance-guidance",
+        "locations": [
+          {
+            "file": "chat.service.ts",
+            "method": "GET",
+            "line": 185
+          }
+        ]
+      },
+      {
+        "frontend": "/compliance/status/${frameworkId}",
+        "actualCall": "/api/v1/compliance/status/${frameworkId}",
+        "locations": [
+          {
+            "file": "compliance.service.ts",
+            "method": "GET",
+            "line": 69
+          }
+        ]
+      },
+      {
+        "frontend": "/compliance/tasks",
+        "actualCall": "/api/v1/compliance/tasks",
+        "locations": [
+          {
+            "file": "compliance.service.ts",
+            "method": "POST",
+            "line": 98
+          }
+        ]
+      },
+      {
+        "frontend": "/compliance/tasks/${taskId}",
+        "actualCall": "/api/v1/compliance/tasks/${taskId}",
+        "locations": [
+          {
+            "file": "compliance.service.ts",
+            "method": "PATCH",
+            "line": 109
+          }
+        ]
+      },
+      {
+        "frontend": "/compliance/risks",
+        "actualCall": "/api/v1/compliance/risks",
+        "locations": [
+          {
+            "file": "compliance.service.ts",
+            "method": "POST",
+            "line": 135
+          }
+        ]
+      },
+      {
+        "frontend": "/compliance/risks/${riskId}",
+        "actualCall": "/api/v1/compliance/risks/${riskId}",
+        "locations": [
+          {
+            "file": "compliance.service.ts",
+            "method": "PATCH",
+            "line": 146
+          }
+        ]
+      },
+      {
+        "frontend": "/compliance/timeline",
+        "actualCall": "/api/v1/compliance/timeline",
+        "locations": [
+          {
+            "file": "compliance.service.ts",
+            "method": "GET",
+            "line": 174
+          }
+        ]
+      },
+      {
+        "frontend": "/compliance/dashboard",
+        "actualCall": "/api/v1/compliance/dashboard",
+        "locations": [
+          {
+            "file": "compliance.service.ts",
+            "method": "GET",
+            "line": 202
+          }
+        ]
+      },
+      {
+        "frontend": "/compliance/certificate/generate",
+        "actualCall": "/api/v1/compliance/certificate/generate",
+        "locations": [
+          {
+            "file": "compliance.service.ts",
+            "method": "POST",
+            "line": 220
+          }
+        ]
+      },
+      {
+        "frontend": "/dashboard",
+        "actualCall": "/api/v1/dashboard",
+        "locations": [
+          {
+            "file": "dashboard.service.ts",
+            "method": "GET",
+            "line": 82
+          }
+        ]
+      },
+      {
+        "frontend": "/dashboard/widgets",
+        "actualCall": "/api/v1/dashboard/widgets",
+        "locations": [
+          {
+            "file": "dashboard.service.ts",
+            "method": "GET",
+            "line": 99
+          }
+        ]
+      },
+      {
+        "frontend": "/dashboard/notifications",
+        "actualCall": "/api/v1/dashboard/notifications",
+        "locations": [
+          {
+            "file": "dashboard.service.ts",
+            "method": "GET",
+            "line": 144
+          }
+        ]
+      },
+      {
+        "frontend": "/dashboard/quick-actions",
+        "actualCall": "/api/v1/dashboard/quick-actions",
+        "locations": [
+          {
+            "file": "dashboard.service.ts",
+            "method": "GET",
+            "line": 176
+          }
+        ]
+      },
+      {
+        "frontend": "/dashboard/recommendations",
+        "actualCall": "/api/v1/dashboard/recommendations",
+        "locations": [
+          {
+            "file": "dashboard.service.ts",
+            "method": "GET",
+            "line": 205
+          }
+        ]
+      },
+      {
+        "frontend": "/evidence-collection/plans",
+        "actualCall": "/api/v1/evidence-collection/plans",
+        "locations": [
+          {
+            "file": "evidence-collection.service.ts",
+            "method": "GET",
+            "line": 69
+          }
+        ]
+      },
+      {
+        "frontend": "/evidence/${id}",
+        "actualCall": "/api/v1/evidence/${id}",
+        "locations": [
+          {
+            "file": "evidence.service.ts",
+            "method": "GET",
+            "line": 62
+          },
+          {
+            "file": "evidence.service.ts",
+            "method": "PATCH",
+            "line": 78
+          }
+        ]
+      },
+      {
+        "frontend": "/evidence/${id}/automation",
+        "actualCall": "/api/v1/evidence/${id}/automation",
+        "locations": [
+          {
+            "file": "evidence.service.ts",
+            "method": "POST",
+            "line": 133
+          }
+        ]
+      },
+      {
+        "frontend": "/evidence/dashboard/${frameworkId}",
+        "actualCall": "/api/v1/evidence/dashboard/${frameworkId}",
+        "locations": [
+          {
+            "file": "evidence.service.ts",
+            "method": "GET",
+            "line": 154
+          }
+        ]
+      },
+      {
+        "frontend": "/evidence/${id}/classify",
+        "actualCall": "/api/v1/evidence/${id}/classify",
+        "locations": [
+          {
+            "file": "evidence.service.ts",
+            "method": "POST",
+            "line": 173
+          }
+        ]
+      },
+      {
+        "frontend": "/evidence/requirements/${frameworkId}",
+        "actualCall": "/api/v1/evidence/requirements/${frameworkId}",
+        "locations": [
+          {
+            "file": "evidence.service.ts",
+            "method": "GET",
+            "line": 201
+          }
+        ]
+      },
+      {
+        "frontend": "/evidence/${id}/quality",
+        "actualCall": "/api/v1/evidence/${id}/quality",
+        "locations": [
+          {
+            "file": "evidence.service.ts",
+            "method": "GET",
+            "line": 215
+          }
+        ]
+      },
+      {
+        "frontend": "/foundation/evidence/aws/configure",
+        "actualCall": "/api/v1/foundation/evidence/aws/configure",
+        "locations": [
+          {
+            "file": "foundation-evidence.service.ts",
+            "method": "POST",
+            "line": 98
+          }
+        ]
+      },
+      {
+        "frontend": "/foundation/evidence/okta/configure",
+        "actualCall": "/api/v1/foundation/evidence/okta/configure",
+        "locations": [
+          {
+            "file": "foundation-evidence.service.ts",
+            "method": "POST",
+            "line": 113
+          }
+        ]
+      },
+      {
+        "frontend": "/foundation/evidence/google/configure",
+        "actualCall": "/api/v1/foundation/evidence/google/configure",
+        "locations": [
+          {
+            "file": "foundation-evidence.service.ts",
+            "method": "POST",
+            "line": 128
+          }
+        ]
+      },
+      {
+        "frontend": "/foundation/evidence/microsoft/configure",
+        "actualCall": "/api/v1/foundation/evidence/microsoft/configure",
+        "locations": [
+          {
+            "file": "foundation-evidence.service.ts",
+            "method": "POST",
+            "line": 143
+          }
+        ]
+      },
+      {
+        "frontend": "/foundation/evidence/health",
+        "actualCall": "/api/v1/foundation/evidence/health",
+        "locations": [
+          {
+            "file": "foundation-evidence.service.ts",
+            "method": "GET",
+            "line": 207
+          }
+        ]
+      },
+      {
+        "frontend": "/frameworks/${id}",
+        "actualCall": "/api/v1/frameworks/${id}",
+        "locations": [
+          {
+            "file": "frameworks.service.ts",
+            "method": "GET",
+            "line": 26
+          }
+        ]
+      },
+      {
+        "frontend": "/frameworks/${frameworkId}/controls",
+        "actualCall": "/api/v1/frameworks/${frameworkId}/controls",
+        "locations": [
+          {
+            "file": "frameworks.service.ts",
+            "method": "GET",
+            "line": 55
+          }
+        ]
+      },
+      {
+        "frontend": "/frameworks/${frameworkId}/implementation-guide",
+        "actualCall": "/api/v1/frameworks/${frameworkId}/implementation-guide",
+        "locations": [
+          {
+            "file": "frameworks.service.ts",
+            "method": "GET",
+            "line": 75
+          }
+        ]
+      },
+      {
+        "frontend": "/frameworks/${frameworkId}/compliance-status",
+        "actualCall": "/api/v1/frameworks/${frameworkId}/compliance-status",
+        "locations": [
+          {
+            "file": "frameworks.service.ts",
+            "method": "GET",
+            "line": 98
+          }
+        ]
+      },
+      {
+        "frontend": "/frameworks/compare",
+        "actualCall": "/api/v1/frameworks/compare",
+        "locations": [
+          {
+            "file": "frameworks.service.ts",
+            "method": "POST",
+            "line": 123
+          }
+        ]
+      },
+      {
+        "frontend": "/frameworks/${frameworkId}/maturity-assessment",
+        "actualCall": "/api/v1/frameworks/${frameworkId}/maturity-assessment",
+        "locations": [
+          {
+            "file": "frameworks.service.ts",
+            "method": "GET",
+            "line": 148
+          }
+        ]
+      },
+      {
+        "frontend": "/implementation/plans/${planId}",
+        "actualCall": "/api/v1/implementation/plans/${planId}",
+        "locations": [
+          {
+            "file": "implementation.service.ts",
+            "method": "GET",
+            "line": 85
+          }
+        ]
+      },
+      {
+        "frontend": "/implementation/recommendations",
+        "actualCall": "/api/v1/implementation/recommendations",
+        "locations": [
+          {
+            "file": "implementation.service.ts",
+            "method": "GET",
+            "line": 168
+          }
+        ]
+      },
+      {
+        "frontend": "/implementation/resources/${frameworkId}",
+        "actualCall": "/api/v1/implementation/resources/${frameworkId}",
+        "locations": [
+          {
+            "file": "implementation.service.ts",
+            "method": "GET",
+            "line": 206
+          }
+        ]
+      },
+      {
+        "frontend": "/implementation/plans/${planId}/analytics",
+        "actualCall": "/api/v1/implementation/plans/${planId}/analytics",
+        "locations": [
+          {
+            "file": "implementation.service.ts",
+            "method": "GET",
+            "line": 249
+          }
+        ]
+      },
+      {
+        "frontend": "/integrations",
+        "actualCall": "/api/v1/integrations",
+        "locations": [
+          {
+            "file": "integrations.service.ts",
+            "method": "GET",
+            "line": 22
+          }
+        ]
+      },
+      {
+        "frontend": "/integrations/connected",
+        "actualCall": "/api/v1/integrations/connected",
+        "locations": [
+          {
+            "file": "integrations.service.ts",
+            "method": "GET",
+            "line": 30
+          }
+        ]
+      },
+      {
+        "frontend": "/integrations/${integrationId}/test",
+        "actualCall": "/api/v1/integrations/${integrationId}/test",
+        "locations": [
+          {
+            "file": "integrations.service.ts",
+            "method": "POST",
+            "line": 61
+          }
+        ]
+      },
+      {
+        "frontend": "/integrations/${integrationId}/sync-history",
+        "actualCall": "/api/v1/integrations/${integrationId}/sync-history",
+        "locations": [
+          {
+            "file": "integrations.service.ts",
+            "method": "GET",
+            "line": 100
+          }
+        ]
+      },
+      {
+        "frontend": "/integrations/${integrationId}/webhooks",
+        "actualCall": "/api/v1/integrations/${integrationId}/webhooks",
+        "locations": [
+          {
+            "file": "integrations.service.ts",
+            "method": "POST",
+            "line": 115
+          }
+        ]
+      },
+      {
+        "frontend": "/integrations/${integrationId}/logs",
+        "actualCall": "/api/v1/integrations/${integrationId}/logs",
+        "locations": [
+          {
+            "file": "integrations.service.ts",
+            "method": "GET",
+            "line": 140
+          }
+        ]
+      },
+      {
+        "frontend": "/integrations/oauth/callback",
+        "actualCall": "/api/v1/integrations/oauth/callback",
+        "locations": [
+          {
+            "file": "integrations.service.ts",
+            "method": "POST",
+            "line": 177
+          }
+        ]
+      },
+      {
+        "frontend": "/monitoring/database/status",
+        "actualCall": "/api/v1/monitoring/database/status",
+        "locations": [
+          {
+            "file": "monitoring.service.ts",
+            "method": "GET",
+            "line": 39
+          }
+        ]
+      },
+      {
+        "frontend": "/monitoring/alerts/${alertId}/resolve",
+        "actualCall": "/api/v1/monitoring/alerts/${alertId}/resolve",
+        "locations": [
+          {
+            "file": "monitoring.service.ts",
+            "method": "PATCH",
+            "line": 63
+          }
+        ]
+      },
+      {
+        "frontend": "/monitoring/metrics",
+        "actualCall": "/api/v1/monitoring/metrics",
+        "locations": [
+          {
+            "file": "monitoring.service.ts",
+            "method": "GET",
+            "line": 73
+          }
+        ]
+      },
+      {
+        "frontend": "/monitoring/api-performance",
+        "actualCall": "/api/v1/monitoring/api-performance",
+        "locations": [
+          {
+            "file": "monitoring.service.ts",
+            "method": "GET",
+            "line": 100
+          }
+        ]
+      },
+      {
+        "frontend": "/monitoring/error-logs",
+        "actualCall": "/api/v1/monitoring/error-logs",
+        "locations": [
+          {
+            "file": "monitoring.service.ts",
+            "method": "GET",
+            "line": 126
+          }
+        ]
+      },
+      {
+        "frontend": "/monitoring/health",
+        "actualCall": "/api/v1/monitoring/health",
+        "locations": [
+          {
+            "file": "monitoring.service.ts",
+            "method": "GET",
+            "line": 143
+          }
+        ]
+      },
+      {
+        "frontend": "/monitoring/audit-logs",
+        "actualCall": "/api/v1/monitoring/audit-logs",
+        "locations": [
+          {
+            "file": "monitoring.service.ts",
+            "method": "GET",
+            "line": 172
+          }
+        ]
+      },
+      {
+        "frontend": "/payments/subscription/cancel",
+        "actualCall": "/api/v1/payments/subscription/cancel",
+        "locations": [
+          {
+            "file": "payment.service.ts",
+            "method": "POST",
+            "line": 100
+          }
+        ]
+      },
+      {
+        "frontend": "/payments/subscription/reactivate",
+        "actualCall": "/api/v1/payments/subscription/reactivate",
+        "locations": [
+          {
+            "file": "payment.service.ts",
+            "method": "POST",
+            "line": 110
+          }
+        ]
+      },
+      {
+        "frontend": "/payments/payment-methods",
+        "actualCall": "/api/v1/payments/payment-methods",
+        "locations": [
+          {
+            "file": "payment.service.ts",
+            "method": "POST",
+            "line": 128
+          }
+        ]
+      },
+      {
+        "frontend": "/payments/invoices",
+        "actualCall": "/api/v1/payments/invoices",
+        "locations": [
+          {
+            "file": "payment.service.ts",
+            "method": "GET",
+            "line": 155
+          }
+        ]
+      },
+      {
+        "frontend": "/payments/invoices/upcoming",
+        "actualCall": "/api/v1/payments/invoices/upcoming",
+        "locations": [
+          {
+            "file": "payment.service.ts",
+            "method": "GET",
+            "line": 174
+          }
+        ]
+      },
+      {
+        "frontend": "/payments/coupons/apply",
+        "actualCall": "/api/v1/payments/coupons/apply",
+        "locations": [
+          {
+            "file": "payment.service.ts",
+            "method": "POST",
+            "line": 193
+          }
+        ]
+      },
+      {
+        "frontend": "/payments/subscription/limits",
+        "actualCall": "/api/v1/payments/subscription/limits",
+        "locations": [
+          {
+            "file": "payment.service.ts",
+            "method": "GET",
+            "line": 218
+          }
+        ]
+      },
+      {
+        "frontend": "/policies/${id}",
+        "actualCall": "/api/v1/policies/${id}",
+        "locations": [
+          {
+            "file": "policies.service.ts",
+            "method": "GET",
+            "line": 39
+          }
+        ]
+      },
+      {
+        "frontend": "/policies/${id}/status",
+        "actualCall": "/api/v1/policies/${id}/status",
+        "locations": [
+          {
+            "file": "policies.service.ts",
+            "method": "PATCH",
+            "line": 62
+          }
+        ]
+      },
+      {
+        "frontend": "/policies/${id}/approve",
+        "actualCall": "/api/v1/policies/${id}/approve",
+        "locations": [
+          {
+            "file": "policies.service.ts",
+            "method": "PUT",
+            "line": 77
+          }
+        ]
+      },
+      {
+        "frontend": "/policies/${id}/regenerate-section",
+        "actualCall": "/api/v1/policies/${id}/regenerate-section",
+        "locations": [
+          {
+            "file": "policies.service.ts",
+            "method": "POST",
+            "line": 95
+          }
+        ]
+      },
+      {
+        "frontend": "/policies/templates",
+        "actualCall": "/api/v1/policies/templates",
+        "locations": [
+          {
+            "file": "policies.service.ts",
+            "method": "GET",
+            "line": 126
+          }
+        ]
+      },
+      {
+        "frontend": "/policies/${id}/clone",
+        "actualCall": "/api/v1/policies/${id}/clone",
+        "locations": [
+          {
+            "file": "policies.service.ts",
+            "method": "POST",
+            "line": 134
+          }
+        ]
+      },
+      {
+        "frontend": "/policies/${id}/versions",
+        "actualCall": "/api/v1/policies/${id}/versions",
+        "locations": [
+          {
+            "file": "policies.service.ts",
+            "method": "GET",
+            "line": 151
+          }
+        ]
+      },
+      {
+        "frontend": "/readiness/${businessProfileId}",
+        "actualCall": "/api/v1/readiness/${businessProfileId}",
+        "locations": [
+          {
+            "file": "readiness.service.ts",
+            "method": "GET",
+            "line": 48
+          }
+        ]
+      },
+      {
+        "frontend": "/readiness/gaps/${businessProfileId}",
+        "actualCall": "/api/v1/readiness/gaps/${businessProfileId}",
+        "locations": [
+          {
+            "file": "readiness.service.ts",
+            "method": "GET",
+            "line": 57
+          }
+        ]
+      },
+      {
+        "frontend": "/readiness/roadmap",
+        "actualCall": "/api/v1/readiness/roadmap",
+        "locations": [
+          {
+            "file": "readiness.service.ts",
+            "method": "POST",
+            "line": 100
+          }
+        ]
+      },
+      {
+        "frontend": "/readiness/quick-assessment",
+        "actualCall": "/api/v1/readiness/quick-assessment",
+        "locations": [
+          {
+            "file": "readiness.service.ts",
+            "method": "POST",
+            "line": 119
+          }
+        ]
+      },
+      {
+        "frontend": "/readiness/trends/${businessProfileId}",
+        "actualCall": "/api/v1/readiness/trends/${businessProfileId}",
+        "locations": [
+          {
+            "file": "readiness.service.ts",
+            "method": "GET",
+            "line": 149
+          }
+        ]
+      },
+      {
+        "frontend": "/readiness/benchmarks",
+        "actualCall": "/api/v1/readiness/benchmarks",
+        "locations": [
+          {
+            "file": "readiness.service.ts",
+            "method": "GET",
+            "line": 173
+          }
+        ]
+      },
+      {
+        "frontend": "/reports/history",
+        "actualCall": "/api/v1/reports/history",
+        "locations": [
+          {
+            "file": "reports.service.ts",
+            "method": "GET",
+            "line": 37
+          }
+        ]
+      },
+      {
+        "frontend": "/reports/${id}",
+        "actualCall": "/api/v1/reports/${id}",
+        "locations": [
+          {
+            "file": "reports.service.ts",
+            "method": "GET",
+            "line": 47
+          }
+        ]
+      },
+      {
+        "frontend": "/reports/schedule",
+        "actualCall": "/api/v1/reports/schedule",
+        "locations": [
+          {
+            "file": "reports.service.ts",
+            "method": "POST",
+            "line": 82
+          }
+        ]
+      },
+      {
+        "frontend": "/reports/scheduled",
+        "actualCall": "/api/v1/reports/scheduled",
+        "locations": [
+          {
+            "file": "reports.service.ts",
+            "method": "GET",
+            "line": 100
+          }
+        ]
+      },
+      {
+        "frontend": "/reports/preview",
+        "actualCall": "/api/v1/reports/preview",
+        "locations": [
+          {
+            "file": "reports.service.ts",
+            "method": "POST",
+            "line": 154
+          }
+        ]
+      },
+      {
+        "frontend": "/reports/analytics",
+        "actualCall": "/api/v1/reports/analytics",
+        "locations": [
+          {
+            "file": "reports.service.ts",
+            "method": "GET",
+            "line": 172
+          }
+        ]
+      }
+    ],
+    "unusedBackend": {}
+  }
+}

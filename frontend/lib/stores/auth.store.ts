@@ -87,7 +87,7 @@ export const useAuthStore = create<AuthState>()(
           const tokens: AuthTokens = await loginResponse.json();
 
           // Get user info
-          const userResponse = await fetch(`${API_BASE_URL}/api/v1/users/me`, {
+          const userResponse = await fetch(`${API_BASE_URL}/api/v1/auth/me`, {
             headers: {
               Authorization: `Bearer ${tokens.access_token}`,
             },
@@ -246,7 +246,7 @@ export const useAuthStore = create<AuthState>()(
         }
 
         try {
-          const response = await fetch(`${API_BASE_URL}/api/v1/users/me`, {
+          const response = await fetch(`${API_BASE_URL}/api/v1/auth/me`, {
             headers: {
               Authorization: `Bearer ${tokens.access_token}`,
             },

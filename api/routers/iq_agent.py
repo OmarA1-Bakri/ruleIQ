@@ -118,9 +118,9 @@ async def get_neo4j_service() -> Neo4jGraphRAGService:
         400: {"description": "Invalid query format"},
         503: {"description": "IQ Agent service unavailable"},
         429: {"description": "Rate limit exceeded"},
-    }
+    },
+    dependencies=[Depends(ai_analysis_rate_limit)]
 )
-@ai_analysis_rate_limit
 async def query_compliance_analysis(
     request: ComplianceQueryRequest,
     background_tasks: BackgroundTasks,

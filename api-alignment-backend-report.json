@@ -1,0 +1,579 @@
+{
+  "total_files": 16,
+  "files_with_issues": 8,
+  "total_issues": 52,
+  "endpoints": {
+    "assessments.py": {
+      "file": "assessments.py",
+      "prefix": "",
+      "endpoints": [
+        [
+          "POST",
+          "/quick"
+        ],
+        [
+          "GET",
+          "/"
+        ],
+        [
+          "POST",
+          "/"
+        ],
+        [
+          "GET",
+          "/current"
+        ],
+        [
+          "GET",
+          "/questions/{stage}"
+        ],
+        [
+          "PUT",
+          "/{session_id}/response"
+        ],
+        [
+          "POST",
+          "/{session_id}/responses"
+        ],
+        [
+          "GET",
+          "/{session_id}"
+        ],
+        [
+          "GET",
+          "/{session_id}/recommendations"
+        ],
+        [
+          "POST",
+          "/{session_id}/complete"
+        ]
+      ],
+      "issues": [
+        "Trailing slash: get /",
+        "Trailing slash: post /",
+        "Non-standard ID param: put /{session_id}/response",
+        "Underscore in path: put /{session_id}/response",
+        "Non-standard ID param: post /{session_id}/responses",
+        "Underscore in path: post /{session_id}/responses",
+        "Non-standard ID param: get /{session_id}",
+        "Underscore in path: get /{session_id}",
+        "Non-standard ID param: get /{session_id}/recommendations",
+        "Underscore in path: get /{session_id}/recommendations",
+        "Non-standard ID param: post /{session_id}/complete",
+        "Underscore in path: post /{session_id}/complete"
+      ]
+    },
+    "business_profiles.py": {
+      "file": "business_profiles.py",
+      "prefix": "",
+      "endpoints": [
+        [
+          "POST",
+          "/"
+        ],
+        [
+          "GET",
+          "/"
+        ],
+        [
+          "GET",
+          "/{profile_id}"
+        ],
+        [
+          "PUT",
+          "/"
+        ],
+        [
+          "PUT",
+          "/{profile_id}"
+        ],
+        [
+          "DELETE",
+          "/{profile_id}"
+        ],
+        [
+          "PATCH",
+          "/{profile_id}"
+        ]
+      ],
+      "issues": [
+        "Trailing slash: post /",
+        "Trailing slash: get /",
+        "Underscore in path: get /{profile_id}",
+        "Trailing slash: put /",
+        "Underscore in path: put /{profile_id}",
+        "Underscore in path: delete /{profile_id}",
+        "Underscore in path: patch /{profile_id}"
+      ]
+    },
+    "policies.py": {
+      "file": "policies.py",
+      "prefix": "",
+      "endpoints": [
+        [
+          "POST",
+          "/generate"
+        ],
+        [
+          "GET",
+          "/"
+        ],
+        [
+          "GET",
+          "/{policy_id}"
+        ],
+        [
+          "PATCH",
+          "/{policy_id}/status"
+        ],
+        [
+          "PUT",
+          "/{policy_id}/approve"
+        ]
+      ],
+      "issues": [
+        "Trailing slash: get /",
+        "Underscore in path: get /{policy_id}",
+        "Underscore in path: patch /{policy_id}/status",
+        "Underscore in path: put /{policy_id}/approve"
+      ]
+    },
+    "evidence.py": {
+      "file": "evidence.py",
+      "prefix": "",
+      "endpoints": [
+        [
+          "POST",
+          "/"
+        ],
+        [
+          "GET",
+          "/"
+        ],
+        [
+          "GET",
+          "/stats"
+        ],
+        [
+          "GET",
+          "/search"
+        ],
+        [
+          "POST",
+          "/validate"
+        ],
+        [
+          "GET",
+          "/requirements"
+        ],
+        [
+          "POST",
+          "/requirements"
+        ],
+        [
+          "GET",
+          "/{evidence_id}"
+        ],
+        [
+          "PUT",
+          "/{evidence_id}"
+        ],
+        [
+          "PATCH",
+          "/{evidence_id}"
+        ],
+        [
+          "DELETE",
+          "/{evidence_id}"
+        ],
+        [
+          "POST",
+          "/bulk-update"
+        ],
+        [
+          "POST",
+          "/{evidence_id}/automation"
+        ],
+        [
+          "POST",
+          "/{evidence_id}/upload"
+        ],
+        [
+          "GET",
+          "/dashboard/{framework_id}"
+        ],
+        [
+          "POST",
+          "/{evidence_id}/classify"
+        ],
+        [
+          "POST",
+          "/classify/bulk"
+        ],
+        [
+          "POST",
+          "/{evidence_id}/control-mapping"
+        ],
+        [
+          "GET",
+          "/classification/stats"
+        ],
+        [
+          "GET",
+          "/{evidence_id}/quality-analysis"
+        ],
+        [
+          "POST",
+          "/{evidence_id}/duplicate-detection"
+        ],
+        [
+          "POST",
+          "/duplicate-detection/batch"
+        ],
+        [
+          "GET",
+          "/quality/benchmark"
+        ],
+        [
+          "GET",
+          "/quality/trends"
+        ]
+      ],
+      "issues": [
+        "Trailing slash: post /",
+        "Trailing slash: get /",
+        "Underscore in path: get /{evidence_id}",
+        "Underscore in path: put /{evidence_id}",
+        "Underscore in path: patch /{evidence_id}",
+        "Underscore in path: delete /{evidence_id}",
+        "Underscore in path: post /{evidence_id}/automation",
+        "Underscore in path: post /{evidence_id}/upload",
+        "Underscore in path: get /dashboard/{framework_id}",
+        "Underscore in path: post /{evidence_id}/classify",
+        "Underscore in path: post /{evidence_id}/control-mapping",
+        "Underscore in path: get /{evidence_id}/quality-analysis",
+        "Underscore in path: post /{evidence_id}/duplicate-detection"
+      ]
+    },
+    "frameworks.py": {
+      "file": "frameworks.py",
+      "prefix": "",
+      "endpoints": [
+        [
+          "GET",
+          "/"
+        ],
+        [
+          "GET",
+          "/recommendations"
+        ],
+        [
+          "GET",
+          "/recommendations/{business_profile_id}"
+        ],
+        [
+          "GET",
+          "/all-public"
+        ],
+        [
+          "GET",
+          "/{framework_id}"
+        ]
+      ],
+      "issues": [
+        "Trailing slash: get /",
+        "Underscore in path: get /recommendations/{business_profile_id}",
+        "Underscore in path: get /{framework_id}"
+      ]
+    },
+    "compliance.py": {
+      "file": "compliance.py",
+      "prefix": "",
+      "endpoints": [
+        [
+          "GET",
+          "/status"
+        ],
+        [
+          "POST",
+          "/query"
+        ]
+      ],
+      "issues": []
+    },
+    "chat.py": {
+      "file": "chat.py",
+      "prefix": "",
+      "endpoints": [
+        [
+          "POST",
+          "/conversations"
+        ],
+        [
+          "GET",
+          "/conversations"
+        ],
+        [
+          "GET",
+          "/conversations/{conversation_id}"
+        ],
+        [
+          "POST",
+          "/conversations/{conversation_id}/messages"
+        ],
+        [
+          "DELETE",
+          "/conversations/{conversation_id}"
+        ],
+        [
+          "POST",
+          "/evidence-recommendations"
+        ],
+        [
+          "POST",
+          "/compliance-analysis"
+        ],
+        [
+          "POST",
+          "/context-aware-recommendations"
+        ],
+        [
+          "POST",
+          "/evidence-collection-workflow"
+        ],
+        [
+          "POST",
+          "/generate-policy"
+        ],
+        [
+          "GET",
+          "/smart-guidance/{framework}"
+        ],
+        [
+          "GET",
+          "/cache/metrics"
+        ],
+        [
+          "DELETE",
+          "/cache/clear"
+        ],
+        [
+          "GET",
+          "/performance/metrics"
+        ],
+        [
+          "POST",
+          "/performance/optimize"
+        ],
+        [
+          "GET",
+          "/analytics/dashboard"
+        ],
+        [
+          "GET",
+          "/analytics/usage"
+        ],
+        [
+          "GET",
+          "/analytics/cost"
+        ],
+        [
+          "GET",
+          "/analytics/alerts"
+        ],
+        [
+          "POST",
+          "/analytics/alerts/{alert_id}/resolve"
+        ],
+        [
+          "POST",
+          "/smart-evidence/create-plan"
+        ],
+        [
+          "GET",
+          "/smart-evidence/plan/{plan_id}"
+        ],
+        [
+          "GET",
+          "/smart-evidence/next-tasks/{plan_id}"
+        ],
+        [
+          "POST",
+          "/smart-evidence/update-task/{plan_id}/{task_id}"
+        ],
+        [
+          "GET",
+          "/quality/trends"
+        ],
+        [
+          "POST",
+          "/quality/feedback"
+        ],
+        [
+          "GET",
+          "/quality/assessment/{response_id}"
+        ],
+        [
+          "GET",
+          "/quality/metrics"
+        ]
+      ],
+      "issues": [
+        "Underscore in path: get /conversations/{conversation_id}",
+        "Underscore in path: post /conversations/{conversation_id}/messages",
+        "Underscore in path: delete /conversations/{conversation_id}",
+        "Underscore in path: post /analytics/alerts/{alert_id}/resolve",
+        "Underscore in path: get /smart-evidence/plan/{plan_id}",
+        "Underscore in path: get /smart-evidence/next-tasks/{plan_id}",
+        "Underscore in path: post /smart-evidence/update-task/{plan_id}/{task_id}",
+        "Underscore in path: get /quality/assessment/{response_id}"
+      ]
+    },
+    "implementation.py": {
+      "file": "implementation.py",
+      "prefix": "",
+      "endpoints": [
+        [
+          "POST",
+          "/plans"
+        ],
+        [
+          "GET",
+          "/plans"
+        ],
+        [
+          "GET",
+          "/plans/{plan_id}"
+        ],
+        [
+          "PATCH",
+          "/plans/{plan_id}/tasks/{task_id}"
+        ]
+      ],
+      "issues": [
+        "Underscore in path: get /plans/{plan_id}",
+        "Underscore in path: patch /plans/{plan_id}/tasks/{task_id}"
+      ]
+    },
+    "integrations.py": {
+      "file": "integrations.py",
+      "prefix": "",
+      "endpoints": [],
+      "issues": []
+    },
+    "monitoring.py": {
+      "file": "monitoring.py",
+      "prefix": "/monitoring",
+      "endpoints": [],
+      "issues": []
+    },
+    "auth.py": {
+      "file": "auth.py",
+      "prefix": "",
+      "endpoints": [
+        [
+          "POST",
+          "/token"
+        ],
+        [
+          "POST",
+          "/login"
+        ],
+        [
+          "POST",
+          "/refresh"
+        ],
+        [
+          "GET",
+          "/me"
+        ],
+        [
+          "POST",
+          "/logout"
+        ],
+        [
+          "POST",
+          "/assign-default-role"
+        ]
+      ],
+      "issues": []
+    },
+    "ai_assessments.py": {
+      "file": "ai_assessments.py",
+      "prefix": "",
+      "endpoints": [
+        [
+          "POST",
+          "/{framework_id}/help"
+        ],
+        [
+          "POST",
+          "/{framework_id}/help/stream"
+        ],
+        [
+          "POST",
+          "/followup"
+        ],
+        [
+          "POST",
+          "/analysis"
+        ],
+        [
+          "POST",
+          "/analysis/stream"
+        ],
+        [
+          "POST",
+          "/recommendations"
+        ],
+        [
+          "POST",
+          "/recommendations/stream"
+        ],
+        [
+          "POST",
+          "/feedback"
+        ],
+        [
+          "GET",
+          "/metrics"
+        ],
+        [
+          "GET",
+          "/rate-limit-stats"
+        ],
+        [
+          "GET",
+          "/health"
+        ],
+        [
+          "GET",
+          "/circuit-breaker/status"
+        ],
+        [
+          "POST",
+          "/circuit-breaker/reset"
+        ],
+        [
+          "GET",
+          "/models/{model_name}/health"
+        ],
+        [
+          "GET",
+          "/cache/metrics"
+        ]
+      ],
+      "issues": [
+        "Underscore in path: post /{framework_id}/help",
+        "Underscore in path: post /{framework_id}/help/stream",
+        "Underscore in path: get /models/{model_name}/health"
+      ]
+    },
+    "iq_agent.py": {
+      "file": "iq_agent.py",
+      "prefix": "",
+      "endpoints": [],
+      "issues": []
+    }
+  }
+}

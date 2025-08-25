@@ -93,7 +93,7 @@ async def get_business_profile(
     return profile
 
 
-@router.get("/{profile_id}", response_model=BusinessProfileResponse)
+@router.get("/{id}", response_model=BusinessProfileResponse)
 async def get_business_profile_by_id(
     profile_id: UUID,
     current_user: UserWithRoles = Depends(require_permission("user_list")),
@@ -168,7 +168,7 @@ async def update_business_profile(
     return profile
 
 
-@router.put("/{profile_id}", response_model=BusinessProfileResponse)
+@router.put("/{id}", response_model=BusinessProfileResponse)
 async def update_business_profile_by_id(
     profile_id: UUID,
     profile_update: BusinessProfileUpdate,
@@ -227,7 +227,7 @@ async def update_business_profile_by_id(
     return profile
 
 
-@router.delete("/{profile_id}")
+@router.delete("/{id}")
 async def delete_business_profile_by_id(
     profile_id: UUID,
     current_user: UserWithRoles = Depends(require_permission("user_delete")),
@@ -261,7 +261,7 @@ async def delete_business_profile_by_id(
     return {"message": "Business profile deleted successfully"}
 
 
-@router.patch("/{profile_id}", response_model=BusinessProfileResponse)
+@router.patch("/{id}", response_model=BusinessProfileResponse)
 async def patch_business_profile(
     profile_id: UUID,
     profile_update: BusinessProfileUpdate,

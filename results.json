@@ -2,17 +2,13 @@
   "collection": {
     "item": [
       {
-        "id": "7c0c974c-6f4f-4039-85b0-4aafb9430061",
+        "id": "8f492d0a-39f7-46ea-87f3-696a65f9ab4f",
         "name": "🔐 Authentication",
         "item": [
           {
-            "id": "4d0c34f5-a515-4d2e-8203-d3fd6bd0dea6",
-            "name": "Login with Doppler Credentials",
+            "id": "d1fd7229-8e0d-4d1c-bbc4-72ddb60e5efc",
+            "name": "Login",
             "request": {
-              "description": {
-                "content": "🔐 **Doppler-Integrated Login**\n\nAuthenticate using credentials stored in Doppler:\n- Username: Loaded from `TEST_USER_EMAIL`\n- Password: Loaded from `TEST_USER_PASSWORD`\n\nAutomatically saves JWT token and user details to environment variables for use in other requests.",
-                "type": "text/plain"
-              },
               "url": {
                 "path": [
                   "api",
@@ -37,18 +33,10 @@
                 "mode": "urlencoded",
                 "urlencoded": [
                   {
-                    "description": {
-                      "content": "Loaded from Doppler TEST_USER_EMAIL",
-                      "type": "text/plain"
-                    },
                     "key": "username",
                     "value": "{{test_user_email}}"
                   },
                   {
-                    "description": {
-                      "content": "Loaded from Doppler TEST_USER_PASSWORD",
-                      "type": "text/plain"
-                    },
                     "key": "password",
                     "value": "{{test_user_password}}"
                   }
@@ -60,37 +48,18 @@
               {
                 "listen": "test",
                 "script": {
-                  "id": "77bd94c3-3c46-4dfc-80aa-31db3e78c267",
+                  "id": "c256c698-92f2-4a4d-af8f-ad1911fe3df7",
                   "type": "text/javascript",
                   "exec": [
-                    "// Auto-save JWT token and user details",
                     "if (pm.response.code === 200) {",
                     "    const responseJson = pm.response.json();",
-                    "    ",
                     "    if (responseJson.access_token) {",
                     "        pm.environment.set('jwt_token', responseJson.access_token);",
                     "        console.log('✅ JWT token saved to environment');",
                     "    }",
-                    "    ",
-                    "    if (responseJson.user_id) {",
-                    "        pm.environment.set('user_id', responseJson.user_id);",
-                    "    }",
-                    "    ",
-                    "    if (responseJson.business_profile_id) {",
-                    "        pm.environment.set('business_profile_id', responseJson.business_profile_id);",
-                    "    }",
-                    "    ",
-                    "    pm.test('Login successful', function () {",
-                    "        pm.response.to.have.status(200);",
-                    "        pm.expect(responseJson).to.have.property('access_token');",
-                    "    });",
-                    "} else {",
-                    "    pm.test('Login failed', function () {",
-                    "        pm.response.to.not.have.status(200);",
-                    "    });",
                     "}"
                   ],
-                  "_lastExecutionId": "7f3c2851-1338-467e-95bc-098868215a1d"
+                  "_lastExecutionId": "9c2e4977-ba04-4a67-aa67-5433fedcd35f"
                 }
               }
             ]
@@ -99,23 +68,20 @@
         "event": []
       },
       {
-        "id": "60cb50f4-719a-47a7-a0aa-b5e468bc1cc5",
-        "name": "🧠 AI Assessment with Secrets",
+        "id": "45c31c71-6dfb-4d98-bc54-043adb077cc6",
+        "name": "🧠 AI Analysis",
         "item": [
           {
-            "id": "d9610879-f1f1-43d0-8fd8-f4eb2c08c54e",
-            "name": "Stream AI Analysis (with API Key)",
+            "id": "26255f9a-9a78-458d-bdc8-c4f2c7e9f5bc",
+            "name": "Stream AI Analysis (Fixed)",
             "request": {
-              "description": {
-                "content": "🔐 **AI Analysis with Doppler Integration**\n\nStreams AI-powered compliance analysis using:\n- Google API key from Doppler secrets\n- Automatic fallback handling\n- Circuit breaker protection\n\nThis endpoint uses the Google Gemini API key stored securely in Doppler.",
-                "type": "text/plain"
-              },
               "url": {
                 "path": [
                   "api",
                   "v1",
                   "ai-assessments",
-                  "analyze-stream"
+                  "analysis",
+                  "stream"
                 ],
                 "host": [
                   "{{base_url}}"
@@ -136,28 +102,11 @@
               "method": "POST",
               "body": {
                 "mode": "raw",
-                "raw": "{\n  \"assessment_responses\": [\n    {\n      \"question_id\": \"gdpr_data_collection\",\n      \"answer\": \"yes\",\n      \"evidence\": \"We collect email addresses and company details for service delivery\"\n    }\n  ],\n  \"framework\": \"gdpr\",\n  \"session_id\": \"{{$guid}}\"\n}"
+                "raw": "{\n  \"assessment_results\": {\n    \"gdpr_data_collection\": {\n      \"answer\": \"yes\",\n      \"evidence\": \"We collect email addresses and company details for service delivery\"\n    }\n  },\n  \"framework_id\": \"gdpr\",\n  \"business_profile_id\": \"{{business_profile_id}}\"\n}"
               }
             },
             "response": [],
-            "event": [
-              {
-                "listen": "prerequest",
-                "script": {
-                  "id": "639c99f9-ac36-4efc-86ad-6b453a311c95",
-                  "type": "text/javascript",
-                  "exec": [
-                    "// Verify we have Google API key from Doppler",
-                    "const apiKey = pm.environment.get('google_api_key');",
-                    "if (!apiKey) {",
-                    "    console.error('❌ Google API key not found in environment');",
-                    "    console.log('💡 Ensure GOOGLE_API_KEY is set in Doppler');",
-                    "}"
-                  ],
-                  "_lastExecutionId": "de2e65ef-3f34-4c67-8422-aff6781dbf21"
-                }
-              }
-            ]
+            "event": []
           }
         ],
         "event": []
@@ -173,166 +122,72 @@
         }
       ]
     },
-    "event": [
-      {
-        "listen": "prerequest",
-        "script": {
-          "id": "bd335bbf-6065-4e28-8396-c341aa9f3a1d",
-          "type": "text/javascript",
-          "exec": [
-            "// 🔐 Doppler Integration - Auto-load secrets from environment",
-            "// This script runs before each request to ensure we have fresh credentials",
-            "",
-            "// Method 1: Use Doppler environment variables (when using doppler run)",
-            "if (typeof process !== 'undefined' && process.env) {",
-            "    console.log('🔐 Loading secrets from Doppler environment...');",
-            "    ",
-            "    // Set API credentials from Doppler",
-            "    if (process.env.JWT_SECRET_KEY) {",
-            "        pm.environment.set('jwt_secret', process.env.JWT_SECRET_KEY);",
-            "    }",
-            "    if (process.env.GOOGLE_API_KEY) {",
-            "        pm.environment.set('google_api_key', process.env.GOOGLE_API_KEY);",
-            "    }",
-            "    if (process.env.DATABASE_URL) {",
-            "        pm.environment.set('database_url', process.env.DATABASE_URL);",
-            "    }",
-            "    if (process.env.REDIS_URL) {",
-            "        pm.environment.set('redis_url', process.env.REDIS_URL);",
-            "    }",
-            "}",
-            "",
-            "// Method 2: Fetch from Doppler API (requires DOPPLER_TOKEN)",
-            "const dopplerToken = pm.environment.get('DOPPLER_TOKEN');",
-            "if (dopplerToken && !pm.environment.get('secrets_loaded')) {",
-            "    console.log('🔐 Fetching secrets from Doppler API...');",
-            "    ",
-            "    pm.sendRequest({",
-            "        url: 'https://api.doppler.com/v3/configs/config/secrets',",
-            "        method: 'GET',",
-            "        header: {",
-            "            'Authorization': 'Bearer ' + dopplerToken,",
-            "            'Accept': 'application/json'",
-            "        }",
-            "    }, function (err, res) {",
-            "        if (!err && res.code === 200) {",
-            "            const secrets = res.json().secrets;",
-            "            console.log('✅ Loaded ' + Object.keys(secrets).length + ' secrets from Doppler');",
-            "            ",
-            "            // Set environment variables from Doppler secrets",
-            "            Object.keys(secrets).forEach(key => {",
-            "                pm.environment.set(key.toLowerCase(), secrets[key].computed);",
-            "            });",
-            "            ",
-            "            pm.environment.set('secrets_loaded', 'true');",
-            "        } else {",
-            "            console.warn('⚠️ Failed to load secrets from Doppler:', err || res.code);",
-            "        }",
-            "    });",
-            "}",
-            "",
-            "// Token validation and refresh logic",
-            "const currentToken = pm.environment.get('jwt_token');",
-            "if (currentToken) {",
-            "    try {",
-            "        const tokenPayload = JSON.parse(atob(currentToken.split('.')[1]));",
-            "        const now = Math.floor(Date.now() / 1000);",
-            "        ",
-            "        // Check if token expires in next 5 minutes",
-            "        if (tokenPayload.exp && tokenPayload.exp - now < 300) {",
-            "            console.log('🔄 JWT token expires soon, should refresh...');",
-            "            pm.environment.set('token_needs_refresh', 'true');",
-            "        }",
-            "    } catch (e) {",
-            "        console.warn('⚠️ Invalid JWT token format');",
-            "    }",
-            "}"
-          ],
-          "_lastExecutionId": "387c45c7-c9c5-4b70-bae6-e7e66f0bcd25"
-        }
-      }
-    ],
+    "event": [],
     "variable": [
       {
-        "description": {
-          "content": "API base URL - automatically loaded from Doppler",
-          "type": "text/plain"
-        },
         "type": "string",
         "value": "http://localhost:8000",
         "key": "base_url"
       },
       {
-        "description": {
-          "content": "JWT Bearer token - obtained via login endpoint",
-          "type": "text/plain"
-        },
         "type": "string",
         "value": "",
         "key": "jwt_token"
       },
       {
-        "description": {
-          "content": "Current user ID",
-          "type": "text/plain"
-        },
         "type": "string",
-        "value": "",
-        "key": "user_id"
-      },
-      {
-        "description": {
-          "content": "Current business profile ID",
-          "type": "text/plain"
-        },
-        "type": "string",
-        "value": "",
+        "value": "test-business-profile",
         "key": "business_profile_id"
-      },
-      {
-        "description": {
-          "content": "Doppler service token for fetching secrets",
-          "type": "text/plain"
-        },
-        "type": "string",
-        "value": "",
-        "key": "DOPPLER_TOKEN"
-      },
-      {
-        "description": {
-          "content": "Flag to prevent multiple Doppler API calls",
-          "type": "text/plain"
-        },
-        "type": "string",
-        "value": "false",
-        "key": "secrets_loaded"
       }
     ],
     "info": {
-      "_postman_id": "6118ce7e-d249-4a28-9d42-4ea6f8a65a30",
-      "name": "ruleIQ API with Doppler Integration",
+      "_postman_id": "6ceb5ff2-5282-4394-877d-3930be018bde",
+      "name": "ruleIQ API Fixed Collection",
       "version": {
-        "raw": "2.0.0-doppler",
+        "raw": "2.0.1-fixed",
         "major": 2,
         "minor": 0,
-        "patch": 0,
-        "prerelease": "doppler",
+        "patch": 1,
+        "prerelease": "fixed",
         "build": [],
-        "string": "2.0.0-doppler"
+        "string": "2.0.1-fixed"
       },
-      "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-      "description": {
-        "content": "Complete API collection for ruleIQ with Doppler secret management integration.\n\n## 🔐 Doppler Integration\nThis collection is designed to work with Doppler for secure secret management:\n\n1. **Setup Doppler Environment Variables:**\n   - Set `DOPPLER_TOKEN` in your Postman environment\n   - Or use `doppler run -- newman run collection.json`\n\n2. **Pre-request Script Auto-loads Secrets:**\n   - JWT tokens, API keys, and database URLs from Doppler\n   - Automatic token refresh when expired\n   - Secure credential management\n\n## Authentication\n- Most endpoints require JWT Bearer token authentication\n- Tokens are automatically managed via Doppler integration\n- Rate limiting: General (100/min), AI (3-20/min), Auth (5/min)\n\n## Base URLs\n- Development: http://localhost:8000\n- Production: https://api.ruleiq.com",
-        "type": "text/plain"
-      }
+      "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
     }
   },
   "environment": {
-    "id": "6ab91fc8-17a8-435f-95aa-868b8b1645f8",
-    "values": []
+    "id": "ruleiq-doppler-env-with-secrets",
+    "name": "ruleIQ with Doppler Secrets (Full)",
+    "values": [
+      {
+        "type": "any",
+        "value": "http://localhost:8000",
+        "key": "base_url"
+      },
+      {
+        "type": "any",
+        "value": "test@ruleiq.dev",
+        "key": "test_user_email"
+      },
+      {
+        "type": "any",
+        "value": "TestPassword123!",
+        "key": "test_user_password"
+      },
+      {
+        "type": "any",
+        "value": "AIzaSyAp13qdjwpFbqi85X2uK5K2exj7tX6I5eE",
+        "key": "google_api_key"
+      },
+      {
+        "type": "any",
+        "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI0MWIxOTMwZC05YzI0LTQwZWItYmE3Ny02YzViNTA4YjNiNDEiLCJleHAiOjE3NTU5MzkwNzIsInR5cGUiOiJhY2Nlc3MiLCJpYXQiOjE3NTU5MzcyNzJ9.y7sxJ4unHVaIebledN2-Q27is4nn7w7nS6FGxkkxbFQ",
+        "key": "jwt_token"
+      }
+    ]
   },
   "globals": {
-    "id": "e025f1fa-f557-4559-8f04-6f99ad29f079",
+    "id": "de9438d1-753b-484a-affb-4a396681014c",
     "values": []
   },
   "run": {
@@ -348,7 +203,7 @@
         "failed": 0
       },
       "scripts": {
-        "total": 4,
+        "total": 1,
         "pending": 0,
         "failed": 0
       },
@@ -368,7 +223,7 @@
         "failed": 0
       },
       "assertions": {
-        "total": 1,
+        "total": 0,
         "pending": 0,
         "failed": 0
       },
@@ -378,16 +233,16 @@
         "failed": 0
       },
       "prerequestScripts": {
-        "total": 3,
+        "total": 0,
         "pending": 0,
         "failed": 0
       }
     },
     "timings": {
-      "responseAverage": 192.5,
-      "responseMin": 9,
-      "responseMax": 376,
-      "responseSd": 183.5,
+      "responseAverage": 1155.5,
+      "responseMin": 640,
+      "responseMax": 1671,
+      "responseSd": 515.5,
       "dnsAverage": 0,
       "dnsMin": 0,
       "dnsMax": 0,
@@ -396,8 +251,8 @@
       "firstByteMin": 0,
       "firstByteMax": 0,
       "firstByteSd": 0,
-      "started": 1755879577547,
-      "completed": 1755879577986
+      "started": 1755937271597,
+      "completed": 1755937274172
     },
     "executions": [
       {
@@ -410,17 +265,13 @@
           "eof": false,
           "bof": true,
           "cr": false,
-          "ref": "5debf392-ab2c-4f92-b8c8-a35d9890dcf5",
-          "httpRequestId": "2f60b419-e839-4f74-8df4-57839e88cc1a"
+          "ref": "4f30857f-e08a-4962-a525-86ecea96ad87",
+          "httpRequestId": "72ee1446-13fe-424c-89b8-0c996570464d"
         },
         "item": {
-          "id": "4d0c34f5-a515-4d2e-8203-d3fd6bd0dea6",
-          "name": "Login with Doppler Credentials",
+          "id": "d1fd7229-8e0d-4d1c-bbc4-72ddb60e5efc",
+          "name": "Login",
           "request": {
-            "description": {
-              "content": "🔐 **Doppler-Integrated Login**\n\nAuthenticate using credentials stored in Doppler:\n- Username: Loaded from `TEST_USER_EMAIL`\n- Password: Loaded from `TEST_USER_PASSWORD`\n\nAutomatically saves JWT token and user details to environment variables for use in other requests.",
-              "type": "text/plain"
-            },
             "url": {
               "path": [
                 "api",
@@ -445,18 +296,10 @@
               "mode": "urlencoded",
               "urlencoded": [
                 {
-                  "description": {
-                    "content": "Loaded from Doppler TEST_USER_EMAIL",
-                    "type": "text/plain"
-                  },
                   "key": "username",
                   "value": "{{test_user_email}}"
                 },
                 {
-                  "description": {
-                    "content": "Loaded from Doppler TEST_USER_PASSWORD",
-                    "type": "text/plain"
-                  },
                   "key": "password",
                   "value": "{{test_user_password}}"
                 }
@@ -468,46 +311,23 @@
             {
               "listen": "test",
               "script": {
-                "id": "77bd94c3-3c46-4dfc-80aa-31db3e78c267",
+                "id": "c256c698-92f2-4a4d-af8f-ad1911fe3df7",
                 "type": "text/javascript",
                 "exec": [
-                  "// Auto-save JWT token and user details",
                   "if (pm.response.code === 200) {",
                   "    const responseJson = pm.response.json();",
-                  "    ",
                   "    if (responseJson.access_token) {",
                   "        pm.environment.set('jwt_token', responseJson.access_token);",
                   "        console.log('✅ JWT token saved to environment');",
                   "    }",
-                  "    ",
-                  "    if (responseJson.user_id) {",
-                  "        pm.environment.set('user_id', responseJson.user_id);",
-                  "    }",
-                  "    ",
-                  "    if (responseJson.business_profile_id) {",
-                  "        pm.environment.set('business_profile_id', responseJson.business_profile_id);",
-                  "    }",
-                  "    ",
-                  "    pm.test('Login successful', function () {",
-                  "        pm.response.to.have.status(200);",
-                  "        pm.expect(responseJson).to.have.property('access_token');",
-                  "    });",
-                  "} else {",
-                  "    pm.test('Login failed', function () {",
-                  "        pm.response.to.not.have.status(200);",
-                  "    });",
                   "}"
                 ],
-                "_lastExecutionId": "7f3c2851-1338-467e-95bc-098868215a1d"
+                "_lastExecutionId": "9c2e4977-ba04-4a67-aa67-5433fedcd35f"
               }
             }
           ]
         },
         "request": {
-          "description": {
-            "content": "🔐 **Doppler-Integrated Login**\n\nAuthenticate using credentials stored in Doppler:\n- Username: Loaded from `TEST_USER_EMAIL`\n- Password: Loaded from `TEST_USER_PASSWORD`\n\nAutomatically saves JWT token and user details to environment variables for use in other requests.",
-            "type": "text/plain"
-          },
           "url": {
             "protocol": "http",
             "port": "8000",
@@ -545,7 +365,7 @@
             },
             {
               "key": "Postman-Token",
-              "value": "e3368421-8d2c-4be4-9814-dc6526e261be",
+              "value": "0ca8fc2d-e9ed-4eb2-859d-a56a9888540c",
               "system": true
             },
             {
@@ -565,7 +385,7 @@
             },
             {
               "key": "Content-Length",
-              "value": "76",
+              "value": "54",
               "system": true
             }
           ],
@@ -574,20 +394,12 @@
             "mode": "urlencoded",
             "urlencoded": [
               {
-                "description": {
-                  "content": "Loaded from Doppler TEST_USER_EMAIL",
-                  "type": "text/plain"
-                },
                 "key": "username",
-                "value": "{{test_user_email}}"
+                "value": "test@ruleiq.dev"
               },
               {
-                "description": {
-                  "content": "Loaded from Doppler TEST_USER_PASSWORD",
-                  "type": "text/plain"
-                },
                 "key": "password",
-                "value": "{{test_user_password}}"
+                "value": "TestPassword123!"
               }
             ]
           },
@@ -603,25 +415,21 @@
           }
         },
         "response": {
-          "id": "37df747e-481b-4f3b-8db9-a124335dedb2",
-          "status": "Unauthorized",
-          "code": 401,
+          "id": "4263551e-3d37-4b6a-8a4d-a71eb4cc0399",
+          "status": "OK",
+          "code": 200,
           "header": [
             {
               "key": "date",
-              "value": "Fri, 22 Aug 2025 16:19:37 GMT"
+              "value": "Sat, 23 Aug 2025 08:21:11 GMT"
             },
             {
               "key": "server",
               "value": "uvicorn"
             },
             {
-              "key": "www-authenticate",
-              "value": "Bearer"
-            },
-            {
               "key": "content-length",
-              "value": "40"
+              "value": "480"
             },
             {
               "key": "content-type",
@@ -629,11 +437,11 @@
             },
             {
               "key": "x-request-id",
-              "value": "3e2ba7e8-bdc2-474e-bb03-b8e27a7b7b5d"
+              "value": "24d35739-07d1-4da0-bd30-aec8deed29b4"
             },
             {
               "key": "x-process-time",
-              "value": "0.3481926918029785"
+              "value": "0.6055862903594971"
             },
             {
               "key": "x-content-type-options",
@@ -669,81 +477,512 @@
             "data": [
               123,
               34,
-              100,
-              101,
-              116,
               97,
-              105,
-              108,
+              99,
+              99,
+              101,
+              115,
+              115,
+              95,
+              116,
+              111,
+              107,
+              101,
+              110,
               34,
               58,
               34,
+              101,
+              121,
+              74,
+              104,
+              98,
+              71,
+              99,
+              105,
+              79,
+              105,
+              74,
+              73,
+              85,
+              122,
+              73,
+              49,
+              78,
+              105,
+              73,
+              115,
               73,
               110,
+              82,
+              53,
               99,
-              111,
-              114,
-              114,
-              101,
-              99,
-              116,
-              32,
-              101,
-              109,
-              97,
-              105,
-              108,
-              32,
-              111,
-              114,
-              32,
+              67,
+              73,
+              54,
+              73,
+              107,
               112,
-              97,
-              115,
-              115,
-              119,
-              111,
-              114,
+              88,
+              86,
+              67,
+              74,
+              57,
+              46,
+              101,
+              121,
+              74,
+              122,
               100,
+              87,
+              73,
+              105,
+              79,
+              105,
+              73,
+              48,
+              77,
+              87,
+              73,
+              120,
+              79,
+              84,
+              77,
+              119,
+              90,
+              67,
+              48,
+              53,
+              89,
+              122,
+              73,
+              48,
+              76,
+              84,
+              81,
+              119,
+              90,
+              87,
+              73,
+              116,
+              89,
+              109,
+              69,
+              51,
+              78,
+              121,
+              48,
+              50,
+              89,
+              122,
+              86,
+              105,
+              78,
+              84,
+              65,
+              52,
+              89,
+              106,
+              78,
+              105,
+              78,
+              68,
+              69,
+              105,
+              76,
+              67,
+              74,
+              108,
+              101,
+              72,
+              65,
+              105,
+              79,
+              106,
+              69,
+              51,
+              78,
+              84,
+              85,
+              53,
+              77,
+              122,
+              107,
+              119,
+              78,
+              122,
+              73,
+              115,
+              73,
+              110,
+              82,
+              53,
+              99,
+              71,
+              85,
+              105,
+              79,
+              105,
+              74,
+              104,
+              89,
+              50,
+              78,
+              108,
+              99,
+              51,
+              77,
+              105,
+              76,
+              67,
+              74,
+              112,
+              89,
+              88,
+              81,
+              105,
+              79,
+              106,
+              69,
+              51,
+              78,
+              84,
+              85,
+              53,
+              77,
+              122,
+              99,
+              121,
+              78,
+              122,
+              74,
+              57,
+              46,
+              121,
+              55,
+              115,
+              120,
+              74,
+              52,
+              117,
+              110,
+              72,
+              86,
+              97,
+              73,
+              101,
+              98,
+              108,
+              101,
+              100,
+              78,
+              50,
+              45,
+              81,
+              50,
+              55,
+              105,
+              115,
+              52,
+              110,
+              110,
+              55,
+              119,
+              55,
+              110,
+              83,
+              54,
+              70,
+              71,
+              120,
+              107,
+              107,
+              120,
+              98,
+              70,
+              81,
+              34,
+              44,
+              34,
+              114,
+              101,
+              102,
+              114,
+              101,
+              115,
+              104,
+              95,
+              116,
+              111,
+              107,
+              101,
+              110,
+              34,
+              58,
+              34,
+              101,
+              121,
+              74,
+              104,
+              98,
+              71,
+              99,
+              105,
+              79,
+              105,
+              74,
+              73,
+              85,
+              122,
+              73,
+              49,
+              78,
+              105,
+              73,
+              115,
+              73,
+              110,
+              82,
+              53,
+              99,
+              67,
+              73,
+              54,
+              73,
+              107,
+              112,
+              88,
+              86,
+              67,
+              74,
+              57,
+              46,
+              101,
+              121,
+              74,
+              122,
+              100,
+              87,
+              73,
+              105,
+              79,
+              105,
+              73,
+              48,
+              77,
+              87,
+              73,
+              120,
+              79,
+              84,
+              77,
+              119,
+              90,
+              67,
+              48,
+              53,
+              89,
+              122,
+              73,
+              48,
+              76,
+              84,
+              81,
+              119,
+              90,
+              87,
+              73,
+              116,
+              89,
+              109,
+              69,
+              51,
+              78,
+              121,
+              48,
+              50,
+              89,
+              122,
+              86,
+              105,
+              78,
+              84,
+              65,
+              52,
+              89,
+              106,
+              78,
+              105,
+              78,
+              68,
+              69,
+              105,
+              76,
+              67,
+              74,
+              108,
+              101,
+              72,
+              65,
+              105,
+              79,
+              106,
+              69,
+              51,
+              78,
+              84,
+              89,
+              49,
+              78,
+              68,
+              73,
+              119,
+              78,
+              122,
+              73,
+              115,
+              73,
+              110,
+              82,
+              53,
+              99,
+              71,
+              85,
+              105,
+              79,
+              105,
+              74,
+              121,
+              90,
+              87,
+              90,
+              121,
+              90,
+              88,
+              78,
+              111,
+              73,
+              105,
+              119,
+              105,
+              97,
+              87,
+              70,
+              48,
+              73,
+              106,
+              111,
+              120,
+              78,
+              122,
+              85,
+              49,
+              79,
+              84,
+              77,
+              51,
+              77,
+              106,
+              99,
+              121,
+              102,
+              81,
+              46,
+              82,
+              57,
+              87,
+              108,
+              111,
+              57,
+              108,
+              107,
+              107,
+              97,
+              53,
+              84,
+              113,
+              108,
+              89,
+              98,
+              83,
+              88,
+              71,
+              95,
+              95,
+              88,
+              51,
+              68,
+              119,
+              109,
+              108,
+              102,
+              73,
+              115,
+              102,
+              88,
+              74,
+              99,
+              51,
+              115,
+              57,
+              74,
+              103,
+              82,
+              107,
+              99,
+              103,
+              34,
+              44,
+              34,
+              116,
+              111,
+              107,
+              101,
+              110,
+              95,
+              116,
+              121,
+              112,
+              101,
+              34,
+              58,
+              34,
+              98,
+              101,
+              97,
+              114,
+              101,
+              114,
               34,
               125
             ]
           },
           "cookie": [],
-          "responseTime": 376,
-          "responseSize": 40
+          "responseTime": 640,
+          "responseSize": 480
         },
-        "id": "4d0c34f5-a515-4d2e-8203-d3fd6bd0dea6",
-        "assertions": [
-          {
-            "assertion": "Login failed",
-            "skipped": false
-          }
-        ]
+        "id": "d1fd7229-8e0d-4d1c-bbc4-72ddb60e5efc"
       },
       {
         "cursor": {
-          "ref": "bcb871f7-36ee-4140-896d-fee13418b1a5",
+          "ref": "b56aafa5-9acf-4b00-9732-9175ca2fd99c",
           "length": 2,
           "cycles": 1,
           "position": 1,
           "iteration": 0,
-          "httpRequestId": "378e2b24-cd68-481e-a91c-c5cb3857fa4b"
+          "httpRequestId": "07b981ae-423c-4d5e-8c27-003b298f8f88"
         },
         "item": {
-          "id": "d9610879-f1f1-43d0-8fd8-f4eb2c08c54e",
-          "name": "Stream AI Analysis (with API Key)",
+          "id": "26255f9a-9a78-458d-bdc8-c4f2c7e9f5bc",
+          "name": "Stream AI Analysis (Fixed)",
           "request": {
-            "description": {
-              "content": "🔐 **AI Analysis with Doppler Integration**\n\nStreams AI-powered compliance analysis using:\n- Google API key from Doppler secrets\n- Automatic fallback handling\n- Circuit breaker protection\n\nThis endpoint uses the Google Gemini API key stored securely in Doppler.",
-              "type": "text/plain"
-            },
             "url": {
               "path": [
                 "api",
                 "v1",
                 "ai-assessments",
-                "analyze-stream"
+                "analysis",
+                "stream"
               ],
               "host": [
                 "{{base_url}}"
@@ -764,34 +1003,13 @@
             "method": "POST",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"assessment_responses\": [\n    {\n      \"question_id\": \"gdpr_data_collection\",\n      \"answer\": \"yes\",\n      \"evidence\": \"We collect email addresses and company details for service delivery\"\n    }\n  ],\n  \"framework\": \"gdpr\",\n  \"session_id\": \"{{$guid}}\"\n}"
+              "raw": "{\n  \"assessment_results\": {\n    \"gdpr_data_collection\": {\n      \"answer\": \"yes\",\n      \"evidence\": \"We collect email addresses and company details for service delivery\"\n    }\n  },\n  \"framework_id\": \"gdpr\",\n  \"business_profile_id\": \"{{business_profile_id}}\"\n}"
             }
           },
           "response": [],
-          "event": [
-            {
-              "listen": "prerequest",
-              "script": {
-                "id": "639c99f9-ac36-4efc-86ad-6b453a311c95",
-                "type": "text/javascript",
-                "exec": [
-                  "// Verify we have Google API key from Doppler",
-                  "const apiKey = pm.environment.get('google_api_key');",
-                  "if (!apiKey) {",
-                  "    console.error('❌ Google API key not found in environment');",
-                  "    console.log('💡 Ensure GOOGLE_API_KEY is set in Doppler');",
-                  "}"
-                ],
-                "_lastExecutionId": "de2e65ef-3f34-4c67-8422-aff6781dbf21"
-              }
-            }
-          ]
+          "event": []
         },
         "request": {
-          "description": {
-            "content": "🔐 **AI Analysis with Doppler Integration**\n\nStreams AI-powered compliance analysis using:\n- Google API key from Doppler secrets\n- Automatic fallback handling\n- Circuit breaker protection\n\nThis endpoint uses the Google Gemini API key stored securely in Doppler.",
-            "type": "text/plain"
-          },
           "url": {
             "protocol": "http",
             "port": "8000",
@@ -799,7 +1017,8 @@
               "api",
               "v1",
               "ai-assessments",
-              "analyze-stream"
+              "analysis",
+              "stream"
             ],
             "host": [
               "localhost"
@@ -817,6 +1036,11 @@
               "value": "text/event-stream"
             },
             {
+              "key": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI0MWIxOTMwZC05YzI0LTQwZWItYmE3Ny02YzViNTA4YjNiNDEiLCJleHAiOjE3NTU5MzkwNzIsInR5cGUiOiJhY2Nlc3MiLCJpYXQiOjE3NTU5MzcyNzJ9.y7sxJ4unHVaIebledN2-Q27is4nn7w7nS6FGxkkxbFQ",
+              "system": true
+            },
+            {
               "key": "User-Agent",
               "value": "PostmanRuntime/7.39.1",
               "system": true
@@ -828,7 +1052,7 @@
             },
             {
               "key": "Postman-Token",
-              "value": "e3001b20-fb7b-4bcc-8f55-a123afd510b2",
+              "value": "e142aee6-3373-4a38-af4c-da5b9bd241e8",
               "system": true
             },
             {
@@ -848,54 +1072,62 @@
             },
             {
               "key": "Content-Length",
-              "value": "282",
+              "value": "256",
               "system": true
             }
           ],
           "method": "POST",
           "body": {
             "mode": "raw",
-            "raw": "{\n  \"assessment_responses\": [\n    {\n      \"question_id\": \"gdpr_data_collection\",\n      \"answer\": \"yes\",\n      \"evidence\": \"We collect email addresses and company details for service delivery\"\n    }\n  ],\n  \"framework\": \"gdpr\",\n  \"session_id\": \"5b9cb0f8-824f-4a42-bc3d-b320a33aaa22\"\n}"
+            "raw": "{\n  \"assessment_results\": {\n    \"gdpr_data_collection\": {\n      \"answer\": \"yes\",\n      \"evidence\": \"We collect email addresses and company details for service delivery\"\n    }\n  },\n  \"framework_id\": \"gdpr\",\n  \"business_profile_id\": \"test-business-profile\"\n}"
           },
           "auth": {
             "type": "bearer",
             "bearer": [
               {
                 "type": "string",
-                "value": "",
+                "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI0MWIxOTMwZC05YzI0LTQwZWItYmE3Ny02YzViNTA4YjNiNDEiLCJleHAiOjE3NTU5MzkwNzIsInR5cGUiOiJhY2Nlc3MiLCJpYXQiOjE3NTU5MzcyNzJ9.y7sxJ4unHVaIebledN2-Q27is4nn7w7nS6FGxkkxbFQ",
                 "key": "token"
               }
             ]
           }
         },
         "response": {
-          "id": "fccdf46c-8ec1-48a2-ae05-368aa7a86e68",
-          "status": "Not Found",
-          "code": 404,
+          "id": "d5a15bed-5245-4e10-8a5c-19c8a214a7ee",
+          "status": "OK",
+          "code": 200,
           "header": [
             {
               "key": "date",
-              "value": "Fri, 22 Aug 2025 16:19:37 GMT"
+              "value": "Sat, 23 Aug 2025 08:21:11 GMT"
             },
             {
               "key": "server",
               "value": "uvicorn"
             },
             {
-              "key": "content-length",
-              "value": "22"
+              "key": "cache-control",
+              "value": "no-cache"
+            },
+            {
+              "key": "connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "x-accel-buffering",
+              "value": "no"
             },
             {
               "key": "content-type",
-              "value": "application/json"
+              "value": "text/event-stream; charset=utf-8"
             },
             {
               "key": "x-request-id",
-              "value": "97fa56d1-0a21-4a04-8571-602dc4d5d2a8"
+              "value": "13f16061-b23b-4a4a-9807-2febc603cbd3"
             },
             {
               "key": "x-process-time",
-              "value": "0.006197690963745117"
+              "value": "0.49877429008483887"
             },
             {
               "key": "x-content-type-options",
@@ -924,44 +1156,178 @@
             {
               "key": "permissions-policy",
               "value": "geolocation=(), microphone=(), camera=()"
+            },
+            {
+              "key": "transfer-encoding",
+              "value": "chunked"
             }
           ],
           "stream": {
             "type": "Buffer",
             "data": [
-              123,
-              34,
               100,
-              101,
+              97,
               116,
               97,
+              58,
+              32,
+              123,
+              34,
+              99,
+              104,
+              117,
+              110,
+              107,
+              95,
               105,
-              108,
+              100,
               34,
               58,
               34,
-              78,
+              101,
+              114,
+              114,
               111,
+              114,
+              34,
+              44,
+              34,
+              99,
+              111,
+              110,
+              116,
+              101,
+              110,
+              116,
+              34,
+              58,
+              34,
+              85,
+              110,
+              97,
+              98,
+              108,
+              101,
+              32,
+              116,
+              111,
+              32,
+              97,
+              110,
+              97,
+              108,
+              121,
+              122,
+              101,
+              32,
+              97,
+              115,
+              115,
+              101,
+              115,
+              115,
+              109,
+              101,
+              110,
               116,
               32,
-              70,
-              111,
+              114,
+              101,
+              115,
+              117,
+              108,
+              116,
+              115,
+              32,
+              97,
+              116,
+              32,
+              116,
+              104,
+              105,
+              115,
+              32,
+              116,
+              105,
+              109,
+              101,
+              34,
+              44,
+              34,
+              99,
+              104,
               117,
               110,
-              100,
+              107,
+              95,
+              116,
+              121,
+              112,
+              101,
               34,
-              125
+              58,
+              34,
+              101,
+              114,
+              114,
+              111,
+              114,
+              34,
+              44,
+              34,
+              116,
+              105,
+              109,
+              101,
+              115,
+              116,
+              97,
+              109,
+              112,
+              34,
+              58,
+              34,
+              50,
+              48,
+              50,
+              53,
+              45,
+              48,
+              56,
+              45,
+              50,
+              51,
+              84,
+              48,
+              56,
+              58,
+              50,
+              49,
+              58,
+              49,
+              51,
+              46,
+              56,
+              50,
+              55,
+              50,
+              56,
+              49,
+              34,
+              125,
+              10,
+              10
             ]
           },
           "cookie": [],
-          "responseTime": 9,
-          "responseSize": 22
+          "responseTime": 1671,
+          "responseSize": 152
         },
-        "id": "d9610879-f1f1-43d0-8fd8-f4eb2c08c54e"
+        "id": "26255f9a-9a78-458d-bdc8-c4f2c7e9f5bc"
       }
     ],
     "transfers": {
-      "responseTotal": 62
+      "responseTotal": 632
     },
     "failures": [],
     "error": null

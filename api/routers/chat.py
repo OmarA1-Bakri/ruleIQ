@@ -726,16 +726,20 @@ async def get_smart_compliance_guidance(
         raise HTTPException(status_code=500, detail="Failed to get smart compliance guidance")
 
 
-@router.get("/cache/metrics")
-async def get_ai_cache_metrics(current_user: User = Depends(get_current_active_user)):
-    """
-    Get AI response cache performance metrics including:
-    - Cache hit rate and performance statistics
-    - Cost savings estimates
-    - Cache size and efficiency metrics
-    """
-    try:
-        from services.ai.response_cache import get_ai_cache
+# REMOVED: Duplicate endpoint
+# REMOVED: Duplicate endpoint
+# # @router.get("/cache/metrics")
+# # async def get_ai_cache_metrics(current_user: User = Depends(get_current_active_user)):
+# #     """
+# #     Get AI response cache performance metrics including:
+# #     - Cache hit rate and performance statistics
+# #     - Cost savings estimates
+# #     - Cache size and efficiency metrics
+# #     """
+# #     try:
+# #         from services.ai.response_cache import get_ai_cache
+# #
+#
 
         ai_cache = await get_ai_cache()
         metrics = await ai_cache.get_cache_metrics()
@@ -1184,13 +1188,17 @@ async def update_evidence_task_status(
         raise HTTPException(status_code=500, detail="Failed to update task status")
 
 
-@router.get("/quality/trends")
-async def get_quality_trends(
-    days: int = Query(default=30, description="Number of days to analyze"),
-    current_user: User = Depends(get_current_active_user),
-):
-    """
-    Get AI response quality trends and analytics.
+# REMOVED: Duplicate endpoint
+# REMOVED: Duplicate endpoint
+# # @router.get("/quality/trends")
+# # async def get_quality_trends(
+# #     days: int = Query(default=30, description="Number of days to analyze"),
+# #     current_user: User = Depends(get_current_active_user),
+# # ):
+# #     """
+# #     Get AI response quality trends and analytics.
+# #
+#
 
     Provides insights into:
     - Overall quality score trends

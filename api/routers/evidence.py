@@ -262,7 +262,7 @@ async def identify_evidence_requirements(
     return {"requirements": requirements}
 
 
-@router.get("/{evidence_id}", response_model=EvidenceResponse)
+@router.get("/{id}", response_model=EvidenceResponse)
 async def get_evidence_details(
     evidence_id: UUID,
     db: AsyncSession = Depends(get_async_db),
@@ -282,7 +282,7 @@ async def get_evidence_details(
     return EvidenceService._convert_evidence_item_to_response(evidence)
 
 
-@router.put("/{evidence_id}", response_model=EvidenceResponse)
+@router.put("/{id}", response_model=EvidenceResponse)
 async def update_evidence_item(
     evidence_id: UUID,
     evidence_update: EvidenceUpdate,
@@ -308,7 +308,7 @@ async def update_evidence_item(
     return EvidenceService._convert_evidence_item_to_response(evidence)
 
 
-@router.patch("/{evidence_id}", response_model=EvidenceResponse)
+@router.patch("/{id}", response_model=EvidenceResponse)
 async def update_evidence_status(
     evidence_id: UUID,
     evidence_update: EvidenceUpdate,
@@ -334,7 +334,7 @@ async def update_evidence_status(
     return EvidenceService._convert_evidence_item_to_response(evidence)
 
 
-@router.delete("/{evidence_id}", status_code=204)
+@router.delete("/{id}", status_code=204)
 async def delete_evidence_item(
     evidence_id: UUID,
     db: AsyncSession = Depends(get_async_db),
@@ -373,7 +373,7 @@ async def bulk_update_evidence_status(
     )
 
 
-@router.post("/{evidence_id}/automation", response_model=EvidenceAutomationResponse)
+@router.post("/{id}/automation", response_model=EvidenceAutomationResponse)
 async def configure_evidence_automation(
     evidence_id: UUID,
     automation_config: dict,
@@ -400,7 +400,7 @@ async def configure_evidence_automation(
     }
 
 
-@router.post("/{evidence_id}/upload", response_model=EvidenceResponse)
+@router.post("/{id}/upload", response_model=EvidenceResponse)
 async def upload_evidence_file_route(
     evidence_id: UUID,
     file: UploadFile = File(...),
@@ -442,7 +442,7 @@ async def upload_evidence_file_route(
     # Create secure file path
     from api.dependencies.file import get_safe_upload_path
 
-    secure_path = get_safe_upload_path(f"{evidence_id}_{validated_file.filename}")
+    secure_path = get_safe_upload_path(f"{id}_{validated_file.filename}")
 
     # Save file securely
     file_content = await validated_file.read()
@@ -510,7 +510,7 @@ async def get_evidence_dashboard(
 # AI Classification Endpoints
 
 
-@router.post("/{evidence_id}/classify", response_model=EvidenceClassificationResponse)
+@router.post("/{id}/classify", response_model=EvidenceClassificationResponse)
 async def classify_evidence_with_ai(
     evidence_id: UUID,
     request: EvidenceClassificationRequest,
@@ -570,7 +570,7 @@ async def classify_evidence_with_ai(
         # Re-raise HTTP exceptions (like 404) without modification
         raise
     except Exception as e:
-        logger.error(f"Error classifying evidence {evidence_id}: {e}", exc_info=True)
+        logger.error(f"Error classifying evidence {id}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Classification failed")
 
 
@@ -687,7 +687,7 @@ async def bulk_classify_evidence(
         raise HTTPException(status_code=500, detail="Bulk classification failed")
 
 
-@router.post("/{evidence_id}/control-mapping", response_model=ControlMappingResponse)
+@router.post("/{id}/control-mapping", response_model=ControlMappingResponse)
 async def get_control_mapping_suggestions(
     evidence_id: UUID,
     request: ControlMappingRequest,
@@ -754,7 +754,7 @@ async def get_control_mapping_suggestions(
 
     except Exception as e:
         logger.error(
-            f"Error getting control mappings for evidence {evidence_id}: {e}", exc_info=True
+            f"Error getting control mappings for evidence {id}: {e}", exc_info=True
         )
         raise HTTPException(status_code=500, detail="Control mapping failed")
 
@@ -834,7 +834,7 @@ async def get_classification_statistics(
 # Quality Analysis Endpoints
 
 
-@router.get("/{evidence_id}/quality-analysis", response_model=QualityAnalysisResponse)
+@router.get("/{id}/quality-analysis", response_model=QualityAnalysisResponse)
 async def get_evidence_quality_analysis(
     evidence_id: UUID,
     db: AsyncSession = Depends(get_async_db),
@@ -901,11 +901,11 @@ async def get_evidence_quality_analysis(
         # Re-raise HTTP exceptions (like 404) without modification
         raise
     except Exception as e:
-        logger.error(f"Error analyzing evidence quality {evidence_id}: {e}", exc_info=True)
+        logger.error(f"Error analyzing evidence quality {id}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Quality analysis failed")
 
 
-@router.post("/{evidence_id}/duplicate-detection", response_model=DuplicateDetectionResponse)
+@router.post("/{id}/duplicate-detection", response_model=DuplicateDetectionResponse)
 async def detect_evidence_duplicates(
     evidence_id: UUID,
     request: DuplicateDetectionRequest,
@@ -952,7 +952,7 @@ async def detect_evidence_duplicates(
         )
 
     except Exception as e:
-        logger.error(f"Error detecting duplicates for evidence {evidence_id}: {e}", exc_info=True)
+        logger.error(f"Error detecting duplicates for evidence {id}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Duplicate detection failed")
 
 

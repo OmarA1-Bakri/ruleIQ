@@ -1,0 +1,790 @@
+{
+  "info": {
+    "name": "ruleIQ API Comprehensive Collection",
+    "version": "3.0.0-complete",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Complete API collection for ruleIQ with all 258 endpoints.\n\n## 🔐 Doppler Integration\nThis collection includes Doppler secret management integration:\n\n1. **Setup Doppler Environment Variables:**\n   - Set `DOPPLER_TOKEN` in your Postman environment\n   - Or use `doppler run -- newman run collection.json`\n\n2. **Pre-request Script Auto-loads Secrets:**\n   - JWT tokens, API keys, and database URLs from Doppler\n   - Automatic token refresh when expired\n   - Secure credential management\n\n## Coverage Statistics\n- Total Endpoints: 258\n- Authentication: 7 endpoints\n- AI Assessments: 16 endpoints\n- Evidence Management: 22 endpoints\n- Chat/AI Interactions: 28 endpoints\n- Admin Functions: 27+ endpoints\n- Performance Monitoring: 11 endpoints\n- Business Profiles: 7 endpoints\n- And 140+ additional endpoints across all modules\n\n## Base URLs\n- Development: http://localhost:8000\n- Production: https://api.ruleiq.com"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{jwt_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// 🔐 Doppler Integration - Auto-load secrets from environment",
+          "// This script runs before each request to ensure we have fresh credentials",
+          "",
+          "// Method 1: Use Doppler environment variables (when using doppler run)",
+          "if (typeof process !== 'undefined' && process.env) {",
+          "    console.log('🔐 Loading secrets from Doppler environment...');",
+          "    ",
+          "    // Set API credentials from Doppler (using correct Doppler variable names)",
+          "    if (process.env.JWT_SECRET_KEY) {",
+          "        pm.environment.set('jwt_secret', process.env.JWT_SECRET_KEY);",
+          "    }",
+          "    // Note: Doppler uses GOOGLE_AI_API_KEY, not GOOGLE_API_KEY",
+          "    if (process.env.GOOGLE_AI_API_KEY) {",
+          "        pm.environment.set('google_api_key', process.env.GOOGLE_AI_API_KEY);",
+          "        console.log('✅ Google AI API key loaded from Doppler');",
+          "    } else if (process.env.GOOGLE_API_KEY) {",
+          "        pm.environment.set('google_api_key', process.env.GOOGLE_API_KEY);",
+          "    }",
+          "    if (process.env.DATABASE_URL) {",
+          "        pm.environment.set('database_url', process.env.DATABASE_URL);",
+          "    }",
+          "    if (process.env.REDIS_URL) {",
+          "        pm.environment.set('redis_url', process.env.REDIS_URL);",
+          "    }",
+          "}",
+          "",
+          "// Method 2: Fetch from Doppler API (requires DOPPLER_TOKEN)",
+          "const dopplerToken = pm.environment.get('DOPPLER_TOKEN');",
+          "if (dopplerToken && !pm.environment.get('secrets_loaded')) {",
+          "    console.log('🔐 Fetching secrets from Doppler API...');",
+          "    ",
+          "    pm.sendRequest({",
+          "        url: 'https://api.doppler.com/v3/configs/config/secrets',",
+          "        method: 'GET',",
+          "        header: {",
+          "            'Authorization': 'Bearer ' + dopplerToken,",
+          "            'Accept': 'application/json'",
+          "        }",
+          "    }, function (err, res) {",
+          "        if (!err && res.code === 200) {",
+          "            const secrets = res.json().secrets;",
+          "            console.log('✅ Loaded ' + Object.keys(secrets).length + ' secrets from Doppler');",
+          "            ",
+          "            // Set environment variables from Doppler secrets",
+          "            Object.keys(secrets).forEach(key => {",
+          "                pm.environment.set(key.toLowerCase(), secrets[key].computed);",
+          "            });",
+          "            ",
+          "            pm.environment.set('secrets_loaded', 'true');",
+          "        } else {",
+          "            console.warn('⚠️ Failed to load secrets from Doppler:', err || res.code);",
+          "        }",
+          "    });",
+          "}",
+          "",
+          "// Token validation and refresh logic",
+          "const currentToken = pm.environment.get('jwt_token');",
+          "if (currentToken) {",
+          "    try {",
+          "        const tokenPayload = JSON.parse(atob(currentToken.split('.')[1]));",
+          "        const now = Math.floor(Date.now() / 1000);",
+          "        ",
+          "        // Check if token expires in next 5 minutes",
+          "        if (tokenPayload.exp && tokenPayload.exp - now < 300) {",
+          "            console.log('🔄 JWT token expires soon, should refresh...');",
+          "            pm.environment.set('token_needs_refresh', 'true');",
+          "        }",
+          "    } catch (e) {",
+          "        console.warn('⚠️ Invalid JWT token format');",
+          "    }",
+          "}"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string",
+      "description": "API base URL - automatically loaded from Doppler"
+    },
+    {
+      "key": "jwt_token",
+      "value": "",
+      "type": "string",
+      "description": "JWT Bearer token - obtained via login endpoint"
+    },
+    {
+      "key": "user_id",
+      "value": "",
+      "type": "string",
+      "description": "Current user ID"
+    },
+    {
+      "key": "business_profile_id",
+      "value": "",
+      "type": "string",
+      "description": "Current business profile ID"
+    },
+    {
+      "key": "DOPPLER_TOKEN",
+      "value": "",
+      "type": "string",
+      "description": "Doppler service token for fetching secrets"
+    },
+    {
+      "key": "secrets_loaded",
+      "value": "false",
+      "type": "string",
+      "description": "Flag to prevent multiple Doppler API calls"
+    }
+  ],
+  "item": [
+    {
+      "name": "🔐 Authentication",
+      "description": "Complete authentication endpoints with JWT token management",
+      "item": [
+        {
+          "name": "Login with Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const responseJson = pm.response.json();",
+                  "    if (responseJson.access_token) {",
+                  "        pm.environment.set('jwt_token', responseJson.access_token);",
+                  "        console.log('✅ JWT token saved to environment');",
+                  "    }",
+                  "    if (responseJson.user_id) {",
+                  "        pm.environment.set('user_id', responseJson.user_id);",
+                  "    }",
+                  "    if (responseJson.business_profile_id) {",
+                  "        pm.environment.set('business_profile_id', responseJson.business_profile_id);",
+                  "    }",
+                  "    pm.test('Login successful', function () {",
+                  "        pm.response.to.have.status(200);",
+                  "        pm.expect(responseJson).to.have.property('access_token');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "username",
+                  "value": "{{test_user_email}}",
+                  "type": "text"
+                },
+                {
+                  "key": "password",
+                  "value": "{{test_user_password}}",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/token",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "token"]
+            }
+          }
+        },
+        {
+          "name": "Login Standard",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{test_user_email}}\",\n  \"password\": \"{{test_user_password}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"{{refresh_token}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/refresh",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "refresh"]
+            }
+          }
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/me",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "me"]
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/logout",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "logout"]
+            }
+          }
+        },
+        {
+          "name": "Assign Default Role",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": \"{{user_id}}\",\n  \"role\": \"user\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/assign-default-role",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "assign-default-role"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📋 Evidence Management",
+      "description": "Complete evidence collection and management system (22 endpoints)",
+      "item": [
+        {
+          "name": "Create Evidence",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Sample Evidence Item\",\n  \"description\": \"Evidence description\",\n  \"evidence_type\": \"document\",\n  \"framework_id\": \"gdpr\",\n  \"control_id\": \"control_1\",\n  \"status\": \"draft\",\n  \"content\": \"Evidence content details\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/evidence/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "evidence", ""]
+            }
+          }
+        },
+        {
+          "name": "List Evidence",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/evidence/?page=1&page_size=20",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "evidence", ""],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "page_size",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Evidence Statistics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/evidence/stats",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "evidence", "stats"]
+            }
+          }
+        },
+        {
+          "name": "Search Evidence",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/evidence/search?query=sample&framework_id=gdpr",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "evidence", "search"],
+              "query": [
+                {
+                  "key": "query",
+                  "value": "sample"
+                },
+                {
+                  "key": "framework_id",
+                  "value": "gdpr"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Validate Evidence",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"evidence_id\": \"{{evidence_id}}\",\n  \"validation_rules\": [\"completeness\", \"relevance\", \"authenticity\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/evidence/validate",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "evidence", "validate"]
+            }
+          }
+        },
+        {
+          "name": "Get Evidence Requirements",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/evidence/requirements?framework_id=gdpr",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "evidence", "requirements"],
+              "query": [
+                {
+                  "key": "framework_id",
+                  "value": "gdpr"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Evidence Requirements",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"framework_id\": \"gdpr\",\n  \"control_id\": \"control_1\",\n  \"requirements\": [\n    \"Privacy policy document\",\n    \"Data processing records\",\n    \"Consent management proof\"\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/evidence/requirements",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "evidence", "requirements"]
+            }
+          }
+        },
+        {
+          "name": "Get Evidence by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/evidence/{{evidence_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "evidence", "{{evidence_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Evidence",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated Evidence Title\",\n  \"description\": \"Updated description\",\n  \"status\": \"approved\",\n  \"content\": \"Updated evidence content\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/evidence/{{evidence_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "evidence", "{{evidence_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Patch Evidence",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"approved\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/evidence/{{evidence_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "evidence", "{{evidence_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Evidence",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/evidence/{{evidence_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "evidence", "{{evidence_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Bulk Update Evidence",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"evidence_ids\": [\"{{evidence_id}}\"],\n  \"updates\": {\n    \"status\": \"approved\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/evidence/bulk-update",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "evidence", "bulk-update"]
+            }
+          }
+        },
+        {
+          "name": "Evidence Automation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"automation_type\": \"collection\",\n  \"source\": \"aws\",\n  \"config\": {}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/evidence/{{evidence_id}}/automation",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "evidence", "{{evidence_id}}", "automation"]
+            }
+          }
+        },
+        {
+          "name": "Upload Evidence File",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": ""
+                },
+                {
+                  "key": "description",
+                  "value": "Uploaded evidence file",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/evidence/{{evidence_id}}/upload",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "evidence", "{{evidence_id}}", "upload"]
+            }
+          }
+        },
+        {
+          "name": "Evidence Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/evidence/dashboard/{{framework_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "evidence", "dashboard", "{{framework_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Classify Evidence",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"classification_rules\": [\"auto_categorize\", \"risk_assessment\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/evidence/{{evidence_id}}/classify",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "evidence", "{{evidence_id}}", "classify"]
+            }
+          }
+        },
+        {
+          "name": "Bulk Classify Evidence",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"evidence_ids\": [\"{{evidence_id}}\"],\n  \"classification_rules\": [\"auto_categorize\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/evidence/classify/bulk",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "evidence", "classify", "bulk"]
+            }
+          }
+        },
+        {
+          "name": "Evidence Control Mapping",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"framework_id\": \"gdpr\",\n  \"control_mapping_rules\": [\"auto_map\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/evidence/{{evidence_id}}/control-mapping",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "evidence", "{{evidence_id}}", "control-mapping"]
+            }
+          }
+        },
+        {
+          "name": "Classification Statistics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/evidence/classification/stats",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "evidence", "classification", "stats"]
+            }
+          }
+        },
+        {
+          "name": "Evidence Quality Analysis",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/evidence/{{evidence_id}}/quality-analysis",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "evidence", "{{evidence_id}}", "quality-analysis"]
+            }
+          }
+        },
+        {
+          "name": "Duplicate Detection",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"detection_algorithm\": \"similarity_hash\",\n  \"threshold\": 0.8\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/evidence/{{evidence_id}}/duplicate-detection",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "evidence", "{{evidence_id}}", "duplicate-detection"]
+            }
+          }
+        },
+        {
+          "name": "Batch Duplicate Detection",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"evidence_ids\": [\"{{evidence_id}}\"],\n  \"detection_algorithm\": \"similarity_hash\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/evidence/duplicate-detection/batch",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "evidence", "duplicate-detection", "batch"]
+            }
+          }
+        },
+        {
+          "name": "Quality Benchmark",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/evidence/quality/benchmark",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "evidence", "quality", "benchmark"]
+            }
+          }
+        },
+        {
+          "name": "Quality Trends",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/evidence/quality/trends",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "evidence", "quality", "trends"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🤖 AI Assessments",
+      "description": "Complete AI-powered assessment system (16 endpoints)",
+      "item": [
+        {
+          "name": "AI Help for Framework",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\\n  \\\"question\\\": \\\"How do I implement GDPR data protection?\\\",\\n  \\\"context\\\": {\\n    \\\"business_type\\\": \\\"saas\\\",\\n    \\\"data_processing\\\": \\\"user_profiles\\\"\\n  }\\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/ai-assessments/{{framework_id}}/help",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "ai-assessments", "{{framework_id}}", "help"]
+            }
+          }
+        },
+        {
+          "name": "AI Help Stream for Framework",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "text/event-stream"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "
+              "raw": "
+              "raw": "
+              "raw": "
+              "raw": "
+              "raw": "
+              "raw": "
+              "raw": "
+              "raw": "
+              "raw": "
+              "raw": "
+              "raw": "
+              "raw": "
+              "raw": "
+              "raw": "
+              "raw": "
+              "raw": "

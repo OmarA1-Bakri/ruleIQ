@@ -1,0 +1,1335 @@
+{
+  "collection": {
+    "item": [
+      {
+        "id": "da9a7ee9-eba0-4749-ba65-eb56204682bd",
+        "name": "🔐 Authentication",
+        "item": [
+          {
+            "id": "b073c3b7-cec0-4127-ab96-2490eeeead58",
+            "name": "Login",
+            "request": {
+              "url": {
+                "path": [
+                  "api",
+                  "v1",
+                  "auth",
+                  "token"
+                ],
+                "host": [
+                  "{{base_url}}"
+                ],
+                "query": [],
+                "variable": []
+              },
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/x-www-form-urlencoded"
+                }
+              ],
+              "method": "POST",
+              "body": {
+                "mode": "urlencoded",
+                "urlencoded": [
+                  {
+                    "key": "username",
+                    "value": "{{test_user_email}}"
+                  },
+                  {
+                    "key": "password",
+                    "value": "{{test_user_password}}"
+                  }
+                ]
+              }
+            },
+            "response": [],
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "id": "cd705c8a-0bf3-48dc-8d38-f1ec8dfe18d0",
+                  "type": "text/javascript",
+                  "exec": [
+                    "if (pm.response.code === 200) {",
+                    "    const responseJson = pm.response.json();",
+                    "    if (responseJson.access_token) {",
+                    "        pm.environment.set('jwt_token', responseJson.access_token);",
+                    "        console.log('✅ JWT token saved to environment');",
+                    "    }",
+                    "}"
+                  ],
+                  "_lastExecutionId": "3787ab95-73f3-4d44-a305-2e56d5629864"
+                }
+              }
+            ]
+          }
+        ],
+        "event": []
+      },
+      {
+        "id": "3aa58dba-c4b5-4ab6-a7b8-a532fc7e27cb",
+        "name": "🧠 AI Analysis",
+        "item": [
+          {
+            "id": "079e42c1-fa5c-47cb-a6d7-e80ad8181d5e",
+            "name": "Stream AI Analysis (Fixed)",
+            "request": {
+              "url": {
+                "path": [
+                  "api",
+                  "v1",
+                  "ai-assessments",
+                  "analysis",
+                  "stream"
+                ],
+                "host": [
+                  "{{base_url}}"
+                ],
+                "query": [],
+                "variable": []
+              },
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Accept",
+                  "value": "text/event-stream"
+                }
+              ],
+              "method": "POST",
+              "body": {
+                "mode": "raw",
+                "raw": "{\n  \"assessment_results\": {\n    \"gdpr_data_collection\": {\n      \"answer\": \"yes\",\n      \"evidence\": \"We collect email addresses and company details for service delivery\"\n    }\n  },\n  \"framework_id\": \"gdpr\",\n  \"business_profile_id\": \"{{business_profile_id}}\"\n}"
+              }
+            },
+            "response": [],
+            "event": []
+          }
+        ],
+        "event": []
+      }
+    ],
+    "auth": {
+      "type": "bearer",
+      "bearer": [
+        {
+          "type": "string",
+          "value": "{{jwt_token}}",
+          "key": "token"
+        }
+      ]
+    },
+    "event": [],
+    "variable": [
+      {
+        "type": "string",
+        "value": "http://localhost:8000",
+        "key": "base_url"
+      },
+      {
+        "type": "string",
+        "value": "",
+        "key": "jwt_token"
+      },
+      {
+        "type": "string",
+        "value": "test-business-profile",
+        "key": "business_profile_id"
+      }
+    ],
+    "info": {
+      "_postman_id": "95add72c-8591-421a-8c49-794097c4d46c",
+      "name": "ruleIQ API Fixed Collection",
+      "version": {
+        "raw": "2.0.1-fixed",
+        "major": 2,
+        "minor": 0,
+        "patch": 1,
+        "prerelease": "fixed",
+        "build": [],
+        "string": "2.0.1-fixed"
+      },
+      "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    }
+  },
+  "environment": {
+    "id": "ruleiq-doppler-env-with-secrets",
+    "name": "ruleIQ with Doppler Secrets (Full)",
+    "values": [
+      {
+        "type": "any",
+        "value": "http://localhost:8000",
+        "key": "base_url"
+      },
+      {
+        "type": "any",
+        "value": "test@ruleiq.dev",
+        "key": "test_user_email"
+      },
+      {
+        "type": "any",
+        "value": "TestPassword123!",
+        "key": "test_user_password"
+      },
+      {
+        "type": "any",
+        "value": "AIzaSyAp13qdjwpFbqi85X2uK5K2exj7tX6I5eE",
+        "key": "google_api_key"
+      },
+      {
+        "type": "any",
+        "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI0MWIxOTMwZC05YzI0LTQwZWItYmE3Ny02YzViNTA4YjNiNDEiLCJleHAiOjE3NTU5NDAxNDgsInR5cGUiOiJhY2Nlc3MiLCJpYXQiOjE3NTU5MzgzNDh9.iAoqj2FrDDW0-ckb6A74I_KKetm87MCH6astHxxk2aI",
+        "key": "jwt_token"
+      }
+    ]
+  },
+  "globals": {
+    "id": "d11ddf27-14ec-4ff8-9ffc-4f383f821148",
+    "values": []
+  },
+  "run": {
+    "stats": {
+      "iterations": {
+        "total": 1,
+        "pending": 0,
+        "failed": 0
+      },
+      "items": {
+        "total": 2,
+        "pending": 0,
+        "failed": 0
+      },
+      "scripts": {
+        "total": 1,
+        "pending": 0,
+        "failed": 0
+      },
+      "prerequests": {
+        "total": 2,
+        "pending": 0,
+        "failed": 0
+      },
+      "requests": {
+        "total": 2,
+        "pending": 0,
+        "failed": 0
+      },
+      "tests": {
+        "total": 2,
+        "pending": 0,
+        "failed": 0
+      },
+      "assertions": {
+        "total": 0,
+        "pending": 0,
+        "failed": 0
+      },
+      "testScripts": {
+        "total": 1,
+        "pending": 0,
+        "failed": 0
+      },
+      "prerequestScripts": {
+        "total": 0,
+        "pending": 0,
+        "failed": 0
+      }
+    },
+    "timings": {
+      "responseAverage": 1169.5,
+      "responseMin": 638,
+      "responseMax": 1701,
+      "responseSd": 531.5,
+      "dnsAverage": 0,
+      "dnsMin": 0,
+      "dnsMax": 0,
+      "dnsSd": 0,
+      "firstByteAverage": 0,
+      "firstByteMin": 0,
+      "firstByteMax": 0,
+      "firstByteSd": 0,
+      "started": 1755938347996,
+      "completed": 1755938350630
+    },
+    "executions": [
+      {
+        "cursor": {
+          "position": 0,
+          "iteration": 0,
+          "length": 2,
+          "cycles": 1,
+          "empty": false,
+          "eof": false,
+          "bof": true,
+          "cr": false,
+          "ref": "071a0ce4-d108-4932-aaa2-dc188ece638a",
+          "httpRequestId": "22e1d53d-2fa8-491c-90e2-22e8fd4ec813"
+        },
+        "item": {
+          "id": "b073c3b7-cec0-4127-ab96-2490eeeead58",
+          "name": "Login",
+          "request": {
+            "url": {
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "token"
+              ],
+              "host": [
+                "{{base_url}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "method": "POST",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "username",
+                  "value": "{{test_user_email}}"
+                },
+                {
+                  "key": "password",
+                  "value": "{{test_user_password}}"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "cd705c8a-0bf3-48dc-8d38-f1ec8dfe18d0",
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const responseJson = pm.response.json();",
+                  "    if (responseJson.access_token) {",
+                  "        pm.environment.set('jwt_token', responseJson.access_token);",
+                  "        console.log('✅ JWT token saved to environment');",
+                  "    }",
+                  "}"
+                ],
+                "_lastExecutionId": "3787ab95-73f3-4d44-a305-2e56d5629864"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "8000",
+            "path": [
+              "api",
+              "v1",
+              "auth",
+              "token"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/x-www-form-urlencoded"
+            },
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "01357884-c54e-4e56-9d69-22d1028ad43d",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:8000",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            },
+            {
+              "key": "Content-Length",
+              "value": "54",
+              "system": true
+            }
+          ],
+          "method": "POST",
+          "body": {
+            "mode": "urlencoded",
+            "urlencoded": [
+              {
+                "key": "username",
+                "value": "test@ruleiq.dev"
+              },
+              {
+                "key": "password",
+                "value": "TestPassword123!"
+              }
+            ]
+          },
+          "auth": {
+            "type": "bearer",
+            "bearer": [
+              {
+                "type": "string",
+                "value": "",
+                "key": "token"
+              }
+            ]
+          }
+        },
+        "response": {
+          "id": "594cc46b-d3dd-45d4-a5c9-1c4debb8d160",
+          "status": "OK",
+          "code": 200,
+          "header": [
+            {
+              "key": "date",
+              "value": "Sat, 23 Aug 2025 08:39:07 GMT"
+            },
+            {
+              "key": "server",
+              "value": "uvicorn"
+            },
+            {
+              "key": "content-length",
+              "value": "480"
+            },
+            {
+              "key": "content-type",
+              "value": "application/json"
+            },
+            {
+              "key": "x-request-id",
+              "value": "0c511d74-e4cc-4e11-90dc-1c5697d9d936"
+            },
+            {
+              "key": "x-process-time",
+              "value": "0.5974264144897461"
+            },
+            {
+              "key": "x-content-type-options",
+              "value": "nosniff"
+            },
+            {
+              "key": "x-frame-options",
+              "value": "DENY"
+            },
+            {
+              "key": "x-xss-protection",
+              "value": "1; mode=block"
+            },
+            {
+              "key": "strict-transport-security",
+              "value": "max-age=31536000; includeSubDomains"
+            },
+            {
+              "key": "content-security-policy",
+              "value": "default-src 'self'"
+            },
+            {
+              "key": "referrer-policy",
+              "value": "strict-origin-when-cross-origin"
+            },
+            {
+              "key": "permissions-policy",
+              "value": "geolocation=(), microphone=(), camera=()"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              97,
+              99,
+              99,
+              101,
+              115,
+              115,
+              95,
+              116,
+              111,
+              107,
+              101,
+              110,
+              34,
+              58,
+              34,
+              101,
+              121,
+              74,
+              104,
+              98,
+              71,
+              99,
+              105,
+              79,
+              105,
+              74,
+              73,
+              85,
+              122,
+              73,
+              49,
+              78,
+              105,
+              73,
+              115,
+              73,
+              110,
+              82,
+              53,
+              99,
+              67,
+              73,
+              54,
+              73,
+              107,
+              112,
+              88,
+              86,
+              67,
+              74,
+              57,
+              46,
+              101,
+              121,
+              74,
+              122,
+              100,
+              87,
+              73,
+              105,
+              79,
+              105,
+              73,
+              48,
+              77,
+              87,
+              73,
+              120,
+              79,
+              84,
+              77,
+              119,
+              90,
+              67,
+              48,
+              53,
+              89,
+              122,
+              73,
+              48,
+              76,
+              84,
+              81,
+              119,
+              90,
+              87,
+              73,
+              116,
+              89,
+              109,
+              69,
+              51,
+              78,
+              121,
+              48,
+              50,
+              89,
+              122,
+              86,
+              105,
+              78,
+              84,
+              65,
+              52,
+              89,
+              106,
+              78,
+              105,
+              78,
+              68,
+              69,
+              105,
+              76,
+              67,
+              74,
+              108,
+              101,
+              72,
+              65,
+              105,
+              79,
+              106,
+              69,
+              51,
+              78,
+              84,
+              85,
+              53,
+              78,
+              68,
+              65,
+              120,
+              78,
+              68,
+              103,
+              115,
+              73,
+              110,
+              82,
+              53,
+              99,
+              71,
+              85,
+              105,
+              79,
+              105,
+              74,
+              104,
+              89,
+              50,
+              78,
+              108,
+              99,
+              51,
+              77,
+              105,
+              76,
+              67,
+              74,
+              112,
+              89,
+              88,
+              81,
+              105,
+              79,
+              106,
+              69,
+              51,
+              78,
+              84,
+              85,
+              53,
+              77,
+              122,
+              103,
+              122,
+              78,
+              68,
+              104,
+              57,
+              46,
+              105,
+              65,
+              111,
+              113,
+              106,
+              50,
+              70,
+              114,
+              68,
+              68,
+              87,
+              48,
+              45,
+              99,
+              107,
+              98,
+              54,
+              65,
+              55,
+              52,
+              73,
+              95,
+              75,
+              75,
+              101,
+              116,
+              109,
+              56,
+              55,
+              77,
+              67,
+              72,
+              54,
+              97,
+              115,
+              116,
+              72,
+              120,
+              120,
+              107,
+              50,
+              97,
+              73,
+              34,
+              44,
+              34,
+              114,
+              101,
+              102,
+              114,
+              101,
+              115,
+              104,
+              95,
+              116,
+              111,
+              107,
+              101,
+              110,
+              34,
+              58,
+              34,
+              101,
+              121,
+              74,
+              104,
+              98,
+              71,
+              99,
+              105,
+              79,
+              105,
+              74,
+              73,
+              85,
+              122,
+              73,
+              49,
+              78,
+              105,
+              73,
+              115,
+              73,
+              110,
+              82,
+              53,
+              99,
+              67,
+              73,
+              54,
+              73,
+              107,
+              112,
+              88,
+              86,
+              67,
+              74,
+              57,
+              46,
+              101,
+              121,
+              74,
+              122,
+              100,
+              87,
+              73,
+              105,
+              79,
+              105,
+              73,
+              48,
+              77,
+              87,
+              73,
+              120,
+              79,
+              84,
+              77,
+              119,
+              90,
+              67,
+              48,
+              53,
+              89,
+              122,
+              73,
+              48,
+              76,
+              84,
+              81,
+              119,
+              90,
+              87,
+              73,
+              116,
+              89,
+              109,
+              69,
+              51,
+              78,
+              121,
+              48,
+              50,
+              89,
+              122,
+              86,
+              105,
+              78,
+              84,
+              65,
+              52,
+              89,
+              106,
+              78,
+              105,
+              78,
+              68,
+              69,
+              105,
+              76,
+              67,
+              74,
+              108,
+              101,
+              72,
+              65,
+              105,
+              79,
+              106,
+              69,
+              51,
+              78,
+              84,
+              89,
+              49,
+              78,
+              68,
+              77,
+              120,
+              78,
+              68,
+              103,
+              115,
+              73,
+              110,
+              82,
+              53,
+              99,
+              71,
+              85,
+              105,
+              79,
+              105,
+              74,
+              121,
+              90,
+              87,
+              90,
+              121,
+              90,
+              88,
+              78,
+              111,
+              73,
+              105,
+              119,
+              105,
+              97,
+              87,
+              70,
+              48,
+              73,
+              106,
+              111,
+              120,
+              78,
+              122,
+              85,
+              49,
+              79,
+              84,
+              77,
+              52,
+              77,
+              122,
+              81,
+              52,
+              102,
+              81,
+              46,
+              89,
+              121,
+              104,
+              95,
+              103,
+              80,
+              88,
+              88,
+              50,
+              52,
+              56,
+              118,
+              67,
+              84,
+              113,
+              76,
+              115,
+              76,
+              68,
+              105,
+              79,
+              70,
+              99,
+              114,
+              78,
+              77,
+              69,
+              75,
+              77,
+              98,
+              71,
+              111,
+              88,
+              48,
+              117,
+              98,
+              110,
+              87,
+              80,
+              105,
+              97,
+              54,
+              81,
+              34,
+              44,
+              34,
+              116,
+              111,
+              107,
+              101,
+              110,
+              95,
+              116,
+              121,
+              112,
+              101,
+              34,
+              58,
+              34,
+              98,
+              101,
+              97,
+              114,
+              101,
+              114,
+              34,
+              125
+            ]
+          },
+          "cookie": [],
+          "responseTime": 638,
+          "responseSize": 480
+        },
+        "id": "b073c3b7-cec0-4127-ab96-2490eeeead58"
+      },
+      {
+        "cursor": {
+          "ref": "198d77ab-d540-434f-bdbd-4902d1cad163",
+          "length": 2,
+          "cycles": 1,
+          "position": 1,
+          "iteration": 0,
+          "httpRequestId": "57131d46-cfbf-42d8-aa2d-4d64242a1c20"
+        },
+        "item": {
+          "id": "079e42c1-fa5c-47cb-a6d7-e80ad8181d5e",
+          "name": "Stream AI Analysis (Fixed)",
+          "request": {
+            "url": {
+              "path": [
+                "api",
+                "v1",
+                "ai-assessments",
+                "analysis",
+                "stream"
+              ],
+              "host": [
+                "{{base_url}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "text/event-stream"
+              }
+            ],
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"assessment_results\": {\n    \"gdpr_data_collection\": {\n      \"answer\": \"yes\",\n      \"evidence\": \"We collect email addresses and company details for service delivery\"\n    }\n  },\n  \"framework_id\": \"gdpr\",\n  \"business_profile_id\": \"{{business_profile_id}}\"\n}"
+            }
+          },
+          "response": [],
+          "event": []
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "8000",
+            "path": [
+              "api",
+              "v1",
+              "ai-assessments",
+              "analysis",
+              "stream"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "Accept",
+              "value": "text/event-stream"
+            },
+            {
+              "key": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI0MWIxOTMwZC05YzI0LTQwZWItYmE3Ny02YzViNTA4YjNiNDEiLCJleHAiOjE3NTU5NDAxNDgsInR5cGUiOiJhY2Nlc3MiLCJpYXQiOjE3NTU5MzgzNDh9.iAoqj2FrDDW0-ckb6A74I_KKetm87MCH6astHxxk2aI",
+              "system": true
+            },
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "e765d18a-5a93-4a96-b914-f696181ebb65",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:8000",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            },
+            {
+              "key": "Content-Length",
+              "value": "256",
+              "system": true
+            }
+          ],
+          "method": "POST",
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"assessment_results\": {\n    \"gdpr_data_collection\": {\n      \"answer\": \"yes\",\n      \"evidence\": \"We collect email addresses and company details for service delivery\"\n    }\n  },\n  \"framework_id\": \"gdpr\",\n  \"business_profile_id\": \"test-business-profile\"\n}"
+          },
+          "auth": {
+            "type": "bearer",
+            "bearer": [
+              {
+                "type": "string",
+                "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI0MWIxOTMwZC05YzI0LTQwZWItYmE3Ny02YzViNTA4YjNiNDEiLCJleHAiOjE3NTU5NDAxNDgsInR5cGUiOiJhY2Nlc3MiLCJpYXQiOjE3NTU5MzgzNDh9.iAoqj2FrDDW0-ckb6A74I_KKetm87MCH6astHxxk2aI",
+                "key": "token"
+              }
+            ]
+          }
+        },
+        "response": {
+          "id": "eff29a30-31cb-4163-a5cc-6433815fb4a8",
+          "status": "OK",
+          "code": 200,
+          "header": [
+            {
+              "key": "date",
+              "value": "Sat, 23 Aug 2025 08:39:07 GMT"
+            },
+            {
+              "key": "server",
+              "value": "uvicorn"
+            },
+            {
+              "key": "cache-control",
+              "value": "no-cache"
+            },
+            {
+              "key": "connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "x-accel-buffering",
+              "value": "no"
+            },
+            {
+              "key": "content-type",
+              "value": "text/event-stream; charset=utf-8"
+            },
+            {
+              "key": "x-request-id",
+              "value": "e47f98b0-7590-4d92-a0c3-31458b6bf6b5"
+            },
+            {
+              "key": "x-process-time",
+              "value": "0.4959094524383545"
+            },
+            {
+              "key": "x-content-type-options",
+              "value": "nosniff"
+            },
+            {
+              "key": "x-frame-options",
+              "value": "DENY"
+            },
+            {
+              "key": "x-xss-protection",
+              "value": "1; mode=block"
+            },
+            {
+              "key": "strict-transport-security",
+              "value": "max-age=31536000; includeSubDomains"
+            },
+            {
+              "key": "content-security-policy",
+              "value": "default-src 'self'"
+            },
+            {
+              "key": "referrer-policy",
+              "value": "strict-origin-when-cross-origin"
+            },
+            {
+              "key": "permissions-policy",
+              "value": "geolocation=(), microphone=(), camera=()"
+            },
+            {
+              "key": "transfer-encoding",
+              "value": "chunked"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              100,
+              97,
+              116,
+              97,
+              58,
+              32,
+              123,
+              34,
+              99,
+              104,
+              117,
+              110,
+              107,
+              95,
+              105,
+              100,
+              34,
+              58,
+              34,
+              101,
+              114,
+              114,
+              111,
+              114,
+              34,
+              44,
+              34,
+              99,
+              111,
+              110,
+              116,
+              101,
+              110,
+              116,
+              34,
+              58,
+              34,
+              85,
+              110,
+              97,
+              98,
+              108,
+              101,
+              32,
+              116,
+              111,
+              32,
+              97,
+              110,
+              97,
+              108,
+              121,
+              122,
+              101,
+              32,
+              97,
+              115,
+              115,
+              101,
+              115,
+              115,
+              109,
+              101,
+              110,
+              116,
+              32,
+              114,
+              101,
+              115,
+              117,
+              108,
+              116,
+              115,
+              32,
+              97,
+              116,
+              32,
+              116,
+              104,
+              105,
+              115,
+              32,
+              116,
+              105,
+              109,
+              101,
+              34,
+              44,
+              34,
+              99,
+              104,
+              117,
+              110,
+              107,
+              95,
+              116,
+              121,
+              112,
+              101,
+              34,
+              58,
+              34,
+              101,
+              114,
+              114,
+              111,
+              114,
+              34,
+              44,
+              34,
+              116,
+              105,
+              109,
+              101,
+              115,
+              116,
+              97,
+              109,
+              112,
+              34,
+              58,
+              34,
+              50,
+              48,
+              50,
+              53,
+              45,
+              48,
+              56,
+              45,
+              50,
+              51,
+              84,
+              48,
+              56,
+              58,
+              51,
+              57,
+              58,
+              49,
+              48,
+              46,
+              50,
+              54,
+              49,
+              50,
+              55,
+              51,
+              34,
+              125,
+              10,
+              10
+            ]
+          },
+          "cookie": [],
+          "responseTime": 1701,
+          "responseSize": 152
+        },
+        "id": "079e42c1-fa5c-47cb-a6d7-e80ad8181d5e"
+      }
+    ],
+    "transfers": {
+      "responseTotal": 632
+    },
+    "failures": [],
+    "error": null
+  }
+}

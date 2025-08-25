@@ -1,0 +1,120 @@
+newman
+
+RuleIQ API - Final Corrected Collection
+
+❏ 🔐 Authentication (Working)
+↳ Login
+  POST http://localhost:8000/api/v1/auth/login [200 OK, 1kB, 646ms]
+  ┌
+  │ 'JWT token saved'
+  └
+
+↳ Get Current User
+  GET http://localhost:8000/api/v1/auth/me [500 Internal Server Error, 174B, 365ms]
+
+↳ Logout
+  POST http://localhost:8000/api/v1/auth/logout [500 Internal Server Error, 174B, 342ms]
+
+❏ 📊 System Health (Working)
+↳ Root Health
+  GET http://localhost:8000/health [200 OK, 771B, 334ms]
+
+↳ API Health
+  GET http://localhost:8000/api/v1/health [200 OK, 653B, 11ms]
+
+↳ Detailed Health
+  GET http://localhost:8000/api/v1/health/detailed [200 OK, 742B, 337ms]
+
+❏ 🤖 IQ Agent (Working)
+↳ IQ Health
+  GET http://localhost:8000/api/v1/iq-agent/health [200 OK, 716B, 9ms]
+
+↳ IQ Status
+  GET http://localhost:8000/api/v1/iq-agent/status [200 OK, 706B, 14ms]
+
+↳ Query Compliance
+  POST http://localhost:8000/api/v1/iq-agent/query [401 Unauthorized, 647B, 11ms]
+
+❏ 🆓 Freemium (Working)
+↳ Capture Lead
+  POST http://localhost:8000/api/v1/freemium/leads [201 Created, 684B, 1899ms]
+
+↳ Health Check
+  GET http://localhost:8000/api/v1/freemium/health [200 OK, 663B, 673ms]
+
+❏ 🧠 AI Assessments (Registered)
+↳ Get Help
+  POST http://localhost:8000/api/v1/ai-assessments/gdpr/help [401 Unauthorized, 647B, 8ms]
+
+↳ Health
+  GET http://localhost:8000/api/v1/ai-assessments/health [401 Unauthorized, 647B, 7ms]
+
+❏ 👤 Business Profiles (Registered)
+↳ Get Current Profile
+  GET http://localhost:8000/api/v1/business-profiles/ [401 Unauthorized, 592B, 7ms]
+
+↳ Create Profile
+  POST http://localhost:8000/api/v1/business-profiles/ [401 Unauthorized, 592B, 7ms]
+
+❏ 📋 Assessments (Registered)
+↳ List Assessments
+  GET http://localhost:8000/api/v1/assessments/ [401 Unauthorized, 592B, 7ms]
+
+↳ Quick Assessment
+  POST http://localhost:8000/api/v1/assessments/quick [401 Unauthorized, 592B, 7ms]
+
+❏ 📚 Frameworks (Registered)
+↳ List Frameworks
+  GET http://localhost:8000/api/v1/frameworks/ [401 Unauthorized, 592B, 6ms]
+
+↳ Get Framework by ID
+  GET http://localhost:8000/api/v1/frameworks/gdpr [401 Unauthorized, 591B, 19ms]
+
+❏ 📄 Policies (Registered)
+↳ Generate Policy
+  POST http://localhost:8000/api/v1/policies/generate [401 Unauthorized, 647B, 16ms]
+
+↳ List Policies
+  GET http://localhost:8000/api/v1/policies/ [401 Unauthorized, 647B, 14ms]
+
+❏ 💬 Chat (Registered)
+↳ Create Conversation
+  POST http://localhost:8000/api/v1/chat/conversations [401 Unauthorized, 647B, 9ms]
+
+❏ 🔧 Admin (Registered)
+↳ List Users
+  GET http://localhost:8000/api/admin/users/ [500 Internal Server Error, 174B, 338ms]
+
+↳ Get Statistics
+  GET http://localhost:8000/api/admin/users/statistics [500 Internal Server Error, 174B, 347ms]
+
+❏ 🧠 Agentic RAG (Now Registered)
+↳ Query RAG
+  POST http://localhost:8000/api/v1/agentic-rag/query [404 Not Found, 555B, 8ms]
+
+↳ Index Document
+  POST http://localhost:8000/api/v1/agentic-rag/index [404 Not Found, 555B, 10ms]
+
+❏ 🧪 Test Utils (Development Only)
+↳ Create Test User
+  POST http://localhost:8000/api/test-utils/create-test-user [422 Unprocessable Entity, 633B, 15ms]
+
+┌─────────────────────────┬────────────────────┬────────────────────┐
+│                         │           executed │             failed │
+├─────────────────────────┼────────────────────┼────────────────────┤
+│              iterations │                  1 │                  0 │
+├─────────────────────────┼────────────────────┼────────────────────┤
+│                requests │                 27 │                  0 │
+├─────────────────────────┼────────────────────┼────────────────────┤
+│            test-scripts │                  1 │                  0 │
+├─────────────────────────┼────────────────────┼────────────────────┤
+│      prerequest-scripts │                  0 │                  0 │
+├─────────────────────────┼────────────────────┼────────────────────┤
+│              assertions │                  0 │                  0 │
+├─────────────────────────┴────────────────────┴────────────────────┤
+│ total run duration: 5.8s                                          │
+├───────────────────────────────────────────────────────────────────┤
+│ total data received: 3.34kB (approx)                              │
+├───────────────────────────────────────────────────────────────────┤
+│ average response time: 202ms [min: 6ms, max: 1899ms, s.d.: 388ms] │
+└───────────────────────────────────────────────────────────────────┘

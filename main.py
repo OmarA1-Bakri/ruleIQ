@@ -10,7 +10,7 @@ from api.middleware.error_handler import error_handler_middleware
 from api.request_id_middleware import RequestIDMiddleware
 from api.routers import (
     # agentic_assessments,
-    # agentic_rag,
+    agentic_rag,
     ai_assessments,
     ai_cost_monitoring,
     ai_cost_websocket,
@@ -29,6 +29,7 @@ from api.routers import (
     google_auth,
     implementation,
     integrations,
+    iq_agent,  # Added missing IQ Agent import
     monitoring,
     performance_monitoring,
     policies,
@@ -210,9 +211,9 @@ app.include_router(
 )
 app.include_router(assessments.router, prefix="/api/v1/assessments", tags=["Assessments"])
 app.include_router(freemium.router, prefix="/api/v1", tags=["Freemium Assessment"])
-app.include_router(ai_assessments.router, prefix="/api/v1/ai-assessments", tags=["AI Assessment Assistant"])
+# DEPRECATED: app.include_router(ai_assessments.router, prefix="/api/v1/ai-assessments", tags=["AI Assessment Assistant"])
 # Backward compatibility for legacy tests - old /api/ai/assessments structure  
-app.include_router(ai_assessments.router, prefix="/api/ai/assessments", tags=["AI Assessment Assistant (Legacy)"])
+# DEPRECATED: app.include_router(ai_assessments.router, prefix="/api/ai/assessments", tags=["AI Assessment Assistant (Legacy)"])
 app.include_router(ai_optimization.router, prefix="/api/v1/ai/optimization", tags=["AI Optimization"])
 app.include_router(frameworks.router, prefix="/api/v1/frameworks", tags=["Compliance Frameworks"])
 app.include_router(policies.router, prefix="/api/v1/policies", tags=["Policies"])
@@ -237,8 +238,9 @@ app.include_router(ai_cost_websocket.router, prefix="/api/v1/ai/cost-websocket",
 app.include_router(ai_policy.router, prefix="/api/v1/ai/policies", tags=["AI Policy Generation"])
 app.include_router(performance_monitoring.router, prefix="/api/v1/performance", tags=["Performance Monitoring"])
 app.include_router(uk_compliance.router, prefix="/api/v1/uk-compliance", tags=["UK Compliance"])
+app.include_router(iq_agent.router, prefix="/api/v1/iq-agent", tags=["IQ Agent"])
 # app.include_router(agentic_assessments.router, prefix="/api", tags=["Agentic Assessments"])
-# app.include_router(agentic_rag.router, prefix="/api", tags=["Agentic RAG"])
+app.include_router(agentic_rag.router, prefix="/api/v1", tags=["Agentic RAG"])
 app.include_router(admin_router)
 
 # Test utilities (only in development/test environments)

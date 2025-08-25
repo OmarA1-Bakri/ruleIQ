@@ -71,7 +71,7 @@ describe('OAuth2 Browser Integration Tests', () => {
             token_type: 'bearer',
           });
         }),
-        http.get('http://localhost:8000/api/v1/users/me', ({ request }) => {
+        http.get('http://localhost:8000/api/v1/auth/me', ({ request }) => {
           const authHeader = request.headers.get('Authorization');
           expect(authHeader).toBe('Bearer mock-access-token-12345');
           
@@ -277,7 +277,7 @@ describe('OAuth2 Browser Integration Tests', () => {
 
       // Mock successful auth check
       server.use(
-        http.get('http://localhost:8000/api/v1/users/me', () => {
+        http.get('http://localhost:8000/api/v1/auth/me', () => {
           return HttpResponse.json({
             id: 'user-123',
             email: 'test@example.com',
@@ -354,7 +354,7 @@ describe('OAuth2 Browser Integration Tests', () => {
 
       // Mock successful auth check
       server.use(
-        http.get('http://localhost:8000/api/v1/users/me', () => {
+        http.get('http://localhost:8000/api/v1/auth/me', () => {
           return HttpResponse.json({
             id: 'user-123',
             email: 'test@example.com',
@@ -502,7 +502,7 @@ describe('OAuth2 Browser Integration Tests', () => {
             token_type: 'bearer',
           });
         }),
-        http.get('http://localhost:8000/api/v1/users/me', () => {
+        http.get('http://localhost:8000/api/v1/auth/me', () => {
           return HttpResponse.json({
             id: 'user-123',
             email: 'test@example.com',

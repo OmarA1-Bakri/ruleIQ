@@ -1,0 +1,14 @@
+
+> ruleiq-frontend@1.0.0 test /app/frontend
+> vitest --run
+
+
+ RUN  v3.2.4 /app/frontend
+
+ ✓ tests/critical-fixes/assessment-components.test.tsx > Assessment Component Tests - Key Uniqueness & File Upload > QuestionRenderer - Key Uniqueness > should render questions with unique keys and no warnings 59ms
+ ✓ tests/critical-fixes/assessment-components.test.tsx > Assessment Component Tests - Key Uniqueness & File Upload > QuestionRenderer - Key Uniqueness > should handle dynamic question filtering with stable keys 21ms
+ ✓ tests/critical-fixes/assessment-components.test.tsx > Assessment Component Tests - Key Uniqueness & File Upload > QuestionRenderer - Key Uniqueness > should handle question progression with unique keys 33ms
+ ✓ tests/critical-fixes/assessment-components.test.tsx > Assessment Component Tests - Key Uniqueness & File Upload > File Upload Components - Key Uniqueness > should render file upload list with unique keys 13ms
+ ✓ tests/critical-fixes/assessment-components.test.tsx > Assessment Component Tests - Key Uniqueness & File Upload > File Upload Components - Key Uniqueness > should handle file upload progress without duplicate keys 537ms
+ ✓ tests/critical-fixes/assessment-components.test.tsx > Assessment Component Tests - Key Uniqueness & File Upload > File Upload Components - Key Uniqueness > should handle file type filtering with unique keys 8ms
+ ✓ tests/critical-fixes/assessment-components.test.tsx > Assessment Component Tests - Key Uniqueness & File Upload > Assessment Flow Integration > should handle complete assessment flow with unique keys 20ms

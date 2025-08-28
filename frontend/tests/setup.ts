@@ -145,122 +145,63 @@ vi.mock('tailwind-merge', () => ({
   }),
 }));
 
-// Mock Lucide React icons with proper error handling
+// Mock Lucide React icons with a robust and simple mock
 vi.mock('lucide-react', () => {
-  const createMockIcon = (name: string) => (props: Record<string, unknown>) => {
-    return React.createElement('svg', {
-      'data-testid': `${name}-icon`,
-      'aria-label': name,
-      ...props,
-      children: React.createElement('path', { d: 'M0 0h24v24H0z' }),
-    });
-  };
-
-  return new Proxy(
-    {},
-    {
-      get: (_target, prop) => {
-        if (typeof prop === 'string') {
-          return createMockIcon(prop.toLowerCase());
-        }
-        return undefined;
-      },
-    },
+  const MockIcon = React.forwardRef((props, ref) =>
+    React.createElement('svg', { ...props, ref, 'data-testid': 'lucide-icon' })
   );
+  MockIcon.displayName = 'MockIcon';
+
+  return new Proxy({}, {
+    get: () => MockIcon,
+  });
 });
 
-// Mock Radix UI Dialog primitives
-vi.mock('@radix-ui/react-dialog', () => {
-  const MockDialog = ({ children, open, onOpenChange, ...props }: any) => {
-    return open
-      ? React.createElement('div', { 'data-testid': 'dialog-root', ...props }, children)
-      : null;
-  };
+// Mock Radix UI Dialog primitives with a simpler implementation
+vi.mock('@radix-ui/react-dialog', async () => {
+  const original = await vi.importActual<any>('@radix-ui/react-dialog');
 
-  const MockDialogTrigger = ({ children, asChild, ...props }: any) => {
-    return React.createElement('button', { 'data-testid': 'dialog-trigger', ...props }, children);
-  };
+  const MockDialog = ({ children, ...props }: { children: React.ReactNode }) =>
+    React.createElement('div', { ...props, 'data-testid': 'dialog-root' }, children);
 
-  const MockDialogContent = React.forwardRef(({ children, className, ...props }: any, ref: any) => {
-    return React.createElement(
-      'div',
-      {
-        ref,
-        role: 'dialog',
-        'data-testid': 'dialog-content',
-        className,
-        'aria-labelledby': 'dialog-title',
-        'aria-describedby': 'dialog-description',
-        ...props,
-      },
-      children,
-    );
-  });
+  const MockTrigger = ({ children }: { children: React.ReactNode }) => children;
 
-  const MockDialogOverlay = React.forwardRef(({ className, ...props }: any, ref: any) => {
-    return React.createElement('div', {
-      ref,
-      'data-testid': 'dialog-overlay',
-      className,
-      ...props,
-    });
-  });
-
-  const MockDialogClose = ({ children, asChild, ...props }: any) => {
-    return React.createElement(
-      'button',
-      {
-        'data-testid': 'dialog-close',
-        'aria-label': 'Close',
-        ...props,
-      },
-      children,
-    );
-  };
-
-  const MockDialogPortal = ({ children }: any) => {
-    return React.createElement('div', { 'data-testid': 'dialog-portal' }, children);
-  };
-
-  const MockDialogTitle = React.forwardRef(({ children, className, ...props }: any, ref: any) => {
-    return React.createElement(
-      'h2',
-      {
-        ref,
-        id: 'dialog-title',
-        'data-testid': 'dialog-title',
-        className,
-        ...props,
-      },
-      children,
-    );
-  });
-
-  const MockDialogDescription = React.forwardRef(
-    ({ children, className, ...props }: any, ref: any) => {
-      return React.createElement(
-        'p',
-        {
-          ref,
-          id: 'dialog-description',
-          'data-testid': 'dialog-description',
-          className,
-          ...props,
-        },
-        children,
-      );
-    },
+  const MockContent = React.forwardRef<HTMLDivElement, { children: React.ReactNode }>(
+    ({ children, ...props }, ref) =>
+      React.createElement('div', { ...props, ref, 'data-testid': 'dialog-content' }, children)
   );
+  MockContent.displayName = 'MockDialogContent';
+
+  const MockOverlay = () => React.createElement('div', { 'data-testid': 'dialog-overlay' });
+
+  const MockClose = ({ children }: { children: React.ReactNode }) =>
+    React.createElement('button', { 'data-testid': 'dialog-close' }, children);
+
+  const MockPortal = ({ children }: { children: React.ReactNode }) =>
+    React.createElement('div', { 'data-testid': 'dialog-portal' }, children);
+
+  const MockTitle = React.forwardRef<HTMLHeadingElement, { children: React.ReactNode }>(
+    ({ children, ...props }, ref) =>
+      React.createElement('h2', { ...props, ref, 'data-testid': 'dialog-title' }, children)
+  );
+  MockTitle.displayName = 'MockDialogTitle';
+
+  const MockDescription = React.forwardRef<HTMLParagraphElement, { children: React.ReactNode }>(
+    ({ children, ...props }, ref) =>
+      React.createElement('p', { ...props, ref, 'data-testid': 'dialog-description' }, children)
+  );
+  MockDescription.displayName = 'MockDialogDescription';
 
   return {
+    ...original,
     Root: MockDialog,
-    Trigger: MockDialogTrigger,
-    Content: MockDialogContent,
-    Overlay: MockDialogOverlay,
-    Close: MockDialogClose,
-    Portal: MockDialogPortal,
-    Title: MockDialogTitle,
-    Description: MockDialogDescription,
+    Trigger: MockTrigger,
+    Content: MockContent,
+    Overlay: MockOverlay,
+    Close: MockClose,
+    Portal: MockPortal,
+    Title: MockTitle,
+    Description: MockDescription,
   };
 });
 
@@ -271,6 +212,10 @@ afterEach(() => {
   cleanup();
   vi.clearAllMocks();
   server.resetHandlers();
+  // Clear local storage to prevent state leakage between tests
+  if (typeof localStorage !== 'undefined') {
+    localStorage.clear();
+  }
 });
 
 // Cleanup after all tests

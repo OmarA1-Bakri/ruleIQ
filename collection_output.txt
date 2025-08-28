@@ -1,0 +1,250 @@
+============================= test session starts ==============================
+collecting ... collected 84 items / 10 errors
+
+<Dir workspace>
+  <Package tests>
+    <Package e2e>
+      <Module test_user_onboarding_flow.py>
+        End-to-End Tests for User Onboarding Flow
+        
+        Tests the complete user onboarding process from registration
+        through framework recommendation and initial compliance setup.
+        <Class TestUserOnboardingFlow>
+          Test complete user onboarding workflow
+          <Function test_complete_user_onboarding_workflow>
+            Test complete user onboarding from registration to framework recommendations
+          <Function test_user_onboarding_with_assessment_restart>
+            Test user onboarding with assessment restart scenario
+          <Function test_user_onboarding_with_minimal_data>
+            Test user onboarding with minimal required data
+          <Function test_user_onboarding_error_recovery>
+            Test user onboarding with error recovery scenarios
+        <Class TestOnboardingIntegration>
+          Test onboarding integration with other system components
+          <Function test_onboarding_triggers_background_tasks>
+            Test that onboarding triggers appropriate background tasks
+          <Function test_onboarding_creates_audit_trail>
+            Test that onboarding creates proper audit trail
+          <Function test_onboarding_sets_user_preferences>
+            Test that onboarding properly sets user preferences
+    <Package integration>
+      <Package api>
+        <Module test_analytics_endpoints.py>
+          Integration Tests for Analytics and Performance API Endpoints
+          
+          Tests the new analytics, caching, and performance monitoring endpoints
+          with real API interactions and response validation.
+          <Class TestAnalyticsEndpoints>
+            Test analytics API endpoints integration
+            <Function test_analytics_dashboard_success>
+              Test analytics dashboard endpoint
+            <Function test_usage_analytics_endpoint>
+              Test usage analytics endpoint with different time periods
+            <Function test_cost_analytics_endpoint>
+              Test cost analytics endpoint
+            <Function test_system_alerts_endpoint>
+              Test system alerts endpoint
+            <Function test_resolve_alert_endpoint>
+              Test alert resolution endpoint
+            <Function test_resolve_nonexistent_alert>
+              Test resolving a non-existent alert
+          <Class TestPerformanceEndpoints>
+            Test performance monitoring API endpoints
+            <Function test_performance_metrics_endpoint>
+              Test performance metrics endpoint
+            <Function test_optimize_performance_endpoint>
+              Test performance optimization configuration endpoint
+          <Class TestCacheEndpoints>
+            Test cache management API endpoints
+            <Function test_cache_metrics_endpoint>
+              Test cache metrics endpoint
+            <Function test_clear_cache_endpoint>
+              Test cache clearing endpoint
+            <Function test_analytics_error_handling>
+              Test error handling in analytics endpoints
+        <Module test_chat_endpoints.py>
+          Integration Tests for Chat API Endpoints
+          
+          Tests the chat API endpoints with real database interactions
+          and AI assistant integrations, ensuring proper data flow and validation.
+          <Class TestChatEndpoints>
+            Test chat API endpoints integration
+            <Function test_create_conversation>
+              Test creating a new conversation
+            <Function test_send_message_to_conversation>
+              Test sending a message to an existing conversation
+            <Function test_get_evidence_recommendations>
+              Test getting AI-powered evidence recommendations
+            <Function test_compliance_analysis>
+              Test compliance gap analysis endpoint
+            <Function test_get_conversations_list>
+              Test getting list of conversations
+            <Function test_conversation_not_found>
+              Test accessing non-existent conversation
+            <Function test_compliance_analysis_missing_business_profile>
+              Test compliance analysis without business profile
+          <Class TestChatValidation>
+            Test chat API validation and error handling
+            <Function test_invalid_framework_for_analysis>
+              Test compliance analysis with invalid framework
+            <Function test_missing_message_content>
+              Test sending empty message
+            <Function test_ai_assistant_error_handling>
+              Test handling of AI assistant errors
+        <Module test_enhanced_chat_endpoints.py>
+          Integration Tests for Enhanced Chat API Endpoints
+          
+          Tests the new context-aware recommendations, workflow generation,
+          and policy generation endpoints with real database interactions.
+          <Class TestEnhancedChatEndpoints>
+            Test enhanced chat API endpoints integration
+            <Function test_context_aware_recommendations_success>
+              Test context-aware recommendations endpoint
+            <Function test_evidence_collection_workflow_generation>
+              Test workflow generation endpoint
+            <Function test_policy_generation>
+              Test policy generation endpoint
+            <Function test_smart_compliance_guidance>
+              Test smart compliance guidance endpoint
+            <Function test_missing_business_profile_error>
+              Test error handling when business profile is missing
+            <Function test_ai_service_error_handling>
+              Test handling of AI service errors
+            <Function test_invalid_framework_parameter>
+              Test validation of framework parameter
+          <Class TestEnhancedChatValidation>
+            Test enhanced chat API validation and error handling
+            <Function test_workflow_generation_parameter_validation>
+              Test workflow generation parameter validation
+            <Function test_policy_generation_parameter_validation>
+              Test policy generation parameter validation
+            <Function test_smart_guidance_parameter_validation>
+              Test smart guidance parameter validation
+        <Module test_evidence_classification.py>
+          Integration Tests for Evidence Classification API Endpoints
+          
+          Tests the AI-powered evidence classification API endpoints with real database interactions.
+          <Class TestEvidenceClassificationAPI>
+            Test evidence classification API endpoints
+            <Function test_classify_single_evidence>
+              Test classifying a single evidence item.
+            <Function test_classify_evidence_force_reclassify>
+              Test force reclassification of already classified evidence.
+            <Function test_bulk_classify_evidence>
+              Test bulk classification of multiple evidence items.
+            <Function test_get_control_mapping_suggestions>
+              Test getting control mapping suggestions for evidence.
+            <Function test_get_classification_statistics>
+              Test getting classification statistics.
+            <Function test_classify_nonexistent_evidence>
+              Test classifying non-existent evidence returns 404.
+            <Function test_bulk_classify_with_invalid_evidence>
+              Test bulk classification with some invalid evidence IDs.
+          <Class TestEvidenceClassificationValidation>
+            Test validation and error handling for classification endpoints
+            <Function test_bulk_classify_too_many_items>
+              Test bulk classification with too many evidence items.
+            <Function test_invalid_confidence_threshold>
+              Test bulk classification with invalid confidence threshold.
+            <Function test_classification_ai_service_error>
+              Test handling of AI service errors during classification.
+        <Module test_evidence_endpoints.py>
+          Integration Tests for Evidence API Endpoints
+          
+          Tests the evidence API endpoints with real database interactions
+          and service integrations, ensuring proper data flow and validation.
+          <Class TestEvidenceEndpoints>
+            Test evidence API endpoints integration
+            <Function test_create_evidence_item_success>
+              Test creating evidence item through API
+            <Function test_create_evidence_item_validation_error>
+              Test creating evidence item with invalid data
+            <Function test_create_evidence_item_unauthenticated>
+              Test creating evidence item without authentication
+            <Function test_get_evidence_items_success>
+              Test retrieving evidence items for authenticated user
+            <Function test_get_evidence_items_empty>
+              Test retrieving evidence items when user has none
+            <Function test_get_evidence_items_with_filtering>
+              Test retrieving evidence items with query filters
+            <Function test_get_evidence_item_by_id_success>
+              Test retrieving specific evidence item by ID
+            <Function test_get_evidence_item_by_id_not_found>
+              Test retrieving non-existent evidence item
+            <Function test_get_evidence_item_unauthorized_access>
+              Test user cannot access another user's evidence
+            <Function test_update_evidence_item_success>
+              Test updating evidence item
+            <Function test_update_evidence_item_partial>
+              Test partial update of evidence item
+            <Function test_delete_evidence_item_success>
+              Test deleting evidence item
+            <Function test_delete_evidence_item_unauthorized>
+              Test user cannot delete another user's evidence
+            <Function test_bulk_update_evidence_status>
+              Test bulk updating evidence status
+            <Function test_get_evidence_statistics>
+              Test retrieving evidence statistics
+            <Function test_search_evidence_items>
+              Test searching evidence items
+          <Class TestEvidenceValidationEndpoints>
+            Test evidence validation API endpoints
+            <Function test_validate_evidence_quality>
+              Test evidence quality validation endpoint
+            <Function test_identify_evidence_requirements>
+              Test evidence requirements identification endpoint
+            <Function test_configure_evidence_automation>
+              Test configuring evidence automation
+          <Class TestEvidencePaginationAndSorting>
+            Test evidence API pagination and sorting
+            <Function test_evidence_pagination>
+              Test evidence list pagination
+            <Function test_evidence_sorting>
+              Test evidence list sorting
+        <Module test_quality_analysis.py>
+          Integration Tests for Quality Analysis API Endpoints
+          
+          Tests the AI-powered quality analysis and duplicate detection API endpoints.
+          <Class TestQualityAnalysisAPI>
+            Test quality analysis API endpoints
+            <Function test_get_evidence_quality_analysis>
+              Test getting AI-powered quality analysis for evidence.
+            <Function test_detect_evidence_duplicates>
+              Test semantic duplicate detection for evidence.
+            <Function test_batch_duplicate_detection>
+              Test batch duplicate detection across multiple evidence items.
+            <Function test_get_quality_benchmark>
+              Test quality benchmarking endpoint.
+            <Function test_get_quality_trends>
+              Test quality trend analysis endpoint.
+            <Function test_quality_analysis_nonexistent_evidence>
+              Test quality analysis for non-existent evidence returns 404.
+            <Function test_duplicate_detection_insufficient_evidence>
+              Test batch duplicate detection with insufficient evidence.
+          <Class TestQualityAnalysisValidation>
+            Test validation and error handling for quality analysis endpoints
+            <Function test_duplicate_detection_invalid_threshold>
+              Test duplicate detection with invalid similarity threshold.
+            <Function test_batch_duplicate_detection_too_many_items>
+              Test batch duplicate detection with too many evidence items.
+            <Function test_quality_trends_invalid_days>
+              Test quality trends with invalid day range.
+            <Function test_quality_analysis_ai_service_error>
+              Test handling of AI service errors during quality analysis.
+      <Module test_cached_content_api.py>
+        Integration Tests for Google Cached Content API Endpoints
+        
+        Tests the cached content metrics endpoint and integration with AI services.
+        <Class TestCachedContentAPI>
+          Test cached content API endpoints.
+          <Function test_cache_metrics_endpoint_success>
+            Test cache metrics endpoint returns valid metrics.
+          <Function test_cache_metrics_endpoint_authentication_required>
+            Test cache metrics endpoint requires authentication.
+          <Function test_cache_metrics_includes_performance_data>
+            Test cache metrics includes performance data when available.
+          <Function test_cache_metrics_with_ai_activity>
+            Test cache metrics after some AI activity.
+
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 10 failures !!!!!!!!!!!!!!!!!!!!!!!!!!
+==================== 84 tests collected, 10 errors in 0.16s ====================

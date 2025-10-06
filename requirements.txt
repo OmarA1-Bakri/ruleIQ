@@ -1,11 +1,11 @@
 # typing-extensions is range-pinned (>=4.11,<5) to resolve conflicts between
 # multiple dependencies (pydantic, fastapi, langchain) that require different versions.
 # This range ensures compatibility while allowing pip to find a suitable version.
-fastapi==0.110.0
-uvicorn==0.27.0
+fastapi==0.118.0
+uvicorn==0.37.0
 python-multipart==0.0.9
-pydantic==2.7.4
-pydantic-settings==2.4.0
+pydantic==2.11.10
+pydantic-settings==2.11.0
 sqlalchemy==2.0.27
 psycopg==3.1.18
 asyncpg==0.29.0

@@ -1,8 +1,8 @@
 # Pydantic v2 compatibility constraints
 pydantic>=2.7.0,<3.0.0
-pydantic-core>=2.18.0,<2.24.0
+pydantic-core>=2.18.0,<2.41.0
 pydantic-settings>=2.4.0,<3.0.0
-fastapi>=0.110.0,<0.111.0
+fastapi>=0.110.0,<0.119.0
 
 # LangChain compatibility
 langchain>=0.3.0,<0.4.0

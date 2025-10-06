@@ -2,12 +2,12 @@
 # This file contains only essential dependencies for running the API
 
 # Core FastAPI framework
-fastapi==0.110.0
-uvicorn==0.27.0
+fastapi==0.118.0
+uvicorn==0.37.0
 
 # Data validation and settings
-pydantic==2.7.4
-pydantic-settings==2.4.0
+pydantic==2.11.10
+pydantic-settings==2.11.0
 
 # Database connectivity
 sqlalchemy==2.0.27

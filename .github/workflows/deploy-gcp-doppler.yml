@@ -22,7 +22,7 @@ env:
 
 jobs:
   pre-deploy-validation:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     outputs:
       proceed: ${{ steps.validate.outputs.proceed }}
     steps:
@@ -38,7 +38,7 @@ jobs:
   deploy:
     needs: pre-deploy-validation
     if: needs.pre-deploy-validation.outputs.proceed == 'true'
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     environment: ${{ github.event.inputs.environment || 'staging' }}
 
     permissions:

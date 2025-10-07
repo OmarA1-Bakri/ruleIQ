@@ -28,7 +28,7 @@ permissions:
 jobs:
   detect-backend-flaky:
     name: Detect Backend Flaky Tests
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     if: ${{ github.event.inputs.test_type != 'frontend' || github.event_name == 'schedule' }}
     timeout-minutes: 60
 
@@ -189,7 +189,7 @@ jobs:
 
   detect-frontend-flaky:
     name: Detect Frontend Flaky Tests
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     if: ${{ github.event.inputs.test_type != 'backend' || github.event_name == 'schedule' }}
     timeout-minutes: 45
 
@@ -258,7 +258,7 @@ jobs:
   summary:
     name: Flaky Test Summary
     needs: [detect-backend-flaky, detect-frontend-flaky]
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     if: always()
 
     steps:

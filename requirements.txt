@@ -20,7 +20,7 @@ openai==1.58.1
 langchain==0.3.13
 langchain-openai==0.2.14
 langchain-community==0.3.13
-chromadb==0.4.22
+chromadb==1.2.0
 pinecone-client==5.0.1
 stripe==8.1.0
 sendgrid==6.11.0

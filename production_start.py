@@ -24,6 +24,7 @@ def create_production_app():
         db = SessionLocal()
         try:
             db.execute(text("SELECT 1"))
+            db.rollback()  # Close idle transaction from SELECT
         finally:
             db.close()
 
@@ -44,10 +45,15 @@ def create_production_app():
         description="AI-powered compliance platform"
     )
 
-    # Add middleware
+    # Add middleware — CORS origins from env or restrictive default
+    allowed_origins = os.getenv("CORS_ALLOWED_ORIGINS", "").split(",")
+    allowed_origins = [o.strip() for o in allowed_origins if o.strip()]
+    if not allowed_origins:
+        allowed_origins = ["https://ruleiq.com", "https://app.ruleiq.com"]
+
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],  # Configure properly for production
+        allow_origins=allowed_origins,
         allow_credentials=True,
         allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
         allow_headers=["*"],

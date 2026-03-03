@@ -450,7 +450,7 @@ export function isStructuredAIResponse(response: any): response is StructuredAIR
 
 export function isValidationError(error: unknown): error is ValidationError {
   return (
-    error &&
+    !!error &&
     typeof error === 'object' &&
     'field_path' in error &&
     'error_type' in error &&

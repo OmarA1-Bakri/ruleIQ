@@ -2,10 +2,10 @@
 # multiple dependencies (pydantic, fastapi, langchain) that require different versions.
 # This range ensures compatibility while allowing pip to find a suitable version.
 fastapi==0.110.0
-uvicorn==0.27.0
+uvicorn==0.31.1
 python-multipart==0.0.9
-pydantic==2.7.4
-pydantic-settings==2.4.0
+pydantic==2.11.5
+pydantic-settings==2.5.2
 sqlalchemy==2.0.27
 psycopg==3.1.18
 asyncpg==0.29.0
@@ -13,10 +13,10 @@ python-jose[cryptography]==3.3.0  # Note: Consider migrating to PyJWT for better
 passlib[bcrypt]==1.7.4
 python-dotenv==1.0.1
 python-json-logger==2.0.7
-httpx==0.27.0
+httpx==0.28.1
 requests>=2.31.0  # For HTTP requests in deployment scripts
 defusedxml==0.7.1  # For secure XML parsing (prevents XXE attacks)
-openai==1.58.1
+openai==1.91.0
 langchain==0.3.13
 langchain-openai==0.2.14
 langchain-community==0.3.13

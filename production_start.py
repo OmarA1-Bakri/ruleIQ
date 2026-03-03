@@ -5,7 +5,9 @@ Uses the working simple_start app with health endpoints
 """
 import os
 import sys
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeoutError
 from pathlib import Path
+from sqlalchemy import text
 
 # Add project root to Python path
 project_root = Path(__file__).parent
@@ -13,9 +15,28 @@ sys.path.insert(0, str(project_root))
 
 def create_production_app():
     """Create production FastAPI app with all necessary endpoints"""
-    from fastapi import FastAPI
+    from fastapi import FastAPI, HTTPException
     from fastapi.middleware.cors import CORSMiddleware
     from fastapi.middleware.gzip import GZipMiddleware
+    from database.session import SessionLocal
+
+    def check_db_connection() -> None:
+        db = SessionLocal()
+        try:
+            db.execute(text("SELECT 1"))
+        finally:
+            db.close()
+
+    def check_external_service() -> None:
+        redis_url = os.getenv("REDIS_URL")
+        if not redis_url:
+            return
+        try:
+            import redis
+            client = redis.from_url(redis_url, socket_connect_timeout=1, socket_timeout=1)
+            client.ping()
+        except Exception as exc:
+            raise RuntimeError(f"Redis health check failed: {exc}") from exc
 
     app = FastAPI(
         title="RuleIQ Production API",
@@ -44,8 +65,41 @@ def create_production_app():
 
     @app.get("/health/ready")
     def readiness_check():
-        # Add database connectivity check here if needed
-        return {"status": "ready", "service": "ruleiq-api"}
+        failures = []
+
+        try:
+            with ThreadPoolExecutor(max_workers=2) as executor:
+                db_future = executor.submit(check_db_connection)
+                ext_future = executor.submit(check_external_service)
+                db_future.result(timeout=2)
+                ext_future.result(timeout=2)
+        except FutureTimeoutError:
+            failures.append("Dependency health check timed out")
+        except Exception as exc:
+            failures.append(str(exc))
+
+        if failures:
+            raise HTTPException(
+                status_code=503,
+                detail={
+                    "status": "not_ready",
+                    "service": "ruleiq-api",
+                    "checks": {
+                        "database": "failed" if any("db" in f.lower() or "sql" in f.lower() for f in failures) else "unknown",
+                        "external": "failed" if any("redis" in f.lower() for f in failures) else "unknown",
+                    },
+                    "errors": failures,
+                },
+            )
+
+        return {
+            "status": "ready",
+            "service": "ruleiq-api",
+            "checks": {
+                "database": "ok",
+                "external": "ok" if os.getenv("REDIS_URL") else "skipped",
+            },
+        }
 
     @app.get("/")
     def root():

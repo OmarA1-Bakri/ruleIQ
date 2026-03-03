@@ -41,17 +41,20 @@ class AuditLogger:
         self.buffer_size = 100
         self.flush_interval = 30  # seconds
         self._flush_task_started = False
+        self._flush_task_lock = asyncio.Lock()
 
-    def _start_flush_timer(self):
+    async def _start_flush_timer(self):
         """Start periodic flush timer. Safe to call outside event loop."""
         if self._flush_task_started:
             return
-        try:
-            asyncio.create_task(self._periodic_flush())
-            self._flush_task_started = True
-        except RuntimeError:
-            # No running event loop yet — will be started on first use
-            pass
+        async with self._flush_task_lock:
+            if self._flush_task_started:
+                return
+            try:
+                asyncio.create_task(self._periodic_flush())
+                self._flush_task_started = True
+            except RuntimeError:
+                pass
 
     async def _periodic_flush(self):
         """Periodically flush audit logs to database."""
@@ -71,6 +74,8 @@ class AuditLogger:
         user_agent: Optional[str] = None
     ):
         """Log an audit event."""
+        await self._start_flush_timer()
+
         event = {
             "timestamp": datetime.utcnow().isoformat(),
             "event_type": event_type,

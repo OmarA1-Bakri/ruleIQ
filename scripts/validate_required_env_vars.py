@@ -23,7 +23,7 @@ from __future__ import annotations
 import argparse
 import os
 import sys
-from typing import Dict, List, Tuple
+from typing import Dict, List, Literal, Tuple
 
 # Required environment variables with descriptions
 REQUIRED_ENV_VARS: Dict[str, str] = {
@@ -65,7 +65,10 @@ DEVELOPMENT_EXEMPTIONS = {
 }
 
 
-def check_environment_variable(var_name: str, description: str) -> Tuple[bool, str]:
+def check_environment_variable(
+    var_name: str,
+    description: str,
+) -> Tuple[Literal['valid', 'missing', 'invalid'], str]:
     """Check if an environment variable is set.
 
     Args:
@@ -73,12 +76,12 @@ def check_environment_variable(var_name: str, description: str) -> Tuple[bool, s
         description: Human-readable description
 
     Returns:
-        Tuple of (is_set, error_message)
+        Tuple of (status, message)
     """
     value = os.getenv(var_name)
 
     if not value:
-        return False, f"❌ {var_name} is not set"
+        return 'missing', f"❌ {var_name} is not set"
 
     # Check for placeholder values
     placeholder_patterns = [
@@ -94,14 +97,14 @@ def check_environment_variable(var_name: str, description: str) -> Tuple[bool, s
     value_lower = value.lower()
     for pattern in placeholder_patterns:
         if pattern and pattern in value_lower:
-            return False, f"❌ {var_name} contains placeholder value: {value[:20]}..."
+            return 'invalid', f"❌ {var_name} contains placeholder value: {value[:20]}..."
 
     # Warn about insecure default passwords
     insecure_passwords = ["password", "ruleiq123", "admin", "123456"]
     if "password" in var_name.lower() and value.lower() in insecure_passwords:
-        return False, f"❌ {var_name} uses insecure password (NEVER use default passwords)"
+        return 'invalid', f"❌ {var_name} uses insecure password (NEVER use default passwords)"
 
-    return True, f"✅ {var_name} is set"
+    return 'valid', f"✅ {var_name} is set"
 
 
 def validate_environment(
@@ -138,15 +141,15 @@ def validate_environment(
             warnings.append(f"⚠️  {var_name} skipped (development exemption)")
             continue
 
-        is_set, message = check_environment_variable(var_name, description)
+        status, message = check_environment_variable(var_name, description)
 
         if verbose:
             print(f"{message}")
             print(f"   {description}")
 
-        if is_set:
+        if status == 'valid':
             present.append(var_name)
-        elif "placeholder" in message or "insecure" in message:
+        elif status == 'invalid':
             invalid.append(var_name)
         else:
             missing.append(var_name)

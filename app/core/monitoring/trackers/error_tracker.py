@@ -5,7 +5,7 @@ Error metrics collection and analysis for LangGraph workflows.
 import time
 from collections import defaultdict, deque
 from datetime import datetime
-from typing import Any, Deque, Dict, List
+from typing import Any, Deque, Dict, List, Optional
 
 
 class ErrorAnalysisTracker:
@@ -30,15 +30,15 @@ class ErrorAnalysisTracker:
     def record_error(
         self,
         error_type: str,
-        error_message: str = None,
-        component: str = None,
-        message: str = None,
-        workflow_id: str = None,
-        node_name: str = None,
+        error_message: Optional[str] = None,
+        component: Optional[str] = None,
+        message: Optional[str] = None,
+        workflow_id: Optional[str] = None,
+        node_name: Optional[str] = None,
         severity: str = 'error',
         retry_count: int = 0,
-        metadata: Dict[str, Any] = None,
-        timestamp: float = None
+        metadata: Optional[Dict[str, Any]] = None,
+        timestamp: Optional[float] = None
     ) -> None:
         """Record an error occurrence.
 
@@ -83,9 +83,9 @@ class ErrorAnalysisTracker:
 
     def record_success(
         self,
-        component: str = None,
-        operation: str = None,
-        timestamp: float = None
+        component: Optional[str] = None,
+        operation: Optional[str] = None,
+        timestamp: Optional[float] = None
     ) -> None:
         """Record a successful operation.
 
@@ -154,7 +154,7 @@ class ErrorAnalysisTracker:
     def calculate_error_rate(
         self,
         time_window_seconds: int = 60,
-        window_seconds: int = None
+        window_seconds: Optional[int] = None
     ) -> Dict[str, float]:
         """Calculate overall error rate.
 

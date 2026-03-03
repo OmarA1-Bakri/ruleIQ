@@ -251,8 +251,6 @@ class EvidenceService:
                 business_context, existing_evidence, maturity_analysis, gaps_analysis, framework
             )
 
-            f"System: {prompt_dict['system']}\n\nUser: {prompt_dict['user']}"
-
             # Generate AI response using response generator
             response = await self.response_generator.generate_simple(
                 system_prompt=prompt_dict['system'],

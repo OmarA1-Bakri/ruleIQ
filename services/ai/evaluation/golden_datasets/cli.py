@@ -3,7 +3,7 @@ import logging
 import argparse
 
 # Constants
-DEFAULT_RETRIES = 5
+MAX_DISPLAYED_ERRORS = 5
 
 logger = logging.getLogger(__name__)
 import json
@@ -137,7 +137,7 @@ def write_markdown_report(path: Path, report: Dict[str, Any]) ->None:
                 if validation[layer].get('errors'):
                     for error in validation[layer]['errors'][:5]:
                         lines.append(f'  - {error}')
-                    if len(validation[layer]['errors']) > DEFAULT_RETRIES:
+                    if len(validation[layer]['errors']) > MAX_DISPLAYED_ERRORS:
                         lines.append(
                             f"  - ... and {len(validation[layer]['errors']) - 5} more"
                             )

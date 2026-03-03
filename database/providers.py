@@ -6,6 +6,7 @@ implementations for PostgreSQL and Neo4j databases with dependency injection sup
 """
 import asyncio
 import logging
+import os
 import time
 from abc import ABC, abstractmethod
 from typing import Dict, Any, List, Optional
@@ -257,6 +258,7 @@ class Neo4jProvider(DatabaseProvider):
         self.driver = None
         self._initialized = False
         self._executor = None
+        self._database = os.getenv('NEO4J_DATABASE', 'neo4j')
 
     async def initialize(self) -> bool:
         """Initialize Neo4j connection."""
@@ -265,11 +267,9 @@ class Neo4jProvider(DatabaseProvider):
                 return True
 
             # Get Neo4j configuration from environment
-            import os
             uri = os.getenv('NEO4J_URI')
             username = os.getenv('NEO4J_USERNAME')
             password = os.getenv('NEO4J_PASSWORD')
-            os.getenv('NEO4J_DATABASE', 'neo4j')
 
             if not uri or not username or not password:
                 raise ValueError(
@@ -311,7 +311,7 @@ class Neo4jProvider(DatabaseProvider):
 
         try:
             def _test():
-                with self.driver.session() as session:
+                with self.driver.session(database=self._database) as session:
                     result = session.run("RETURN 1 as test")
                     record = result.single()
                     return record and record["test"] == 1
@@ -346,7 +346,7 @@ class Neo4jProvider(DatabaseProvider):
         start_time = time.time()
         try:
             def _health_check():
-                with self.driver.session() as session:
+                with self.driver.session(database=self._database) as session:
                     result = session.run("RETURN 1 as health_check")
                     record = result.single()
                     return record and record["health_check"] == 1
@@ -386,7 +386,7 @@ class Neo4jProvider(DatabaseProvider):
 
         try:
             def _execute():
-                with self.driver.session() as session:
+                with self.driver.session(database=self._database) as session:
                     result = session.run(query, params or {})
                     return [record.data() for record in result]
 
@@ -411,7 +411,7 @@ class Neo4jProvider(DatabaseProvider):
 
         try:
             def _execute_transaction():
-                with self.driver.session() as session:
+                with self.driver.session(database=self._database) as session:
                     with session.begin_transaction() as tx:
                         for query_data in queries:
                             query = query_data["query"]

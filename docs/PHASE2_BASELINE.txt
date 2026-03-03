@@ -1,3 +1,8 @@
+# PHASE2 baseline snapshot for static metrics used by CI trend tracking.
+# Captures TODO_BASELINE, NOT_IMPL_BASELINE, PASS_STUBS, RUFF_ERRORS,
+# TS_ERRORS, FUTURE_ANNOTATIONS_ROUTERS, ESLINT_WARNINGS, and PIP_CONFLICTS.
+# Snapshot generated: 2026-03-03 (manual maintenance in current branch).
+
 TODO_BASELINE=1252
 NOT_IMPL_BASELINE=8
 PASS_STUBS=412

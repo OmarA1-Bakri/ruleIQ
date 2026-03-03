@@ -50,11 +50,11 @@ class ConversationState(str, Enum):
 
 
 class QuestionType(str, Enum):
-#     BASIC_INFO = "basic_info"  # Unused variable
-#     COMPLIANCE_SPECIFIC = "compliance_specific"  # Unused variable
-#     FOLLOW_UP = "follow_up"  # Unused variable
-#     CLARIFICATION = "clarification"  # Unused variable
-#     VERIFICATION = "verification"  # Unused variable
+    BASIC_INFO = "basic_info"
+    COMPLIANCE_SPECIFIC = "compliance_specific"
+    FOLLOW_UP = "follow_up"
+    CLARIFICATION = "clarification"
+    VERIFICATION = "verification"
 
 
 @dataclass

@@ -471,8 +471,8 @@ class FallbackSystem:
         """Get basic fallback response"""
         if exception:
             content = (
-                f"The {operation} service is temporarily unavailable due to: {exception!s}. Please try f
-                fagain later or contact support.f,
+                f"The {operation} service is temporarily unavailable due to: {exception!s}. "
+                f"Please try again later or contact support."
             )
         else:
             content = f"The {operation} service is temporarily unavailable. Please try again later."

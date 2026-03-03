@@ -24,9 +24,8 @@ import logging
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from database import (
-
 logger = logging.getLogger(__name__)
+from database import (
     AssessmentLead,
     FreemiumAssessmentSession,
     AIQuestionBank,

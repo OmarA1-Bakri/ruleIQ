@@ -10,6 +10,8 @@ IMPORTANT: This is a transitional façade. New code should use domain services d
 from typing import Any, Dict, List, Optional, Tuple
 from uuid import UUID
 
+import warnings
+warnings.filterwarnings("ignore", category=FutureWarning, module=r"google\.generativeai")
 from google.generativeai.types import HarmCategory, HarmBlockThreshold
 from sqlalchemy.ext.asyncio import AsyncSession
 

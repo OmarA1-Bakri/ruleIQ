@@ -1,8 +1,6 @@
 """Test Neo4j Community Edition Docker setup."""
 from typing import Any
 
-from __future__ import annotations
-
 import os
 import time
 import pytest

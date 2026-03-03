@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 IQ Agent API Router - GraphRAG Compliance Intelligence
 

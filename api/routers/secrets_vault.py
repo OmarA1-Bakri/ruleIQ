@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 # Constants
 HTTP_INTERNAL_SERVER_ERROR = 500

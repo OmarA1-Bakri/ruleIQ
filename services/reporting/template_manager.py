@@ -90,7 +90,7 @@ class TemplateManager:
                 "display_name": template["name"],
                 "description": template["description"],
             }
-            for name, template in self.templates.items(),
+            for name, template in self.templates.items()
         ]
 
     def customize_template(

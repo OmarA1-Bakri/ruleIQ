@@ -1,4 +1,3 @@
-from __future__ import annotations
 from typing import Any, Dict
 from uuid import UUID, uuid4
 from fastapi import APIRouter, Depends, HTTPException, status

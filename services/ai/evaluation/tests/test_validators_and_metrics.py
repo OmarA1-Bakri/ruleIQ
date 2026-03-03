@@ -206,7 +206,7 @@ class TestExternalDataValidator:
                     origin="external", domain="ico.org.uk", fetched_at=datetime.now(timezone.utc),
                 ),
             )
-            for i in range(1, 6),
+            for i in range(1, 6)
         ]
 
     def test_source_reputation_authoritative(self, validator: Any) -> Any:
@@ -285,7 +285,7 @@ class TestExternalDataValidator:
                     origin="external", domain="test.com", fetched_at=datetime.now(timezone.utc),
                 ),
             )
-            for _ in range(3),
+            for _ in range(3)
         ]
 
         score = validator._check_consistency(dataset)
@@ -309,7 +309,7 @@ class TestExternalDataValidator:
                     origin="external", domain="test.com", fetched_at=datetime.now(timezone.utc),
                 ),
             )
-            for i, framework in enumerate(["GDPR", "HIPAA", "SOX", "UK GDPR", "CCPA"]),
+            for i, framework in enumerate(["GDPR", "HIPAA", "SOX", "UK GDPR", "CCPA"])
         ]
 
         score = validator._check_coverage(dataset)
@@ -358,7 +358,7 @@ class TestQualityMetrics:
                     origin="external", domain="test.com", fetched_at=datetime.now(timezone.utc),
                 ),
             )
-            for i in range(10),
+            for i in range(10)
         ]
 
         metrics = dataset_quality_summary(dataset)
@@ -384,7 +384,7 @@ class TestQualityMetrics:
                     origin="external", domain="test.com", fetched_at=datetime.now(timezone.utc),
                 ),
             )
-            for i in range(5),
+            for i in range(5)
         ]
 
         metrics = dataset_quality_summary(dataset)
@@ -429,7 +429,7 @@ class TestCoverageMetrics:
                     origin="external", domain="test.com", fetched_at=datetime.now(timezone.utc),
                 ),
             )
-            for i in range(5),
+            for i in range(5)
         ]
 
         metrics = coverage_summary(dataset)
@@ -457,7 +457,7 @@ class TestCoverageMetrics:
             )
             for i, framework in enumerate(
                 ["GDPR", "UK GDPR", "HIPAA", "SOX", "ISO27001", "CCPA"],
-            ),
+            )
         ]
 
         metrics = coverage_summary(dataset)
@@ -483,7 +483,7 @@ class TestCoverageMetrics:
                     origin="external", domain="test.com", fetched_at=datetime.now(timezone.utc),
                 ),
             )
-            for i in range(5),
+            for i in range(5)
         ]
 
         metrics = coverage_summary(dataset)

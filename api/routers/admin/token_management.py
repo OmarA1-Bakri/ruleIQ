@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 # Constants
 MAX_ITEMS = 1000

@@ -209,9 +209,48 @@ class GeminiProvider(AIProvider):
         Yields:
             Text chunks as they arrive
         """
-        # Similar to generate but with streaming
-        # Simplified implementation for now
-        raise NotImplementedError("Streaming not yet implemented for Gemini provider")
+        if not self.validate_config(config):
+            raise ValueError("Invalid provider configuration")
+
+        model_name = config.model_name
+        if not self.circuit_breaker.is_model_available(model_name):
+            raise ProviderUnavailableError(f"Gemini model {model_name} is unavailable")
+
+        try:
+            if not self.model or self.model.model_name != model_name:
+                self.model = get_ai_model(model_name)
+
+            generation_config = {
+                'temperature': config.temperature,
+                'top_p': 0.8,
+                'top_k': 20,
+            }
+            if config.max_tokens:
+                generation_config['max_output_tokens'] = config.max_tokens
+
+            safety_settings = config.safety_settings or self.safety_settings
+
+            # Run streaming generation in thread pool
+            def _stream():
+                response = self.model.generate_content(
+                    prompt,
+                    safety_settings=safety_settings,
+                    generation_config=generation_config,
+                    stream=True,
+                )
+                chunks = []
+                for chunk in response:
+                    if hasattr(chunk, 'text') and chunk.text:
+                        chunks.append(chunk.text)
+                return chunks
+
+            chunks = await asyncio.to_thread(_stream)
+            for chunk in chunks:
+                yield chunk
+
+        except Exception as e:
+            logger.error(f"Gemini streaming failed: {e}", exc_info=True)
+            raise ProviderUnavailableError(f"Gemini streaming failed: {e}")
 
     def is_available(self) -> bool:
         """Check if Gemini is available."""

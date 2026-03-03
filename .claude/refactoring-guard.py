@@ -9,14 +9,13 @@ import os
 import subprocess
 from datetime import datetime
 import json
+import argparse
 
 class RefactoringGuard:
     """Guard against destructive refactoring operations."""
 
     def __init__(self) -> None:
         self.max_files_without_approval = 5
-        self.max_lines_without_approval = 100
-        self.require_approval = False
         self.changes_log = []
 
     def check_syntax(self, filepath):
@@ -139,11 +138,15 @@ class RefactoringGuard:
         print(f"  {changes_description}")
 
         print("\n" + "="*50)
-        print("Do you approve these changes? (yes/no): ", end='')
 
-        # For automation, we'll return False (not approved)
-        # In interactive mode, you would read user input
-        return False
+        if not sys.stdin.isatty():
+            return False
+
+        try:
+            response = input("Approve? [y/N]: ").strip().lower()
+            return response == 'y'
+        except (EOFError, KeyboardInterrupt):
+            return False
 
     def guard_refactoring(self, files, changes_description):
         """Main guard function to check if refactoring should proceed."""
@@ -184,13 +187,24 @@ class RefactoringGuard:
 def main():
     """Main entry point for the refactoring guard."""
     guard = RefactoringGuard()
+    parser = argparse.ArgumentParser(
+        description="Refactoring guard for safe multi-file changes"
+    )
+    parser.add_argument(
+        "files",
+        nargs='*',
+        help="File paths to be modified"
+    )
+    parser.add_argument(
+        "-d",
+        "--description",
+        default="Refactoring operation",
+        help="Description of proposed refactoring changes"
+    )
+    args = parser.parse_args()
 
-    # Example usage (would be called with actual files and description)
-    if len(sys.argv) > 1:
-        files = sys.argv[1].split(',')
-        description = sys.argv[2] if len(sys.argv) > 2 else "Refactoring operation"
-
-        if guard.guard_refactoring(files, description):
+    if args.files:
+        if guard.guard_refactoring(args.files, args.description):
             print("\nProceeding with refactoring...")
             # Refactoring would happen here
             guard.save_log()
@@ -198,7 +212,7 @@ def main():
             print("\nRefactoring cancelled.")
             sys.exit(1)
     else:
-        print("Usage: python refactoring-guard.py <comma-separated-files> <description>")
+        print("Usage: python refactoring-guard.py <files...> [-d DESCRIPTION]")
         print("\nThis guard prevents destructive refactoring by:")
         print("  - Requiring approval for changes to >5 files")
         print("  - Creating backups before changes")

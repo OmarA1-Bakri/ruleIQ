@@ -1,0 +1,25 @@
+FROM python:3.11-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libpq-dev \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN python -m pip install --upgrade pip setuptools wheel
+
+# Use FULL requirements.txt (not cloudrun subset)
+COPY requirements.txt .
+COPY constraints.txt .
+RUN pip install --no-cache-dir -r requirements.txt -c constraints.txt
+
+COPY . .
+
+CMD ["python", "-c", "print('ready')"]

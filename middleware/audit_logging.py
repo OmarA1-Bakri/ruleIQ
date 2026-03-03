@@ -40,11 +40,18 @@ class AuditLogger:
         self.buffer: List[Dict] = []
         self.buffer_size = 100
         self.flush_interval = 30  # seconds
-        self._start_flush_timer()
+        self._flush_task_started = False
 
     def _start_flush_timer(self):
-        """Start periodic flush timer."""
-        asyncio.create_task(self._periodic_flush())
+        """Start periodic flush timer. Safe to call outside event loop."""
+        if self._flush_task_started:
+            return
+        try:
+            asyncio.create_task(self._periodic_flush())
+            self._flush_task_started = True
+        except RuntimeError:
+            # No running event loop yet — will be started on first use
+            pass
 
     async def _periodic_flush(self):
         """Periodically flush audit logs to database."""

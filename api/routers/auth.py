@@ -15,7 +15,7 @@ from api.dependencies.security_validation import (
     validate_request
 )
 from api.utils.security_validation import SecurityValidator
-from utils.input_validation import InputValidator, ValidationError as InputValidationError
+from api.utils.input_validation import InputValidator, ValidationError as InputValidationError
 from database.db_setup import get_db
 from database.user import User
 from database.rbac import Role

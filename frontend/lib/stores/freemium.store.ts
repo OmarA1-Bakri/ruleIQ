@@ -98,11 +98,11 @@ export const useFreemiumStore = create<FreemiumStoreState>()(
           });
 
           // Validate response
-          const validatedResponse = validateApiResponse(response, LeadResponseSchema);
-          
+          const validatedResponse = validateApiResponse(response, LeadResponseSchema) as LeadResponse;
+
           set({
             lead: validatedResponse,
-            leadToken: validatedResponse.token,
+            leadToken: (validatedResponse as any).token ?? validatedResponse.lead_id ?? null,
             isLoading: false,
           });
           
@@ -128,29 +128,29 @@ export const useFreemiumStore = create<FreemiumStoreState>()(
         
         try {
           const response = await freemiumService.startAssessment({
-            lead_email: leadToken,
-            business_type: assessmentType,
-          });
+            lead_token: leadToken,
+          } as any);
 
-          // Validate response
+          // Validate response - cast to expected type after validation
           const validatedResponse = validateApiResponse(
-            response, 
+            response,
             FreemiumAssessmentStartResponseSchema
-          );
-          
-          // Validate current question
+          ) as unknown as FreemiumAssessmentStartResponse;
+
+          // Validate current question if available
+          const rawQuestion = (validatedResponse as any).current_question ?? validatedResponse;
           const validatedQuestion = validateApiResponse(
-            validatedResponse.current_question,
+            rawQuestion,
             AssessmentQuestionSchema
-          );
-          
+          ) as unknown as AssessmentQuestion;
+
           set({
             session: validatedResponse,
-            sessionToken: validatedResponse.session_id,
+            sessionToken: validatedResponse.session_id ?? (validatedResponse as any).session_token,
             currentQuestion: validatedQuestion,
-            currentQuestionIndex: validatedResponse.current_question_index,
-            totalQuestions: validatedResponse.total_questions,
-            progressPercentage: validatedResponse.progress_percentage,
+            currentQuestionIndex: (validatedResponse as any).current_question_index ?? 0,
+            totalQuestions: (validatedResponse as any).total_questions ?? 0,
+            progressPercentage: (validatedResponse as any).progress_percentage ?? 0,
             isLoading: false,
           });
           

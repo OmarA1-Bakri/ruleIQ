@@ -154,7 +154,7 @@ async function getXlsxModule(): Promise<any> {
 // Helper function to sanitize filename
 function sanitizeFilename(filename: string): string {
   // Replace illegal characters with underscore
-  const sanitized = filename.replace(/[\/\:*?"<>|]/g, '_');
+  const sanitized = filename.replace(/[\\/\:*?"<>|]/g, '_');
   
   // Limit length to 200 characters (leaving room for extension)
   if (sanitized.length > 200) {
@@ -533,18 +533,27 @@ export async function exportAssessmentExcel(
 
   } catch (error) {
     logError('Excel export error:', error);
-    
-    // Preserve original error with context
-    const enhancedError = new Error(
-      `Excel export failed: ${error instanceof Error ? error.message : 'Unknown error'}`
-    );
-    
+
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    const errorResult: ExportResult = {
+      success: false,
+      filename: '',
+      error: `Excel export failed: ${message}`
+    };
+
     if (error instanceof Error) {
-      enhancedError.stack = error.stack;
-      (enhancedError as any).cause = error;
+      (errorResult as any).stack = error.stack;
+      (errorResult as any).rawError = {
+        name: error.name,
+        message: error.message,
+        stack: error.stack,
+        cause: (error as any).cause
+      };
+    } else {
+      (errorResult as any).rawError = error;
     }
-    
-    throw enhancedError;
+
+    return errorResult;
   }
 }
 
@@ -799,21 +808,25 @@ export async function exportAssessmentPDF(
       doc.text('Gaps Analysis', margin, yPosition);
       yPosition += 15;
 
-      const gapsData = normalizedData.gaps.map((gap: Gap | ComplianceGap) => {
+      const gapsData = normalizedData.gaps.flatMap((gap: Gap | ComplianceGap | null | undefined) => {
+          if (!gap) {
+            logWarn('Skipping null/undefined gap in PDF export');
+            return [];
+          }
           if ('questionText' in gap) {
-            return [
+            return [[
               gap.category,
               gap.severity,
               formatters.truncateText(gap.description, 80),
               formatters.truncateText(gap.impact, 60)
-            ];
+            ]];
           } else {
-            return [
+            return [[
               gap.category,
               gap.severity,
               formatters.truncateText(gap.description, 80),
               formatters.truncateText(gap.regulatory_impact, 60)
-            ];
+            ]];
           }
         });
 
@@ -909,7 +922,7 @@ export async function exportAssessmentPDF(
       yPosition += 15;
 
       const qaData = normalizedData.answers.map((answer: any) => [
-          answer.questionId.substring(0, 10),
+          answer.questionId ? answer.questionId.substring(0, 10) : 'N/A',
           formatters.truncateText(answer.questionText || 'N/A', 60),
           formatters.truncateText(answer.answer || 'N/A', 40),
           answer.section || 'N/A',
@@ -1066,7 +1079,11 @@ export async function exportAssessmentCSV(
         ['Category', 'Severity', 'Description', 'Recommendation', 'Impact', 'Effort']
       ];
 
-      normalizedData.gaps.forEach((gap: Gap | ComplianceGap) => {
+      normalizedData.gaps.forEach((gap: Gap | ComplianceGap | null | undefined) => {
+          if (!gap) {
+            logWarn('Skipping null/undefined gap in CSV export');
+            return;
+          }
           if ('questionText' in gap) {
             // AssessmentResult Gap
             gapsData.push([
@@ -1321,8 +1338,10 @@ export function validateExportData(
   }
 
   // Check if gaps exist when requested
+  const normalizedData = normalizeAssessmentData(results);
+
+  // Check if gaps exist when requested
   if (options.includeGaps) {
-    const normalizedData = normalizeAssessmentData(results);
     if (!normalizedData.gaps || normalizedData.gaps.length === 0) {
       logWarn('No gaps found in results, gaps section will be empty');
     }
@@ -1330,7 +1349,6 @@ export function validateExportData(
 
   // Check if recommendations exist when requested
   if (options.includeRecommendations) {
-    const normalizedData = normalizeAssessmentData(results);
     if (!normalizedData.recommendations || normalizedData.recommendations.length === 0) {
       logWarn('No recommendations found in results, recommendations section will be empty');
     }

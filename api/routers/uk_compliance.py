@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 UK Compliance Frameworks API Router
 

@@ -1,13 +1,12 @@
-from __future__ import annotations
 from typing import Optional, Any, Dict
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Path, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 from api.dependencies.auth import get_current_active_user
-from api.dependencies.security_validation import (
 import logging
 
 logger = logging.getLogger(__name__)
+from api.dependencies.security_validation import (
     validate_request,
     validate_file_upload
 )

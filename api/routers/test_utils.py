@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 Test utilities router for cleaning up test data.
 Only enabled in development/testing environments.

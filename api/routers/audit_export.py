@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 # Constants
 DEFAULT_LIMIT = 100

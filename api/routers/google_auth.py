@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 Google OAuth2 authentication router
 Handles Google Sign-In integration for the ruleIQ platform

@@ -1,4 +1,3 @@
-from __future__ import annotations
 from typing import Any, Dict
 from fastapi import APIRouter, Depends, HTTPException
 from services.ai.circuit_breaker import AICircuitBreaker

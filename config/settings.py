@@ -319,22 +319,16 @@ class Settings(BaseSettings):
         description='Invalidate MD5-based caches on startup (one-time migration)'
     )
 
-    # Celery configuration
-    celery_broker_url: str = Field(
-        default_factory=lambda: (
-            'redis://localhost:6380/1' if os.getenv('TESTING', '').lower() == 'true'
-            else get_secret_or_env('CELERY_BROKER_URL', 'redis://localhost:6379/1')
-        ),
-        description='Celery broker URL'
+    # Celery configuration (DEPRECATED — replaced by LangGraph orchestration)
+    celery_broker_url: Optional[str] = Field(
+        default=None,
+        description='DEPRECATED: Celery broker URL — LangGraph is now used for task orchestration'
     )
-    celery_result_backend: str = Field(
-        default_factory=lambda: (
-            'redis://localhost:6380/2' if os.getenv('TESTING', '').lower() == 'true'
-            else get_secret_or_env('CELERY_RESULT_BACKEND', 'redis://localhost:6379/2')
-        ),
-        description='Celery result backend'
+    celery_result_backend: Optional[str] = Field(
+        default=None,
+        description='DEPRECATED: Celery result backend — LangGraph is now used for task orchestration'
     )
-    celery_task_timeout: int = Field(default=300, description='Celery task timeout (seconds)')
+    celery_task_timeout: int = Field(default=300, description='DEPRECATED: Celery task timeout (seconds)')
 
     # AWS configuration
     aws_access_key_id: Optional[str] = Field(default=None, description='AWS access key')

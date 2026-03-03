@@ -1,12 +1,11 @@
 """CLI for golden dataset validation and reporting."""
 import logging
+import argparse
 
 # Constants
 DEFAULT_RETRIES = 5
 
 logger = logging.getLogger(__name__)
-from __future__ import annotations
-import argparse
 import json
 from datetime import datetime, timezone
 from pathlib import Path

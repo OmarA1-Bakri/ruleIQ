@@ -218,7 +218,7 @@ class EnforcementAnalyzer:
         gaps = []
         sector = business_profile.get('industry', '').lower()
         sector_actions = [a for a in self.enforcement_data.get(
-            'enforcement_actions', []) if a.get('sector', '').lower() == sector,
+            'enforcement_actions', []) if a.get('sector', '').lower() == sector
             ]
         gap_frequency = defaultdict(int)
         for action in sector_actions:

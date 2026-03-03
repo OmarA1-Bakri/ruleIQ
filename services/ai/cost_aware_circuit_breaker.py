@@ -15,12 +15,12 @@ import logging
 
 from services.ai.circuit_breaker import AICircuitBreaker, CircuitBreakerConfig
 from services.ai.cost_management import (
-
-logger = logging.getLogger(__name__)
     AICostManager,
     CostTrackingService,
     BudgetAlertService,
 )
+
+logger = logging.getLogger(__name__)
 from services.ai.exceptions import AIServiceException, CircuitBreakerException
 from config.logging_config import get_logger
 

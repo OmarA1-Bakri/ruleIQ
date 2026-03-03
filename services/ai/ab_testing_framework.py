@@ -23,8 +23,6 @@ import logging
 
 from config.logging_config import get_logger
 from .analytics_monitor import (
-
-logger = logging.getLogger(__name__)
     MetricType as AnalyticsMetricType,
     analytics_monitor as _analytics_monitor,
 )

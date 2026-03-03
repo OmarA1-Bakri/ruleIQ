@@ -484,10 +484,10 @@ class SchemaValidationResult(TypedDict):
     EvidenceWorkflow,
 
 # Union of all structured response schemas
-# StructuredResponseSchema = Union[  # Unused variable
-    GapAnalysisResponse,
-    RecommendationResponse,
-    AssessmentAnalysisResponse,
-    GuidanceResponse,
-    FollowUpResponse,
-]
+# StructuredResponseSchema = Union[
+#     GapAnalysisResponse,
+#     RecommendationResponse,
+#     AssessmentAnalysisResponse,
+#     GuidanceResponse,
+#     FollowUpResponse,
+# ]

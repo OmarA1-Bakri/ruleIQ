@@ -384,7 +384,7 @@ class GraphitiTemporalMemory:
                     c
                     for c in timeline
                     if datetime.fromisoformat(c["valid_from"])
-                    > datetime.now() - timedelta(days=30),
+                    > datetime.now() - timedelta(days=30)
                 ],
             )
             older_rate = len(
@@ -392,7 +392,7 @@ class GraphitiTemporalMemory:
                     c
                     for c in timeline
                     if datetime.fromisoformat(c["valid_from"])
-                    <= datetime.now() - timedelta(days=30),
+                    <= datetime.now() - timedelta(days=30)
                 ],
             )
 

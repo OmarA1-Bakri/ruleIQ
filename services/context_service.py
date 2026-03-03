@@ -50,18 +50,18 @@ class InteractionType(str, Enum):
 
 
 class TrustLevel(str, Enum):
-#     UNKNOWN = "unknown"  # New user, no history  # Unused variable
-#     SKEPTICAL = "skeptical"  # User questions recommendations  # Unused variable
-#     CAUTIOUS = "cautious"  # User reviews before accepting  # Unused variable
-#     TRUSTING = "trusting"  # User accepts most recommendations  # Unused variable
-#     DELEGATING = "delegating"  # User delegates tasks to system  # Unused variable
+    UNKNOWN = "unknown"
+    SKEPTICAL = "skeptical"
+    CAUTIOUS = "cautious"
+    TRUSTING = "trusting"
+    DELEGATING = "delegating"
 
 
 class CommunicationStyle(str, Enum):
-#     FORMAL = "formal"  # Business formal language  # Unused variable
-#     CASUAL = "casual"  # Friendly, conversational  # Unused variable
-#     TECHNICAL = "technical"  # Technical jargon, detailed explanations  # Unused variable
-#     CONCISE = "concise"  # Brief, to-the-point responses  # Unused variable
+    FORMAL = "formal"
+    CASUAL = "casual"
+    TECHNICAL = "technical"
+    CONCISE = "concise"
 
 
 @dataclass

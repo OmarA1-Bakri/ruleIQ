@@ -503,7 +503,7 @@ class AssessmentResultsService {
         return sum + (severityWeights[gap.severity] ?? 50);
       }, 0) / gaps.length;
 
-      sections[category] = Math.round(avgSeverityScore);
+      sections[_category] = Math.round(avgSeverityScore);
     });
 
     // Ensure we have some default sections with deterministic scores

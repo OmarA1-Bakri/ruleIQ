@@ -1,8 +1,8 @@
 # Pydantic v2 compatibility constraints
-pydantic>=2.7.0,<3.0.0
-pydantic-core>=2.18.0,<2.24.0
-pydantic-settings>=2.4.0,<3.0.0
-fastapi>=0.110.0,<0.111.0
+pydantic>=2.11.0,<3.0.0
+pydantic-core>=2.33.0,<3.0.0
+pydantic-settings>=2.5.0,<3.0.0
+fastapi>=0.110.0,<0.112.0
 
 # LangChain compatibility
 langchain>=0.3.0,<0.4.0
@@ -10,9 +10,8 @@ langchain-community>=0.3.0,<0.4.0
 langchain-core>=0.3.0,<0.4.0
 langsmith>=0.1.17,<0.3.0
 
-# Google AI compatibility  
-google-generativeai>=0.8.0,<0.9.0
-google-ai-generativelanguage>=0.6.0,<0.7.0
+# Google AI compatibility (migrated from google-generativeai to google-genai)
+google-genai>=1.0.0
 
 # Pinecone with required plugins
 pinecone-client>=5.0.0

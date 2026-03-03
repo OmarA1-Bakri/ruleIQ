@@ -357,7 +357,7 @@ export const useChatStore = create<ChatState>()(
 
                   // Update IQ Agent store with error
                   iqStoreRef.reportError({
-                    error_type: 'processing_error',
+                    error_type: 'processing',
                     message: iqError instanceof Error ? iqError.message : 'IQ Agent query failed',
                     correlation_id: `processing-${Date.now()}`
                   });
@@ -388,7 +388,7 @@ export const useChatStore = create<ChatState>()(
                 
                 // Update IQ Agent store with error
                 useIQAgentStore.getState().reportError({
-                  error_type: 'chat_integration_error',
+                  error_type: 'processing',
                   message: error instanceof Error ? error.message : 'IQ Agent query failed',
                   correlation_id: `chat-${Date.now()}`
                 });

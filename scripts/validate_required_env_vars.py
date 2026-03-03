@@ -98,9 +98,8 @@ def check_environment_variable(var_name: str, description: str) -> Tuple[bool, s
 
     # Warn about insecure default passwords
     insecure_passwords = ["password", "ruleiq123", "admin", "123456"]
-    if "password" in var_name.lower():
-        if value.lower() in insecure_passwords:
-            return False, f"❌ {var_name} uses insecure password (NEVER use default passwords)"
+    if "password" in var_name.lower() and value.lower() in insecure_passwords:
+        return False, f"❌ {var_name} uses insecure password (NEVER use default passwords)"
 
     return True, f"✅ {var_name} is set"
 
@@ -147,11 +146,10 @@ def validate_environment(
 
         if is_set:
             present.append(var_name)
+        elif "placeholder" in message or "insecure" in message:
+            invalid.append(var_name)
         else:
-            if "placeholder" in message or "insecure" in message:
-                invalid.append(var_name)
-            else:
-                missing.append(var_name)
+            missing.append(var_name)
 
     if verbose:
         print("\n" + "=" * 70)
@@ -209,24 +207,23 @@ def validate_environment(
                 print(f"   - {var}")
 
     # Provide guidance
-    if missing or invalid:
-        if verbose:
-            print("\n" + "=" * 70)
-            print("\n💡 How to fix:\n")
-            print("Option 1: Use Doppler (recommended for teams)")
-            print("  doppler login")
-            print("  doppler setup")
-            print("  doppler run -- python main.py")
-            print("\nOption 2: Set environment variables manually")
-            print("  export NEO4J_URI='your-uri'")
-            print("  export NEO4J_PASSWORD='your-password'")
-            print("  # ... etc")
-            print("\nOption 3: Use .env.local file")
-            print("  cp env.template .env.local")
-            print("  # Edit .env.local with your credentials")
-            print("  # Application will load it automatically")
-            print("\nSee docs/ENVIRONMENT_SETUP.md for detailed instructions.")
-            print("=" * 70 + "\n")
+    if (missing or invalid) and verbose:
+        print("\n" + "=" * 70)
+        print("\n💡 How to fix:\n")
+        print("Option 1: Use Doppler (recommended for teams)")
+        print("  doppler login")
+        print("  doppler setup")
+        print("  doppler run -- python main.py")
+        print("\nOption 2: Set environment variables manually")
+        print("  export NEO4J_URI='your-uri'")
+        print("  export NEO4J_PASSWORD='your-password'")
+        print("  # ... etc")
+        print("\nOption 3: Use .env.local file")
+        print("  cp env.template .env.local")
+        print("  # Edit .env.local with your credentials")
+        print("  # Application will load it automatically")
+        print("\nSee docs/ENVIRONMENT_SETUP.md for detailed instructions.")
+        print("=" * 70 + "\n")
 
     result = {
         "valid": len(missing) == 0 and len(invalid) == 0,

@@ -20,7 +20,7 @@ import sys
 import argparse
 from typing import Dict, Any, List
 from uuid import uuid4
-from unittest.mock import AsyncMock, Mock
+from unittest.mock import AsyncMock
 
 # Add project root to path
 sys.path.insert(0, '.')
@@ -32,7 +32,7 @@ from services.ai.assistant_legacy import ComplianceAssistant as LegacyAssistant
 class ParityVerifier:
     """Verifies parity between legacy and new implementations."""
 
-    def __init__(self, mode: str = 'quick'):
+    def __init__(self, mode: str = 'quick') -> None:
         self.mode = mode
         self.results: List[Dict[str, Any]] = []
         self.mock_db = AsyncMock()
@@ -58,7 +58,7 @@ class ParityVerifier:
         percentage = (passed / total * 100) if total > 0 else 0
 
         print("\n" + "=" * 60)
-        print(f"PARITY VERIFICATION SUMMARY")
+        print("PARITY VERIFICATION SUMMARY")
         print("=" * 60)
         print(f"Tests Passed: {passed}/{total} ({percentage:.1f}%)")
 

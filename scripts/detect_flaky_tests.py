@@ -14,7 +14,7 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Set
+from typing import Dict, List, Optional
 
 
 @dataclass
@@ -50,7 +50,7 @@ class FlakyTestDetector:
         markers: Optional[List[str]] = None,
         parallel: bool = False,
         test_type: str = "backend",
-    ):
+    ) -> None:
         self.runs = runs
         self.markers = markers or []
         self.parallel = parallel
@@ -141,7 +141,7 @@ class FlakyTestDetector:
             output_lines = result.stdout.strip().split("\n")
             for line in output_lines:
                 try:
-                    data = json.loads(line)
+                    json.loads(line)
                     # Process vitest JSON output format
                     # (Implementation depends on vitest reporter format)
                 except json.JSONDecodeError:

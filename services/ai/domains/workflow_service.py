@@ -12,13 +12,11 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 from uuid import UUID, uuid4
 
-from core.exceptions import BusinessLogicException
 from database.user import User
 from services.ai.response.generator import ResponseGenerator
 from services.ai.response.parser import ResponseParser
 from services.ai.response.fallback import FallbackGenerator
 from services.ai.context_manager import ContextManager
-from services.ai.safety_manager import ContentType
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +30,7 @@ class WorkflowService:
         response_parser: ResponseParser,
         fallback_generator: FallbackGenerator,
         context_manager: ContextManager
-    ):
+    ) -> None:
         """Initialize the workflow service."""
         self.response_generator = response_generator
         self.response_parser = response_parser

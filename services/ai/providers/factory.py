@@ -11,7 +11,7 @@ from config.ai_config import get_ai_model
 from services.ai.circuit_breaker import AICircuitBreaker
 from services.ai.instruction_integration import get_instruction_manager, InstructionManager
 from services.ai.exceptions import ModelUnavailableException
-from .base import AIProvider, ProviderConfig
+from .base import AIProvider
 from .gemini_provider import GeminiProvider
 from .openai_provider import OpenAIProvider
 from .anthropic_provider import AnthropicProvider
@@ -41,7 +41,7 @@ class ProviderFactory:
         self,
         instruction_manager: Optional[InstructionManager] = None,
         circuit_breaker: Optional[AICircuitBreaker] = None
-    ):
+    ) -> None:
         """
         Initialize the provider factory.
 

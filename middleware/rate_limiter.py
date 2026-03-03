@@ -12,7 +12,6 @@ from fastapi import Request, status
 from fastapi.responses import JSONResponse
 import redis
 import logging
-import requests
 from enum import Enum
 
 from config.settings import settings

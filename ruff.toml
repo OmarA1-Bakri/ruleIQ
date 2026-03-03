@@ -32,6 +32,7 @@ ignore = [
     "S603",  # Subprocess without shell (acceptable with validation)
     # S110 (Try-except-pass) removed to enforce proper error handling for security
     "S101",  # Assert (primarily in test files)
+    "B008",  # Function call in default argument — required for FastAPI Depends() pattern
     # NOTE: S105 and S106 (hardcoded passwords) are now ENABLED
     # NOTE: S324 (insecure hash) is now ENABLED to catch MD5 usage
     # NOTE: B301 (pickle usage) is ENABLED to prevent insecure serialization

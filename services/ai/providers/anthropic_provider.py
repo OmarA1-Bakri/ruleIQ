@@ -10,8 +10,7 @@ from typing import Any, AsyncIterator, Optional
 from .base import (
     AIProvider,
     ProviderConfig,
-    ProviderResponse,
-    ProviderUnavailableError
+    ProviderResponse
 )
 
 logger = logging.getLogger(__name__)
@@ -20,7 +19,7 @@ logger = logging.getLogger(__name__)
 class AnthropicProvider(AIProvider):
     """Anthropic Claude provider implementation."""
 
-    def __init__(self, circuit_breaker: Optional[Any] = None):
+    def __init__(self, circuit_breaker: Optional[Any] = None) -> None:
         """Initialize Anthropic provider."""
         self.circuit_breaker = circuit_breaker
         logger.info("AnthropicProvider initialized (placeholder)")

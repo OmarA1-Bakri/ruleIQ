@@ -14,7 +14,7 @@ import re
 import json
 import argparse
 from pathlib import Path
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, Tuple
 
 
 def update_todo_in_file(file_path: Path, line_number: int, issue_number: int) -> bool:
@@ -40,7 +40,6 @@ def update_todo_in_file(file_path: Path, line_number: int, issue_number: int) ->
         return False
 
     line = lines[line_number - 1]
-    original_line = line
 
     # Detect comment style and update accordingly
     patterns = [
@@ -110,13 +109,12 @@ def batch_update_todos(mapping: Dict[str, int], dry_run: bool = False) -> Tuple[
         if dry_run:
             print(f"  🔍 Would update: {file_path}:{line_num} → #{issue_num}")
             successful += 1
+        elif update_todo_in_file(file_path, line_num, issue_num):
+            print(f"  ✅ Updated: {file_path}:{line_num} → #{issue_num}")
+            successful += 1
         else:
-            if update_todo_in_file(file_path, line_num, issue_num):
-                print(f"  ✅ Updated: {file_path}:{line_num} → #{issue_num}")
-                successful += 1
-            else:
-                print(f"  ❌ Failed: {file_path}:{line_num}")
-                failed += 1
+            print(f"  ❌ Failed: {file_path}:{line_num}")
+            failed += 1
 
     return successful, failed
 
@@ -151,7 +149,7 @@ def interactive_update():
 
         # Show context
         if todo.context:
-            print(f"\n  Context:")
+            print("\n  Context:")
             for line in todo.context.strip().split('\n'):
                 print(f"    {line}")
 
@@ -170,13 +168,13 @@ def interactive_update():
                 print(f"  ✅ Updated with issue #{issue_num}")
                 updated += 1
             else:
-                print(f"  ❌ Failed to update")
+                print("  ❌ Failed to update")
                 failed += 1
         else:
-            print(f"  ⚠️  Invalid input, skipping")
+            print("  ⚠️  Invalid input, skipping")
             skipped += 1
 
-    print(f"\n📊 Summary:")
+    print("\n📊 Summary:")
     print(f"  Updated: {updated}")
     print(f"  Skipped: {skipped}")
     print(f"  Failed: {failed}")
@@ -271,13 +269,13 @@ def main():
         print(f"📝 Updating TODOs from {args.mapping}...\n")
         successful, failed = batch_update_todos(mapping, args.dry_run)
 
-        print(f"\n📊 Summary:")
+        print("\n📊 Summary:")
         print(f"  Successful: {successful}")
         print(f"  Failed: {failed}")
 
         if args.dry_run:
-            print(f"\n💡 This was a dry run. No files were modified.")
-            print(f"   Remove --dry-run to update for real")
+            print("\n💡 This was a dry run. No files were modified.")
+            print("   Remove --dry-run to update for real")
     elif args.file and args.line and args.issue:
         if not args.file.exists():
             print(f"❌ Error: File not found: {args.file}")
@@ -288,11 +286,10 @@ def main():
         elif args.dry_run:
             print(f"🔍 Would update: {args.file}:{args.line} → #{args.issue}")
             preview_update(args.file, args.line, args.issue)
+        elif update_todo_in_file(args.file, args.line, args.issue):
+            print(f"✅ Updated: {args.file}:{args.line} → #{args.issue}")
         else:
-            if update_todo_in_file(args.file, args.line, args.issue):
-                print(f"✅ Updated: {args.file}:{args.line} → #{args.issue}")
-            else:
-                print(f"❌ Failed to update {args.file}:{args.line}")
+            print(f"❌ Failed to update {args.file}:{args.line}")
     else:
         parser.error("Must specify --mapping, --interactive, or --file/--line/--issue")
 

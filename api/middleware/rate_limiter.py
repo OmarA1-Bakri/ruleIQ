@@ -1,6 +1,5 @@
 from __future__ import annotations
 import time
-import requests
 from typing import Dict, Tuple, Any
 from fastapi import HTTPException, Request, status
 from fastapi.responses import JSONResponse

@@ -6,7 +6,6 @@ import time
 from collections import defaultdict, deque
 from typing import Any, Deque, Dict, List, Optional, Tuple
 
-from .types import NodeStatus
 
 
 class StateTransitionTracker:

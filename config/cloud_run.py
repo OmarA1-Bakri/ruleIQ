@@ -59,7 +59,7 @@ class CloudRunConfig(BaseConfig):
     GOOGLE_API_KEY = None
     ANTHROPIC_API_KEY = None
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         # Create directories if they don't exist
         self.UPLOAD_DIR.mkdir(parents=True, exist_ok=True)

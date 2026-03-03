@@ -15,7 +15,6 @@ Implements tiered rate limiting for different AI operations:
 """
 import asyncio
 import time
-import requests
 from collections import defaultdict, deque
 from typing import Dict, Tuple, Any
 from fastapi import Depends, HTTPException, Request

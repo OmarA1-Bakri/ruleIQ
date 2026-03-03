@@ -51,7 +51,7 @@ class EnforcementAnalyzer:
     """
 
     def __init__(self, enforcement_db_path: str=
-        'data/enforcement/uk_enforcement_database.json'):
+        'data/enforcement/uk_enforcement_database.json') -> None:
         """Initialize with enforcement database"""
         self.db_path = Path(enforcement_db_path)
         self.enforcement_data = self._load_database()
@@ -405,7 +405,7 @@ class IQEnforcementIntegration:
     Implements the learn() and remember() capabilities with real-world data
     """
 
-    def __init__(self, enforcement_analyzer: EnforcementAnalyzer):
+    def __init__(self, enforcement_analyzer: EnforcementAnalyzer) -> None:
         self.analyzer = enforcement_analyzer
         self.learning_cache = {}
 

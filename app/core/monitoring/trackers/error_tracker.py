@@ -5,7 +5,7 @@ Error metrics collection and analysis for LangGraph workflows.
 import time
 from collections import defaultdict, deque
 from datetime import datetime
-from typing import Any, Deque, Dict, List, Optional
+from typing import Any, Deque, Dict, List
 
 
 class ErrorAnalysisTracker:

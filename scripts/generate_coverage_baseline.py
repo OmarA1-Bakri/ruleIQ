@@ -17,7 +17,7 @@ from xml.etree import ElementTree as ET
 class CoverageBaselineGenerator:
     """Generates coverage baseline documentation from test artifacts."""
 
-    def __init__(self, project_root: Optional[Path] = None):
+    def __init__(self, project_root: Optional[Path] = None) -> None:
         self.project_root = project_root or Path(__file__).parent.parent
         self.backend_coverage_xml = self.project_root / "coverage.xml"
         self.backend_coverage_json = self.project_root / "coverage.json"
@@ -142,10 +142,7 @@ class CoverageBaselineGenerator:
 
                 # Extract directory from path
                 path_obj = Path(path)
-                if len(path_obj.parts) > 0:
-                    directory = path_obj.parts[0]
-                else:
-                    directory = "root"
+                directory = path_obj.parts[0] if len(path_obj.parts) > 0 else "root"
 
                 if directory not in directories:
                     directories[directory] = {
@@ -160,7 +157,7 @@ class CoverageBaselineGenerator:
                 directories[directory]["covered_lines"] += lines.get("covered", 0)
 
             # Calculate directory percentages
-            for dir_name, stats in directories.items():
+            for _dir_name, stats in directories.items():
                 if stats["total_lines"] > 0:
                     stats["line_coverage"] = (
                         stats["covered_lines"] / stats["total_lines"]

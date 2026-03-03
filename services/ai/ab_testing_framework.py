@@ -15,11 +15,10 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple, Union, Callable
+from typing import Any, Dict, List, Optional, Tuple, Union
 from uuid import uuid4
 from scipy import stats
 from scipy.stats import ttest_ind, chi2_contingency, mannwhitneyu
-import logging
 
 from config.logging_config import get_logger
 from .analytics_monitor import (
@@ -199,7 +198,7 @@ class InMemoryStorageBackend(StorageBackend):
     For production, use persistent backends such as SQL databases or cloud storage (Parquet/S3).
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.data: Dict[str, List[ExperimentData]] = {}
 
     def append(self, experiment_id: str, data: ExperimentData) -> None:
@@ -230,7 +229,7 @@ class AnalyticsFacade(ABC):
 class DefaultAnalyticsFacade(AnalyticsFacade):
     """Default analytics facade using the global analytics monitor."""
 
-    def __init__(self, monitor=None):
+    def __init__(self, monitor=None) -> None:
         self.monitor = monitor or _analytics_monitor
 
     async def record_metric(self, metric_type: Any, name: str, value: float, metadata: Dict[str, Any]) -> None:
@@ -271,7 +270,7 @@ class ABTestingFramework:
             coro: Coroutine to schedule
         """
         try:
-            loop = asyncio.get_running_loop()
+            asyncio.get_running_loop()
             asyncio.create_task(coro)
         except RuntimeError:
             # No running event loop, run in background thread

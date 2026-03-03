@@ -137,9 +137,7 @@ class AIProvider(ABC):
             return False
         if config.temperature < 0.0 or config.temperature > 2.0:
             return False
-        if config.max_tokens is not None and config.max_tokens <= 0:
-            return False
-        return True
+        return not (config.max_tokens is not None and config.max_tokens <= 0)
 
     def estimate_cost(self, tokens: int) -> float:
         """

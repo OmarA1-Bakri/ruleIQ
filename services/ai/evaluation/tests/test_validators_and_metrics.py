@@ -4,11 +4,9 @@ from __future__ import annotations
 
 import pytest
 from datetime import date, datetime, timedelta, timezone
-from typing import List
 
 from ..schemas.common import RegCitation, SourceMeta, TemporalValidity
 from ..schemas.compliance_scenario import ComplianceScenario, ExpectedOutcome
-from ..schemas.evidence_case import EvidenceCase, EvidenceItem, FrameworkMap
 from ..golden_datasets.validators import (
     DeepValidator,
     ExternalDataValidator,

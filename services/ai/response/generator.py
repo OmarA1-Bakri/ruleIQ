@@ -8,9 +8,7 @@ import logging
 from typing import Any, Dict, List, Optional
 
 from services.ai.providers.factory import ProviderFactory
-from services.ai.tools import get_tool_schemas, tool_executor
-from services.ai.safety_manager import get_safety_manager_for_user
-from services.ai.analytics_monitor import get_analytics_monitor
+from services.ai.tools import get_tool_schemas
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +34,7 @@ class ResponseGenerator:
         safety_manager: Optional[Any] = None,
         tool_executor: Optional[Any] = None,
         analytics_monitor: Optional[Any] = None
-    ):
+    ) -> None:
         """
         Initialize the response generator.
 

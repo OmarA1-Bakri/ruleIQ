@@ -5,7 +5,6 @@ Conversation management endpoints.
 import asyncio
 import logging
 from datetime import datetime, timezone
-from typing import List
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query

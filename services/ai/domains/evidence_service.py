@@ -33,7 +33,7 @@ class EvidenceService:
         context_manager: ContextManager,
         workflow_service=None,  # Optional, for maturity analysis
         compliance_service=None  # Optional, for gap analysis
-    ):
+    ) -> None:
         """Initialize the evidence service."""
         self.response_generator = response_generator
         self.response_parser = response_parser
@@ -251,7 +251,7 @@ class EvidenceService:
                 business_context, existing_evidence, maturity_analysis, gaps_analysis, framework
             )
 
-            combined_prompt = f"System: {prompt_dict['system']}\n\nUser: {prompt_dict['user']}"
+            f"System: {prompt_dict['system']}\n\nUser: {prompt_dict['user']}"
 
             # Generate AI response using response generator
             response = await self.response_generator.generate_simple(

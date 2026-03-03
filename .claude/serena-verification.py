@@ -68,7 +68,7 @@ def set_persistence_flags() -> bool:
         serena_flag = Path('.claude/serena-active.flag')
         serena_flag.parent.mkdir(exist_ok=True)
         serena_flag.touch(exist_ok=True)
-        
+
         status_file = Path('.claude/serena-status.json')
         status_data = {
             'active': True,
@@ -96,7 +96,7 @@ def check_mcp_server() -> None:
         else '⚠️  Not initialized'
     )
     logger.info('  Serena MCP: %s', serena_status)
-    
+
     logger.info('\n🎯 Serena MCP Ready:')
     logger.info('  1. Code intelligence tools available')
     logger.info('  2. Symbol search and analysis active')
@@ -109,21 +109,21 @@ def main() -> int:
         "[%s] 🔍 Starting Serena MCP verification",
         datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     )
-    
+
     checks = [
         ('Project Structure', check_project_structure),
         ('Python Environment', check_python_environment),
         ('Persistence Flags', set_persistence_flags)
     ]
-    
+
     all_passed = True
     for name, check_func in checks:
         if not check_func():
             all_passed = False
             logger.info('  ⚠️  %s check had issues', name)
-    
+
     check_mcp_server()
-    
+
     if all_passed:
         logger.info(
             "[%s] ✅ MCP verification complete",

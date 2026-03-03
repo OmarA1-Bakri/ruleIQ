@@ -7,13 +7,12 @@ Implements the AIProvider interface for Google's Gemini models.
 import asyncio
 import logging
 from datetime import datetime, timezone
-from typing import Any, AsyncIterator, Dict, Optional
+from typing import Any, AsyncIterator, Optional
 
 from google.generativeai.types import HarmCategory, HarmBlockThreshold
 
 from config.ai_config import get_ai_model
 from services.ai.circuit_breaker import AICircuitBreaker
-from services.ai.cached_content import get_cached_content_manager
 from services.ai.analytics_monitor import get_analytics_monitor, MetricType
 from .base import (
     AIProvider,
@@ -35,7 +34,7 @@ class GeminiProvider(AIProvider):
         circuit_breaker: Optional[AICircuitBreaker] = None,
         analytics_monitor: Optional[Any] = None,
         cached_content_manager: Optional[Any] = None
-    ):
+    ) -> None:
         """
         Initialize the Gemini provider.
 
@@ -95,7 +94,7 @@ class GeminiProvider(AIProvider):
             # Attach cached content if provided
             if config.cached_content:
                 self.model._cached_content = config.cached_content
-                logger.debug(f"Attached cached content to Gemini model")
+                logger.debug("Attached cached content to Gemini model")
 
             # Build generation config
             generation_config = {
@@ -182,7 +181,7 @@ class GeminiProvider(AIProvider):
             return provider_response
 
         except asyncio.TimeoutError:
-            raise ProviderTimeoutError(f"Gemini request timed out")
+            raise ProviderTimeoutError("Gemini request timed out")
         except Exception as e:
             error_str = str(e).lower()
 

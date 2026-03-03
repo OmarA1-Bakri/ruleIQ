@@ -32,9 +32,7 @@ from api.routers import (
     users,
 )
 from api.routers.admin import admin_router
-from config.settings import settings
 from database.serverless_db import (
-    get_db_session,
     test_database_connection,
     cleanup_connections,
 )

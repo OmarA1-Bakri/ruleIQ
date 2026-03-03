@@ -18,7 +18,7 @@ import json
 import csv
 from pathlib import Path
 from typing import List, Dict, Any, Optional
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass
 from datetime import datetime
 from collections import Counter
 
@@ -109,11 +109,7 @@ def is_scannable(path: Path) -> bool:
 
     # Skip if matches ignore pattern
     path_str = str(path)
-    for pattern in IGNORE_PATTERNS:
-        if re.search(pattern, path_str):
-            return False
-
-    return True
+    return all(not re.search(pattern, path_str) for pattern in IGNORE_PATTERNS)
 
 
 def should_ignore_todo(item: TodoItem) -> bool:
@@ -127,10 +123,7 @@ def should_ignore_todo(item: TodoItem) -> bool:
         return True
 
     # Ignore TODOs in example/template files
-    if 'example' in str(item.file_path).lower() or 'template' in str(item.file_path).lower():
-        return True
-
-    return False
+    return bool('example' in str(item.file_path).lower() or 'template' in str(item.file_path).lower())
 
 
 def get_line_number(content: str, match_start: int) -> int:
@@ -376,7 +369,7 @@ def main():
         non_compliant = [t for t in todos if not t.issue_number and t.severity in ['CRITICAL', 'HIGH']]
         if non_compliant:
             print(f"\n❌ Found {len(non_compliant)} non-compliant TODOs (missing issue references)")
-            print(f"\nShowing first 10 violations:")
+            print("\nShowing first 10 violations:")
             for todo in non_compliant[:10]:
                 print(f"  {todo.file_path}:{todo.line_number} - {todo.marker}: {todo.description[:60]}")
             if len(non_compliant) > 10:

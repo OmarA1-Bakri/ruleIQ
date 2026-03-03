@@ -14,7 +14,6 @@ synchronization when services return.
 import json
 import logging
 import sqlite3
-import requests
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum

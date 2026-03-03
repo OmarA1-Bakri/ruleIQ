@@ -189,8 +189,8 @@ def main() -> None:
         for kind, path, token in suspicious:
             print(f"- {kind}: {path} :: {token}")
             if kind in ("default-password-param", "neo4j-default-password"):
-                print(f"  ⚠️  CRITICAL: Default password parameter detected!")
-                print(f"     Remove the default value and require the environment variable.")
+                print("  ⚠️  CRITICAL: Default password parameter detected!")
+                print("     Remove the default value and require the environment variable.")
         print("\nIf this is a false positive, add an allowlist to the scanner or redact the value.")
         raise SystemExit(1)
 

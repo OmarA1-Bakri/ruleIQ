@@ -88,7 +88,7 @@ class GraphitiTemporalMemory:
     Integrates with Neo4j for persistent storage
     """
 
-    def __init__(self, neo4j_uri: str, neo4j_user: str, neo4j_password: str):
+    def __init__(self, neo4j_uri: str, neo4j_user: str, neo4j_password: str) -> None:
         self.driver = GraphDatabase.driver(neo4j_uri, auth=(neo4j_user, neo4j_password))
         self.temporal_index: Dict[str, List[TemporalNode]] = defaultdict(list)
         self.regulatory_clocks: Dict[str, RegulatoryClock] = {}
@@ -507,7 +507,7 @@ class TemporalMemoryIntegration:
     Integration layer between Graphiti temporal memory and IQ agent
     """
 
-    def __init__(self, temporal_memory: GraphitiTemporalMemory):
+    def __init__(self, temporal_memory: GraphitiTemporalMemory) -> None:
         self.memory = temporal_memory
 
     async def process_regulatory_update(

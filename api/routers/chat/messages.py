@@ -3,11 +3,10 @@ Message sending and management endpoints.
 """
 
 import logging
-from datetime import datetime, timezone
+from datetime import timezone
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.dependencies.auth import get_current_active_user

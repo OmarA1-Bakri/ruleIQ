@@ -4,7 +4,7 @@ Memory usage tracking for LangGraph components.
 
 import time
 from collections import defaultdict, deque
-from typing import Any, Deque, Dict, List, Optional
+from typing import Any, Deque, Dict, List
 
 import psutil
 

@@ -13,7 +13,6 @@ from datetime import datetime, timedelta
 from uuid import uuid4
 from enum import Enum
 import asyncio
-import requests
 from dataclasses import dataclass, field
 
 

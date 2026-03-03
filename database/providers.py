@@ -269,7 +269,7 @@ class Neo4jProvider(DatabaseProvider):
             uri = os.getenv('NEO4J_URI')
             username = os.getenv('NEO4J_USERNAME')
             password = os.getenv('NEO4J_PASSWORD')
-            database = os.getenv('NEO4J_DATABASE', 'neo4j')
+            os.getenv('NEO4J_DATABASE', 'neo4j')
 
             if not uri or not username or not password:
                 raise ValueError(

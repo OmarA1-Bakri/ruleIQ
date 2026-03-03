@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 class ComplianceQueryEngine:
     """Query engine for compliance data in Neo4j."""
 
-    def __init__(self, uri: str, user: str, password: str):
+    def __init__(self, uri: str, user: str, password: str) -> None:
         """Initialize query engine with Neo4j connection."""
         self.driver = AsyncGraphDatabase.driver(uri, auth=(user, password))
         self.logger = logging.getLogger(self.__class__.__name__)
@@ -36,7 +36,7 @@ class ComplianceQueryEngine:
         """
         query = """
         MATCH (r:Regulation)
-        WHERE 
+        WHERE
             (r.business_triggers.industry = $industry OR r.business_triggers.industry IS NULL) AND
             (r.business_triggers.processes_payments = $processes_payments OR r.business_triggers.processes_payments IS NULL) AND
             (r.business_triggers.stores_customer_data = $stores_customer_data OR r.business_triggers.stores_customer_data IS NULL) AND
@@ -129,7 +129,7 @@ class ComplianceQueryEngine:
         query = """
         MATCH (r:Regulation)
         WHERE r.automation_potential IS NOT NULL
-        RETURN 
+        RETURN
             avg(r.automation_potential) as average_potential,
             min(r.automation_potential) as min_potential,
             max(r.automation_potential) as max_potential,

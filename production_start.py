@@ -16,13 +16,13 @@ def create_production_app():
     from fastapi import FastAPI
     from fastapi.middleware.cors import CORSMiddleware
     from fastapi.middleware.gzip import GZipMiddleware
-    
+
     app = FastAPI(
         title="RuleIQ Production API",
         version="1.0.0",
         description="AI-powered compliance platform"
     )
-    
+
     # Add middleware
     app.add_middleware(
         CORSMiddleware,
@@ -32,25 +32,25 @@ def create_production_app():
         allow_headers=["*"],
     )
     app.add_middleware(GZipMiddleware, minimum_size=1000)
-    
+
     # Health endpoints
     @app.get("/health")
     def health_check():
         return {"status": "healthy", "service": "ruleiq-api"}
-    
+
     @app.get("/health/live")
     def liveness_check():
         return {"status": "alive", "service": "ruleiq-api"}
-    
+
     @app.get("/health/ready")
     def readiness_check():
         # Add database connectivity check here if needed
         return {"status": "ready", "service": "ruleiq-api"}
-    
+
     @app.get("/")
     def root():
         return {"message": "RuleIQ API - Production", "version": "1.0.0"}
-    
+
     # Add a simple API endpoint to test functionality
     @app.get("/api/v1/status")
     def api_status():
@@ -60,7 +60,7 @@ def create_production_app():
             "version": "1.0.0",
             "environment": os.getenv("ENVIRONMENT", "production")
         }
-    
+
     return app
 
 # Create the app for uvicorn

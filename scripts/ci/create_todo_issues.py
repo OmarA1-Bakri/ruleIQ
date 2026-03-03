@@ -16,14 +16,14 @@ import json
 import requests
 import argparse
 from pathlib import Path
-from typing import List, Dict, Optional, Tuple
+from typing import List, Dict, Optional
 from scan_todos import TodoItem, scan_file, get_tracked_files, is_scannable
 
 
 class GitHubIssueCreator:
     """Handles GitHub API interactions for issue creation."""
 
-    def __init__(self, token: str, repo: str):
+    def __init__(self, token: str, repo: str) -> None:
         """
         Initialize GitHub API client.
 
@@ -199,9 +199,7 @@ def get_labels_for_todo(todo: TodoItem) -> List[str]:
         labels.append("priority: low")
 
     # Marker-specific labels
-    if todo.marker == "FIXME":
-        labels.append("bug")
-    elif todo.marker == "BUG":
+    if todo.marker in {"FIXME", "BUG"}:
         labels.append("bug")
     elif todo.marker == "HACK":
         labels.append("refactoring")
@@ -214,9 +212,7 @@ def get_labels_for_todo(todo: TodoItem) -> List[str]:
     path_str = str(todo.file_path).lower()
     if "frontend" in path_str:
         labels.append("frontend")
-    elif "api" in path_str or "routers" in path_str:
-        labels.append("backend")
-    elif "services" in path_str:
+    elif "api" in path_str or "routers" in path_str or "services" in path_str:
         labels.append("backend")
     elif "tests" in path_str or "test_" in path_str:
         labels.append("testing")
@@ -328,7 +324,7 @@ def main():
                 continue
 
     # Summary
-    print(f"\n📊 Summary:")
+    print("\n📊 Summary:")
     print(f"  Total TODOs processed: {len(todos)}")
     print(f"  Issues created: {len(created_issues)}")
     if skipped > 0:
@@ -346,11 +342,11 @@ def main():
         mapping_file = Path("issues.json")
         mapping_file.write_text(json.dumps(mapping, indent=2))
         print(f"\n💾 Saved issue mapping to {mapping_file}")
-        print(f"\n📝 Next step: Update TODO comments with issue references")
-        print(f"   Run: python scripts/ci/update_todo_references.py --mapping issues.json")
+        print("\n📝 Next step: Update TODO comments with issue references")
+        print("   Run: python scripts/ci/update_todo_references.py --mapping issues.json")
     elif created_issues and args.dry_run:
-        print(f"\n💡 This was a dry run. No issues were created.")
-        print(f"   Remove --dry-run to create issues for real")
+        print("\n💡 This was a dry run. No issues were created.")
+        print("   Remove --dry-run to create issues for real")
 
 
 if __name__ == "__main__":

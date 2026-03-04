@@ -26,7 +26,7 @@ class AnthropicProvider(AIProvider):
     """Anthropic Claude provider implementation."""
 
     # Default model if none specified
-    DEFAULT_MODEL = "claude-sonnet-4-20250514"
+    DEFAULT_MODEL = "claude-sonnet-4-6"  # See Anthropic docs for latest model aliases.
 
     def __init__(self, circuit_breaker: Optional[Any] = None) -> None:
         """Initialize Anthropic provider."""
@@ -168,16 +168,44 @@ class AnthropicProvider(AIProvider):
             if config.system_instruction:
                 kwargs["system"] = config.system_instruction
 
-            # Use Anthropic streaming API in a thread
-            def _stream():
-                with client.messages.stream(**kwargs) as stream:
-                    for text in stream.text_stream:
-                        yield text
+            timeout_seconds = config.timeout or 30.0
+            queue: asyncio.Queue[Any] = asyncio.Queue()
+            sentinel = object()
+            loop = asyncio.get_running_loop()
 
-            # Collect chunks from sync generator in thread pool
-            chunks = await asyncio.to_thread(lambda: list(_stream()))
-            for chunk in chunks:
-                yield chunk
+            def _producer() -> None:
+                try:
+                    with client.messages.stream(**kwargs) as stream:
+                        for text in stream.text_stream:
+                            loop.call_soon_threadsafe(queue.put_nowait, text)
+                except Exception as exc:
+                    loop.call_soon_threadsafe(queue.put_nowait, exc)
+                finally:
+                    loop.call_soon_threadsafe(queue.put_nowait, sentinel)
+
+            producer_task = asyncio.create_task(asyncio.to_thread(_producer))
+
+            while True:
+                try:
+                    item = await asyncio.wait_for(queue.get(), timeout=timeout_seconds)
+                except asyncio.TimeoutError:
+                    logger.error(
+                        "Anthropic streaming timed out after %ss (model=%s)",
+                        timeout_seconds,
+                        model_name,
+                    )
+                    raise ProviderUnavailableError(
+                        f"Anthropic streaming timed out after {timeout_seconds}s"
+                    )
+
+                if item is sentinel:
+                    break
+                if isinstance(item, Exception):
+                    raise item
+
+                yield item
+
+            await asyncio.wait_for(producer_task, timeout=timeout_seconds)
 
         except Exception as e:
             logger.error(f"Anthropic streaming failed: {e}", exc_info=True)
@@ -192,6 +220,8 @@ class AnthropicProvider(AIProvider):
         return self.DEFAULT_MODEL
 
     def estimate_cost(self, tokens: int) -> float:
-        """Estimate cost for Claude Sonnet (input + output average)."""
-        # Claude Sonnet 4: $3/M input, $15/M output — use blended rate
-        return tokens * 9.0 / 1_000_000
+        """Estimate cost using Sonnet defaults ($3/M input, $15/M output; last verified 2026-03-04)."""
+        input_per_m = float(os.getenv("ANTHROPIC_SONNET_INPUT_PER_M", "3.0"))
+        output_per_m = float(os.getenv("ANTHROPIC_SONNET_OUTPUT_PER_M", "15.0"))
+        blended_rate = (input_per_m + output_per_m) / 2
+        return tokens * blended_rate / 1_000_000

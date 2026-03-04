@@ -180,8 +180,6 @@ class GeminiProvider(AIProvider):
 
             return provider_response
 
-        except asyncio.TimeoutError:
-            raise ProviderTimeoutError("Gemini request timed out")
         except Exception as e:
             error_str = str(e).lower()
 
@@ -229,24 +227,50 @@ class GeminiProvider(AIProvider):
                 generation_config['max_output_tokens'] = config.max_tokens
 
             safety_settings = config.safety_settings or self.safety_settings
+            timeout_seconds = config.timeout or 30.0
 
-            # Run streaming generation in thread pool
-            def _stream():
-                response = self.model.generate_content(
-                    prompt,
-                    safety_settings=safety_settings,
-                    generation_config=generation_config,
-                    stream=True,
-                )
-                chunks = []
-                for chunk in response:
-                    if hasattr(chunk, 'text') and chunk.text:
-                        chunks.append(chunk.text)
-                return chunks
+            queue: asyncio.Queue[Any] = asyncio.Queue()
+            sentinel = object()
+            loop = asyncio.get_running_loop()
 
-            chunks = await asyncio.to_thread(_stream)
-            for chunk in chunks:
-                yield chunk
+            def _producer() -> None:
+                try:
+                    response = self.model.generate_content(
+                        prompt,
+                        safety_settings=safety_settings,
+                        generation_config=generation_config,
+                        stream=True,
+                    )
+                    for chunk in response:
+                        if hasattr(chunk, 'text') and chunk.text:
+                            loop.call_soon_threadsafe(queue.put_nowait, chunk.text)
+                except Exception as exc:
+                    loop.call_soon_threadsafe(queue.put_nowait, exc)
+                finally:
+                    loop.call_soon_threadsafe(queue.put_nowait, sentinel)
+
+            producer_task = asyncio.create_task(asyncio.to_thread(_producer))
+
+            while True:
+                try:
+                    item = await asyncio.wait_for(queue.get(), timeout=timeout_seconds)
+                except asyncio.TimeoutError:
+                    logger.error(
+                        "Gemini streaming timed out after %ss (model=%s)",
+                        timeout_seconds,
+                        model_name,
+                    )
+                    raise ProviderUnavailableError(
+                        f"Gemini streaming timed out after {timeout_seconds}s"
+                    )
+
+                if item is sentinel:
+                    break
+                if isinstance(item, Exception):
+                    raise item
+                yield item
+
+            await asyncio.wait_for(producer_task, timeout=timeout_seconds)
 
         except Exception as e:
             logger.error(f"Gemini streaming failed: {e}", exc_info=True)

@@ -135,11 +135,11 @@ def write_markdown_report(path: Path, report: Dict[str, Any]) ->None:
                 status = '✓' if validation[layer]['valid'] else '✗'
                 lines.append(f"- {layer.replace('_', ' ').title()}: {status}")
                 if validation[layer].get('errors'):
-                    for error in validation[layer]['errors'][:5]:
+                    for error in validation[layer]['errors'][:MAX_DISPLAYED_ERRORS]:
                         lines.append(f'  - {error}')
                     if len(validation[layer]['errors']) > MAX_DISPLAYED_ERRORS:
                         lines.append(
-                            f"  - ... and {len(validation[layer]['errors']) - 5} more"
+                            f"  - ... and {len(validation[layer]['errors']) - MAX_DISPLAYED_ERRORS} more"
                             )
         lines.append('')
     lines.append('## Quality Metrics')

@@ -4,7 +4,7 @@ Provides high-performance query interface for compliance data.
 """
 
 import logging
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 from neo4j import AsyncGraphDatabase
 
 logger = logging.getLogger(__name__)
@@ -13,9 +13,16 @@ logger = logging.getLogger(__name__)
 class ComplianceQueryEngine:
     """Query engine for compliance data in Neo4j."""
 
-    def __init__(self, uri: str, user: str, password: str) -> None:
+    def __init__(
+        self,
+        uri: str,
+        user: str,
+        password: str,
+        database: Optional[str] = None,
+    ) -> None:
         """Initialize query engine with Neo4j connection."""
         self.driver = AsyncGraphDatabase.driver(uri, auth=(user, password))
+        self.database = database
         self.logger = logging.getLogger(self.__class__.__name__)
 
     async def close(self):
@@ -45,7 +52,7 @@ class ComplianceQueryEngine:
         ORDER BY r.risk_metadata.base_risk_score DESC
         """
 
-        async with self.driver.session() as session:
+        async with self.driver.session(database=self.database) as session:
             result = await session.run(query, business_profile)
             regulations = []
             async for record in result:
@@ -69,7 +76,7 @@ class ComplianceQueryEngine:
         RETURN r, collect(e) as enforcements
         """
 
-        async with self.driver.session() as session:
+        async with self.driver.session(database=self.database) as session:
             result = await session.run(query, reg_id=regulation_id)
             record = await result.single()
             if not record:
@@ -112,7 +119,7 @@ class ComplianceQueryEngine:
         RETURN r.suggested_controls as controls
         """
 
-        async with self.driver.session() as session:
+        async with self.driver.session(database=self.database) as session:
             result = await session.run(query, reg_id=regulation_id)
             record = await result.single()
             if record and record["controls"]:
@@ -137,7 +144,7 @@ class ComplianceQueryEngine:
             count(CASE WHEN r.automation_potential >= 0.7 THEN 1 END) as high_automation_count
         """
 
-        async with self.driver.session() as session:
+        async with self.driver.session(database=self.database) as session:
             result = await session.run(query)
             record = await result.single()
             return dict(record) if record else {}
@@ -159,7 +166,7 @@ class ComplianceQueryEngine:
         RETURN dep
         """
 
-        async with self.driver.session() as session:
+        async with self.driver.session(database=self.database) as session:
             result = await session.run(query, reg_id=regulation_id)
             dependencies = []
             async for record in result:
@@ -183,7 +190,7 @@ class ComplianceQueryEngine:
         RETURN eq
         """
 
-        async with self.driver.session() as session:
+        async with self.driver.session(database=self.database) as session:
             result = await session.run(query, reg_id=regulation_id)
             equivalents = []
             async for record in result:
@@ -207,7 +214,7 @@ class ComplianceQueryEngine:
         RETURN conf, c.conflict_type as conflict_type
         """
 
-        async with self.driver.session() as session:
+        async with self.driver.session(database=self.database) as session:
             result = await session.run(query, reg_id=regulation_id)
             conflicts = []
             async for record in result:

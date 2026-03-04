@@ -10,9 +10,7 @@ IMPORTANT: This is a transitional façade. New code should use domain services d
 from typing import Any, Dict, List, Optional, Tuple
 from uuid import UUID
 
-# TODO: Apply warnings.catch_warnings() with targeted FutureWarning suppression
-# only around specific google.generativeai call sites that emit known noise.
-from google.generativeai.types import HarmCategory, HarmBlockThreshold
+from google.genai import types
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from config.logging_config import get_logger
@@ -86,10 +84,10 @@ class ComplianceAssistant:
 
         # Preserve safety settings
         self.safety_settings = {
-            HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_ONLY_HIGH,
-            HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_ONLY_HIGH,
-            HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
-            HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+            types.HarmCategory.HARM_CATEGORY_HARASSMENT: types.HarmBlockThreshold.BLOCK_ONLY_HIGH,
+            types.HarmCategory.HARM_CATEGORY_HATE_SPEECH: types.HarmBlockThreshold.BLOCK_ONLY_HIGH,
+            types.HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: types.HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+            types.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: types.HarmBlockThreshold.BLOCK_ONLY_HIGH,
         }
 
         # Initialize new architecture components

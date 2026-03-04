@@ -125,8 +125,7 @@ class GapValidationModel(BaseModel):
             return f"gap_{v}"
         return v
 
-    class Config:
-        use_enum_values = True
+    model_config = {"use_enum_values": True}
 
 
 class RecommendationValidationModel(BaseModel):
@@ -180,8 +179,7 @@ class RecommendationValidationModel(BaseModel):
             return f"rec_{v}"
         return v
 
-    class Config:
-        use_enum_values = True
+    model_config = {"use_enum_values": True}
 
 
 class ImplementationPhaseValidationModel(BaseModel):
@@ -251,8 +249,7 @@ class RiskAssessmentValidationModel(BaseModel):
     )
     financial_risk: float = Field(..., ge=0.0, le=100.0, description="Financial risk")
 
-    class Config:
-        use_enum_values = True
+    model_config = {"use_enum_values": True}
 
 
 class ComplianceInsightValidationModel(BaseModel):
@@ -267,8 +264,7 @@ class ComplianceInsightValidationModel(BaseModel):
         ..., min_items=1, description="Actionable steps",
     )
 
-    class Config:
-        use_enum_values = True
+    model_config = {"use_enum_values": True}
 
 
 class EvidenceRequirementValidationModel(BaseModel):
@@ -290,8 +286,7 @@ class EvidenceRequirementValidationModel(BaseModel):
     )
     retention_period: Optional[str] = Field(None, description="Retention period")
 
-    class Config:
-        use_enum_values = True
+    model_config = {"use_enum_values": True}
 
 
 class ComplianceMetricsValidationModel(BaseModel):
@@ -328,8 +323,7 @@ class ComplianceMetricsValidationModel(BaseModel):
                 raise ValueError(f"Gap count for {severity} must be non-negative")
         return v
 
-    class Config:
-        use_enum_values = True
+    model_config = {"use_enum_values": True}
 
 
 # =====================================================================
@@ -379,8 +373,7 @@ class GapAnalysisValidationModel(BaseModel):
                 )
         return v
 
-    class Config:
-        use_enum_values = True
+    model_config = {"use_enum_values": True}
 
 
 class RecommendationResponseValidationModel(BaseModel):
@@ -483,8 +476,7 @@ class FollowUpQuestionValidationModel(BaseModel):
         default_factory=list, description="Validation criteria",
     )
 
-    class Config:
-        use_enum_values = True
+    model_config = {"use_enum_values": True}
 
 
 class FollowUpValidationModel(BaseModel):

@@ -5,6 +5,7 @@ Implements the AIProvider interface for OpenAI models.
 """
 
 import asyncio
+import json
 import logging
 import os
 from datetime import datetime, timezone
@@ -119,9 +120,23 @@ class OpenAIProvider(AIProvider):
             function_calls = []
             if response.choices and response.choices[0].message.tool_calls:
                 for tc in response.choices[0].message.tool_calls:
+                    parsed_args: Any = tc.function.arguments
+                    if isinstance(tc.function.arguments, str):
+                        try:
+                            parsed_args = json.loads(tc.function.arguments)
+                        except json.JSONDecodeError as exc:
+                            logger.warning(
+                                "Failed to parse tool arguments for %s: %s",
+                                tc.function.name,
+                                exc,
+                            )
+                            parsed_args = {
+                                "raw": tc.function.arguments,
+                                "parse_error": str(exc),
+                            }
                     function_calls.append({
                         "name": tc.function.name,
-                        "args": tc.function.arguments,
+                        "args": parsed_args,
                     })
 
             provider_response = ProviderResponse(
@@ -186,18 +201,47 @@ class OpenAIProvider(AIProvider):
             if config.max_tokens:
                 kwargs["max_tokens"] = config.max_tokens
 
-            # Collect streaming chunks in thread pool
-            def _stream():
-                stream = client.chat.completions.create(**kwargs)
-                chunks = []
-                for chunk in stream:
-                    if chunk.choices and chunk.choices[0].delta.content:
-                        chunks.append(chunk.choices[0].delta.content)
-                return chunks
+            timeout_seconds = config.timeout or 30.0
+            queue: asyncio.Queue[Any] = asyncio.Queue()
+            sentinel = object()
+            loop = asyncio.get_running_loop()
 
-            chunks = await asyncio.to_thread(_stream)
-            for chunk in chunks:
-                yield chunk
+            def _producer() -> None:
+                try:
+                    stream = client.chat.completions.create(**kwargs)
+                    for chunk in stream:
+                        if chunk.choices and chunk.choices[0].delta.content:
+                            loop.call_soon_threadsafe(
+                                queue.put_nowait,
+                                chunk.choices[0].delta.content,
+                            )
+                except Exception as exc:
+                    loop.call_soon_threadsafe(queue.put_nowait, exc)
+                finally:
+                    loop.call_soon_threadsafe(queue.put_nowait, sentinel)
+
+            producer_task = asyncio.create_task(asyncio.to_thread(_producer))
+
+            while True:
+                try:
+                    item = await asyncio.wait_for(queue.get(), timeout=timeout_seconds)
+                except asyncio.TimeoutError:
+                    logger.error(
+                        "OpenAI streaming timed out after %ss (model=%s)",
+                        timeout_seconds,
+                        model_name,
+                    )
+                    raise ProviderUnavailableError(
+                        f"OpenAI streaming timed out after {timeout_seconds}s"
+                    )
+
+                if item is sentinel:
+                    break
+                if isinstance(item, Exception):
+                    raise item
+                yield item
+
+            await asyncio.wait_for(producer_task, timeout=timeout_seconds)
 
         except Exception as e:
             logger.error(f"OpenAI streaming failed: {e}", exc_info=True)
@@ -212,6 +256,8 @@ class OpenAIProvider(AIProvider):
         return self.DEFAULT_MODEL
 
     def estimate_cost(self, tokens: int) -> float:
-        """Estimate cost for GPT-4o (blended input/output rate)."""
-        # GPT-4o: $2.50/M input, $10/M output — use blended rate
-        return tokens * 6.25 / 1_000_000
+        """Estimate cost for OpenAI responses (defaults from env fallback, last verified 2026-03-04)."""
+        input_per_m = float(os.getenv("OPENAI_GPT4O_INPUT_PER_M", "2.5"))
+        output_per_m = float(os.getenv("OPENAI_GPT4O_OUTPUT_PER_M", "10.0"))
+        blended_rate = (input_per_m + output_per_m) / 2
+        return tokens * blended_rate / 1_000_000

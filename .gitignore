@@ -237,4 +237,6 @@ debug_*.py
 *_debug.json
 # MCP Configuration (contains API keys)
 .mcp.json
+
+# Git Utilities
 .worktrees/

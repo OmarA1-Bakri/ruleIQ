@@ -11,7 +11,7 @@ langchain-core>=0.3.0,<0.4.0
 langsmith>=0.1.17,<0.3.0
 
 # Google AI compatibility (migrated from google-generativeai to google-genai)
-google-genai>=1.0.0
+google-genai>=1.63.0
 
 # Pinecone with required plugins
 pinecone-client>=5.0.0

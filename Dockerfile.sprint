@@ -7,6 +7,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
+RUN groupadd -r app && useradd -r -g app -d /app -s /usr/sbin/nologin app
+
 RUN apt-get update && apt-get install -y \
     build-essential \
     libpq-dev \
@@ -22,4 +24,8 @@ RUN pip install --no-cache-dir -r requirements.txt -c constraints.txt
 
 COPY . .
 
-CMD ["python", "-c", "print('ready')"]
+RUN chown -R app:app /app
+
+USER app
+
+CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8080", "--workers", "1", "--log-level", "info"]

@@ -123,7 +123,8 @@ def should_ignore_todo(item: TodoItem) -> bool:
         return True
 
     # Ignore TODOs in example/template files
-    return 'example' in str(item.file_path).lower() or 'template' in str(item.file_path).lower()
+    path_lower = str(item.file_path).lower()
+    return 'example' in path_lower or 'template' in path_lower
 
 
 def get_line_number(content: str, match_start: int) -> int:

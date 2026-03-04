@@ -3,7 +3,7 @@ Message sending and management endpoints.
 """
 
 import logging
-from datetime import timezone
+from datetime import datetime, timezone
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -102,8 +102,6 @@ async def send_message(
         db.add(assistant_message)
 
         # Update conversation timestamp
-        from datetime import datetime
-
         conversation.updated_at = datetime.now(timezone.utc)
 
         await db.commit()

@@ -5,7 +5,7 @@ Error metrics collection and analysis for LangGraph workflows.
 import time
 from collections import defaultdict, deque
 from datetime import datetime
-from typing import Any, Deque, Dict, List, Optional
+from typing import Any, Deque, Dict, List, Optional, Union
 
 
 class ErrorAnalysisTracker:
@@ -38,7 +38,7 @@ class ErrorAnalysisTracker:
         severity: str = 'error',
         retry_count: int = 0,
         metadata: Optional[Dict[str, Any]] = None,
-        timestamp: Optional[float] = None
+        timestamp: Optional[Union[float, datetime]] = None
     ) -> None:
         """Record an error occurrence.
 
@@ -85,7 +85,7 @@ class ErrorAnalysisTracker:
         self,
         component: Optional[str] = None,
         operation: Optional[str] = None,
-        timestamp: Optional[float] = None
+        timestamp: Optional[Union[float, datetime]] = None
     ) -> None:
         """Record a successful operation.
 
@@ -129,11 +129,11 @@ class ErrorAnalysisTracker:
         time_window = max(timestamps) - min(timestamps) if len(timestamps) > 1 else 1
         time_window_minutes = time_window / 60.0
 
-        by_severity = defaultdict(int)
+        by_severity: Dict[str, int] = defaultdict(int)
         for error in self._errors:
             by_severity[error.get('severity', 'error')] += 1
 
-        by_component = defaultdict(int)
+        by_component: Dict[str, int] = defaultdict(int)
         for error in self._errors:
             if error.get('component'):
                 by_component[error['component']] += 1

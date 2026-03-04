@@ -14,7 +14,6 @@ import re
 import json
 import argparse
 from pathlib import Path
-from typing import Dict, Tuple
 
 
 def update_todo_in_file(file_path: Path, line_number: int, issue_number: int) -> bool:
@@ -77,7 +76,7 @@ def update_todo_in_file(file_path: Path, line_number: int, issue_number: int) ->
         return False
 
 
-def batch_update_todos(mapping: Dict[str, int], dry_run: bool = False) -> Tuple[int, int]:
+def batch_update_todos(mapping: dict[str, int], dry_run: bool = False) -> tuple[int, int]:
     """
     Update multiple TODOs from a mapping file.
 

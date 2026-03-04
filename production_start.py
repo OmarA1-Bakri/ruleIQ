@@ -24,7 +24,6 @@ def create_production_app():
         db = SessionLocal()
         try:
             db.execute(text("SELECT 1"))
-            db.rollback()  # Close idle transaction from SELECT
         finally:
             db.close()
 
@@ -71,16 +70,32 @@ def create_production_app():
 
     @app.get("/health/ready")
     def readiness_check():
+        checks = {
+            "database": "unknown",
+            "external": "skipped" if not os.getenv("REDIS_URL") else "unknown",
+        }
         failures = []
 
         try:
             with ThreadPoolExecutor(max_workers=2) as executor:
-                db_future = executor.submit(check_db_connection)
-                ext_future = executor.submit(check_external_service)
-                db_future.result(timeout=2)
-                ext_future.result(timeout=2)
-        except FutureTimeoutError:
-            failures.append("Dependency health check timed out")
+                futures = {
+                    "database": executor.submit(check_db_connection),
+                    "external": executor.submit(check_external_service),
+                }
+
+                for service_name, future in futures.items():
+                    try:
+                        future.result(timeout=2)
+                        if service_name == "external" and not os.getenv("REDIS_URL"):
+                            checks[service_name] = "skipped"
+                        else:
+                            checks[service_name] = "ok"
+                    except FutureTimeoutError:
+                        checks[service_name] = "failed"
+                        failures.append(f"{service_name}: health check timed out")
+                    except Exception as exc:
+                        checks[service_name] = "failed"
+                        failures.append(f"{service_name}: {exc}")
         except Exception as exc:
             failures.append(str(exc))
 
@@ -90,10 +105,7 @@ def create_production_app():
                 detail={
                     "status": "not_ready",
                     "service": "ruleiq-api",
-                    "checks": {
-                        "database": "failed" if any("db" in f.lower() or "sql" in f.lower() for f in failures) else "unknown",
-                        "external": "failed" if any("redis" in f.lower() for f in failures) else "unknown",
-                    },
+                    "checks": checks,
                     "errors": failures,
                 },
             )
@@ -101,10 +113,7 @@ def create_production_app():
         return {
             "status": "ready",
             "service": "ruleiq-api",
-            "checks": {
-                "database": "ok",
-                "external": "ok" if os.getenv("REDIS_URL") else "skipped",
-            },
+            "checks": checks,
         }
 
     @app.get("/")

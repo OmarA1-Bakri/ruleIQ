@@ -142,7 +142,7 @@ class CoverageBaselineGenerator:
 
                 # Extract directory from path
                 path_obj = Path(path)
-                directory = path_obj.parts[0] if len(path_obj.parts) > 0 else "root"
+                directory = path_obj.parts[0] if path_obj.parts else "root"
 
                 if directory not in directories:
                     directories[directory] = {

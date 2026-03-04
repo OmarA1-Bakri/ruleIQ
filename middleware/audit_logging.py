@@ -5,7 +5,7 @@ Tracks all security-relevant events, API calls, and data modifications.
 
 import json
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, Any, Optional, List
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -42,6 +42,7 @@ class AuditLogger:
         self.flush_interval = 30  # seconds
         self._flush_task_started = False
         self._flush_task_lock = asyncio.Lock()
+        self._flush_task: Optional[asyncio.Task] = None
 
     async def _start_flush_timer(self):
         """Start periodic flush timer. Safe to call outside event loop."""
@@ -51,16 +52,28 @@ class AuditLogger:
             if self._flush_task_started:
                 return
             try:
-                asyncio.create_task(self._periodic_flush())
+                self._flush_task = asyncio.create_task(self._periodic_flush())
                 self._flush_task_started = True
-            except RuntimeError:
-                pass
+            except RuntimeError as exc:
+                logger.warning("Unable to start audit flush timer: %s", exc)
 
     async def _periodic_flush(self):
         """Periodically flush audit logs to database."""
         while True:
             await asyncio.sleep(self.flush_interval)
             await self.flush()
+
+    async def shutdown(self) -> None:
+        """Stop periodic flush task and flush remaining buffered events."""
+        if self._flush_task:
+            self._flush_task.cancel()
+            try:
+                await self._flush_task
+            except asyncio.CancelledError:
+                pass
+            self._flush_task = None
+            self._flush_task_started = False
+        await self.flush()
 
     async def log_event(
         self,
@@ -77,7 +90,7 @@ class AuditLogger:
         await self._start_flush_timer()
 
         event = {
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "event_type": event_type,
             "user_id": user_id,
             "resource": resource,

@@ -20,9 +20,11 @@ RuleIQ is an enterprise-grade agentic AI compliance automation platform for UK S
 | Graph DB | Neo4j | GraphRAG knowledge graph |
 | Cache | Redis | 5.0.1 |
 | AI Orchestration | LangGraph | (replaced Celery) |
-| AI Providers | Google Gemini, OpenAI, Anthropic | google-generativeai 0.8.6 (DEPRECATED) |
+| AI Providers | Google Gemini, OpenAI, Anthropic | google-generativeai 0.8.6 (DEPRECATED), google-genai (migration in progress) |
 | Frontend Styling | TailwindCSS + shadcn/ui | Teal design (65% migrated) |
 | Package Manager | pnpm | 10.30.1 |
+
+> Note: Per SPRINT_HANDOVER.md, the Google SDK migration is partial and both packages may be present during transition.
 
 ---
 

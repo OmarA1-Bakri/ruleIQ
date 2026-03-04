@@ -4,7 +4,6 @@ Rate Limiting Middleware for RuleIQ API
 Story 1.2: Rate Limiting Implementation
 Provides comprehensive rate limiting with Redis-backed sliding window algorithm.
 """
-from __future__ import annotations
 
 import time
 from typing import Optional, Dict, Any, Tuple

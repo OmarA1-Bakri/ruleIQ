@@ -3,7 +3,6 @@ Authentication module for NexCompli.
 
 Provides JWT token-based authentication, password hashing, and user verification.
 """
-from __future__ import annotations
 import logging
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Optional

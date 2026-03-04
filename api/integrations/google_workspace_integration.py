@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 Google Workspace integration for collecting compliance evidence.
 """

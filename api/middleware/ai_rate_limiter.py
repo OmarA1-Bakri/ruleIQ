@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 # Constants
 HOUR_SECONDS = 3600

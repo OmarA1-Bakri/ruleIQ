@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 import requests
 import json
 import logging

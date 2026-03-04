@@ -354,8 +354,7 @@ def audit_operation(operation_type: str, resource_type: str = None):
             # Get current user from context
             user_id = audit_context.get().get("user_id")
 
-            # Log operation start
-            audit_logger = AuditLogger()
+            # Log operation start — use module-level singleton, not a new instance
             await audit_logger.log_event(
                 event_type=f"{operation_type}_START",
                 user_id=user_id,

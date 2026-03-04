@@ -2,7 +2,6 @@
 Microsoft 365/Azure AD API Client for compliance evidence collection.
 Follows the foundation architecture pattern for enterprise API integrations.
 """
-from __future__ import annotations
 import requests
 import json
 

@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 Asynchronous authentication dependencies for ComplianceGPT.
 """

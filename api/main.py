@@ -3,7 +3,6 @@ Main FastAPI application for ruleIQ API
 Production-ready FastAPI application with comprehensive configuration
 """
 
-from __future__ import annotations
 
 # Standard library imports
 import logging

@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 Pydantic schemas for evidence classification API endpoints.
 """

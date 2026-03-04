@@ -1,7 +1,6 @@
 """
 Integrated Security Middleware combining all security services
 """
-from __future__ import annotations
 
 import requests
 from typing import Optional, Dict, Any, List

@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 # Constants
 MAX_RETRIES = 3

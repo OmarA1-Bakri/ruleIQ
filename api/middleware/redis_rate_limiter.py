@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 Redis-based rate limiting middleware for production use.
 

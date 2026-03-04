@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 Compliance framework schemas for API validation.
 """

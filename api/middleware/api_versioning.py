@@ -1,5 +1,4 @@
 """API versioning middleware for ruleIQ."""
-from __future__ import annotations
 from fastapi import Request
 from fastapi.responses import JSONResponse
 from typing import Dict, Any, Optional, List

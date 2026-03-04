@@ -1,4 +1,3 @@
-from __future__ import annotations
 from fastapi import UploadFile, File, HTTPException, status
 from typing import List, Optional, Tuple
 import os

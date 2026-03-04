@@ -4,7 +4,6 @@ CORS Configuration Middleware for RuleIQ API
 Story 1.3: CORS Configuration Implementation
 Provides secure, environment-specific CORS configuration for frontend-backend communication.
 """
-from __future__ import annotations
 
 import os
 import json

@@ -7,7 +7,6 @@ SECURITY FIX (SEC-001): Resolves authentication bypass vulnerability
 - Explicit exempt paths only (login, register, health)
 - Feature flag controlled rollout
 """
-from __future__ import annotations
 
 import time
 from typing import Optional, Dict, Any, List

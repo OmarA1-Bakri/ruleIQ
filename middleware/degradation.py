@@ -5,7 +5,6 @@ Implements circuit breaker pattern, fallback responses, and
 service health checks to ensure system resilience.
 """
 
-from __future__ import annotations
 
 import asyncio
 import logging

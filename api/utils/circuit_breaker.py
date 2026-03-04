@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 Circuit breaker implementation for ComplianceGPT.
 Protects external services from cascading failures.

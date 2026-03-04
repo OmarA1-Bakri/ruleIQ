@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 Pydantic schemas for reporting API endpoints, with strong typing for complex inputs.
 """

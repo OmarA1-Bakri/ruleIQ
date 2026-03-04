@@ -7,7 +7,6 @@ This middleware provides comprehensive JWT authentication with:
 - Token refresh mechanism
 - Security headers
 """
-from __future__ import annotations
 
 import time
 from typing import Optional, Dict, Any, List

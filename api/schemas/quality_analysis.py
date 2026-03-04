@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 Pydantic schemas for quality analysis and duplicate detection API endpoints.
 """

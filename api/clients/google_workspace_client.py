@@ -2,7 +2,6 @@
 Google Workspace API Client for compliance evidence collection.
 Follows the foundation architecture pattern for enterprise API integrations.
 """
-from __future__ import annotations
 
 # Constants
 CONFIDENCE_THRESHOLD = 0.8

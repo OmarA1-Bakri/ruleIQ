@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 Comprehensive input validation and sanitization utilities for ruleIQ backend
 """

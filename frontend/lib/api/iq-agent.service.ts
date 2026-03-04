@@ -144,6 +144,8 @@ class IQAgentService {
       context.risk_tolerance = 'low';
     } else if (lowerMessage.includes('moderate') || lowerMessage.includes('balanced')) {
       context.risk_tolerance = 'medium';
+    } else {
+      context.risk_tolerance = 'high';
     }
 
     return context;

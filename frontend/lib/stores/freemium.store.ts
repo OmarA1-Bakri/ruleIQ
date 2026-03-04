@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
+import { z } from 'zod';
 import { 
   validateApiResponse, 
   safeValidateApiResponse,
@@ -136,21 +137,21 @@ export const useFreemiumStore = create<FreemiumStoreState>()(
           const validatedResponse = validateApiResponse(
             response,
             FreemiumAssessmentStartResponseSchema
-          ) as unknown as FreemiumAssessmentStartResponse;
+          ) as z.infer<typeof FreemiumAssessmentStartResponseSchema>;
 
           // Build question from the start response fields
           const validatedQuestion: AssessmentQuestion = {
-            question_id: validatedResponse.question_id,
-            question_text: validatedResponse.question_text,
+            question_id: validatedResponse.question_id ?? '',
+            question_text: validatedResponse.question_text ?? '',
             question_type: validatedResponse.question_type,
-            question_context: validatedResponse.question_context,
-            answer_options: validatedResponse.answer_options,
-            is_required: true,
+            question_context: validatedResponse.question_context ?? '',
+            answer_options: validatedResponse.answer_options ?? [],
+            is_required: validatedResponse.is_required ?? false,
           };
 
           set({
             session: validatedResponse,
-            sessionToken: validatedResponse.session_id ?? validatedResponse.session_token,
+            sessionToken: validatedResponse.session_id ?? validatedResponse.session_token ?? null,
             currentQuestion: validatedQuestion,
             currentQuestionIndex: validatedResponse.progress?.current_question ?? 0,
             totalQuestions: validatedResponse.progress?.total_questions_estimate ?? 0,

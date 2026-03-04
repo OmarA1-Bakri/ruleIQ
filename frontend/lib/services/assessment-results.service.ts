@@ -422,8 +422,8 @@ class AssessmentResultsService {
       // Use lead_id for tracking historical data when available (for cross-assessment trends)
       // Fall back to session_id if lead_id is not available
       // Use composite key for uniqueness across users and frameworks
-      const frameworkId = (results as any).framework_id || 'freemium_framework';
-      const businessProfileId = (results as any).lead_id || results.session_id || sessionToken;
+      const frameworkId = results.framework_id || 'freemium_framework';
+      const businessProfileId = results.lead_id || results.session_id || sessionToken;
       const businessProfileKey = `${businessProfileId}:${frameworkId}`;
 
       const historicalRecord: HistoricalAssessment = {

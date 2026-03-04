@@ -127,6 +127,7 @@ export interface FreemiumAssessmentStartResponse {
   question_type: 'multiple_choice' | 'yes_no' | 'text' | 'scale';
   question_context?: string;
   answer_options?: string[];
+  is_required?: boolean;
   progress: {
     current_question: number;
     total_questions_estimate: number;
@@ -176,6 +177,7 @@ export interface ComplianceRecommendation {
 export interface AssessmentResultsResponse {
   session_id: string;
   lead_id?: string;
+  framework_id?: string;
   session_token: string;
   compliance_score: number;
   risk_score: number;

@@ -23,6 +23,21 @@ function hasResponseStatus(e: unknown): e is { response: { status: number } } {
          typeof ((e as Record<string, unknown>).response as Record<string, unknown>).status === 'number';
 }
 
+function isChatMessage(payload: unknown): payload is ChatMessage {
+  if (!payload || typeof payload !== 'object') {
+    return false;
+  }
+  const candidate = payload as Record<string, unknown>;
+  return (
+    typeof candidate.id === 'string' &&
+    typeof candidate.conversation_id === 'string' &&
+    (candidate.role === 'user' || candidate.role === 'assistant' || candidate.role === 'system') &&
+    typeof candidate.content === 'string' &&
+    typeof candidate.sequence_number === 'number' &&
+    typeof candidate.created_at === 'string'
+  );
+}
+
 interface ChatState {
   // Conversations
   conversations: ChatConversation[];
@@ -519,10 +534,14 @@ export const useChatStore = create<ChatState>()(
                 'conversation_id' in payload &&
                 payload.conversation_id === conversationId
               ) {
+                if (!isChatMessage(payload)) {
+                  console.warn('Invalid chat message payload received:', payload);
+                  return;
+                }
                 set((state) => ({
                   messages: {
                     ...state.messages,
-                    [conversationId]: [...(state.messages[conversationId] || []), payload as unknown as ChatMessage],
+                    [conversationId]: [...(state.messages[conversationId] || []), payload],
                   },
                 }));
               }
@@ -536,9 +555,12 @@ export const useChatStore = create<ChatState>()(
                 'action' in payload &&
                 'user' in payload
               ) {
+                if (typeof payload.user !== 'string') {
+                  return;
+                }
                 if (payload.action === 'start') {
                   set((state) => ({
-                    typingUsers: [...state.typingUsers, payload.user as string],
+                    typingUsers: [...state.typingUsers, payload.user],
                   }));
                 } else if (payload.action === 'stop') {
                   set((state) => ({

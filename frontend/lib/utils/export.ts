@@ -45,6 +45,7 @@ function isFreemiumResponse(obj: any): obj is AssessmentResultsResponse {
 
 // Cache for hexToRgb results to avoid repeated processing
 const hexToRgbCache: Map<string, [number, number, number]> = new Map();
+const MAX_HEX_CACHE_SIZE = 500;
 
 // Development flag for console logging
 const isDevelopment = process.env.NODE_ENV === 'development';
@@ -110,6 +111,12 @@ function hexToRgb(hex: string | null | undefined): [number, number, number] {
   const result: [number, number, number] = [r, g, b];
   
   // Store in cache
+  if (hexToRgbCache.size >= MAX_HEX_CACHE_SIZE) {
+    const oldestKey = hexToRgbCache.keys().next().value;
+    if (oldestKey) {
+      hexToRgbCache.delete(oldestKey);
+    }
+  }
   hexToRgbCache.set(hex, result);
   
   return result;
@@ -542,15 +549,18 @@ export async function exportAssessmentExcel(
     };
 
     if (error instanceof Error) {
-      (errorResult as any).stack = error.stack;
       (errorResult as any).rawError = {
         name: error.name,
         message: error.message,
-        stack: error.stack,
-        cause: (error as any).cause
       };
+      if (isDevelopment) {
+        (errorResult as any).stack = error.stack;
+      }
     } else {
-      (errorResult as any).rawError = error;
+      (errorResult as any).rawError = {
+        name: 'UnknownError',
+        message: String(error),
+      };
     }
 
     return errorResult;

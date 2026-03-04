@@ -77,6 +77,15 @@ const initialState = {
   queryHistory: [],
 };
 
+const MAX_QUERY_HISTORY = 100;
+const VALID_ERROR_TYPES: IQAgentError['error_type'][] = [
+  'network',
+  'validation',
+  'processing',
+  'rate_limit',
+  'service_unavailable',
+];
+
 // ===========================
 // Store Implementation
 // ===========================
@@ -114,7 +123,7 @@ export const useIQAgentStore = create<IQAgentState>()(
                   timestamp: new Date().toISOString(),
                   success: true,
                 },
-              ],
+              ].slice(-MAX_QUERY_HISTORY),
             }),
             false,
             'queryCompliance/success'
@@ -140,7 +149,7 @@ export const useIQAgentStore = create<IQAgentState>()(
                   timestamp: new Date().toISOString(),
                   success: false,
                 },
-              ],
+              ].slice(-MAX_QUERY_HISTORY),
             }),
             false,
             'queryCompliance/error'
@@ -149,9 +158,10 @@ export const useIQAgentStore = create<IQAgentState>()(
       },
 
       checkHealth: async () => {
+        set({ isInitializing: true, error: null }, false, 'checkHealth/start');
         try {
           const health = await iqAgentService.getHealth();
-          set({ healthStatus: health }, false, 'checkHealth/success');
+          set({ healthStatus: health, isInitializing: false }, false, 'checkHealth/success');
         } catch (error: unknown) {
           const errorMessage =
             error && typeof error === 'object' && 'message' in error
@@ -160,6 +170,7 @@ export const useIQAgentStore = create<IQAgentState>()(
 
           set(
             {
+              isInitializing: false,
               error: {
                 error_type: 'service_unavailable',
                 message: errorMessage,
@@ -176,8 +187,12 @@ export const useIQAgentStore = create<IQAgentState>()(
       },
 
       reportError: (errorData) => {
+        const normalizedErrorType: IQAgentError['error_type'] =
+          VALID_ERROR_TYPES.includes(errorData.error_type as IQAgentError['error_type'])
+            ? (errorData.error_type as IQAgentError['error_type'])
+            : 'processing';
         const errorObj: IQAgentError = {
-          error_type: errorData.error_type as IQAgentError['error_type'],
+          error_type: normalizedErrorType,
           message: errorData.message,
         };
         if (errorData.correlation_id !== undefined) errorObj.correlation_id = errorData.correlation_id;

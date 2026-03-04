@@ -315,7 +315,6 @@ class PolicyGenerator:
                 if chunk.choices[0].delta.content:
                     chunk_count += 1
                     content = chunk.choices[0].delta.content
-                    accumulated_text += content
                     yield {'type': 'content', 'content': content,
                         'chunk_id': f'openai-{chunk_count}', 'progress':
                         min(chunk_count * 0.05, 0.95)}

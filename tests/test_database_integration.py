@@ -460,4 +460,3 @@ class TestMigrationPath:
             # New usage
             container = await get_container()
             assert container == mock_new_container
-</edit_file>

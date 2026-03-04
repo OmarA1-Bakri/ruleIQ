@@ -21,7 +21,7 @@ from typing import Dict, Optional, Any
 from functools import lru_cache
 try:
     import boto3
-    from botocore.exceptions import ClientError, NoCredentialsError
+    from botocore.exceptions import ClientError, NoCredentialsError  # noqa: F401
     AWS_AVAILABLE = True
 except ImportError:
     AWS_AVAILABLE = False

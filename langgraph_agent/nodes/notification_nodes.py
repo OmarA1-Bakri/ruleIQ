@@ -514,24 +514,6 @@ class EnhancedNotificationNode:
                 state['task_status'] = 'failed_dlq'
             return state
 
-    async def broadcast_notification(self, state: Dict[str, Any]) -> Dict[str, Any]:
-        """Broadcast notification to multiple channels"""
-        channels = state.get('task_params', {}).get('channels', ['email'])
-        results = []
-        for channel in channels:
-            if self._check_circuit_breaker(channel):
-                results.append({'channel': channel, 'status': 'circuit_open'})
-                continue
-            if self._check_rate_limit(channel):
-                results.append({'channel': channel, 'status': 'rate_limited'})
-                continue
-            result = await self._send_to_channel(channel, state)
-            results.append(result)
-            self._record_rate_limit_usage(channel)
-        state['task_result'] = results
-        state['task_status'] = 'completed'
-        return state
-
     async def _send_to_channel(self, channel: str, state: Dict[str, Any]) -> Dict[str, Any]:
         """Send notification to specific channel"""
         params = state.get('task_params', {})

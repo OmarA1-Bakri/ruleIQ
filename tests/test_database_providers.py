@@ -441,4 +441,3 @@ class TestDatabaseError:
 
         assert error.cause == cause
         assert isinstance(error.cause, ValueError)
-</edit_file>

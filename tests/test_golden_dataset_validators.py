@@ -10,9 +10,9 @@ from datetime import datetime, timedelta
 from typing import Dict, Any
 from unittest.mock import Mock, patch
 
-from services.ai.evaluation.schemas import (
-
 logger = logging.getLogger(__name__)
+
+from services.ai.evaluation.schemas import (
     ComplianceScenario,
     EvidenceCase,
     RegulatoryQAPair,

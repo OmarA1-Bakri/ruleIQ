@@ -23,6 +23,8 @@
 7. **Phase 6** — P3 fixes (quality & polish)
 8. **Phase 7** — Code review with 3 parallel agents (backend, frontend, infrastructure), then fix every CRITICAL and HIGH finding
 
+**The original prompt script is saved at `docs/SPRINT_PROMPT.md`** — read it in full before resuming work. It contains the repo facts, hardcoded secret remediation protocol, worktree isolation strategy, all 7 phase definitions with exact commands, gate criteria, operating rules, file partition rules, and conflict resolution guide.
+
 The full issue inventory is in `docs/FIX_PLAN.md`. The system architecture map is in `docs/SPRINT_ARCHITECTURE.md`. The pre-sprint metrics baseline is in `docs/PHASE2_BASELINE.txt`.
 
 ---

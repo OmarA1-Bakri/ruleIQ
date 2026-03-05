@@ -117,7 +117,6 @@ def validate_environment(
     Args:
         fail_fast: If True, raise exception on first missing variable
         environment: Target environment (development/staging/production)
-        verbose: If True, print detailed validation results
 
     Returns:
         Dictionary with validation results
@@ -127,11 +126,11 @@ def validate_environment(
     present: List[str] = []
     warnings: List[str] = []
 
-    environment = environment or os.getenv("ENVIRONMENT", "development")
-    is_development = environment.lower() == "development"
+    environment_name = environment or os.getenv("ENVIRONMENT") or "development"
+    is_development = environment_name.lower() == "development"
 
     if verbose:
-        print(f"\n🔍 Validating environment variables for: {environment}\n")
+        print(f"\n🔍 Validating environment variables for: {environment_name}\n")
         print("=" * 70)
 
     # Check required variables
@@ -235,7 +234,7 @@ def validate_environment(
         "present": present,
         "ai_services": ai_services_set,
         "warnings": warnings,
-        "environment": environment,
+        "environment": environment_name,
     }
 
     return result

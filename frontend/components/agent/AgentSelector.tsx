@@ -257,7 +257,7 @@ export function AgentSelector({
                 if (onConfigureAgent) {
                   props.onConfigure = onConfigureAgent;
                 }
-                return <PersonaCard {...props} />;
+                return <PersonaCard key={agent.id} {...props} />;
               })}
             </div>
           ) : (

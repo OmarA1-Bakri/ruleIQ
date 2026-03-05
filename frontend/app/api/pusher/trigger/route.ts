@@ -103,7 +103,7 @@ function sanitizeEventData(data: any): any {
   if (typeof data === 'object' && data !== null) {
     const sanitized: any = Array.isArray(data) ? [] : {};
     for (const key in data) {
-      if (data.hasOwnProperty(key)) {
+      if (Object.hasOwn(data, key)) {
         sanitized[key] = sanitizeEventData(data[key]);
       }
     }

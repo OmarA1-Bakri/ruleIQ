@@ -550,7 +550,7 @@ function calculateMaxDepth(obj: any, currentDepth = 0): number {
 
   let maxDepth = currentDepth;
   for (const key in obj) {
-    if (obj.hasOwnProperty(key)) {
+    if (Object.hasOwn(obj, key)) {
       const depth = calculateMaxDepth(obj[key], currentDepth + 1);
       maxDepth = Math.max(maxDepth, depth);
     }

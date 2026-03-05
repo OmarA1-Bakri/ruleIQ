@@ -24,6 +24,7 @@ export default function PricingPage() {
         setCurrentPlan(subscription.plan_id);
       }
     } catch (_error) {
+      // intentionally empty - silently fail on subscription fetch
     } finally {
       setLoading(false);
     }
@@ -47,6 +48,7 @@ export default function PricingPage() {
         window.location.href = response.url;
       }
     } catch (_error) {
+      // intentionally empty - silently fail on checkout creation
     }
   };
 

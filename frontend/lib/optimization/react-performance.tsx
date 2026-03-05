@@ -28,12 +28,14 @@ export function lazyLoadComponent<T extends ComponentType<any>>(
   fallback: React.ReactNode = <LoadingSpinner />
 ) {
   const LazyComponent = lazy(importFunc);
-  
-  return (props: React.ComponentProps<T>) => (
+
+  const WrappedComponent = (props: React.ComponentProps<T>) => (
     <Suspense fallback={fallback}>
       <LazyComponent {...props} />
     </Suspense>
   );
+  WrappedComponent.displayName = `LazyLoaded(${importFunc.toString().slice(0, 50)})`;
+  return WrappedComponent;
 }
 
 /**

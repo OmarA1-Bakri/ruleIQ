@@ -83,6 +83,7 @@ if (isValidDsn) {
     },
   });
 } else {
+  // intentionally empty - Sentry DSN not configured
 }
 
 export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;

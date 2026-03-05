@@ -107,6 +107,7 @@ export function AIHelpTooltip({
         duration: 2000,
       });
     } catch (_err) {
+      // intentionally empty - non-blocking feedback submission
     }
   };
 

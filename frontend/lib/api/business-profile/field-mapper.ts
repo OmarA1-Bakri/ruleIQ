@@ -296,6 +296,7 @@ export function validateFieldMappings(): void {
   if (process.env.NODE_ENV === 'development') {
     const validation = BusinessProfileFieldMapper.validateMappings();
     if (!validation.isValid) {
+      // intentionally empty - validation result is informational in dev mode
     }
   }
 }

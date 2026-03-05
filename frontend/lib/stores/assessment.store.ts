@@ -441,6 +441,7 @@ export const useAssessmentStore = create<AssessmentState>()(
             safeValidate(FrameworksArraySchema, frameworks, 'setFrameworks');
             // Note: frameworks are not part of this store, but adding for test compatibility
           } catch (_error) {
+            // intentionally empty - validation failure is non-blocking
           }
         },
 

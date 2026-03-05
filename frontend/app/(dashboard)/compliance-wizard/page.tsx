@@ -263,6 +263,7 @@ export default function ComplianceWizardPage() {
           message: 'We found your previous answers and loaded them for you.',
         });
       } catch (_error) {
+        // intentionally empty - ignore invalid draft JSON
       }
     }
   }, []);

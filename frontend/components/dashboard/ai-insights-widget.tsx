@@ -131,6 +131,7 @@ export function AIInsightsWidget({
       try {
         await dashboardService.dismissInsight(insightId);
       } catch (_error) {
+        // intentionally empty - non-blocking dismiss
       }
     }
   };
@@ -152,6 +153,7 @@ export function AIInsightsWidget({
       try {
         await dashboardService.bookmarkInsight(insightId);
       } catch (_error) {
+        // intentionally empty - non-blocking bookmark
       }
     }
   };

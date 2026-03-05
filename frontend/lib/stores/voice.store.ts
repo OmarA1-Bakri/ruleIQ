@@ -341,6 +341,7 @@ const createActions = (set: any, get: any) => ({
         return hasAudio;
       }
     } catch (_error) {
+      // intentionally empty - microphone access denied or unavailable
     }
 
     return false;

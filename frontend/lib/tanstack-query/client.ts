@@ -59,6 +59,7 @@ const safeStorage = {
         return window.localStorage.getItem(key);
       }
     } catch (_error) {
+      // intentionally empty - localStorage unavailable
     }
     return null;
   },
@@ -68,6 +69,7 @@ const safeStorage = {
         window.localStorage.setItem(key, value);
       }
     } catch (_error) {
+      // intentionally empty - localStorage unavailable
     }
   },
   removeItem: (key: string): void => {
@@ -76,6 +78,7 @@ const safeStorage = {
         window.localStorage.removeItem(key);
       }
     } catch (_error) {
+      // intentionally empty - localStorage unavailable
     }
   },
 };

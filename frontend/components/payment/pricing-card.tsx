@@ -53,6 +53,7 @@ export function PricingCard({
         router.push(`/checkout?plan=${planId}`);
       }
     } catch (_error) {
+      // intentionally empty - silently fail on plan selection
     } finally {
       setIsLoading(false);
     }

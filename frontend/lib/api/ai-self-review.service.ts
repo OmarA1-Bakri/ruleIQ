@@ -308,7 +308,7 @@ class AISelfReviewService {
         original_response: request.original_response,
       };
     } catch (_error) {
-
+      // intentionally empty - fall through to throw
       throw new Error('Unable to perform self-review at this time. Please try again later.');
     }
   }
@@ -437,6 +437,7 @@ class AISelfReviewService {
           ...feedback,
         });
       } else {
+        // intentionally empty - dev mode feedback is a no-op
       }
     } catch (_error) {
       // Non-blocking - don't throw error for feedback submission

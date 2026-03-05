@@ -39,6 +39,7 @@ class SecureStorage {
         );
         return this.encryptionKey;
       } catch (_error) {
+        // intentionally empty - stored key is invalid, will generate new one
       }
     }
 
@@ -286,6 +287,7 @@ class SecureStorage {
       sessionStorage.removeItem('ruleiq_refresh_token');
       sessionStorage.removeItem('ruleiq_session_expiry');
     } catch (_error) {
+      // intentionally empty - legacy token migration is best-effort
     }
   }
 }

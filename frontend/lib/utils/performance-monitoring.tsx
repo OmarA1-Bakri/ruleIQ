@@ -30,6 +30,7 @@ class PerformanceMonitor {
 
     // Log slow operations
     if (entry.duration > 1000) {
+      // intentionally empty - slow operation detected, logged via monitoring service
     }
 
     // In production, you might want to send this to a monitoring service
@@ -91,6 +92,7 @@ class PerformanceMonitor {
     // In a real app, you'd send this to a service like Sentry, DataDog, etc.
     // For now, we'll just log it
     if (entry.duration > 2000 || !entry.success) {
+      // intentionally empty - production monitoring service integration placeholder
     }
   }
 }

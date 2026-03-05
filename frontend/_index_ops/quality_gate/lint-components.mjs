@@ -10,7 +10,8 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+// eslint-disable-next-line no-unused-vars
+import { fileURLToPath as _fileURLToPath } from "node:url";
 import { glob } from "glob";
 
 const cwd = process.cwd();

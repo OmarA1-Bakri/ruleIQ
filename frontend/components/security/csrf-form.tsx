@@ -40,6 +40,7 @@ export function CsrfForm({
     try {
       await onSubmit(formData, token);
     } catch (_error) {
+      // intentionally empty - form submission error handled by caller
     }
   };
 

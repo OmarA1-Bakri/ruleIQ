@@ -277,6 +277,7 @@ class ChatService {
         const message = JSON.parse(event.data);
         this.notifyHandlers({ type: 'message', data: message });
       } catch (_error) {
+        // intentionally empty - ignore malformed WebSocket messages
       }
     };
 
@@ -304,6 +305,7 @@ class ChatService {
     if (this.ws?.readyState === WebSocket.OPEN) {
       this.ws.send(JSON.stringify(message));
     } else {
+      // intentionally empty - WebSocket not connected, message dropped
     }
   }
 

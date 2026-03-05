@@ -14,7 +14,8 @@ describe('Auth Store', () => {
     const store = useAuthStore.getState();
 
     expect(store.user).toBeNull();
-    expect(store.tokens).toBeNull();
+    // tokens is initialized as { access: null, refresh: null } not null
+    expect(store.tokens).toEqual({ access: null, refresh: null });
     expect(store.isAuthenticated).toBe(false);
     expect(store.isLoading).toBe(false);
     expect(store.error).toBeNull();
@@ -172,7 +173,11 @@ describe('Auth Store', () => {
     };
 
     store.setTokens(mockTokens);
-    expect(useAuthStore.getState().tokens).toEqual(mockTokens);
+    // setTokens normalises AuthTokens { access_token, refresh_token } to { access, refresh }
+    expect(useAuthStore.getState().tokens).toEqual({
+      access: 'mock-access-token',
+      refresh: 'mock-refresh-token',
+    });
   });
 
   it('should return current user when getCurrentUser is called', async () => {

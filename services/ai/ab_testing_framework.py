@@ -444,7 +444,7 @@ class ABTestingFramework:
             hash_input += ":" + ":".join(strata_values)
 
         # Generate hash and convert to assignment
-        hash_value = int(hashlib.md5(hash_input.encode()).hexdigest(), 16)
+        hash_value = int(hashlib.md5(hash_input.encode(), usedforsecurity=False).hexdigest(), 16)
         assignment_ratio = (hash_value % 10000) / 10000.0
 
         # Comment 4: Explicit variant mapping with deterministic ordering

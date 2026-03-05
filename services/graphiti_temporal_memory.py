@@ -597,7 +597,7 @@ class TemporalMemoryIntegration:
         # In production, would use NER or pattern matching
         import hashlib
 
-        return f"REG_{hashlib.md5(text.encode()).hexdigest()[:8]}"
+        return f"REG_{hashlib.md5(text.encode(), usedforsecurity=False).hexdigest()[:8]}"
 
     def _assess_compliance_risk(self, upcoming_changes: List[Dict]) -> str:
         """Assess compliance risk based on upcoming changes"""

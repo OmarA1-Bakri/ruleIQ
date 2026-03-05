@@ -100,7 +100,7 @@ class RegulationScraper:
                     .isoformat(), 'title': result.metadata.get('title', ''),
                     'description': result.metadata.get('description', ''),
                     'content_length': len(result.markdown), 'content_hash':
-                    hashlib.md5(result.markdown.encode()).hexdigest(),
+                    hashlib.md5(result.markdown.encode(), usedforsecurity=False).hexdigest(),
                     'extracted_requirements': self._extract_requirements(
                     result.markdown), 'extracted_controls': self.
                     _extract_controls(result.markdown),

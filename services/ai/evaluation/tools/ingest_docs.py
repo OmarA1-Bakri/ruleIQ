@@ -164,7 +164,7 @@ class GoldenDatasetBuilder:
             url), trust_score=doc_info.get('priority', 3) / 5.0, sha256=
             hashlib.sha256(content.encode()).hexdigest(), fetched_at=
             datetime.now(timezone.utc))
-        doc_id = f'doc_{hashlib.md5(url.encode()).hexdigest()[:12]}'
+        doc_id = f'doc_{hashlib.md5(url.encode(), usedforsecurity=False).hexdigest()[:12]}'
         tags = doc_info.get('tags', [])
         category = tags[0] if tags else 'general'
         golden_doc = GoldenDoc(doc_id=doc_id, content=self.doc_processor.

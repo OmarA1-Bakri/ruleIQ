@@ -82,7 +82,7 @@ class EnforcementAPIClient:
         actions = []
         for item in data.get('items', []):
             action = {'id': hashlib.md5(f"fca_{item.get('reference', '')}".
-                encode()).hexdigest()[:16], 'regulator': 'FCA', 'type':
+                encode(), usedforsecurity=False).hexdigest()[:16], 'regulator': 'FCA', 'type':
                 item.get('type', 'enforcement'), 'entity': item.get(
                 'firm_name', 'Unknown'), 'date': item.get('date_published',
                 ''), 'penalty_amount': self._extract_amount(item.get(
@@ -118,7 +118,7 @@ class EnforcementAPIClient:
                                 summary else '')
                             amount = self._extract_amount(text)
                             action = {'id': hashlib.md5(link['href'].encode
-                                ()).hexdigest()[:16], 'regulator': 'FCA',
+                                (), usedforsecurity=False).hexdigest()[:16], 'regulator': 'FCA',
                                 'type': 'enforcement', 'entity': self.
                                 _extract_entity_name(title.text), 'date':
                                 date.get('datetime', '') if date else '',
@@ -157,7 +157,7 @@ class EnforcementAPIClient:
         items = data if isinstance(data, list) else data.get('items', [])
         for item in items:
             action = {'id': hashlib.md5(f"ico_{item.get('id', '')}".encode(
-                )).hexdigest()[:16], 'regulator': 'ICO', 'type': item.get(
+                ), usedforsecurity=False).hexdigest()[:16], 'regulator': 'ICO', 'type': item.get(
                 'action_type', 'monetary_penalty'), 'entity': item.get(
                 'organisation_name', 'Unknown'), 'date': item.get(
                 'date_issued', ''), 'penalty_amount': self._extract_amount(
@@ -190,7 +190,7 @@ class EnforcementAPIClient:
                             text = entry.get_text()
                             amount = self._extract_amount(text)
                             action = {'id': hashlib.md5(f'ico_{title.text}'
-                                .encode()).hexdigest()[:16], 'regulator':
+                                .encode(), usedforsecurity=False).hexdigest()[:16], 'regulator':
                                 'ICO', 'type': 'monetary_penalty' if amount
                                  else 'enforcement_notice', 'entity': self.
                                 _extract_entity_name(title.text),

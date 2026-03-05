@@ -241,7 +241,7 @@ class UKComplianceGraphIngestion:
     async def _create_control_node(self, session, control: str,
         obligation_id: str):
         """Create a Control node and link to obligation"""
-        control_id = f'CTRL_{hashlib.md5(control.encode()).hexdigest()[:8]}'
+        control_id = f'CTRL_{hashlib.md5(control.encode(), usedforsecurity=False).hexdigest()[:8]}'
         await session.run(
             """
             MERGE (c:Control {id: $control_id})
@@ -355,7 +355,7 @@ class UKComplianceGraphIngestion:
         """Ingest a single document into the graph"""
         async with self.driver.session() as session:
             doc_id = doc_data.get('id', hashlib.md5(json.dumps(doc_data).
-                encode()).hexdigest())
+                encode(), usedforsecurity=False).hexdigest())
             await session.run(
                 """
                 MERGE (d:Document {id: $doc_id})

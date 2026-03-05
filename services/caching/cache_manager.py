@@ -592,7 +592,8 @@ class CacheManager:
                 # Compute legacy MD5 key using same key_data structure
                 # noqa: S324 - MD5 needed for backward compatibility
                 legacy_hash = hashlib.md5(
-                    json.dumps(key_data, sort_keys=True).encode()
+                    json.dumps(key_data, sort_keys=True).encode(),
+                    usedforsecurity=False,
                 ).hexdigest()[:LEGACY_MD5_HASH_LENGTH]
                 legacy_key = f"api:{legacy_hash}"
 
@@ -680,7 +681,8 @@ class CacheManager:
                 # Compute legacy MD5 key using same key_data structure
                 # noqa: S324 - MD5 needed for backward compatibility
                 legacy_hash = hashlib.md5(
-                    json.dumps(key_data, sort_keys=True).encode()
+                    json.dumps(key_data, sort_keys=True).encode(),
+                    usedforsecurity=False,
                 ).hexdigest()[:LEGACY_MD5_HASH_LENGTH]
                 legacy_key = f"compute:{legacy_hash}"
 

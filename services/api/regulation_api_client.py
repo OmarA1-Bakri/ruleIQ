@@ -66,7 +66,7 @@ class RegulationAPIClient:
         else:
             api_url = url
         logger.info('Fetching UK legislation from: %s' % api_url)
-        url_hash = hashlib.md5(api_url.encode()).hexdigest()
+        url_hash = hashlib.md5(api_url.encode(), usedforsecurity=False).hexdigest()
         cache_file = self.cache_dir / f'uk_{url_hash}.json'
         if cache_file.exists():
             logger.info('Using cached data for %s' % api_url)

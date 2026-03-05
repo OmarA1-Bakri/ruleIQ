@@ -16,6 +16,7 @@ import {
 import {
   type ValidationResult
 } from '@/types/assessment-results';
+import { type AssessmentResultsResponse } from '@/types/freemium';
 import { useToast } from '@/components/ui/use-toast';
 
 // ============================================================================

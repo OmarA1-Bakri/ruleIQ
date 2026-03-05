@@ -35,7 +35,7 @@ export const LiquidDataVisualization = ({ data = [] }: { data?: number[] }) => {
       });
     }
 
-    setParticles(liquidParticles);
+    _setParticles(liquidParticles);
 
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);

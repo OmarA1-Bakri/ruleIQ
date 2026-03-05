@@ -2,16 +2,16 @@
 
 
 // Dynamic imports for GSAP to avoid SSR issues
-let gsap: any;
-let SplitText: any;
+let _gsapInstance: any;
+let _splitTextPlugin: any;
 let _useGSAP: any;
 
 if (typeof window !== 'undefined') {
-  gsap = require('gsap').gsap;
-  SplitText = require('gsap/SplitText').SplitText;
+  _gsapInstance = require('gsap').gsap;
+  _splitTextPlugin = require('gsap/SplitText').SplitText;
   _useGSAP = require('@gsap/react').useGSAP;
-  
-  if (gsap && SplitText) {
-    gsap.registerPlugin(SplitText);
+
+  if (_gsapInstance && _splitTextPlugin) {
+    _gsapInstance.registerPlugin(_splitTextPlugin);
   }
 }

@@ -1,4 +1,4 @@
-Read the recent chepoint and memory files first. when complete please
+Read the recent checkpoint and memory files first. When complete, please proceed to the next step.
 
 run the following prompt precisely:
 

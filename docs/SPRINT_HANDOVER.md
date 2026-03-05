@@ -144,8 +144,18 @@ Three parallel code review agents (backend, frontend, infrastructure) audited al
 ### MEDIUM Priority
 
 5. **`google.generativeai` → `google.genai` code migration**
-   - 9+ source files still import from the old `google.generativeai` namespace
-   - The old package is restored as a legacy dep — works, but should be fully migrated
+    - **Decision record**: dual-package support is a **temporary compatibility shim**, not permanent architecture.
+    - 9+ source files still import from the old `google.generativeai` namespace.
+    - Current status is **in-progress migration**, intentionally retained for compatibility until full cutover.
+    - Owner: AI Platform Maintainer (backend-specialist squad)
+    - Next steps:
+       1. Replace remaining `google.generativeai` imports with `google.genai` equivalents.
+       2. Run provider integration tests and smoke tests for assistant flows.
+       3. Remove legacy package from requirements once no imports remain.
+    - Acceptance criteria:
+       - Zero `google.generativeai` imports in source files.
+       - All AI provider smoke/integration tests pass.
+       - `requirements.txt` and constraints no longer require legacy package.
    - Files: `assistant_facade.py`, `assistant_legacy.py`, `gemini_provider.py`, `cached_content.py`, `google_cached_content.py`, `health_monitor.py`, `policy_generator.py`, `safety_manager.py`, `ai_config.py`
 
 6. **`asyncio.Lock()` at module import time**

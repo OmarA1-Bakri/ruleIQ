@@ -60,15 +60,10 @@
 **Worktree**: `p0-backend`
 **Estimated effort**: 15 minutes
 
-### P0-5: Stale celery services in docker-compose.yml ✅ Completed
+### P0-5: Stale celery services in docker-compose.yml
 
-**File**: `docker-compose.yml`
-**Root Cause**: Celery was replaced by LangGraph but compose file still defines celery_worker and celery_beat services.
-**Fix**: Removed `celery_worker` and `celery_beat` service definitions from `docker-compose.yml`.
-**Risk**: LOW — these services can't start anyway (Celery config is deprecated).
-**Verification**: `docker-compose config --quiet` and diff confirms both Celery services are absent.
-**Worktree**: `fix/p0-frontend` (addressed in this PR)
-**Estimated effort**: 5 minutes
+**Status**: Moved to completed work log in `docs/SPRINT_HANDOVER.md` (Phase 3 resolution record).
+**Active Plan Note**: Keep this file for open planning items only; do not duplicate completed execution details here.
 
 ---
 

@@ -77,6 +77,17 @@ jobs:
         run: |
           test -f scripts/ci/validate_ci_dependencies.py && python scripts/ci/validate_ci_dependencies.py || echo "validate_ci_dependencies.py missing; skipping"
 
+      - name: Regenerate Phase 2 baseline snapshot
+        run: |
+          python scripts/ci/regenerate_phase2_baseline.py
+
+      - name: Upload Phase 2 baseline snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase2-baseline
+          path: docs/PHASE2_BASELINE.txt
+          retention-days: 30
+
       - name: Run database migrations
         run: |
           python -c "from database.db_setup import create_tables; create_tables()"

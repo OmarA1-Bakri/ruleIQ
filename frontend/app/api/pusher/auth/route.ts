@@ -5,7 +5,6 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import Pusher from 'pusher';
-import { getServerSession } from 'next-auth';
 import jwt from 'jsonwebtoken';
 import { kv } from '@vercel/kv';
 
@@ -206,7 +205,7 @@ export async function POST(req: NextRequest) {
  * OPTIONS /api/pusher/auth
  * Handle CORS preflight requests.
  */
-export async function OPTIONS(req: NextRequest) {
+export async function OPTIONS(_req: NextRequest) {
   return new NextResponse(null, {
     status: 200,
     headers: {

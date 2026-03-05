@@ -30,7 +30,7 @@ interface FreemiumResultsProps {
   className?: string;
 }
 
-export function FreemiumResults({ token, className = '' }: FreemiumResultsProps) {
+export function FreemiumResults({ token: _token, className = '' }: FreemiumResultsProps) {
   const { results, isLoading, error, generateResults, trackEvent } = useFreemiumStore();
   const [hasTrackedView, setHasTrackedView] = useState(false);
 

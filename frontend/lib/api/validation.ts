@@ -1,6 +1,6 @@
-import { z, ZodError, ZodSchema } from 'zod';
+import { ZodError, ZodSchema } from 'zod';
 import { apiClient } from './client';
-import { ApiResponseSchema, APIErrorResponseSchema } from '../validation/zod-schemas';
+import { ApiResponseSchema } from '../validation/zod-schemas';
 
 // Custom error class for validation failures
 export class ValidationError extends Error {
@@ -108,7 +108,7 @@ export class ValidatedAPIClient {
     data: TRequest,
     responseSchema: ZodSchema<TResponse>,
     requestSchema?: ZodSchema<TRequest>,
-    options?: RequestInit
+    _options?: RequestInit
   ): Promise<TResponse> {
     // Validate request data if schema provided
     const validatedData = requestSchema
@@ -127,7 +127,7 @@ export class ValidatedAPIClient {
     data: TRequest,
     responseSchema: ZodSchema<TResponse>,
     requestSchema?: ZodSchema<TRequest>,
-    options?: RequestInit
+    _options?: RequestInit
   ): Promise<TResponse> {
     // Validate request data if schema provided
     const validatedData = requestSchema
@@ -146,7 +146,7 @@ export class ValidatedAPIClient {
     data: TRequest,
     responseSchema: ZodSchema<TResponse>,
     requestSchema?: ZodSchema<TRequest>,
-    options?: RequestInit
+    _options?: RequestInit
   ): Promise<TResponse> {
     // Validate request data if schema provided
     const validatedData = requestSchema
@@ -163,7 +163,7 @@ export class ValidatedAPIClient {
   async deleteValidated<T>(
     url: string,
     schema: ZodSchema<T>,
-    options?: RequestInit
+    _options?: RequestInit
   ): Promise<T> {
     const response = await apiClient.delete(url);
     return validateApiResponse(response, schema);

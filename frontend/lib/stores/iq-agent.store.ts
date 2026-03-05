@@ -92,7 +92,7 @@ const VALID_ERROR_TYPES: IQAgentError['error_type'][] = [
 
 export const useIQAgentStore = create<IQAgentState>()(
   devtools(
-    (set, get) => ({
+    (set, _get) => ({
       ...initialState,
 
       queryCompliance: async (query, options) => {

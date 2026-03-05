@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Activity,
-  TrendingUp,
   Users,
   DollarSign,
   Shield,
@@ -21,8 +20,6 @@ import {
   X,
   Zap,
   Globe,
-  Clock,
-  Filter,
 } from 'lucide-react';
 import { AuroraBackground } from '@/components/ui/backgrounds/aurora-background';
 import { cn } from '@/lib/utils';
@@ -159,7 +156,7 @@ const ChartSection = () => {
 };
 
 // Radial Progress Chart Component
-const RadialChart = ({ value, label, color }: any) => {
+const RadialChart = ({ value, label, color: _color }: any) => {
   const circumference = 2 * Math.PI * 45;
   const strokeDashoffset = circumference - (value / 100) * circumference;
   

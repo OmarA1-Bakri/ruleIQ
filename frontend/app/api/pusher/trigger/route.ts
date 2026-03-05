@@ -236,7 +236,7 @@ export async function POST(req: NextRequest) {
  * OPTIONS /api/pusher/trigger
  * Handle CORS preflight requests.
  */
-export async function OPTIONS(req: NextRequest) {
+export async function OPTIONS(_req: NextRequest) {
   return new NextResponse(null, {
     status: 200,
     headers: {

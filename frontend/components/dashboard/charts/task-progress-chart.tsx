@@ -13,7 +13,7 @@ import {
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { neuralPurple, silver, semantic, chartColors, neutral } from '@/lib/theme/neural-purple-colors';
+import { silver, semantic, neutral } from '@/lib/theme/neural-purple-colors';
 
 interface TaskProgressChartProps {
   data: Array<{

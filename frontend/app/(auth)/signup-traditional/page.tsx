@@ -91,7 +91,7 @@ export default function TraditionalSignupPage() {
       });
 
       router.push('/business-profile');
-    } catch (error) {
+    } catch (_error) {
       setError('An error occurred. Please try again.');
     } finally {
       setIsLoading(false);

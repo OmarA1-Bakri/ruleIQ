@@ -9,7 +9,6 @@ import {
   Tooltip,
   ResponsiveContainer,
   Area,
-  AreaChart,
   ComposedChart,
 } from 'recharts';
 

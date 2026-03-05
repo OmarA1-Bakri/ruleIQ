@@ -16,7 +16,7 @@ export const freemiumKeys = {
  */
 export const useFreemiumEmailCapture = () => {
   const router = useRouter();
-  const { setEmail, setToken, utmSource, utmCampaign } = useFreemiumStore();
+  const { setEmail, setToken, utmSource: _utmSource, utmCampaign: _utmCampaign } = useFreemiumStore();
 
   return useMutation({
     mutationFn: (data: freemiumApi.FreemiumEmailCaptureRequest) => freemiumApi.captureEmail(data),

@@ -29,11 +29,6 @@ interface UserDashboard {
   activity_data?: any[];
 }
 
-interface WidgetData {
-  type: string;
-  data: any;
-}
-
 // Query keys
 const DASHBOARD_KEY = 'dashboard';
 

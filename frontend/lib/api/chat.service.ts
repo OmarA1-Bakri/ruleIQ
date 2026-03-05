@@ -276,7 +276,7 @@ class ChatService {
       try {
         const message = JSON.parse(event.data);
         this.notifyHandlers({ type: 'message', data: message });
-      } catch (error) {
+      } catch (_error) {
       }
     };
 

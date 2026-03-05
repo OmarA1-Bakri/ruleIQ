@@ -11,13 +11,11 @@ import {
   FreemiumAssessmentStartResponseSchema,
   AssessmentQuestionResponseSchema,
   AssessmentResultsResponseSchema,
-  AssessmentQuestionSchema,
 } from '../validation/zod-schemas';
 import type {
   LeadResponse,
   FreemiumAssessmentStartResponse,
   AssessmentQuestion,
-  AssessmentQuestionResponse,
   AssessmentResultsResponse,
   AssessmentAnswerRequest,
 } from '@/types/freemium';

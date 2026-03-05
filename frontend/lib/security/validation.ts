@@ -56,7 +56,7 @@ const secureUrl = z
       const parsed = new URL(url);
       // Only allow safe protocols
       return ['http:', 'https:'].includes(parsed.protocol);
-    } catch (error) {
+    } catch (_error) {
       return false;
     }
   }, 'Only HTTP and HTTPS URLs are allowed')

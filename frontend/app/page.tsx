@@ -26,7 +26,6 @@ import {
 import Hero from '@/components/ui/neural-network-hero';
 import PricingPreview from '@/components/ui/pricing-preview';
 import { useAuthStore } from '@/lib/stores/auth.store';
-import { cn } from '@/lib/utils';
 import { Header } from '@/components/ui/header';
 
 // Feature Card Component

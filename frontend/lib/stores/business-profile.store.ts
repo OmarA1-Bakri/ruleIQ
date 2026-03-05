@@ -23,7 +23,6 @@ import {
   WIZARD_STEPS,
   type FrameworkRecommendation,
 } from '@/types/business-profile';
-import { type BusinessProfile as APIBusinessProfile } from '@/types/api';
 
 export interface BusinessProfileState {
   // Profile Data
@@ -645,7 +644,7 @@ export const useBusinessProfileStore = create<BusinessProfileState>()(
               false,
               'loadRecommendations/success',
             );
-          } catch (error: unknown) {
+          } catch (_error: unknown) {
             // Don't set error for recommendations - they're not critical
             set(
               {

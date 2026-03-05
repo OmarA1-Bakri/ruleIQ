@@ -44,7 +44,7 @@ export function safeJsonParse<T>(json: string, fallback?: T): T | null {
   try {
     const parsed = JSON.parse(json);
     return parsed as T;
-  } catch (error) {
+  } catch (_error) {
     return fallback ?? null;
   }
 }
@@ -70,7 +70,7 @@ export function safeJsonParseWithValidation<T>(
       return parsed;
     }
     return fallback ?? null;
-  } catch (error) {
+  } catch (_error) {
     return fallback ?? null;
   }
 }
@@ -90,7 +90,7 @@ export function safeGetFromStorage<T>(
     }
 
     return parsed as T;
-  } catch (error) {
+  } catch (_error) {
     return null;
   }
 }
@@ -99,7 +99,7 @@ export function safeSetToStorage<T>(key: string, value: T): boolean {
   try {
     localStorage.setItem(key, JSON.stringify(value));
     return true;
-  } catch (error) {
+  } catch (_error) {
     return false;
   }
 }
@@ -246,7 +246,7 @@ export function isValidUrl(value: unknown): value is string {
   try {
     new URL(value);
     return true;
-  } catch (error) {
+  } catch (_error) {
     return false;
   }
 }

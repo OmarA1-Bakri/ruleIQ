@@ -98,7 +98,7 @@ export const SigmaNetworkGraph = () => {
           color: edge.color || 'var(--purple-500)40',
           size: edge.weight || 1
         });
-      } catch (e) {
+      } catch (_e) {
         // Ignore duplicate edges or missing nodes
       }
     });

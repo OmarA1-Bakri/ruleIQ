@@ -14,7 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { authService } from '@/lib/api/auth.service';
 
 export default function ResetPasswordPage() {
-  const router = useRouter();
+  const _router = useRouter();
   const { toast } = useToast();
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);

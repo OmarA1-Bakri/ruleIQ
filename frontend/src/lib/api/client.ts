@@ -1,8 +1,7 @@
 import { z } from 'zod';
-import type { 
-  BaseResponse, 
-  PaginationParams,
-  PaginatedResponse 
+import type {
+  BaseResponse,
+  PaginationParams
 } from './types';
 
 // API Configuration

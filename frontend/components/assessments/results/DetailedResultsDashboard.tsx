@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Calendar, Download, FileText, TrendingUp, Users, CheckCircle, Clock, Target } from 'lucide-react';
+import { Calendar, TrendingUp, CheckCircle, Clock, Target } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -11,8 +11,7 @@ import { RecommendationsList } from './recommendations-list';
 import { TrendAnalysisChart } from './TrendAnalysisChart';
 import { SectionScorecard } from './SectionScorecard';
 import { ExportButton } from './ExportButton';
-import { AssessmentResult, Gap, Recommendation } from '@/lib/assessment-engine/types';
-import { AssessmentResultsResponse } from '@/types/freemium';
+import { AssessmentResult } from '@/lib/assessment-engine/types';
 import { TrendDataPoint, SectionScoreDetail } from '@/types/assessment-results';
 
 // Helper function to format section names from IDs
@@ -46,7 +45,7 @@ export function DetailedResultsDashboard({
   sectionDetails = [],
   trendData = [],
 
-  isExporting = false,
+  isExporting: _isExporting = false,
   className = ''
 }: DetailedResultsDashboardProps) {
   const [activeTab, setActiveTab] = useState('overview');
@@ -76,7 +75,7 @@ export function DetailedResultsDashboard({
     // NOTE: These are estimated values when actual section data is not available
     // In production, these should be derived from actual assessment framework data
     // Consider showing an "estimated" badge in the UI for these values
-    const sectionCount = Object.keys(sectionScores).length || 5; // Default to 5 sections
+    const _sectionCount = Object.keys(sectionScores).length || 5; // Default to 5 sections
     const totalQuestionsPerSection = 10; // Estimated standard questions per section
 
     // Calculate questions answered based on completion percentage and score

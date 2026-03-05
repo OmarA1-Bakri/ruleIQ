@@ -52,7 +52,7 @@ export function PricingCard({
         // Default behavior - redirect to checkout
         router.push(`/checkout?plan=${planId}`);
       }
-    } catch (error) {
+    } catch (_error) {
     } finally {
       setIsLoading(false);
     }

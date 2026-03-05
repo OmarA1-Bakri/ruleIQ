@@ -9,8 +9,6 @@ import {
   CheckCircle, 
   AlertCircle, 
   Loader2,
-  Calendar,
-  Filter,
   FileDown,
   X
 } from 'lucide-react';
@@ -32,7 +30,6 @@ import {
   validateExportData,
   getEstimatedExportSize,
   svgToPngDataUrl,
-  EXPORT_OPTION_KEYS,
   type ExportOptions,
   type ExportResult
 } from '@/lib/utils/export';
@@ -246,7 +243,7 @@ export const ExportButton: React.FC<ExportButtonProps> = ({
   showAdvancedOptions = true,
   defaultFormat = 'pdf',
   estimatedBreakdown = false,
-  trendData
+  trendData: _trendData
 }) => {
   // Use the app's toast system
   const { toast } = useToast();

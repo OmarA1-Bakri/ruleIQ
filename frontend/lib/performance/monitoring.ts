@@ -91,7 +91,7 @@ class PerformanceMonitor {
 
       // Navigation timing
       this.observeNavigationTiming();
-    } catch (error) {
+    } catch (_error) {
     }
   }
 
@@ -106,7 +106,7 @@ class PerformanceMonitor {
 
       observer.observe({ entryTypes: [entryType] });
       this.observers.push(observer);
-    } catch (error) {
+    } catch (_error) {
     }
   }
 
@@ -225,7 +225,7 @@ class PerformanceMonitor {
 
       try {
         await fn();
-      } catch (error) {
+      } catch (_error) {
       }
 
       const duration = performance.now() - startTime;

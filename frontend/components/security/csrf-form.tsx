@@ -39,7 +39,7 @@ export function CsrfForm({
 
     try {
       await onSubmit(formData, token);
-    } catch (error) {
+    } catch (_error) {
     }
   };
 

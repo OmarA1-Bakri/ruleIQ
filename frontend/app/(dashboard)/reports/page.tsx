@@ -11,7 +11,6 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
 
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
@@ -85,7 +84,7 @@ export default function ReportsPage() {
         title: 'Download started',
         description: `Your report is being downloaded as ${format.toUpperCase()}.`,
       });
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: 'Download failed',
         description: 'There was an error downloading the report. Please try again.',

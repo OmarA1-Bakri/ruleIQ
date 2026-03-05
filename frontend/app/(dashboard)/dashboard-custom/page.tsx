@@ -157,7 +157,7 @@ export default function CustomDashboardPage() {
     }
   }, [apiData]);
 
-  const handleLayoutChange = (layouts: Layouts) => {
+  const handleLayoutChange = (_layouts: Layouts) => {
     // Save to localStorage or backend
   };
 

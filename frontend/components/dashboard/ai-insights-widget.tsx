@@ -130,7 +130,7 @@ export function AIInsightsWidget({
     } else {
       try {
         await dashboardService.dismissInsight(insightId);
-      } catch (error) {
+      } catch (_error) {
       }
     }
   };
@@ -151,7 +151,7 @@ export function AIInsightsWidget({
     } else {
       try {
         await dashboardService.bookmarkInsight(insightId);
-      } catch (error) {
+      } catch (_error) {
       }
     }
   };

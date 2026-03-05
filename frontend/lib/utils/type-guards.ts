@@ -10,7 +10,6 @@ import {
   AlertSchema,
   AIHelpResponseSchema,
   APIErrorResponseSchema,
-  ApiResponseSchema,
   LeadCaptureRequestSchema,
   AssessmentStartRequestSchema,
   AssessmentAnswerRequestSchema

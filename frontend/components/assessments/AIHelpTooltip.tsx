@@ -106,7 +106,7 @@ export function AIHelpTooltip({
         description: 'Thank you for helping us improve AI assistance.',
         duration: 2000,
       });
-    } catch (err) {
+    } catch (_err) {
     }
   };
 

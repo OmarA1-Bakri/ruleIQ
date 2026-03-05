@@ -149,7 +149,7 @@ export default function AssessmentPage() {
       // For now, use mock data
       setFramework(mockFramework);
       setLoading(false);
-    } catch (error) {
+    } catch (_error) {
       addNotification({
         type: 'error',
         title: 'Error',
@@ -178,7 +178,7 @@ export default function AssessmentPage() {
 
       // Navigate to results page
       router.push(`/assessments/${assessmentId}/results`);
-    } catch (error) {
+    } catch (_error) {
       addNotification({
         type: 'error',
         title: 'Error',
@@ -188,7 +188,7 @@ export default function AssessmentPage() {
     }
   };
 
-  const handleSaveProgress = async (progress: AssessmentProgress) => {
+  const handleSaveProgress = async (_progress: AssessmentProgress) => {
     try {
       // Save progress to backend
       await assessmentService.updateAssessment(assessmentId, {
@@ -196,7 +196,7 @@ export default function AssessmentPage() {
         // Note: AssessmentProgress from assessment-engine doesn't have responses
         // In a real implementation, you'd track responses separately
       });
-    } catch (error) {
+    } catch (_error) {
       // Log error for debugging - consider using a proper logger in production
     }
   };

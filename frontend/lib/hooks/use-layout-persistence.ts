@@ -2,7 +2,7 @@ import { useEffect, useCallback, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLayoutStore } from '@/lib/stores/layout.store';
 import { layoutsService } from '@/lib/api/layouts.service';
-import { DashboardLayout, LayoutSnapshot, LayoutTemplate } from '@/types/layout';
+import { DashboardLayout } from '@/types/layout';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/lib/auth';
 
@@ -36,19 +36,19 @@ export const useLayoutPersistence = (options: UseLayoutPersistenceOptions = {}) 
   const {
     currentLayout,
     isDirty,
-    isSaving,
+    isSaving: _isSaving,
     saveError,
     loadLayout,
-    saveLayout: updateLayoutInStore,
+    saveLayout: _updateLayoutInStore,
     markClean,
     setSaveError,
-    preferences,
+    preferences: _preferences,
   } = useLayoutStore();
 
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [lastSyncedVersion, setLastSyncedVersion] = useState<number>(0);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const conflictResolverRef = useRef<((layout: DashboardLayout) => void) | null>(null);
+  const _conflictResolverRef = useRef<((layout: DashboardLayout) => void) | null>(null);
 
   // Query for loading layout
   const {

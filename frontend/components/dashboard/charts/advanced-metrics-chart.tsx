@@ -12,7 +12,7 @@ import {
 } from 'recharts';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { neuralPurple, silver, semantic, chartColors } from '@/lib/theme/neural-purple-colors';
+import { neuralPurple, silver } from '@/lib/theme/neural-purple-colors';
 
 interface AdvancedMetricsChartProps {
   data: Array<{

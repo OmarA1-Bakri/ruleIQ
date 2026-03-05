@@ -7,16 +7,14 @@ import { freemiumService, type AssessmentResultsResponse } from '@/lib/api/freem
 import { normalizeSectionId } from '@/lib/api/frameworks.service';
 import type {
   AssessmentResult,
-  AssessmentFramework,
   Gap,
   Recommendation
 } from '@/lib/assessment-engine/types';
 import type {
-  FreemiumSession,
   ComplianceGap,
   ComplianceRecommendation
 } from '@/types/freemium';
-import type { BusinessProfile, Assessment } from '@/types/api';
+import type { BusinessProfile } from '@/types/api';
 import type { TrendDataPoint } from '@/types/assessment-results';
 
 // ============================================================================

@@ -10,20 +10,10 @@ import {
   type ExportResult,
   type ProgressCallback
 } from '@/lib/utils/export';
-import { 
-  type AssessmentResult,
-  type Gap,
-  type Recommendation 
-} from '@/lib/assessment-engine/types';
-import { 
-  type AssessmentResultsResponse,
-  type ComplianceGap,
-  type ComplianceRecommendation 
-} from '@/types/freemium';
 import {
-  type ExportJob,
-  type ExportProgress,
-  type ExportMetadata,
+  type AssessmentResult,
+} from '@/lib/assessment-engine/types';
+import {
   type ValidationResult
 } from '@/types/assessment-results';
 import { useToast } from '@/components/ui/use-toast';
@@ -156,7 +146,7 @@ const DEFAULT_OPTIONS: UseAssessmentExportOptions = {
 };
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
-const EXPORT_TIMEOUT = 5 * 60 * 1000; // 5 minutes
+const _EXPORT_TIMEOUT = 5 * 60 * 1000; // 5 minutes
 const HISTORY_STORAGE_KEY = 'assessment-export-history';
 const CLEANUP_INTERVAL = 60 * 1000; // 1 minute
 
@@ -171,7 +161,7 @@ function generateExportId(): string {
 function createExportHistoryItem(
   result: ExportResult,
   format: string,
-  options: ExportOptions
+  _options: ExportOptions
 ): ExportHistoryItem {
   return {
     id: generateExportId(),
@@ -700,7 +690,7 @@ export function useAssessmentExport(
       });
       
       return true;
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: 'Download Failed',
         description: 'Failed to start download',

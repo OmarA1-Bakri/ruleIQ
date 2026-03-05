@@ -85,7 +85,7 @@ export function DataTableWithBulkActions<TData, TValue>({
       id: 'archive',
       label: 'Archive',
       icon: Archive,
-      handler: async (_selection, items) => {
+      handler: async (_selection, _items) => {
         // Implement archive logic
       },
     },
@@ -94,7 +94,7 @@ export function DataTableWithBulkActions<TData, TValue>({
       label: 'Delete',
       icon: Trash2,
       variant: 'destructive',
-      handler: async (_selection, items) => {
+      handler: async (_selection, _items) => {
         // Implement delete logic
       },
     },

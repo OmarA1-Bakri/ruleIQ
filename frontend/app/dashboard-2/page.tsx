@@ -4,15 +4,10 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Sparkles,
-  Zap,
-  Globe,
   Waves,
   Box,
   Cpu,
-  Activity,
   ArrowRight,
-  Layers,
-  Grid3x3,
 } from 'lucide-react';
 // Using neural theme instead of aurora background
 import { ParticleSwarmChart } from '@/components/ui/charts/particle-swarm';

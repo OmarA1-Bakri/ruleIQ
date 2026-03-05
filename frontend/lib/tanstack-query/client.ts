@@ -58,7 +58,7 @@ const safeStorage = {
       if (typeof window !== 'undefined' && window.localStorage) {
         return window.localStorage.getItem(key);
       }
-    } catch (error) {
+    } catch (_error) {
     }
     return null;
   },
@@ -67,7 +67,7 @@ const safeStorage = {
       if (typeof window !== 'undefined' && window.localStorage) {
         window.localStorage.setItem(key, value);
       }
-    } catch (error) {
+    } catch (_error) {
     }
   },
   removeItem: (key: string): void => {
@@ -75,7 +75,7 @@ const safeStorage = {
       if (typeof window !== 'undefined' && window.localStorage) {
         window.localStorage.removeItem(key);
       }
-    } catch (error) {
+    } catch (_error) {
     }
   },
 };

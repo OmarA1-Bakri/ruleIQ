@@ -1,11 +1,10 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 
 import { frameworkService } from '@/lib/api/frameworks.service';
 
 import {
   createQueryKey,
   type BaseQueryOptions,
-  type BaseMutationOptions,
   type PaginationParams,
   type PaginatedResponse,
 } from './base';
@@ -27,22 +26,6 @@ interface FrameworkControl {
   code: string;
   title: string;
   description?: string;
-  [key: string]: any;
-}
-
-interface FrameworkMapping {
-  id: string;
-  source_framework_id: string;
-  target_framework_id: string;
-  mappings: any[];
-  [key: string]: any;
-}
-
-interface FrameworkCategory {
-  id: string;
-  name: string;
-  framework_id: string;
-  controls?: FrameworkControl[];
   [key: string]: any;
 }
 

@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 
 // MATRIX RAIN DATA VISUALIZATION
-export const MatrixRainVisualization = ({ data = [] }: { data?: number[] }) => {
+export const MatrixRainVisualization = ({ data: _data = [] }: { data?: number[] }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [metrics, setMetrics] = useState({ 
     dataFlow: 87, 

@@ -38,7 +38,7 @@ export function verifyCsrfToken(request: NextRequest): boolean {
     }
 
     return true;
-  } catch (error) {
+  } catch (_error) {
 
     return false;
   }
@@ -78,7 +78,7 @@ export async function extractCsrfFromFormData(request: NextRequest): Promise<str
   try {
     const formData = await request.formData();
     return (formData.get('_csrf') as string) || null;
-  } catch (error) {
+  } catch (_error) {
     return null;
   }
 }

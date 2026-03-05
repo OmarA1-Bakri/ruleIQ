@@ -13,6 +13,7 @@ vi.mock('@/lib/stores/auth.store', () => {
     register: vi.fn().mockResolvedValue(undefined),
     logout: vi.fn(),
     refreshToken: vi.fn().mockResolvedValue(undefined),
+    refreshTokens: vi.fn().mockResolvedValue(undefined),
     setUser: vi.fn(),
     setTokens: vi.fn(),
     clearError: vi.fn(),
@@ -50,7 +51,11 @@ describe('Auth Service', () => {
 
       await authService.login('test@example.com', 'password123');
 
-      expect(mockStore.login).toHaveBeenCalledWith('test@example.com', 'password123');
+      expect(mockStore.login).toHaveBeenCalledWith({
+        email: 'test@example.com',
+        password: 'password123',
+        rememberMe: false,
+      });
     });
   });
 
@@ -122,7 +127,7 @@ describe('Auth Service', () => {
 
       await authService.refreshToken();
 
-      expect(mockStore.refreshToken).toHaveBeenCalled();
+      expect(mockStore.refreshTokens).toHaveBeenCalled();
     });
   });
 

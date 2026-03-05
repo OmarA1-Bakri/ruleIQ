@@ -82,10 +82,11 @@ describe('API Services', () => {
 
       await authService.login('test@example.com', 'password123');
 
-      expect(mockLogin).toHaveBeenCalledWith(
-        'test@example.com',
-        'password123'
-      );
+      expect(mockLogin).toHaveBeenCalledWith({
+        email: 'test@example.com',
+        password: 'password123',
+        rememberMe: false,
+      });
     });
 
     it('should handle login failure', async () => {

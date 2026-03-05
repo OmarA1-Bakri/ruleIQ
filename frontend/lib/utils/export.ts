@@ -799,7 +799,7 @@ export async function exportAssessmentPDF(
           fontSize: 10,
           cellPadding: 3
         },
-        margin: { left: margin, right: margin }
+        margin: { horizontal: margin }
       });
 
       yPosition = (doc as any).lastAutoTable.finalY + 15;
@@ -858,7 +858,7 @@ export async function exportAssessmentPDF(
           2: { cellWidth: 60 },
           3: { cellWidth: 50 }
         },
-        margin: { left: margin, right: margin }
+        margin: { horizontal: margin }
       });
 
       yPosition = (doc as any).lastAutoTable.finalY + 15;
@@ -912,7 +912,7 @@ export async function exportAssessmentPDF(
         columnStyles: {
           2: { cellWidth: 70 }
         },
-        margin: { left: margin, right: margin }
+        margin: { horizontal: margin }
       });
 
       yPosition = (doc as any).lastAutoTable.finalY + 15;
@@ -960,7 +960,7 @@ export async function exportAssessmentPDF(
           3: { cellWidth: 30 },
           4: { cellWidth: 20 }
         },
-        margin: { left: margin, right: margin }
+        margin: { horizontal: margin }
       });
 
       yPosition = (doc as any).lastAutoTable.finalY + 15;

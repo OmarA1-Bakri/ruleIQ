@@ -124,8 +124,9 @@ export function isAIHelpResponse(response: unknown): boolean {
 }
 
 export function isAIAnalysisResponse(response: unknown): boolean {
-  const result = AIAnalysisResponseSchema.safeParse(response);
-  return result.success;
+  if (!response || typeof response !== 'object') return false;
+  const obj = response as Record<string, unknown>;
+  return 'analysis' in obj || ('results' in obj && 'confidence' in obj);
 }
 
 export function isAIErrorResponse(response: unknown): boolean {
@@ -149,13 +150,13 @@ export function isApiResponse(value: unknown): boolean {
 
 export function isSuccessResponse(value: unknown): boolean {
   if (!isApiResponse(value)) return false;
-  const response = value as ApiResponse;
+  const response = value as { success: boolean; data?: unknown; error?: unknown };
   return response.success === true && response.data !== undefined;
 }
 
 export function isErrorResponse(value: unknown): boolean {
   if (!isApiResponse(value)) return false;
-  const response = value as ApiResponse;
+  const response = value as { success: boolean; data?: unknown; error?: unknown };
   return response.success === false && response.error !== undefined;
 }
 

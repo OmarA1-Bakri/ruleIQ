@@ -77,7 +77,7 @@ export const useFreemiumAnswerQuestion = () => {
     onSuccess: (response) => {
       // incrementProgress doesn't exist in the store
 
-      if (response.assessment_complete || response.redirect_to_results) {
+      if (response.is_complete) {
         markAssessmentCompleted();
         router.push(`/freemium/results?token=${token}`);
       } else if (response.next_question_id) {

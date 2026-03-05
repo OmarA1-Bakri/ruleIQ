@@ -295,8 +295,10 @@ export const useChatStore = create<ChatState>()(
                   if (healthStatus.status === 'healthy' && healthStatus.neo4j_connected) {
                     // Use IQ Agent store's queryCompliance method which handles the full PPALE loop
                     const context = iqAgentService.extractContext(message);
+                    const responseStart = Date.now();
                     
                     await iqStoreRef.queryCompliance(message, { context });
+                    const responseElapsedMs = Date.now() - responseStart;
                     
                     // Get the response from the IQ Agent store
                     const iqResponse = useIQAgentStore.getState().currentResponse;
@@ -316,7 +318,7 @@ export const useChatStore = create<ChatState>()(
                           trust_level: 'helper',
                           evidence_count: iqResponse.evidence?.evidence_stored ?? 0,
                           graph_nodes: iqResponse.graph_context?.nodes_traversed ?? 0,
-                          response_time: 0
+                          response_time: responseElapsedMs
                         }
                       };
                     } else {
@@ -560,11 +562,13 @@ export const useChatStore = create<ChatState>()(
                 }
                 if (payload.action === 'start') {
                   set((state) => ({
-                    typingUsers: [...state.typingUsers, payload.user],
+                    typingUsers: state.typingUsers.includes(payload.user as string)
+                      ? state.typingUsers
+                      : [...state.typingUsers, payload.user as string],
                   }));
                 } else if (payload.action === 'stop') {
                   set((state) => ({
-                    typingUsers: state.typingUsers.filter((u) => u !== payload.user),
+                    typingUsers: state.typingUsers.filter((u) => u !== (payload.user as string)),
                   }));
                 }
               }

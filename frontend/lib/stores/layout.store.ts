@@ -521,7 +521,7 @@ export const useLayoutStore = create<LayoutState>()(
 
         // Drag state
         setDragState: (newState) => set((state) => {
-          state.dragState = { ...state.dragState, ...newState };
+          Object.assign(state.dragState, newState);
         }),
 
         clearDragState: () => set((state) => {

@@ -178,7 +178,8 @@ class AssessmentResultsService {
   private cleanExpiredCache(): void {
     const now = Date.now();
     Object.keys(this.cache).forEach(key => {
-      if (this.cache[key] && now > this.cache[key]!.expiresAt) {
+      const expiresAt = this.cache[key]?.expiresAt;
+      if (expiresAt !== undefined && now > expiresAt) {
         delete this.cache[key];
       }
     });
@@ -497,13 +498,13 @@ class AssessmentResultsService {
     }, {} as Record<string, ComplianceGap[]>);
 
     // Calculate section scores based on gap severity
-    Object.entries(gapsByCategory).forEach(([_category, gaps]) => {
+    Object.entries(gapsByCategory).forEach(([category, gaps]) => {
       const severityWeights: Record<string, number> = { critical: 0, high: 25, medium: 50, low: 75 };
       const avgSeverityScore = gaps.reduce((sum, gap) => {
         return sum + (severityWeights[gap.severity] ?? 50);
       }, 0) / gaps.length;
 
-      sections[_category] = Math.round(avgSeverityScore);
+      sections[category] = Math.round(avgSeverityScore);
     });
 
     // Ensure we have some default sections with deterministic scores

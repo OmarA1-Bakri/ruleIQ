@@ -414,6 +414,7 @@ export const AdvancedQuestionResponseSchema = z.object({
 export const AssessmentResultsResponseSchema = z.object({
   session_id: z.string().uuid(),
   lead_id: z.string().optional(),
+  framework_id: z.string().optional(),
   session_token: z.string(),
   compliance_score: z.number().min(0).max(100),
   risk_score: z.number().min(0).max(100),

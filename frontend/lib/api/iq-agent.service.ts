@@ -123,7 +123,9 @@ class IQAgentService {
     if (lowerMessage.includes('iso 27001') || lowerMessage.includes('iso27001')) {
       regulations.push('ISO 27001');
     }
-    if (lowerMessage.includes('pci') || lowerMessage.includes('pci dss')) {
+    if (lowerMessage.includes('pci dss')) {
+      regulations.push('PCI DSS');
+    } else if (lowerMessage.includes('pci')) {
       regulations.push('PCI DSS');
     }
     if (lowerMessage.includes('hipaa')) regulations.push('HIPAA');

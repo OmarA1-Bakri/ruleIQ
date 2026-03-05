@@ -63,6 +63,32 @@ function logWarn(message: string, ...args: any[]): void {
   }
 }
 
+function buildExportErrorDetails(error: unknown, includeStack: boolean = isDevelopment): ExportResult {
+  const base: ExportResult = {
+    success: false,
+    filename: '',
+    error: error instanceof Error ? error.message : 'Unknown error occurred',
+  };
+
+  if (error instanceof Error) {
+    (base as any).rawError = {
+      name: error.name,
+      message: error.message,
+    };
+    if (includeStack) {
+      (base as any).stack = error.stack;
+      (base as any).rawError.stack = error.stack;
+    }
+  } else {
+    (base as any).rawError = {
+      name: 'UnknownError',
+      message: String(error),
+    };
+  }
+
+  return base;
+}
+
 // Helper function to convert hex color to RGB array with memoization
 function hexToRgb(hex: string | null | undefined): [number, number, number] {
   // Early validation for null, undefined, or non-string inputs
@@ -173,6 +199,13 @@ function sanitizeFilename(filename: string): string {
 
 // Helper function to normalize data from different response types
 function normalizeAssessmentData(results: AssessmentResult | AssessmentResultsResponse) {
+  const toSafeDate = (value: unknown): Date => {
+    if (typeof value === 'string' && !Number.isNaN(Date.parse(value))) {
+      return new Date(value);
+    }
+    return new Date();
+  };
+
   const normalized = {
     overallScore: 0,
     riskScore: null as number | null,
@@ -186,7 +219,7 @@ function normalizeAssessmentData(results: AssessmentResult | AssessmentResultsRe
 
   if (isAssessmentResult(results)) {
     normalized.overallScore = results.overallScore;
-    normalized.assessmentDate = new Date(results.completedAt);
+    normalized.assessmentDate = toSafeDate(results.completedAt);
     normalized.sectionScores = results.sectionScores || {};
     normalized.gaps = results.gaps || [];
     normalized.recommendations = results.recommendations || [];
@@ -195,7 +228,7 @@ function normalizeAssessmentData(results: AssessmentResult | AssessmentResultsRe
     normalized.overallScore = results.compliance_score;
     normalized.riskScore = results.risk_score || null;
     normalized.completionPercentage = results.completion_percentage || 100;
-    normalized.assessmentDate = new Date(results.results_generated_at);
+    normalized.assessmentDate = toSafeDate(results.results_generated_at);
     normalized.gaps = results.compliance_gaps || [];
     normalized.recommendations = results.recommendations || (results as any).compliance_recommendations || [];
   } else {
@@ -203,7 +236,7 @@ function normalizeAssessmentData(results: AssessmentResult | AssessmentResultsRe
     normalized.overallScore = (results as any).overallScore || (results as any).compliance_score || 0;
     normalized.riskScore = (results as any).risk_score || null;
     normalized.completionPercentage = (results as any).completion_percentage || 100;
-    normalized.assessmentDate = new Date((results as any).completedAt || (results as any).results_generated_at || Date.now());
+    normalized.assessmentDate = toSafeDate((results as any).completedAt || (results as any).results_generated_at);
     normalized.sectionScores = (results as any).sectionScores || {};
     normalized.gaps = (results as any).gaps || (results as any).compliance_gaps || [];
     normalized.recommendations = (results as any).recommendations || (results as any).compliance_recommendations || [];
@@ -996,27 +1029,7 @@ export async function exportAssessmentPDF(
 
   } catch (error) {
     logError('PDF export error:', error);
-    
-    // Enhanced error handling with stack trace
-    const errorDetails: ExportResult = {
-      success: false,
-      filename: '',
-      error: error instanceof Error ? error.message : 'Unknown error occurred'
-    };
-    
-    // Add stack trace and raw error for debugging (ensure no sensitive data)
-    if (error instanceof Error) {
-      (errorDetails as any).stack = error.stack;
-      (errorDetails as any).rawError = {
-        name: error.name,
-        message: error.message,
-        stack: error.stack
-      };
-    } else {
-      (errorDetails as any).rawError = error;
-    }
-    
-    return errorDetails;
+    return buildExportErrorDetails(error, isDevelopment);
   }
 }
 
@@ -1218,27 +1231,7 @@ export async function exportAssessmentCSV(
 
   } catch (error) {
     logError('CSV export error:', error);
-    
-    // Enhanced error handling with stack trace
-    const errorDetails: ExportResult = {
-      success: false,
-      filename: '',
-      error: error instanceof Error ? error.message : 'Unknown error occurred'
-    };
-    
-    // Add stack trace and raw error for debugging (ensure no sensitive data)
-    if (error instanceof Error) {
-      (errorDetails as any).stack = error.stack;
-      (errorDetails as any).rawError = {
-        name: error.name,
-        message: error.message,
-        stack: error.stack
-      };
-    } else {
-      (errorDetails as any).rawError = error;
-    }
-    
-    return errorDetails;
+    return buildExportErrorDetails(error, isDevelopment);
   }
 }
 
@@ -1265,27 +1258,7 @@ export async function exportAssessment(
     }
   } catch (error) {
     logError('Export error:', error);
-    
-    // Enhanced error handling with stack trace
-    const errorDetails: ExportResult = {
-      success: false,
-      filename: '',
-      error: error instanceof Error ? error.message : 'Unknown error occurred'
-    };
-    
-    // Add stack trace and raw error for debugging (ensure no sensitive data)
-    if (error instanceof Error) {
-      (errorDetails as any).stack = error.stack;
-      (errorDetails as any).rawError = {
-        name: error.name,
-        message: error.message,
-        stack: error.stack
-      };
-    } else {
-      (errorDetails as any).rawError = error;
-    }
-    
-    return errorDetails;
+    return buildExportErrorDetails(error, isDevelopment);
   }
 }
 
@@ -1315,7 +1288,10 @@ export function downloadFile(content: string | Blob, filename: string, mimeType:
     setTimeout(() => URL.revokeObjectURL(url), 100);
   } catch (error) {
     logError('Download error:', error);
-    throw new Error('Failed to download file');
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error(`Failed to download file: ${String(error)}`);
   }
 }
 

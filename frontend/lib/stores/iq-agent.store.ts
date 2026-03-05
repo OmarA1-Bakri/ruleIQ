@@ -174,6 +174,7 @@ export const useIQAgentStore = create<IQAgentState>()(
               error: {
                 error_type: 'service_unavailable',
                 message: errorMessage,
+                correlation_id: `health-${Date.now()}`,
               },
             },
             false,
@@ -227,6 +228,8 @@ export const useIQCurrentResponse = () =>
   useIQAgentStore((state) => state.currentResponse);
 export const useIQHealthStatus = () =>
   useIQAgentStore((state) => state.healthStatus);
+export const useIQTrustStatus = () =>
+  useIQAgentStore((state) => state.trustStatus);
 export const useIQIsQuerying = () =>
   useIQAgentStore((state) => state.isQuerying);
 export const useIQError = () =>

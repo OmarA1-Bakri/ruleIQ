@@ -16,7 +16,6 @@ import json
 import requests
 import argparse
 from pathlib import Path
-from typing import List, Dict, Optional
 from scan_todos import TodoItem, scan_file, get_tracked_files, is_scannable
 
 
@@ -39,7 +38,7 @@ class GitHubIssueCreator:
             "Accept": "application/vnd.github.v3+json"
         }
 
-    def create_issue(self, title: str, body: str, labels: List[str]) -> int:
+    def create_issue(self, title: str, body: str, labels: list[str]) -> int:
         """
         Create a GitHub issue.
 
@@ -64,7 +63,7 @@ class GitHubIssueCreator:
         response.raise_for_status()
         return response.json()["number"]
 
-    def search_existing_issue(self, title: str) -> Optional[int]:
+    def search_existing_issue(self, title: str) -> int | None:
         """
         Search for existing issue with similar title to avoid duplicates.
 
@@ -89,7 +88,7 @@ class GitHubIssueCreator:
             return None
 
 
-def group_similar_todos(todos: List[TodoItem]) -> Dict[str, List[TodoItem]]:
+def group_similar_todos(todos: list[TodoItem]) -> dict[str, list[TodoItem]]:
     """
     Group similar TODOs to create batch issues.
 
@@ -125,7 +124,7 @@ def group_similar_todos(todos: List[TodoItem]) -> Dict[str, List[TodoItem]]:
     return groups
 
 
-def generate_issue_body(todos: List[TodoItem]) -> str:
+def generate_issue_body(todos: list[TodoItem]) -> str:
     """
     Generate issue body from TODO items.
 
@@ -176,7 +175,7 @@ This issue tracks {len(todos)} related TODO items that should be addressed toget
         return body
 
 
-def get_labels_for_todo(todo: TodoItem) -> List[str]:
+def get_labels_for_todo(todo: TodoItem) -> list[str]:
     """
     Determine appropriate labels for the issue.
 

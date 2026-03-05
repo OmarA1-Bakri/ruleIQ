@@ -16,14 +16,17 @@ Modes:
 
 import asyncio
 import time
-import sys
 import argparse
 from typing import Dict, Any, List
 from uuid import uuid4
 from unittest.mock import AsyncMock
+from pathlib import Path
 
-# Add project root to path
-sys.path.insert(0, '.')
+import sys
+
+# Add project root to path (file-relative, deterministic)
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(PROJECT_ROOT))
 
 from services.ai.assistant_facade import ComplianceAssistant as NewAssistant
 from services.ai.assistant_legacy import ComplianceAssistant as LegacyAssistant

@@ -25,7 +25,7 @@ def validate_app_import() -> Tuple[bool, str]:
         Tuple of (success: bool, message: str)
     """
     try:
-        from api.main import app  # noqa: F401 — import tests importability
+        from api.main import app  # noqa: F401 - import to test importability
         return True, "✅ FastAPI app imported successfully"
     except ImportError as e:
         return False, f"❌ Failed to import FastAPI app: {str(e)}"

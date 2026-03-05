@@ -23,7 +23,7 @@ from __future__ import annotations
 import argparse
 import os
 import sys
-from typing import Dict, List, Literal, Tuple
+from typing import Any, Dict, List, Literal, Tuple
 
 # Required environment variables with descriptions
 REQUIRED_ENV_VARS: Dict[str, str] = {
@@ -111,7 +111,7 @@ def validate_environment(
     fail_fast: bool = True,
     environment: str | None = None,
     verbose: bool = True,
-) -> Dict[str, any]:
+) -> Dict[str, Any]:
     """Validate required environment variables are set.
 
     Args:

@@ -33,6 +33,11 @@ def create_production_app():
             return
         try:
             import redis
+        except ImportError as exc:
+            raise RuntimeError(
+                "Redis health check failed: redis package is not installed"
+            ) from exc
+        try:
             client = redis.from_url(redis_url, socket_connect_timeout=1, socket_timeout=1)
             client.ping()
         except Exception as exc:

@@ -231,7 +231,7 @@ class OpenAIProvider(AIProvider):
                         timeout_seconds,
                         model_name,
                     )
-                    raise ProviderUnavailableError(
+                    raise ProviderTimeoutError(
                         f"OpenAI streaming timed out after {timeout_seconds}s"
                     )
 
@@ -244,6 +244,8 @@ class OpenAIProvider(AIProvider):
             await asyncio.wait_for(producer_task, timeout=timeout_seconds)
 
         except Exception as e:
+            if isinstance(e, ProviderTimeoutError):
+                raise
             logger.error(f"OpenAI streaming failed: {e}", exc_info=True)
             raise ProviderUnavailableError(f"OpenAI streaming failed: {e}")
 

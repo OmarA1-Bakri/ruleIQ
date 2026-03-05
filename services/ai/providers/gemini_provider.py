@@ -9,7 +9,7 @@ import logging
 from datetime import datetime, timezone
 from typing import Any, AsyncIterator, Optional
 
-from google.generativeai.types import HarmCategory, HarmBlockThreshold
+from google.genai.types import HarmCategory, HarmBlockThreshold
 
 from config.ai_config import get_ai_model
 from services.ai.circuit_breaker import AICircuitBreaker
@@ -255,6 +255,11 @@ class GeminiProvider(AIProvider):
                 try:
                     item = await asyncio.wait_for(queue.get(), timeout=timeout_seconds)
                 except asyncio.TimeoutError:
+                    producer_task.cancel()
+                    try:
+                        await asyncio.wait_for(producer_task, timeout=1.0)
+                    except (asyncio.CancelledError, asyncio.TimeoutError):
+                        pass
                     logger.error(
                         "Gemini streaming timed out after %ss (model=%s)",
                         timeout_seconds,

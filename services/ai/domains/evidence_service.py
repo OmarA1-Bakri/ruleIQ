@@ -31,8 +31,8 @@ class EvidenceService:
         response_parser: ResponseParser,
         fallback_generator: FallbackGenerator,
         context_manager: ContextManager,
-        workflow_service=None,  # Optional, for maturity analysis
-        compliance_service=None  # Optional, for gap analysis
+        workflow_service: Optional[Any] = None,  # Optional, for maturity analysis
+        compliance_service: Optional[Any] = None  # Optional, for gap analysis
     ) -> None:
         """Initialize the evidence service."""
         self.response_generator = response_generator

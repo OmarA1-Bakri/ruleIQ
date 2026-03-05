@@ -194,7 +194,7 @@ class AnthropicProvider(AIProvider):
                         timeout_seconds,
                         model_name,
                     )
-                    raise ProviderUnavailableError(
+                    raise ProviderTimeoutError(
                         f"Anthropic streaming timed out after {timeout_seconds}s"
                     )
 
@@ -208,6 +208,8 @@ class AnthropicProvider(AIProvider):
             await asyncio.wait_for(producer_task, timeout=timeout_seconds)
 
         except Exception as e:
+            if isinstance(e, (ProviderTimeoutError, ProviderUnavailableError, ProviderQuotaError)):
+                raise
             logger.error(f"Anthropic streaming failed: {e}", exc_info=True)
             raise ProviderUnavailableError(f"Anthropic streaming failed: {e}")
 

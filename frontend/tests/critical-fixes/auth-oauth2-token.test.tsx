@@ -226,8 +226,8 @@ describe('Authentication Service Integration', () => {
       await authService.login('test@example.com', 'password123');
       expect(authService.getToken()).toBe('logout-test-token');
 
-      // Then logout
-      authService.logout();
+      // Then logout (must await — store's logout() is async)
+      await authService.logout();
       expect(authService.getToken()).toBeNull();
     });
   });

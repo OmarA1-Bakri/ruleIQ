@@ -1,9 +1,9 @@
 # Sprint Handover Note — `sprint/production-ready`
 
-**Date**: 2026-03-04
-**Branch**: `sprint/production-ready` (48 commits ahead of `main`)
+**Date**: 2026-03-05
+**Branch**: `sprint/production-ready` (56 commits ahead of `main`)
 **PR**: [#180](https://github.com/OmarA1-Bakri-Org/ruleIQ/pull/180)
-**Scope**: 212 files changed, +5,327 / -1,129 lines
+**Scope**: 347 files changed, +23,396 / -1,538 lines
 
 ---
 
@@ -31,13 +31,12 @@ The full issue inventory is in `docs/FIX_PLAN.md`. The system architecture map i
 
 ## Where We Are Now
 
-**All 7 phases are complete.** Every P0 and P1 issue from `docs/FIX_PLAN.md` is resolved. All CRITICAL and HIGH findings from the 3 code review agents are resolved. The branch is clean — no uncommitted changes.
+**All 7 phases are complete.** Every P0 and P1 issue from `docs/FIX_PLAN.md` is resolved. All CRITICAL and HIGH findings from the 3 code review agents are resolved. Post-sprint hardening (Sessions 2–3) addressed TypeScript errors, ruff errors, ESLint errors, bandit HIGH findings, and pip vulnerabilities. The branch is clean — no uncommitted changes.
 
 **Immediate next steps** (in priority order):
-1. **Reduce TypeScript errors from 870 → 0** — This is the highest-impact remaining work. Strategy: fix source type files first (`types/iq-agent.ts`, `types/assessment-results.ts`), then stores, then tests. See item #2 under "What Still Needs Work" below.
-2. **Reduce ruff lint errors from 399 → 0** — Most are E501 (line too long) and PLR2004 (magic values) which can be suppressed in `ruff.toml`. F821 (undefined name) needs manual fixes. See item #3 below.
-3. **Fix AI provider streaming** — All 3 providers buffer the full response before yielding. This is the biggest UX issue. See item #1 below.
-4. **Increase test coverage** — Backend: 3.13%, Frontend: 0%. Target: 80%. This is the biggest remaining gap for production readiness.
+1. **Increase test coverage** — Backend: 3.13%, Frontend: 0%. Target: 80%. This is the biggest remaining gap for production readiness.
+2. **Fix AI provider streaming** — All 3 providers buffer the full response before yielding. This is the biggest UX issue. See item #1 under "What Still Needs Work".
+3. **Fix 54 ESLint theme token errors** — Pre-existing design debt from teal→neural purple migration. Non-blocking.
 
 **What NOT to touch yet**: The 265 `from __future__ import annotations` instances outside `api/` and `middleware/` are low risk and low priority. The `google.generativeai` → `google.genai` migration works as-is with both packages installed.
 
@@ -91,6 +90,23 @@ A 7-phase production readiness sprint that systematically triaged and fixed 20 c
 ### Phase 6 — P3 Fixes (1 commit)
 - Updated baseline, fix plan status, dockerignore | `96eceb831`
 
+### Post-Sprint Hardening — Sessions 2 & 3 (8 commits)
+| Fix | Commit | Impact |
+|-----|--------|--------|
+| Resolved all remaining TypeScript strict mode errors (67→0) | `f6dc256c5` | Type safety across 9 files |
+| Backend config, monitoring, and middleware fixes | `fa6ec1639` | 6 files |
+| Frontend service, store, and validation fixes | `ed9ec0bc8` | 5 files |
+| AI provider and evidence service fixes | `308a58c2e` | 4 files |
+| Script fixes and test updates | `4b55eaefa` | 6 files |
+| Added `usedforsecurity=False` to all MD5 hash calls | `3eed55e73` | bandit HIGH: 14→0 |
+| Eliminated all ESLint unused-var warnings (~95 files) | `d2787fbd9` | 121 files |
+| Resolved all 42 non-theme ESLint errors | `9cc99aabf` | ESLint 107→54 (theme-only) |
+
+### Dependency Security Fixes (1 commit)
+| Fix | Commit | Impact |
+|-----|--------|--------|
+| Upgraded 6 vulnerable packages — 21 CVEs addressed | `b80aaa967` | FastAPI 0.110→0.117, python-jose, python-multipart, sentry-sdk, langchain |
+
 ### Phase 7 — Review & Hardening (5 commits)
 Three parallel code review agents (backend, frontend, infrastructure) audited all changes. Every CRITICAL and HIGH finding was resolved:
 
@@ -110,14 +126,17 @@ Three parallel code review agents (backend, frontend, infrastructure) audited al
 |--------|--------------|-------------|-------|
 | **Ruff lint errors** | 5,333 | 0 | -100% |
 | **TypeScript errors** | 823 | 0 | -100% |
+| **ESLint errors** | 107+ | 54 (theme-only) | -50% (remaining are design debt) |
 | **Frontend build** | Failing | Passing (70 pages) | Fixed |
 | **pip conflicts** | 9 | 0 | -100% |
+| **pip-audit CVEs** | 21 | 0 actionable | Fixed (6 packages upgraded) |
+| **bandit HIGH** | 14 | 0 | -100% |
 | **`__future__` in api/middleware** | 90+ | 0 | -100% |
 | **`as any` in freemium.store** | 6 | 0 | -100% |
 | **Hardcoded credentials** | 3 files | 0 files | -100% (fixed prior to sprint, verified) |
 | **Docker entrypoints** | 2 broken | 0 broken | -100% |
 | **CORS wildcard in production** | Yes | No (env-driven) | Fixed |
-| **Total commits on branch** | 0 | 48 | 212 files changed, +5327/-1129 |
+| **Total commits on branch** | 0 | 56 | 347 files changed, +23396/-1538 |
 
 ---
 
@@ -130,18 +149,24 @@ Three parallel code review agents (backend, frontend, infrastructure) audited al
    - All three collect the full response via `list()` before yielding. Needs `asyncio.Queue` refactor to push chunks as they arrive.
    - Impact: 10+ second delay on long responses; defeats streaming UX.
 
-2. **TypeScript errors at 870**
-   - Top sources: test files (`setup-broken.ts`, freemium tests), `chat.store.ts`, `iq-agent.ts` types
-   - Top error codes: TS2339 (property does not exist), TS2345 (argument mismatch), TS2322 (type assignment), TS18048 (possibly undefined)
-   - Strategy: Fix source type files first (`types/iq-agent.ts`, `types/assessment-results.ts`), then stores, then tests.
+2. **Test coverage**
+   - Backend: 3.13% (target: 80%)
+   - Frontend: 0% measured (target: 80%)
+   - This is the biggest remaining gap for production readiness.
 
-3. **Ruff errors at 399**
-   - Mostly E501 (line too long), PLR2004 (magic values), ANN001 (missing type annotations), F821 (undefined name)
-   - E501 and PLR2004 are style — can be deferred or added to ignore list. F821 needs manual fixes.
+3. **54 ESLint theme token errors** (pre-existing design debt)
+   - All are `no-restricted-syntax` from teal→neural purple migration.
+   - Non-blocking but should be fixed for consistency.
 
 4. **`from __future__ import annotations` remains in 265 files** outside `api/` and `middleware/`
-   - Breakdown: `services/ai/` (35), `services/` (27), `tests/` (24), `config/` (20), `database/` (15), `alembic/` (12), `langgraph_agent/` (21)
-   - Only the `api/` and `middleware/` instances were critical (FastAPI/Pydantic runtime resolution). The remaining 265 are in services, config, tests, and migrations where the impact is lower but should be cleaned up for consistency.
+   - Only the `api/` and `middleware/` instances were critical (FastAPI/Pydantic runtime resolution). The remaining 265 are in services, config, tests, and migrations where the impact is lower.
+
+**RESOLVED since last handover:**
+- ~~TypeScript errors~~ → 0 (was 870)
+- ~~Ruff errors~~ → 0 (was 399)
+- ~~bandit HIGH findings~~ → 0 (was 14)
+- ~~pip-audit CVEs~~ → 0 actionable (was 21)
+- ~~ESLint non-theme errors~~ → 0 (was 42)
 
 ### MEDIUM Priority
 
@@ -166,22 +191,17 @@ Three parallel code review agents (backend, frontend, infrastructure) audited al
 
 7. **`ruff.toml` target-version is `py38`** — project runs Python 3.11. Update to `py311` to enable 3.11-specific lint rules.
 
-8. **Test coverage**
-   - Backend: 3.13% (target: 80%)
-   - Frontend: 0% measured (target: 80%)
-   - This is the biggest remaining gap for production readiness.
-
 ### LOW Priority (known debt, not blocking)
 
-9. **`Dockerfile.production` no longer has Doppler** — relies on env vars from docker-compose or cloud platform. Document the new secrets injection strategy.
+8. **`Dockerfile.production` no longer has Doppler** — relies on env vars from docker-compose or cloud platform. Document the new secrets injection strategy.
 
-10. **`production_start.py`** — still exists as a standalone health-check app. Could be removed or repurposed as a lightweight health probe.
+9. **`production_start.py`** — still exists as a standalone health-check app. Could be removed or repurposed as a lightweight health probe.
 
-11. **Duplicate layout directories** — `frontend/components/layout/` AND `frontend/components/layouts/`. Consolidate.
+10. **Duplicate layout directories** — `frontend/components/layout/` AND `frontend/components/layouts/`. Consolidate.
 
-12. **`SPRINT_ARCHITECTURE.md`** references stale `google-generativeai 0.8.6`. Update to `google-genai`.
+11. **`SPRINT_ARCHITECTURE.md`** references stale `google-generativeai 0.8.6`. Update to `google-genai`.
 
-13. **`requirements-cloudrun.txt`** is significantly out of date vs `requirements.txt` (pydantic 2.7.4 vs 2.11.5, missing 15+ packages).
+12. **`requirements-cloudrun.txt`** — now partially updated (FastAPI, python-jose aligned) but still missing several packages vs `requirements.txt`.
 
 ---
 
@@ -242,4 +262,4 @@ cd frontend && pnpm test 2>&1 | tail -20
 
 ---
 
-*Generated: 2026-03-04 | Branch: sprint/production-ready | PR #180*
+*Generated: 2026-03-05 | Branch: sprint/production-ready | PR #180*

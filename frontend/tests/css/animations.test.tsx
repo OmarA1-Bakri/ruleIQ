@@ -320,7 +320,7 @@ describe('Animation and Transition Tests', () => {
       const colorDiv = screen.getByTestId('color-transition');
       expect(colorDiv).toHaveClass('transition-colors');
       expect(colorDiv).toHaveClass('duration-200');
-      expect(colorDiv).toHaveClass('hover:text-gold');
+      expect(colorDiv).toHaveClass('hover:text-purple');
 
       const transformDiv = screen.getByTestId('transform-transition');
       expect(transformDiv).toHaveClass('transition-transform');

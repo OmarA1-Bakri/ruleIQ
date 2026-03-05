@@ -14,15 +14,15 @@ vi.mock('@/components/ui/dialog', () => ({
   DialogFooter: ({ children }: any) => React.createElement('div', { 'data-testid': 'dialog-footer' }, children),
 }));
 
+// Import the mocked module statically so vi.mock intercepts it
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+
 // Simple test to check if Dialog component can be imported
 describe('Dialog Import Test', () => {
-  it('should import Dialog components without error', async () => {
-    // Try to import the Dialog components (mocked to avoid jsdom/Radix UI hang)
-    const dialogModule = await import('@/components/ui/dialog');
-
-    expect(dialogModule.Dialog).toBeDefined();
-    expect(dialogModule.DialogContent).toBeDefined();
-    expect(dialogModule.DialogTitle).toBeDefined();
+  it('should import Dialog components without error', () => {
+    expect(Dialog).toBeDefined();
+    expect(DialogContent).toBeDefined();
+    expect(DialogTitle).toBeDefined();
   });
 
   it('should render a simple div', () => {

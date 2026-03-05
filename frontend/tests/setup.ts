@@ -34,6 +34,38 @@ if (typeof HTMLFormElement !== 'undefined' && !HTMLFormElement.prototype.request
 process.env.NEXT_PUBLIC_API_URL = 'http://localhost:8000';
 // Note: NODE_ENV is read-only in some environments, so we skip setting it
 
+// ---------------------------------------------------------------------------
+// Mock localStorage synchronously at module level, before any store modules
+// are evaluated. Zustand's persist middleware captures the localStorage
+// reference at module init time (via createJSONStorage(() => localStorage)),
+// so this mock must be in place before any test file imports the stores.
+// ---------------------------------------------------------------------------
+const _localStorageStore: Record<string, string> = {};
+const _localStorageMock: Storage = {
+  getItem: (key: string) => _localStorageStore[key] ?? null,
+  setItem: (key: string, value: string) => {
+    _localStorageStore[key] = value;
+  },
+  removeItem: (key: string) => {
+    delete _localStorageStore[key];
+  },
+  clear: () => {
+    Object.keys(_localStorageStore).forEach((key) => delete _localStorageStore[key]);
+  },
+  get length() {
+    return Object.keys(_localStorageStore).length;
+  },
+  key: (index: number) => {
+    const keys = Object.keys(_localStorageStore);
+    return keys[index] ?? null;
+  },
+};
+Object.defineProperty(globalThis, 'localStorage', {
+  writable: true,
+  configurable: true,
+  value: _localStorageMock,
+});
+
 // Start MSW server before all tests
 beforeAll(() => {
   server.listen({ onUnhandledRequest: 'warn' });
@@ -60,32 +92,6 @@ beforeAll(() => {
     unobserve: vi.fn(),
     disconnect: vi.fn(),
   }));
-
-  // Mock localStorage
-  const localStorageStore: Record<string, string> = {};
-  const localStorageMock = {
-    getItem: vi.fn((key: string) => localStorageStore[key] || null),
-    setItem: vi.fn((key: string, value: string) => {
-      localStorageStore[key] = value;
-    }),
-    removeItem: vi.fn((key: string) => {
-      delete localStorageStore[key];
-    }),
-    clear: vi.fn(() => {
-      Object.keys(localStorageStore).forEach((key) => delete localStorageStore[key]);
-    }),
-    get length() {
-      return Object.keys(localStorageStore).length;
-    },
-    key: vi.fn((index: number) => {
-      const keys = Object.keys(localStorageStore);
-      return keys[index] || null;
-    }),
-  };
-  Object.defineProperty(window, 'localStorage', {
-    writable: true,
-    value: localStorageMock,
-  });
 });
 
 // Mock Next.js router

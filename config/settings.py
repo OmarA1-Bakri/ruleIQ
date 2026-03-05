@@ -32,6 +32,7 @@ elif os.path.exists('.env.local'):
     load_dotenv('.env.local')
 
 import json
+import warnings
 from enum import Enum
 from typing import Dict, List, Optional, Union
 from pydantic import Field, field_validator
@@ -329,6 +330,17 @@ class Settings(BaseSettings):
         description='DEPRECATED: Celery result backend — LangGraph is now used for task orchestration'
     )
     celery_task_timeout: int = Field(default=300, description='DEPRECATED: Celery task timeout (seconds)')
+
+    @field_validator('celery_broker_url', 'celery_result_backend', 'celery_task_timeout', mode='after')
+    @classmethod
+    def warn_celery_deprecated(cls, value):
+        if value:
+            warnings.warn(
+                "Celery configuration is deprecated. Migrate to LangGraph orchestration.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+        return value
 
     # AWS configuration
     aws_access_key_id: Optional[str] = Field(default=None, description='AWS access key')

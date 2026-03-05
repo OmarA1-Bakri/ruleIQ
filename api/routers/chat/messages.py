@@ -111,6 +111,6 @@ async def send_message(
     except HTTPException:
         raise
     except Exception as e:
-        db.rollback()
+        await db.rollback()
         logger.error(f"Error sending message: {e}")
         raise HTTPException(status_code=500, detail="Failed to send message")

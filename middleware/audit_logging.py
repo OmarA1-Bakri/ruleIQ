@@ -65,14 +65,19 @@ class AuditLogger:
 
     async def shutdown(self) -> None:
         """Stop periodic flush task and flush remaining buffered events."""
-        if self._flush_task:
-            self._flush_task.cancel()
+        task_to_cancel: Optional[asyncio.Task] = None
+        async with self._flush_task_lock:
+            if self._flush_task:
+                task_to_cancel = self._flush_task
+                self._flush_task = None
+                self._flush_task_started = False
+
+        if task_to_cancel:
+            task_to_cancel.cancel()
             try:
-                await self._flush_task
+                await task_to_cancel
             except asyncio.CancelledError:
                 pass
-            self._flush_task = None
-            self._flush_task_started = False
         await self.flush()
 
     async def log_event(

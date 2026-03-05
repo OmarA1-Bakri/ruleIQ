@@ -4,7 +4,7 @@ Memory usage tracking for LangGraph components.
 
 import time
 from collections import defaultdict, deque
-from typing import Any, Deque, Dict, List
+from typing import Any, Deque, Dict, List, Optional
 
 import psutil
 
@@ -158,7 +158,7 @@ class MemoryUsageTracker:
 
         return leaks
 
-    def get_component_stats(self, component: str = None) -> Dict[str, Any]:
+    def get_component_stats(self, component: Optional[str] = None) -> Dict[str, Any]:
         """Get memory statistics for a specific component or all components.
 
         Args:
@@ -298,7 +298,7 @@ class MemoryUsageTracker:
     def check_memory_limit(
         self,
         component: str,
-        current_bytes: int = None
+        current_bytes: Optional[int] = None
     ) -> bool:
         """Check if a component is within its memory limit.
 
@@ -349,7 +349,7 @@ class MemoryUsageTracker:
         self,
         component: str,
         bytes_used: int,
-        bytes_allocated: int = None
+        bytes_allocated: Optional[int] = None
     ) -> None:
         """Record memory usage for a component.
 

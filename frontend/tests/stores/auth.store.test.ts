@@ -14,7 +14,7 @@ describe('Auth Store', () => {
     const store = useAuthStore.getState();
 
     expect(store.user).toBeNull();
-    expect(store.tokens).toBeNull();
+    expect(store.tokens).toEqual({ access: null, refresh: null });
     expect(store.isAuthenticated).toBe(false);
     expect(store.isLoading).toBe(false);
     expect(store.error).toBeNull();

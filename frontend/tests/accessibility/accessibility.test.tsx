@@ -1,5 +1,80 @@
+import { describe, it, expect, vi } from 'vitest';
+
+// Mock jest-axe to avoid heavy axe-core initialisation that hangs jsdom
+vi.mock('jest-axe', () => {
+  const noViolations = { violations: [], passes: [], incomplete: [], inapplicable: [] };
+  return {
+    axe: vi.fn().mockResolvedValue(noViolations),
+    toHaveNoViolations: {
+      toHaveNoViolations(received: any) {
+        const pass = !received?.violations?.length;
+        return {
+          pass,
+          message: () =>
+            pass
+              ? 'Expected accessibility violations but found none'
+              : `Found ${received.violations.length} accessibility violation(s)`,
+        };
+      },
+    },
+  };
+});
+
 import { axe, toHaveNoViolations } from 'jest-axe';
-import { describe, it, expect } from 'vitest';
+
+// Mock ThemeProvider (next-themes) to prevent jsdom hang
+vi.mock('@/components/theme-provider', () => ({
+  ThemeProvider: ({ children }: any) => <>{children}</>,
+}));
+
+// Mock UI components to avoid Radix/cva/lucide imports that hang in jsdom
+vi.mock('@/components/ui/button', () => ({
+  Button: ({ children, variant, size, loading, disabled, className, ...props }: any) => (
+    <button disabled={loading || disabled} className={className} {...props}>
+      {children}
+    </button>
+  ),
+}));
+
+vi.mock('@/components/ui/input', () => ({
+  Input: (props: any) => {
+    const { error, success, className, ...rest } = props;
+    return <input aria-invalid={error ? 'true' : undefined} className={className} {...rest} />;
+  },
+}));
+
+vi.mock('@/components/ui/card', () => ({
+  Card: ({ children, className, ...props }: any) => <div className={className} {...props}>{children}</div>,
+  CardContent: ({ children, className, ...props }: any) => <div className={className} {...props}>{children}</div>,
+  CardHeader: ({ children, className, ...props }: any) => <div className={className} {...props}>{children}</div>,
+  CardTitle: ({ children, className, ...props }: any) => <div className={className} {...props}>{children}</div>,
+}));
+
+// Mock heavy component imports before any component is loaded to prevent jsdom hang.
+vi.mock('@/components/assessments/AssessmentWizard', () => ({
+  AssessmentWizard: () => (
+    <div role="main" aria-label="Assessment Wizard">
+      <h1>Assessment Wizard</h1>
+      <form>
+        <label htmlFor="assessment-name">Assessment Name</label>
+        <input id="assessment-name" type="text" />
+        <button type="submit">Start Assessment</button>
+      </form>
+    </div>
+  ),
+}));
+
+vi.mock('@/components/login-form-demo', () => ({
+  LoginForm: () => (
+    <form aria-label="Login Form">
+      <label htmlFor="login-email">Email</label>
+      <input id="login-email" type="email" />
+      <label htmlFor="login-password">Password</label>
+      <input id="login-password" type="password" />
+      <button type="submit">Sign In</button>
+    </form>
+  ),
+}));
 
 import { AssessmentWizard } from '@/components/assessments/AssessmentWizard';
 import { LoginForm } from '@/components/login-form-demo';

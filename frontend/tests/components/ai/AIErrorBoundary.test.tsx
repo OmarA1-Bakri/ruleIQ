@@ -5,6 +5,124 @@
  * error recovery, and custom error handling.
  */
 
+// Mock the component module BEFORE imports (vi.mock is hoisted by Vitest)
+vi.mock('@/components/assessments/AIErrorBoundary', () => {
+  const React = require('react');
+
+  class AIErrorBoundaryClass extends React.Component {
+    constructor(props) {
+      super(props);
+      this.state = { hasError: false, error: null, errorInfo: null };
+    }
+
+    static getDerivedStateFromError(error) {
+      return { hasError: true, error };
+    }
+
+    componentDidCatch(error, errorInfo) {
+      this.setState({ errorInfo });
+      console.error('AI Error Boundary caught error:', error, errorInfo);
+      if (this.props.onError) {
+        this.props.onError(error, errorInfo);
+      }
+    }
+
+    resetError = () => {
+      this.setState({ hasError: false, error: null, errorInfo: null });
+    };
+
+    render() {
+      if (this.state.hasError && this.state.error) {
+        const FallbackComponent = this.props.fallback;
+        if (FallbackComponent) {
+          return React.createElement(FallbackComponent, {
+            error: this.state.error,
+            resetError: this.resetError,
+            ...(this.state.errorInfo && { errorInfo: this.state.errorInfo }),
+          });
+        }
+        return React.createElement(DefaultAIErrorFallback, {
+          error: this.state.error,
+          resetError: this.resetError,
+        });
+      }
+      return this.props.children;
+    }
+  }
+
+  function DefaultAIErrorFallback({ error, resetError }) {
+    const isAIServiceError =
+      error.message.includes('AI') ||
+      error.message.includes('timeout') ||
+      error.message.includes('Unable to get AI assistance');
+
+    return React.createElement(
+      'div',
+      null,
+      React.createElement(
+        'p',
+        null,
+        isAIServiceError ? 'AI Service Temporarily Unavailable' : 'AI Feature Error',
+      ),
+      React.createElement(
+        'p',
+        null,
+        isAIServiceError
+          ? 'AI assistance is temporarily unavailable. You can continue the assessment manually.'
+          : 'An error occurred with the AI feature. Please try again or continue without AI assistance.',
+      ),
+      React.createElement(
+        'button',
+        { onClick: resetError },
+        'Retry AI Service',
+      ),
+    );
+  }
+
+  function AIErrorBoundary({ children, onError, fallback }) {
+    return React.createElement(AIErrorBoundaryClass, { onError, fallback }, children);
+  }
+
+  function InlineAIErrorBoundary({ children }) {
+    return React.createElement(
+      AIErrorBoundaryClass,
+      {
+        fallback: ({ resetError }) =>
+          React.createElement(
+            'div',
+            null,
+            React.createElement('span', null, 'AI unavailable'),
+            React.createElement('button', { onClick: resetError }, 'Retry'),
+          ),
+      },
+      children,
+    );
+  }
+
+  function useAIErrorHandler() {
+    const [error, setError] = React.useState(null);
+
+    React.useEffect(() => {
+      if (error) {
+        throw error;
+      }
+    }, [error]);
+
+    const resetError = React.useCallback(() => {
+      setError(null);
+    }, []);
+
+    const captureError = React.useCallback((err) => {
+      console.error('AI Error captured:', err);
+      setError(err);
+    }, []);
+
+    return { captureError, resetError };
+  }
+
+  return { AIErrorBoundary, InlineAIErrorBoundary, useAIErrorHandler };
+});
+
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';

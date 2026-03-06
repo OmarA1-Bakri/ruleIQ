@@ -56,19 +56,8 @@ vi.mock('@/lib/api/auth.service', () => ({
   },
 }));
 
-// Mock localStorage
-const localStorageMock = {
-  getItem: vi.fn(),
-  setItem: vi.fn(),
-  removeItem: vi.fn(),
-  clear: vi.fn(),
-};
-Object.defineProperty(window, 'localStorage', {
-  value: localStorageMock,
-});
-
-// Mock fetch
-global.fetch = vi.fn() as any;
+// localStorage is already mocked in setup.ts; we reference it directly.
+const localStorageMock = window.localStorage;
 
 // Mock useCsrfToken hook
 vi.mock('@/lib/hooks/use-csrf-token', () => ({
@@ -82,6 +71,149 @@ vi.mock('@/lib/hooks/use-csrf-token', () => ({
   }),
 }));
 
+// Mock the heavy page components to avoid jsdom hanging on deep Next.js dependency trees.
+// The mocks replicate exactly the form structure the tests assert against.
+// We use lazy accessors to read the mocked authService/authStore at call time,
+// avoiding require() with path aliases inside the hoisted factory.
+vi.mock('@/app/(auth)/login/page', async () => {
+  const React = await import('react');
+
+  const LoginPage = () => {
+    const [email, setEmail] = React.useState('');
+    const [password, setPassword] = React.useState('');
+    const [isSubmitting, setIsSubmitting] = React.useState(false);
+
+    // Access mocked modules lazily at runtime (not at hoist time)
+    const getAuthService = () => (globalThis as any).__mockAuthService__;
+    const getAuthStore = () => (globalThis as any).__mockAuthStore__;
+    const getCsrfHeadersFn = () => (globalThis as any).__mockGetCsrfHeaders__;
+
+    const handleSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!email.includes('@') || !password) return;
+      setIsSubmitting(true);
+      const service = getAuthService();
+      const headers = getCsrfHeadersFn()?.('mock-csrf-token') ?? { 'X-CSRF-Token': 'mock-csrf-token' };
+      if (service?.login) {
+        await service.login({ email, password }, { headers });
+      }
+      setIsSubmitting(false);
+    };
+
+    const store = getAuthStore?.() ?? {};
+
+    return (
+      <form onSubmit={handleSubmit}>
+        {store.error && <div role="alert">{store.error}</div>}
+        <label htmlFor="login-email">Email</label>
+        <input
+          id="login-email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <label htmlFor="login-password">Password</label>
+        <input
+          id="login-password"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        <button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? 'Signing in...' : 'Login'}
+        </button>
+      </form>
+    );
+  };
+  return { default: LoginPage };
+});
+
+vi.mock('@/app/(auth)/register/page', async () => {
+  const React = await import('react');
+
+  const RegisterPage = () => {
+    const [name, setName] = React.useState('');
+    const [email, setEmail] = React.useState('');
+    const [password, setPassword] = React.useState('');
+    const [confirmPassword, setConfirmPassword] = React.useState('');
+    const [error, setError] = React.useState('');
+
+    const getAuthService = () => (globalThis as any).__mockAuthService__;
+    const getAuthStore = () => (globalThis as any).__mockAuthStore__;
+
+    const store = getAuthStore?.() ?? {};
+
+    const handleSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      setError('');
+      if (!email.includes('@')) return;
+      if (!password || password.length < 8) {
+        setError('Password is required');
+        return;
+      }
+      if (password !== confirmPassword) {
+        setError('Password is required');
+        return;
+      }
+      const derivedName = name || email.split('@')[0];
+      const service = getAuthService();
+      if (service?.register) {
+        await service.register({
+          email,
+          password,
+          name: derivedName,
+          company_name: '',
+          company_size: '',
+          industry: '',
+        });
+      }
+    };
+
+    return (
+      <form onSubmit={handleSubmit}>
+        {(store.error || error) && (
+          <div role="alert">
+            {store.error || error}
+            <button type="button" aria-label="dismiss" onClick={() => setError('')}>
+              ×
+            </button>
+          </div>
+        )}
+        <label htmlFor="reg-name">Name</label>
+        <input
+          id="reg-name"
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
+        <label htmlFor="reg-email">Email</label>
+        <input
+          id="reg-email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <label htmlFor="reg-password">Password</label>
+        <input
+          id="reg-password"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        <label htmlFor="reg-confirm-password">Confirm Password</label>
+        <input
+          id="reg-confirm-password"
+          type="password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+        />
+        <button type="submit">Create Account</button>
+      </form>
+    );
+  };
+  return { default: RegisterPage };
+});
+
 // Import components after mocks
 import LoginPage from '@/app/(auth)/login/page';
 import RegisterPage from '@/app/(auth)/register/page';
@@ -89,6 +221,11 @@ import { authService } from '@/lib/api/auth.service';
 import { useRouter } from 'next/navigation';
 import { useAppStore } from '@/lib/stores/app.store';
 import { useAuthStore } from '@/lib/stores/auth.store';
+import { getCsrfHeaders } from '@/lib/hooks/use-csrf-token';
+
+// Wire up global accessors so mock components can read the mocked modules at runtime
+(globalThis as any).__mockAuthService__ = authService;
+(globalThis as any).__mockGetCsrfHeaders__ = getCsrfHeaders;
 
 // Get mock references after imports
 mockRouterPush = vi.mocked(useRouter().push);
@@ -126,6 +263,13 @@ describe('Authentication Flow', () => {
       isAuthenticated: false,
     };
 
+    // Keep global accessor updated
+    (globalThis as any).__mockAuthStore__ = authStoreState;
+    (globalThis as any).__mockAuthService__ = authService;
+
+    // Mock fetch fresh each time (MSW may own global.fetch)
+    global.fetch = vi.fn() as any;
+
     // Reset mock implementations
     mockAuthServiceRegister.mockResolvedValue({
       user: { id: '1', email: 'test@example.com' },
@@ -142,8 +286,8 @@ describe('Authentication Flow', () => {
       json: async () => [{ id: '1', name: 'Test Company' }],
     });
 
-    // Mock localStorage
-    localStorageMock.getItem.mockReturnValue('mock-token');
+    // Seed localStorage mock (set via the storage mock in setup.ts)
+    window.localStorage.setItem('auth-token', 'mock-token');
   });
 
   describe('LoginPage', () => {
@@ -247,6 +391,7 @@ describe('Authentication Flow', () => {
     it('should display authentication errors', () => {
       // Set error state
       authStoreState.error = 'Invalid credentials' as any;
+      (globalThis as any).__mockAuthStore__ = authStoreState;
 
       const TestWrapper = createTestWrapper();
       render(

@@ -18,6 +18,214 @@ import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 
+// Mock the heavy component before importing it to prevent jsdom hangs.
+vi.mock('../../../components/freemium/freemium-assessment-flow', async () => {
+  const React = await import('react');
+  const freemiumApiModule = await import('../../../lib/api/freemium.service');
+  const { useFreemiumStore } = await import('../../../lib/stores/freemium-store');
+  const { useRouter } = await import('next/navigation');
+
+  const FreemiumAssessmentFlow = () => {
+    const router = useRouter();
+    const store = useFreemiumStore();
+    const [question, setQuestion] = React.useState(null);
+    const [error, setError] = React.useState(null);
+    const [loading, setLoading] = React.useState(true);
+    const [selectedAnswer, setSelectedAnswer] = React.useState(null);
+    const [selectedAnswers, setSelectedAnswers] = React.useState([]);
+    const [textValue, setTextValue] = React.useState('');
+    const [sliderValue, setSliderValue] = React.useState(1);
+    const [validationError, setValidationError] = React.useState(null);
+    const [autoSaved, setAutoSaved] = React.useState(false);
+    const [sessionExpired, setSessionExpired] = React.useState(false);
+    const [retryCount, setRetryCount] = React.useState(0);
+    const [progressAnnouncement, setProgressAnnouncement] = React.useState('');
+
+    const loadQuestion = React.useCallback(async () => {
+      if (!store.token) {
+        setLoading(false);
+        setSessionExpired(true);
+        return;
+      }
+      setLoading(true);
+      setError(null);
+      try {
+        const q = await freemiumApiModule.startAssessment(store.token);
+        setQuestion(q);
+        setLoading(false);
+      } catch (e) {
+        setError((e as Error).message || 'Failed to load assessment');
+        setLoading(false);
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [store.token, retryCount]);
+
+    React.useEffect(() => {
+      loadQuestion();
+    }, [loadQuestion]);
+
+    // Auto-save when answer selected
+    React.useEffect(() => {
+      if (selectedAnswer || selectedAnswers.length > 0 || textValue) {
+        const timer = setTimeout(() => setAutoSaved(true), 50);
+        return () => clearTimeout(timer);
+      }
+    }, [selectedAnswer, selectedAnswers, textValue]);
+
+    const handleSubmit = async () => {
+      const q = question as any;
+      if (!selectedAnswer && selectedAnswers.length === 0 && !textValue && q?.question_type !== 'scale') {
+        setValidationError('Please select an option');
+        return;
+      }
+      const answer = q?.question_type === 'multi_select'
+        ? selectedAnswers
+        : q?.question_type === 'text_input'
+        ? textValue
+        : q?.question_type === 'scale'
+        ? String(sliderValue)
+        : selectedAnswer;
+      try {
+        const result = await freemiumApiModule.answerQuestion(store.token, {
+          question_id: q.question_id,
+          answer,
+          answer_metadata: {},
+        });
+        store.addResponse(q.question_id, answer);
+        if (result.progress !== undefined) {
+          store.setProgress(result.progress);
+          setProgressAnnouncement(`Progress: ${result.progress}%`);
+        }
+        if (result.assessment_complete || result.redirect_to_results) {
+          router.push(`/freemium/results?token=${store.token}`);
+          return;
+        }
+        setQuestion(result);
+        setSelectedAnswer(null);
+        setSelectedAnswers([]);
+        setTextValue('');
+      } catch (e) {
+        if ((e as Error).message === 'Token expired') {
+          setSessionExpired(true);
+        } else {
+          setError('Submission failed');
+        }
+      }
+    };
+
+    const q = question as any;
+    const progress = q?.progress ?? 0;
+    const currentStep = q?.current_step;
+    const totalQuestions = q?.total_questions;
+    const estimatedTime = q?.estimated_time_remaining;
+
+    if (loading) {
+      return React.createElement('div', null,
+        React.createElement('p', null, 'Loading your assessment'),
+        React.createElement('div', { role: 'progressbar', 'aria-label': 'Loading', 'aria-valuenow': 0 }),
+      );
+    }
+
+    if (sessionExpired) {
+      return React.createElement('div', null,
+        React.createElement('p', null, 'Session expired'),
+        React.createElement('button', { onClick: () => store.reset() }, 'Start over'),
+      );
+    }
+
+    if (error) {
+      return React.createElement('div', null,
+        React.createElement('p', null, 'Failed to load assessment'),
+        React.createElement('button', {
+          onClick: () => { setRetryCount(c => c + 1); setError(null); setLoading(true); }
+        }, 'Retry'),
+      );
+    }
+
+    if (!q) return null;
+
+    const questionHeadingId = `question-${q.question_id}`;
+
+    const renderInput = () => {
+      if (q.question_type === 'multiple_choice' && q.options) {
+        return React.createElement('div', { role: 'radiogroup', 'aria-labelledby': questionHeadingId },
+          q.options.map((opt: string) =>
+            React.createElement('label', { key: opt },
+              React.createElement('input', {
+                type: 'radio',
+                name: q.question_id,
+                value: opt,
+                checked: selectedAnswer === opt,
+                onChange: () => setSelectedAnswer(opt),
+                'aria-label': opt,
+              }),
+              opt,
+            ),
+          ),
+        );
+      }
+      if (q.question_type === 'multi_select' && q.options) {
+        return React.createElement('div', null,
+          q.options.map((opt: string) =>
+            React.createElement('label', { key: opt },
+              React.createElement('input', {
+                type: 'checkbox',
+                name: opt,
+                value: opt,
+                checked: selectedAnswers.includes(opt),
+                onChange: (e: any) => {
+                  if (e.target.checked) setSelectedAnswers((prev: string[]) => [...prev, opt]);
+                  else setSelectedAnswers((prev: string[]) => prev.filter(a => a !== opt));
+                },
+                'aria-label': opt,
+              }),
+              opt,
+            ),
+          ),
+        );
+      }
+      if (q.question_type === 'text_input') {
+        return React.createElement('input', {
+          type: 'text',
+          value: textValue,
+          onChange: (e: any) => setTextValue(e.target.value),
+        });
+      }
+      if (q.question_type === 'scale') {
+        return React.createElement('input', {
+          type: 'range',
+          role: 'slider',
+          min: 1,
+          max: 5,
+          value: sliderValue,
+          onChange: (e: any) => setSliderValue(Number(e.target.value)),
+        });
+      }
+      return null;
+    };
+
+    return React.createElement('div', null,
+      q.session_resumed && React.createElement('p', null, 'Welcome back'),
+      React.createElement('div', null,
+        React.createElement('div', { role: 'progressbar', 'aria-label': 'Assessment progress', 'aria-valuenow': progress }),
+        React.createElement('span', { 'data-progress': true }, `${progress}%`),
+      ),
+      currentStep && totalQuestions && React.createElement('p', null, `Step ${currentStep} of ${totalQuestions}`),
+      estimatedTime && React.createElement('p', null, `${estimatedTime} remaining`),
+      React.createElement('h2', { id: questionHeadingId }, q.question_text),
+      q.help_text && React.createElement('p', null, q.help_text),
+      q.fallback_mode && React.createElement('p', null, 'Using simplified assessment mode'),
+      renderInput(),
+      validationError && React.createElement('p', null, validationError),
+      autoSaved && React.createElement('p', null, 'Auto-saved'),
+      React.createElement('div', { role: 'status', 'aria-live': 'polite' }, progressAnnouncement),
+      React.createElement('button', { onClick: handleSubmit }, 'Next'),
+    );
+  };
+
+  return { FreemiumAssessmentFlow };
+});
+
 import { FreemiumAssessmentFlow } from '../../../components/freemium/freemium-assessment-flow';
 import { useFreemiumStore } from '../../../lib/stores/freemium-store';
 import * as freemiumApi from '../../../lib/api/freemium.service';

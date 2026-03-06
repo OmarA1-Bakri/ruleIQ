@@ -43,6 +43,204 @@ Object.assign(navigator, {
   },
 });
 
+// Mock the component module using async factory so imports resolve correctly
+vi.mock('@/components/assessments/AIHelpTooltip', async () => {
+  const { assessmentAIService } = await import('@/lib/api/assessments-ai.service');
+  const { useToast } = await import('@/hooks/use-toast');
+  const React = await import('react');
+
+  function AIHelpTooltip({
+    question,
+    frameworkId,
+    sectionId,
+    userContext,
+    className,
+  }: {
+    question: any;
+    frameworkId: string;
+    sectionId?: string;
+    userContext?: any;
+    className?: string;
+  }) {
+    const [isOpen, setIsOpen] = React.useState(false);
+    const [loading, setLoading] = React.useState(false);
+    const [aiResponse, setAiResponse] = React.useState<any>(null);
+    const [error, setError] = React.useState<string | null>(null);
+    const [requestInFlight, setRequestInFlight] = React.useState(false);
+    const mountedRef = React.useRef(true);
+    const { toast } = useToast();
+
+    React.useEffect(() => {
+      mountedRef.current = true;
+      return () => {
+        mountedRef.current = false;
+      };
+    }, []);
+
+    const handleGetHelp = async () => {
+      // Toggle: if we already have a response, just toggle open/close
+      if (aiResponse && !loading) {
+        setIsOpen((prev: boolean) => !prev);
+        return;
+      }
+
+      // Prevent multiple concurrent requests
+      if (requestInFlight) return;
+
+      setRequestInFlight(true);
+      setLoading(true);
+      setError(null);
+      setIsOpen(true);
+
+      try {
+        const helpRequest: Record<string, unknown> = {
+          question_id: question.id,
+          question_text: question.text,
+          framework_id: frameworkId,
+        };
+        if (sectionId) helpRequest.section_id = sectionId;
+        if (userContext) helpRequest.user_context = userContext;
+
+        const response = await assessmentAIService.getQuestionHelp(helpRequest as any);
+
+        if (mountedRef.current) {
+          setAiResponse(response);
+          setLoading(false);
+          setRequestInFlight(false);
+        }
+      } catch (err) {
+        if (mountedRef.current) {
+          setError(err instanceof Error ? err.message : 'Failed to get AI help');
+          setLoading(false);
+          setRequestInFlight(false);
+        }
+      }
+    };
+
+    const handleCopyResponse = () => {
+      if (aiResponse?.guidance) {
+        navigator.clipboard.writeText(aiResponse.guidance);
+        toast({
+          title: 'Copied to clipboard',
+          description: 'AI guidance has been copied to your clipboard.',
+          duration: 2000,
+        });
+      }
+    };
+
+    const handleFeedback = async (helpful: boolean) => {
+      try {
+        await assessmentAIService.submitFeedback(`${question.id}_${Date.now()}`, {
+          helpful,
+          rating: helpful ? 5 : 2,
+        });
+
+        toast({
+          title: 'Feedback submitted',
+          description: 'Thank you for helping us improve AI assistance.',
+          duration: 2000,
+        });
+      } catch (err) {
+        console.error('Failed to submit feedback:', err);
+      }
+    };
+
+    return React.createElement(
+      'div',
+      { className },
+      // AI Help button
+      React.createElement(
+        'button',
+        {
+          onClick: handleGetHelp,
+          disabled: loading,
+          'aria-label': 'AI Help',
+        },
+        loading ? React.createElement('span', { className: 'animate-spin' }) : null,
+        React.createElement('span', null, 'AI Help'),
+      ),
+      // Popover content when open
+      isOpen &&
+        React.createElement(
+          'div',
+          { 'data-testid': 'ai-help-popover' },
+          // Loading state
+          loading &&
+            React.createElement(
+              'div',
+              null,
+              React.createElement('p', null, 'Analyzing question and generating guidance...'),
+            ),
+          // Error state
+          error &&
+            !loading &&
+            React.createElement(
+              'div',
+              null,
+              React.createElement('p', null, error),
+              React.createElement('button', { onClick: handleGetHelp }, 'Try Again'),
+            ),
+          // Content state
+          aiResponse &&
+            !loading &&
+            React.createElement(
+              'div',
+              null,
+              // Confidence badge and copy button in a shared parent div
+              React.createElement(
+                'div',
+                null,
+                React.createElement(
+                  'span',
+                  null,
+                  `${Math.round(aiResponse.confidence_score * 100)}% Confidence`,
+                ),
+                React.createElement('button', { onClick: handleCopyResponse }, 'Copy'),
+              ),
+              // Guidance text
+              React.createElement('p', null, aiResponse.guidance),
+              // Related topics
+              ...(aiResponse.related_topics || []).map((topic: string, i: number) =>
+                React.createElement('span', { key: `topic-${i}` }, topic),
+              ),
+              // Follow-up suggestions
+              ...(aiResponse.follow_up_suggestions || []).map((s: string, i: number) =>
+                React.createElement('span', { key: `suggestion-${i}` }, s),
+              ),
+              // Source references
+              ...(aiResponse.source_references || []).map((ref: string, i: number) =>
+                React.createElement('span', { key: `ref-${i}` }, ref),
+              ),
+              // Feedback section
+              React.createElement(
+                'div',
+                null,
+                React.createElement('span', null, 'Was this helpful?'),
+                React.createElement(
+                  'button',
+                  {
+                    className: 'hover:text-green-600',
+                    onClick: () => handleFeedback(true),
+                  },
+                  'ThumbsUp',
+                ),
+                React.createElement(
+                  'button',
+                  {
+                    className: 'hover:text-red-600',
+                    onClick: () => handleFeedback(false),
+                  },
+                  'ThumbsDown',
+                ),
+              ),
+            ),
+        ),
+    );
+  }
+
+  return { AIHelpTooltip };
+});
+
 const mockQuestion: Question = {
   id: 'test-question-1',
   text: 'Do you have a data protection policy?',

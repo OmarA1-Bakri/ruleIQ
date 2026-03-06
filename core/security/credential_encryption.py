@@ -132,9 +132,9 @@ class CredentialEncryption:
         """
         try:
             if not isinstance(credentials, dict):
-                raise ValueError("Credentials must be a dictionary")
+                raise CredentialEncryptionError("Credentials must be a dictionary")
             if not credentials:
-                raise ValueError("Credentials cannot be empty")
+                raise CredentialEncryptionError("Credentials cannot be empty")
             credential_package = {
                 "version": "1.0",
                 "encrypted_at": datetime.now(timezone.utc).isoformat(),
@@ -148,7 +148,9 @@ class CredentialEncryption:
                 "Credentials encrypted successfully", extra={"credential_count": len(credentials)}
             )
             return encrypted_b64
-        except json.JSONDecodeError as e:
+        except CredentialEncryptionError:
+            raise
+        except (json.JSONDecodeError, ValueError, TypeError) as e:
             logger.error("Failed to encrypt credentials: %s" % e)
             raise CredentialEncryptionError(f"Encryption failed: {e}")
 
@@ -167,11 +169,13 @@ class CredentialEncryption:
         """
         try:
             if not encrypted_creds or not isinstance(encrypted_creds, str):
-                raise ValueError("Encrypted credentials must be a non-empty string")
+                raise CredentialDecryptionError(
+                    "Encrypted credentials must be a non-empty string"
+                )
             try:
                 encrypted_bytes = base64.urlsafe_b64decode(encrypted_creds.encode("ascii"))
             except (ValueError, TypeError) as e:
-                raise ValueError(f"Invalid base64 encoding: {e}")
+                raise CredentialDecryptionError(f"Invalid base64 encoding: {e}")
             try:
                 decrypted_bytes = self.cipher.decrypt(encrypted_bytes)
             except InvalidToken:
@@ -183,11 +187,13 @@ class CredentialEncryption:
                     decrypted_bytes.decode("utf-8"),
                 )
             except json.JSONDecodeError as e:
-                raise ValueError(f"Invalid JSON in decrypted data: {e}")
+                raise CredentialDecryptionError(f"Invalid JSON in decrypted data: {e}")
             if not isinstance(credential_package, dict):
-                raise ValueError("Decrypted data is not a valid credential package")
+                raise CredentialDecryptionError(
+                    "Decrypted data is not a valid credential package"
+                )
             if "data" not in credential_package:
-                raise ValueError("Missing 'data' field in credential package")
+                raise CredentialDecryptionError("Missing 'data' field in credential package")
             credentials = credential_package["data"]
             if "checksum" in credential_package:
                 expected_checksum = credential_package["checksum"]
@@ -200,7 +206,7 @@ class CredentialEncryption:
             return credentials
         except CredentialDecryptionError:
             raise
-        except (json.JSONDecodeError, KeyError, IndexError) as e:
+        except (json.JSONDecodeError, KeyError, IndexError, ValueError, TypeError) as e:
             logger.error("Failed to decrypt credentials: %s" % e)
             raise CredentialDecryptionError(f"Decryption failed: {e}")
 

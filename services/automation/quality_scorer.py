@@ -1,22 +1,8 @@
-"""
-import logging
-
-
-logger = logging.getLogger(__name__)
-# Constants
-HTTP_INTERNAL_SERVER_ERROR = 500
-
-DEFAULT_TIMEOUT = 30
-
-DEFAULT_LIMIT = 100
-MAX_RETRIES = 3
-
-
-Service for calculating a quality score for each piece of evidence.
-"""
+"""Service for calculating a quality score for each piece of evidence."""
 
 import asyncio
 import json
+import logging
 import re
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
@@ -26,6 +12,12 @@ from core.exceptions import BusinessLogicException
 from database.evidence_item import EvidenceItem
 
 logger = get_logger(__name__)
+
+# Constants
+HTTP_INTERNAL_SERVER_ERROR = 500
+DEFAULT_TIMEOUT = 30
+DEFAULT_LIMIT = 100
+MAX_RETRIES = 3
 
 
 class QualityScorer:

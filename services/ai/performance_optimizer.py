@@ -24,6 +24,10 @@ logger = get_logger(__name__)
 class OptimizationStrategy(Enum):
     """Performance optimization strategies."""
 
+    PARALLEL_EXECUTION = "parallel_execution"
+    PROMPT_COMPRESSION = "prompt_compression"
+    BATCH_PROCESSING = "batch_processing"
+
 
 @dataclass
 class PerformanceMetrics:

@@ -1,5 +1,6 @@
 """SQLAlchemy models for Agentic AI system."""
 
+from enum import IntEnum
 from typing import Dict, Any
 from uuid import uuid4
 
@@ -23,6 +24,15 @@ from sqlalchemy.sql import func
 
 
 Base = declarative_base()
+
+
+class TrustLevel(IntEnum):
+    """Trust levels for agent autonomy (re-exported for convenience)."""
+
+    L0_OBSERVED = 0
+    L1_ASSISTED = 1
+    L2_SUPERVISED = 2
+    L3_AUTONOMOUS = 3
 
 
 class SchemaVersion(Base):
@@ -463,4 +473,68 @@ class AgentAuditLog(Base):
             "timestamp": self.timestamp.isoformat() if self.timestamp else None,
             "ip_address": str(self.ip_address) if self.ip_address else None,
             "user_agent": self.user_agent,
+        }
+
+
+class Decision(Base):
+    """Agent decision record for tracking and validation."""
+
+    __tablename__ = "decisions"
+
+    decision_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
+    session_id = Column(
+        UUID(as_uuid=True), ForeignKey("agent_sessions.session_id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    agent_id = Column(
+        UUID(as_uuid=True), ForeignKey("agents.agent_id", ondelete="CASCADE"), nullable=False
+    )
+    decision_type = Column(String(50), nullable=False)
+    decision_data = Column(JSONB, nullable=False)
+    confidence = Column(Float, default=0.5)
+    trust_level_required = Column(Integer, default=0)
+    status = Column(String(20), default="pending")
+    created_at = Column(TIMESTAMP(timezone=True), server_default=func.current_timestamp())
+    executed_at = Column(TIMESTAMP(timezone=True))
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert model to dictionary."""
+        return {
+            "decision_id": str(self.decision_id),
+            "session_id": str(self.session_id),
+            "agent_id": str(self.agent_id),
+            "decision_type": self.decision_type,
+            "decision_data": self.decision_data,
+            "confidence": self.confidence,
+            "trust_level_required": self.trust_level_required,
+            "status": self.status,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "executed_at": self.executed_at.isoformat() if self.executed_at else None,
+        }
+
+
+class DecisionFeedback(Base):
+    """Feedback on agent decisions."""
+
+    __tablename__ = "decision_feedback"
+
+    feedback_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
+    decision_id = Column(
+        UUID(as_uuid=True), ForeignKey("decisions.decision_id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    feedback_type = Column(String(50), nullable=False)
+    feedback_value = Column(JSONB)
+    user_id = Column(String(100))
+    created_at = Column(TIMESTAMP(timezone=True), server_default=func.current_timestamp())
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert model to dictionary."""
+        return {
+            "feedback_id": str(self.feedback_id),
+            "decision_id": str(self.decision_id),
+            "feedback_type": self.feedback_type,
+            "feedback_value": self.feedback_value,
+            "user_id": self.user_id,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
         }

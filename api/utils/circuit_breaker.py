@@ -42,7 +42,7 @@ class CircuitBreakerOpenException(APIError):
     def __init__(
         self, service_name: str, failure_count: int, recovery_time: Optional[float] = None
     ) -> None:
-        message = (f"Circuit breaker open for {service_name} (failures: {failure_count})",)
+        message = f"Circuit breaker open for {service_name} (failures: {failure_count})"
         if recovery_time:
             message += f", recovery in {recovery_time:.1f}s"
         super().__init__(message=message, status_code=503)

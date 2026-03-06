@@ -1,23 +1,20 @@
 """
-import logging
-
-
-logger = logging.getLogger(__name__)
-# Constants
-HTTP_INTERNAL_SERVER_ERROR = 500
-HTTP_OK = 200
-
-DEFAULT_TIMEOUT = 30
-
-DEFAULT_LIMIT = 100
-HALF_RATIO = 0.5
-
-
 AI Response Quality Monitoring System
 
 Implements AI response quality tracking, feedback loops, and continuous
 improvement mechanisms for the intelligent compliance platform.
 """
+
+import logging
+
+logger = logging.getLogger(__name__)
+
+# Constants
+HTTP_INTERNAL_SERVER_ERROR = 500
+HTTP_OK = 200
+DEFAULT_TIMEOUT = 30
+DEFAULT_LIMIT = 100
+HALF_RATIO = 0.5
 
 import statistics
 from dataclasses import dataclass, field
@@ -32,9 +29,21 @@ logger = get_logger(__name__)
 class QualityDimension(Enum):
     """Quality dimensions for AI response evaluation."""
 
+    ACCURACY = "accuracy"
+    RELEVANCE = "relevance"
+    COMPLETENESS = "completeness"
+    CLARITY = "clarity"
+    ACTIONABILITY = "actionability"
+    COMPLIANCE_ALIGNMENT = "compliance_alignment"
+
 
 class FeedbackType(Enum):
     """Types of feedback for AI responses."""
+
+    THUMBS_UP = "thumbs_up"
+    THUMBS_DOWN = "thumbs_down"
+    DETAILED_RATING = "detailed_rating"
+    TEXT_FEEDBACK = "text_feedback"
 
 
 class QualityLevel(Enum):

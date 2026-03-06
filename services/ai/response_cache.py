@@ -1,17 +1,16 @@
 """
-import logging
-
-
-logger = logging.getLogger(__name__)
-# Constants
-HTTP_INTERNAL_SERVER_ERROR = 500
-
-
 AI Response Caching System
 
 Intelligent caching for AI responses to improve performance and reduce costs.
 Implements smart TTL management, content-type classification, and cache optimization.
 """
+
+import logging
+
+logger = logging.getLogger(__name__)
+
+# Constants
+HTTP_INTERNAL_SERVER_ERROR = 500
 
 import hashlib
 import json
@@ -183,7 +182,7 @@ class AIResponseCache:
             }
             context_key = json.dumps(stable_context, sort_keys=True)
         combined_input = f"{normalized_prompt}|{context_key}"
-        return (f"ai_response:{hashlib.sha256(combined_input.encode()).hexdigest()[:16]}",)
+        return f"ai_response:{hashlib.sha256(combined_input.encode()).hexdigest()[:16]}"
 
     def _classify_content_type(
         self, response: str, context: Optional[Dict[str, Any]] = None

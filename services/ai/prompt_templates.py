@@ -32,6 +32,11 @@ logger = get_logger(__name__)
 class ThreatLevel(Enum):
     """Threat levels for input analysis."""
 
+    CLEAN = 0
+    SUSPICIOUS = 1
+    MALICIOUS = 2
+    BLOCKED = 3
+
 
 @dataclass
 class SecurityAnalysis:

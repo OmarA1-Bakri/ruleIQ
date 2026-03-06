@@ -1,9 +1,4 @@
 """
-
-# Constants
-DEFAULT_TIMEOUT = 30
-
-
 Unit Tests for Enhanced Quality Scorer
 
 Tests the AI-enhanced quality analysis and semantic duplicate detection functionality.
@@ -18,6 +13,9 @@ from database.evidence_item import EvidenceItem
 from services.automation.quality_scorer import QualityScorer
 
 from tests.test_constants import DEFAULT_LIMIT, MAX_RETRIES
+
+# Constants
+DEFAULT_TIMEOUT = 30
 
 
 @pytest.mark.unit

@@ -1,14 +1,13 @@
 """
-import logging
-
-
-logger = logging.getLogger(__name__)
-# Constants
-MINUTE_SECONDS = 60
-
-
 Asynchronous service for processing and enriching collected evidence.
 """
+
+import logging
+
+logger = logging.getLogger(__name__)
+
+# Constants
+MINUTE_SECONDS = 60
 
 import hashlib
 import json

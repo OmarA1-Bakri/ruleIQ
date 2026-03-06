@@ -1,18 +1,17 @@
 """
-import logging
-
-
-logger = logging.getLogger(__name__)
-# Constants
-DEFAULT_LIMIT = 100
-MAX_ITEMS = 1000
-
-
 Smart Evidence Collection System
 
 AI-driven evidence collection prioritization and automation with intelligent
 task scheduling for optimal compliance workflow management.
 """
+
+import logging
+
+logger = logging.getLogger(__name__)
+
+# Constants
+DEFAULT_LIMIT = 100
+MAX_ITEMS = 1000
 
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone

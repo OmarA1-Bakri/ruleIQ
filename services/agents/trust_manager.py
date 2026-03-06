@@ -4,7 +4,7 @@ Trust Manager Service - Manages agent trust levels and progression.
 Implements trust level calculations, transitions, and degradation logic.
 """
 
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 from uuid import UUID
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session

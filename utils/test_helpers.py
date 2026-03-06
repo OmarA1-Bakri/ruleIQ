@@ -205,18 +205,18 @@ def create_smart_mock_ai_client():
             response.text = (
                 "GDPR (General Data Protection Regulation) is a comprehensive "
                 "data protection law that regulates how personal data is collected, "
-                "processed, and stored.",
+                "processed, and stored."
             )
         elif "soc2" in prompt_lower or "soc 2" in prompt_lower:
             response.text = (
                 "SOC 2 is a compliance framework for service organizations "
                 "that store customer data in the cloud, focusing on five "
-                "trust service criteria.",
+                "trust service criteria."
             )
         elif "compliance" in prompt_lower:
             response.text = (
                 "Compliance refers to conforming to rules, regulations, "
-                "standards, and laws relevant to your business processes.",
+                "standards, and laws relevant to your business processes."
             )
         else:
             response.text = f"Response for: {prompt[:50]}"

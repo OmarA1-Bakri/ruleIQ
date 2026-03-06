@@ -192,9 +192,7 @@ class TestGetUsageStats:
         assessment_stats = stats["features"]["ai_assessment"]
         assert assessment_stats["used"] == 5
         assert assessment_stats["limit"] == 10
-        # Source code wraps percentage_used in a trailing-comma tuple: (value,)
-        # We test the actual behavior rather than modifying source
-        assert assessment_stats["percentage_used"] == (50.0,)
+        assert assessment_stats["percentage_used"] == 50.0
 
 
 # ---------------------------------------------------------------------------

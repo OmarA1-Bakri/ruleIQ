@@ -1,8 +1,4 @@
 """
-
-# Constants
-DEFAULT_RETRIES = 5
-
 Unit tests for async timeout handler to prevent hanging tests.
 Test-first approach per ALWAYS_READ_FIRST protocol.
 """
@@ -11,6 +7,9 @@ import asyncio
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 from datetime import timedelta
+
+# Constants
+DEFAULT_RETRIES = 5
 
 
 class TestAsyncTimeoutHandler:

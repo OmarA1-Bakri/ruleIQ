@@ -1,13 +1,13 @@
 """
-import logging
-
-
-logger = logging.getLogger(__name__)
 Advanced AI Analytics and Monitoring System
 
 Comprehensive monitoring for AI usage, performance metrics, cost tracking,
 and detailed analytics dashboard for intelligent compliance system.
 """
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
@@ -22,11 +22,18 @@ logger = get_logger(__name__)
 class MetricType(Enum):
     """Types of metrics to track."""
 
+    PERFORMANCE = "performance"
+    USAGE = "usage"
+    COST = "cost"
     ERROR = "error"
 
 
 class AlertLevel(Enum):
     """Alert severity levels."""
+
+    INFO = "info"
+    WARNING = "warning"
+    CRITICAL = "critical"
 
 
 @dataclass
@@ -129,9 +136,9 @@ class AIAnalyticsMonitor:
         """Update hourly and daily aggregated metrics."""
         hour_key = event.timestamp.strftime("%Y-%m-%d-%H")
         day_key = event.timestamp.strftime("%Y-%m-%d")
-        self.hourly_metrics[hour_key][f"{event.metric_type.value}.{event.name}",] += event.value
+        self.hourly_metrics[hour_key][f"{event.metric_type.value}.{event.name}"] += event.value
         self.hourly_metrics[hour_key]["count"] += 1
-        self.daily_metrics[day_key][f"{event.metric_type.value}.{event.name}",] += event.value
+        self.daily_metrics[day_key][f"{event.metric_type.value}.{event.name}"] += event.value
         self.daily_metrics[day_key]["count"] += 1
 
     async def _check_alert_conditions(self, event: MetricEvent) -> None:
@@ -198,7 +205,7 @@ class AIAnalyticsMonitor:
         )
         error_rate = error_count / total_requests * 100 if total_requests > 0 else 0
         cache_hit_rate = (
-            cache_hits / (cache_hits + cache_misses,) * 100 if cache_hits + cache_misses > 0 else 0
+            cache_hits / (cache_hits + cache_misses) * 100 if cache_hits + cache_misses > 0 else 0
         )
         return {
             "timestamp": now.isoformat(),
@@ -225,7 +232,7 @@ class AIAnalyticsMonitor:
             issues += 1
         if error_rate > self.performance_baselines["error_rate_percent"]:
             issues += 1
-        if cache_hit_rate < self.performance_baselines["cache_hit_rate_percent",]:
+        if cache_hit_rate < self.performance_baselines["cache_hit_rate_percent"]:
             issues += 1
         if issues == 0:
             return "excellent"

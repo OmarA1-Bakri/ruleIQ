@@ -186,7 +186,7 @@ class RateLimitService:
                 "remaining": config["daily"] - usage_count,
                 "window": config["window"],
                 "percentage_used": (
-                    round((usage_count / config["daily"]) * 100, 1) if config["daily"] > 0 else 0,
+                    round((usage_count / config["daily"]) * 100, 1) if config["daily"] > 0 else 0
                 ),
             }
 

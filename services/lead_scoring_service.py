@@ -1,19 +1,4 @@
 """
-import requests
-import logging
-
-
-logger = logging.getLogger(__name__)
-# Constants
-HTTP_OK = 200
-
-DEFAULT_TIMEOUT = 30
-
-DEFAULT_LIMIT = 100
-DEFAULT_RETRIES = 5
-MAX_RETRIES = 3
-
-
 LeadScoringService - Behavioral analytics and lead scoring engine.
 
 Handles comprehensive lead scoring based on:
@@ -30,6 +15,7 @@ Integrates with:
 - Analytics pipeline for conversion insights
 """
 
+import requests
 import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Dict, List, Optional, Any
@@ -38,6 +24,13 @@ from config.logging_config import get_logger
 from config.cache import get_cache_manager
 
 logger = get_logger(__name__)
+
+# Constants
+HTTP_OK = 200
+DEFAULT_TIMEOUT = 30
+DEFAULT_LIMIT = 100
+DEFAULT_RETRIES = 5
+MAX_RETRIES = 3
 
 
 class LeadScoringService:

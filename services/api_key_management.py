@@ -486,7 +486,7 @@ class APIKeyManager:
             "unique_ips": unique_ips,
             "endpoints": endpoint_counts,
             "daily_usage": daily_counts,
-            "last_used": (usage_records[0].timestamp.isoformat() if usage_records else None,),
+            "last_used": usage_records[0].timestamp.isoformat() if usage_records else None,
         }
 
     # Private helper methods
@@ -496,7 +496,7 @@ class APIKeyManager:
         salt = (
             settings.API_KEY_SALT.encode()
             if hasattr(settings, "API_KEY_SALT")
-            else b"default_salt",
+            else b"default_salt"
         )
         return hashlib.pbkdf2_hmac("sha256", secret.encode(), salt, 100000).hex()
 

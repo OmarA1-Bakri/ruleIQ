@@ -234,7 +234,7 @@ class TokenBlacklistService:
         try:
             stats = self.redis_client.hgetall(self.stats_key)
             stats["active_count"] = self.redis_client.scard(self.blacklist_set_key)
-            return {k: int(v) if v.isdigit() else v for k, v in stats.items()}
+            return {k: int(v) if isinstance(v, str) and v.isdigit() else v for k, v in stats.items()}
         except redis.RedisError:
             return {}
 

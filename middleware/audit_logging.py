@@ -50,13 +50,15 @@ class AuditLogger:
         self.buffer_size = 100
         self.flush_interval = 30  # seconds
         self._flush_task_started = False
-        self._flush_task_lock = asyncio.Lock()
+        self._flush_task_lock: Optional[asyncio.Lock] = None
         self._flush_task: Optional[asyncio.Task] = None
 
     async def _start_flush_timer(self):
         """Start periodic flush timer. Safe to call outside event loop."""
         if self._flush_task_started:
             return
+        if self._flush_task_lock is None:
+            self._flush_task_lock = asyncio.Lock()
         async with self._flush_task_lock:
             if self._flush_task_started:
                 return

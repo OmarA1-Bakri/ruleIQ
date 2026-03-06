@@ -1,16 +1,14 @@
 """
-
-# Constants
-CONFIDENCE_THRESHOLD = 0.8
-DEFAULT_RETRIES = 5
-MAX_RETRIES = 3
-
-
 IQ - Autonomous Compliance Orchestrator with GraphRAG Intelligence
 
 This module implements the IQ agent as described in the comprehensive prompt,
 leveraging Neo4j GraphRAG for compliance intelligence and decision-making.
 """
+
+# Constants
+CONFIDENCE_THRESHOLD = 0.8
+DEFAULT_RETRIES = 5
+MAX_RETRIES = 3
 
 import json
 import logging

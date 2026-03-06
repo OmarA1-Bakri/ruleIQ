@@ -1,8 +1,4 @@
 """
-
-# Constants
-DEFAULT_RETRIES = 5
-
 Unit Tests for Evidence Service
 
 Tests the evidence collection, validation, and processing business logic
@@ -10,7 +6,7 @@ in complete isolation with mocked dependencies.
 """
 
 from datetime import datetime, timedelta, timezone
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 from uuid import uuid4
 import pytest
 from core.exceptions import NotFoundAPIError, ValidationAPIError
@@ -18,13 +14,30 @@ from services.evidence_service import EvidenceService
 
 from tests.test_constants import DEFAULT_LIMIT
 
-# Note: Using fast_db_session from conftest_optimized for performance
+# Constants
+DEFAULT_RETRIES = 5
+
+
+@pytest.fixture
+def fast_db_session():
+    """Lightweight mock DB session for unit tests (no real DB needed)."""
+    return MagicMock()
+
+
+@pytest.fixture
+def sample_user():
+    """Mock user object for tests that need user context."""
+    user = MagicMock()
+    user.id = uuid4()
+    user.email = "test@example.com"
+    return user
 
 
 @pytest.mark.unit
 class TestEvidenceService:
     """Test evidence service business logic"""
 
+    @pytest.mark.asyncio
     async def test_create_evidence_item_success(self, fast_db_session, sample_user):
         """Test creating evidence item with valid data"""
         evidence_data = {
@@ -50,6 +63,7 @@ class TestEvidenceService:
             assert result["quality_score"] > 0
             mock_create.assert_called_once_with(sample_user.id, evidence_data)
 
+    @pytest.mark.asyncio
     async def test_create_evidence_item_validation_error(self, fast_db_session, sample_user):
         """Test creating evidence item with invalid data raises validation error"""
         invalid_data = {"title": "", "description": "x" * 10000, "evidence_type": "invalid_type"}

@@ -1,24 +1,21 @@
 """
-import requests
-import logging
-
-
-logger = logging.getLogger(__name__)
-# Constants
-HTTP_INTERNAL_SERVER_ERROR = 500
-
-HOUR_SECONDS = 3600
-
-DEFAULT_LIMIT = 100
-MAX_ITEMS = 1000
-MAX_RETRIES = 3
-
-
 Google Cached Content Integration for AI Optimization
 
 This module implements Google's CachedContent API to replace the custom caching system,
 providing better performance and cost optimization through Google's native caching.
 """
+
+import requests
+import logging
+
+logger = logging.getLogger(__name__)
+
+# Constants
+HTTP_INTERNAL_SERVER_ERROR = 500
+HOUR_SECONDS = 3600
+DEFAULT_LIMIT = 100
+MAX_ITEMS = 1000
+MAX_RETRIES = 3
 
 import json
 import hashlib
@@ -35,6 +32,12 @@ logger = get_logger(__name__)
 
 class CacheContentType(Enum):
     """Types of content that can be cached."""
+
+    ASSESSMENT_CONTEXT = "assessment_context"
+    BUSINESS_PROFILE = "business_profile"
+    FRAMEWORK_CONTEXT = "framework_context"
+    INDUSTRY_REGULATIONS = "industry_regulations"
+    SYSTEM_INSTRUCTIONS = "system_instructions"
 
 
 @dataclass
@@ -362,7 +365,7 @@ class GoogleCachedContentManager:
         if secondary_key:
             key_parts.append(secondary_key)
         combined_key = "|".join(key_parts)
-        return (f"gai_cache:{hashlib.sha256(combined_key.encode()).hexdigest()[:16]}",)
+        return f"gai_cache:{hashlib.sha256(combined_key.encode()).hexdigest()[:16]}"
 
     def _generate_business_profile_cache_key(self, business_profile: Dict[str, Any]) -> str:
         """Generate cache key based on business profile similarity factors."""

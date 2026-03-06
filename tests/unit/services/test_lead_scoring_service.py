@@ -147,11 +147,6 @@ class TestCalculateEventScore:
         # 15 * 1.2 = 18
         assert score == 18
 
-    @pytest.mark.skipif(
-        True,
-        reason="Source code has DEFAULT_TIMEOUT constant trapped inside docstring — "
-               "NameError at runtime. Cannot modify source.",
-    )
     def test_time_spent_penalty(self):
         svc, _ = _make_service()
         score = svc._calculate_event_score(
@@ -229,33 +224,18 @@ class TestDetermineLeadStatus:
 class TestCalculateConversionProbability:
     """Tests for _calculate_conversion_probability()."""
 
-    @pytest.mark.skipif(
-        True,
-        reason="Source code has HTTP_OK/DEFAULT_LIMIT constants trapped inside docstring — "
-               "NameError at runtime. Cannot modify source.",
-    )
     def test_high_score_high_probability(self):
         svc, _ = _make_service()
         events = [_make_event()]
         prob = svc._calculate_conversion_probability(200, {}, events)
         assert prob >= 0.5
 
-    @pytest.mark.skipif(
-        True,
-        reason="Source code has HTTP_OK/DEFAULT_LIMIT constants trapped inside docstring — "
-               "NameError at runtime. Cannot modify source.",
-    )
     def test_low_score_low_probability(self):
         svc, _ = _make_service()
         events = [_make_event()]
         prob = svc._calculate_conversion_probability(10, {}, events)
         assert prob <= 0.2
 
-    @pytest.mark.skipif(
-        True,
-        reason="Source code has HTTP_OK/DEFAULT_LIMIT constants trapped inside docstring — "
-               "NameError at runtime. Cannot modify source.",
-    )
     def test_results_viewed_bonus(self):
         svc, _ = _make_service()
         events = [_make_event()]
@@ -265,11 +245,6 @@ class TestCalculateConversionProbability:
         )
         assert prob_with > prob_without
 
-    @pytest.mark.skipif(
-        True,
-        reason="Source code has HTTP_OK/DEFAULT_LIMIT constants trapped inside docstring — "
-               "NameError at runtime. Cannot modify source.",
-    )
     def test_pricing_viewed_bonus(self):
         svc, _ = _make_service()
         events = [_make_event()]
@@ -279,11 +254,6 @@ class TestCalculateConversionProbability:
         )
         assert prob_with > prob_without
 
-    @pytest.mark.skipif(
-        True,
-        reason="Source code has HTTP_OK/DEFAULT_LIMIT constants trapped inside docstring — "
-               "NameError at runtime. Cannot modify source.",
-    )
     def test_demo_requested_bonus(self):
         svc, _ = _make_service()
         events = [_make_event()]
@@ -293,11 +263,6 @@ class TestCalculateConversionProbability:
         )
         assert prob_with > prob_without
 
-    @pytest.mark.skipif(
-        True,
-        reason="Source code has HTTP_OK/DEFAULT_LIMIT constants trapped inside docstring — "
-               "NameError at runtime. Cannot modify source.",
-    )
     def test_capped_at_1(self):
         svc, _ = _make_service()
         # Multiple high multipliers
@@ -330,11 +295,6 @@ class TestApplyTimeDecay:
         score = svc._apply_time_decay(events, 20)
         assert score == 20  # No decay within 7 days
 
-    @pytest.mark.skipif(
-        True,
-        reason="Source code has DEFAULT_TIMEOUT constant trapped inside docstring — "
-               "NameError at runtime. Cannot modify source.",
-    )
     def test_old_events_decay(self):
         svc, _ = _make_service()
         now = datetime.now(timezone.utc)
@@ -344,11 +304,6 @@ class TestApplyTimeDecay:
         score = svc._apply_time_decay(events, 10)
         assert score == 7  # 10 * 0.7 = 7
 
-    @pytest.mark.skipif(
-        True,
-        reason="Source code has DEFAULT_TIMEOUT constant trapped inside docstring — "
-               "NameError at runtime. Cannot modify source.",
-    )
     def test_medium_age_events(self):
         svc, _ = _make_service()
         now = datetime.now(timezone.utc)
@@ -387,11 +342,6 @@ class TestCalculateEngagementMetrics:
 class TestGenerateBehavioralInsights:
     """Tests for _generate_behavioral_insights()."""
 
-    @pytest.mark.skipif(
-        True,
-        reason="Source code has DEFAULT_RETRIES constant trapped inside docstring — "
-               "NameError at runtime. Cannot modify source.",
-    )
     def test_highly_engaged_lead(self):
         svc, _ = _make_service()
         lead = MagicMock()
@@ -399,11 +349,6 @@ class TestGenerateBehavioralInsights:
         insights = svc._generate_behavioral_insights(events, lead)
         assert any("Highly engaged" in i for i in insights)
 
-    @pytest.mark.skipif(
-        True,
-        reason="Source code has DEFAULT_RETRIES constant trapped inside docstring — "
-               "NameError at runtime. Cannot modify source.",
-    )
     def test_moderately_engaged_lead(self):
         svc, _ = _make_service()
         lead = MagicMock()
@@ -411,11 +356,6 @@ class TestGenerateBehavioralInsights:
         insights = svc._generate_behavioral_insights(events, lead)
         assert any("Moderately engaged" in i for i in insights)
 
-    @pytest.mark.skipif(
-        True,
-        reason="Source code has DEFAULT_RETRIES constant trapped inside docstring — "
-               "NameError at runtime. Cannot modify source.",
-    )
     def test_low_engagement(self):
         svc, _ = _make_service()
         lead = MagicMock()
@@ -424,11 +364,6 @@ class TestGenerateBehavioralInsights:
         # No engagement insight for low count
         assert not any("engaged" in i.lower() for i in insights)
 
-    @pytest.mark.skipif(
-        True,
-        reason="Source code has DEFAULT_RETRIES constant trapped inside docstring — "
-               "NameError at runtime. Cannot modify source.",
-    )
     def test_deep_assessment_engagement(self):
         svc, _ = _make_service()
         lead = MagicMock()
@@ -436,11 +371,6 @@ class TestGenerateBehavioralInsights:
         insights = svc._generate_behavioral_insights(events, lead)
         assert any("assessment engagement" in i.lower() for i in insights)
 
-    @pytest.mark.skipif(
-        True,
-        reason="Source code has DEFAULT_RETRIES constant trapped inside docstring — "
-               "NameError at runtime. Cannot modify source.",
-    )
     def test_strong_conversion_signals(self):
         svc, _ = _make_service()
         lead = MagicMock()
@@ -463,11 +393,6 @@ class TestSuggestNextActions:
         actions = svc._suggest_next_actions([], [], lead)
         assert any(a["action"] == "immediate_outreach" for a in actions)
 
-    @pytest.mark.skipif(
-        True,
-        reason="Source code has DEFAULT_LIMIT constant trapped inside docstring — "
-               "NameError at runtime. Cannot modify source.",
-    )
     def test_qualified_lead_schedule_demo(self):
         svc, _ = _make_service()
         lead = MagicMock()
@@ -475,11 +400,6 @@ class TestSuggestNextActions:
         actions = svc._suggest_next_actions([], [], lead)
         assert any(a["action"] == "schedule_demo" for a in actions)
 
-    @pytest.mark.skipif(
-        True,
-        reason="Source code has DEFAULT_LIMIT constant trapped inside docstring — "
-               "NameError at runtime. Cannot modify source.",
-    )
     def test_dormant_lead_reengagement(self):
         svc, _ = _make_service()
         lead = MagicMock()
@@ -490,11 +410,6 @@ class TestSuggestNextActions:
         actions = svc._suggest_next_actions([old_event], [], lead)
         assert any(a["action"] == "re_engagement_campaign" for a in actions)
 
-    @pytest.mark.skipif(
-        True,
-        reason="Source code has DEFAULT_LIMIT constant trapped inside docstring — "
-               "NameError at runtime. Cannot modify source.",
-    )
     def test_results_follow_up(self):
         svc, _ = _make_service()
         lead = MagicMock()

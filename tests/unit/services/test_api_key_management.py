@@ -82,43 +82,23 @@ class TestAPIKeyManagerHelpers:
             redis_client=AsyncMock(),
         )
 
-    @pytest.mark.skipif(
-        True,
-        reason="Source code has trailing-comma bug in salt tuple — _hash_key_secret "
-               "passes tuple to pbkdf2_hmac instead of bytes. Cannot modify source.",
-    )
     def test_hash_key_secret_deterministic(self):
         mgr = self._make_manager()
         h1 = mgr._hash_key_secret("my-secret")
         h2 = mgr._hash_key_secret("my-secret")
         assert h1 == h2
 
-    @pytest.mark.skipif(
-        True,
-        reason="Source code has trailing-comma bug in salt tuple — _hash_key_secret "
-               "passes tuple to pbkdf2_hmac instead of bytes. Cannot modify source.",
-    )
     def test_hash_key_secret_different_inputs(self):
         mgr = self._make_manager()
         h1 = mgr._hash_key_secret("secret-a")
         h2 = mgr._hash_key_secret("secret-b")
         assert h1 != h2
 
-    @pytest.mark.skipif(
-        True,
-        reason="Source code has trailing-comma bug in salt tuple — _hash_key_secret "
-               "passes tuple to pbkdf2_hmac instead of bytes. Cannot modify source.",
-    )
     def test_verify_key_secret_correct(self):
         mgr = self._make_manager()
         hashed = mgr._hash_key_secret("my-secret")
         assert mgr._verify_key_secret("my-secret", hashed) is True
 
-    @pytest.mark.skipif(
-        True,
-        reason="Source code has trailing-comma bug in salt tuple — _hash_key_secret "
-               "passes tuple to pbkdf2_hmac instead of bytes. Cannot modify source.",
-    )
     def test_verify_key_secret_wrong(self):
         mgr = self._make_manager()
         hashed = mgr._hash_key_secret("my-secret")

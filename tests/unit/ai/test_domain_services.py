@@ -104,9 +104,7 @@ class TestAssessmentService:
 
     async def test_get_help_with_cache(self, assessment_service):
         """Test help retrieval returns valid response on repeated call."""
-        help_response = await assessment_service.get_assessment_help(
-            "Q1", "Test", "GDPR", uuid4()
-        )
+        help_response = await assessment_service.get_assessment_help("Q1", "Test", "GDPR", uuid4())
 
         assert "guidance" in help_response
         assert isinstance(help_response, dict)
@@ -119,9 +117,7 @@ class TestAssessmentService:
             side_effect=asyncio.TimeoutError()
         )
 
-        help_response = await assessment_service.get_assessment_help(
-            "Q1", "Test", "GDPR", uuid4()
-        )
+        help_response = await assessment_service.get_assessment_help("Q1", "Test", "GDPR", uuid4())
 
         # Timeout triggers fast fallback which includes 'guidance'
         assert "guidance" in help_response
@@ -137,9 +133,7 @@ class TestAssessmentService:
     async def test_analyze_results(self, assessment_service):
         """Test analyzing assessment results."""
         results = {"Q1": "Yes", "Q2": "No"}
-        analysis = await assessment_service.analyze_assessment_results(
-            results, "GDPR", uuid4()
-        )
+        analysis = await assessment_service.analyze_assessment_results(results, "GDPR", uuid4())
 
         assert isinstance(analysis, dict)
 

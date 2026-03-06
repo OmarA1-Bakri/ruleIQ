@@ -411,9 +411,7 @@ class AIConfig:
                 % (task_complexity, complexity_score)
             )
         if task_complexity == "simple":
-            selected_model = (
-                ModelType.GEMINI_FLASH if prefer_speed else ModelType.GEMINI_25_FLASH
-            )
+            selected_model = ModelType.GEMINI_FLASH if prefer_speed else ModelType.GEMINI_25_FLASH
         elif task_complexity == "complex":
             selected_model = ModelType.GEMINI_25_PRO
         else:

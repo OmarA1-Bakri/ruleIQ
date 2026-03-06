@@ -162,9 +162,7 @@ class TestAIPerformanceOptimizer:
     async def test_prompt_optimization(self, optimizer_instance):
         """Test prompt optimization functionality"""
 
-        long_prompt = (
-            "Generate ISO 27001 recommendations with lots of redundant information " * 50
-        )
+        long_prompt = "Generate ISO 27001 recommendations with lots of redundant information " * 50
         context = {"framework": "ISO27001"}
 
         optimized = await optimizer_instance._optimize_prompt(long_prompt, context)

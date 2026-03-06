@@ -369,9 +369,7 @@ class ComplianceAssistant:
                     candidate = chunk.candidates[0]
                     if hasattr(candidate, "content") and hasattr(candidate.content, "parts"):
                         text = "".join(
-                            part.text
-                            for part in candidate.content.parts
-                            if hasattr(part, "text")
+                            part.text for part in candidate.content.parts if hasattr(part, "text")
                         )
                 if text:
                     self.circuit_breaker.record_success(model_name)
@@ -509,9 +507,7 @@ class ComplianceAssistant:
         """Delegate to evidence_service._add_automation_insights."""
         return self.evidence_service._add_automation_insights(recommendations, business_context)
 
-    def _calculate_total_effort(
-        self, recommendations: List[Dict[str, Any]]
-    ) -> Dict[str, Any]:
+    def _calculate_total_effort(self, recommendations: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Delegate to evidence_service._calculate_total_effort."""
         return self.evidence_service._calculate_total_effort(recommendations)
 
@@ -525,21 +521,15 @@ class ComplianceAssistant:
         """Delegate to workflow_service._calculate_workflow_effort."""
         return self.workflow_service._calculate_workflow_effort(workflow)
 
-    def _apply_healthcare_customizations(
-        self, policy: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _apply_healthcare_customizations(self, policy: Dict[str, Any]) -> Dict[str, Any]:
         """Delegate to policy_service._apply_healthcare_customizations."""
         return self.policy_service._apply_healthcare_customizations(policy)
 
-    def _apply_financial_customizations(
-        self, policy: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _apply_financial_customizations(self, policy: Dict[str, Any]) -> Dict[str, Any]:
         """Delegate to policy_service._apply_financial_customizations."""
         return self.policy_service._apply_financial_customizations(policy)
 
-    def _apply_size_customizations(
-        self, policy: Dict[str, Any], org_size: str
-    ) -> Dict[str, Any]:
+    def _apply_size_customizations(self, policy: Dict[str, Any], org_size: str) -> Dict[str, Any]:
         """Delegate to policy_service._apply_size_customizations."""
         return self.policy_service._apply_size_customizations(policy, org_size)
 
@@ -564,6 +554,4 @@ class ComplianceAssistant:
         self, framework: str, policy_type: str, business_context: Dict[str, Any]
     ) -> Dict[str, Any]:
         """Delegate to policy_service._get_fallback_policy."""
-        return self.policy_service._get_fallback_policy(
-            framework, policy_type, business_context
-        )
+        return self.policy_service._get_fallback_policy(framework, policy_type, business_context)

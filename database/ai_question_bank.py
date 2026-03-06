@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 # Constants
 MAX_RETRIES = 3
@@ -8,6 +7,7 @@ MAX_RETRIES = 3
 AIQuestionBank model for storing and managing AI-generated assessment questions.
 Supports dynamic question generation with context tags and difficulty weighting.
 """
+
 import uuid
 from datetime import datetime, timezone
 from decimal import Decimal
@@ -21,7 +21,8 @@ class AIQuestionBank(Base):
     Model for AI-generated assessment questions with context-aware categorization.
     Stores questions, options, metadata, and compliance weighting for dynamic selection.
     """
-    __tablename__ = 'ai_question_bank'
+
+    __tablename__ = "ai_question_bank"
     id = Column(PG_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     category = Column(String(100), nullable=False, index=True)
     question_text = Column(Text, nullable=False)
@@ -30,8 +31,7 @@ class AIQuestionBank(Base):
     correct_answers = Column(JSONB, nullable=True)
     context_tags = Column(JSONB, nullable=False, default=list)
     difficulty_level = Column(Integer, default=5, nullable=False)
-    compliance_weight = Column(Numeric(4, 3), default=Decimal('0.500'),
-        nullable=False)
+    compliance_weight = Column(Numeric(4, 3), default=Decimal("0.500"), nullable=False)
     usage_frequency = Column(Integer, default=0, nullable=False)
     ai_model_version = Column(String(50), nullable=True)
     generation_prompt = Column(Text, nullable=True)
@@ -43,10 +43,9 @@ class AIQuestionBank(Base):
     effective_date = Column(DateTime, default=datetime.utcnow, nullable=False)
     expiry_date = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=
-        datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
-    def __init__(self, **kwargs) ->None:
+    def __init__(self, **kwargs) -> None:
         """Initialize question with default values and validation."""
         super().__init__(**kwargs)
         if not self.context_tags:
@@ -59,33 +58,33 @@ class AIQuestionBank(Base):
         else:
             self.difficulty_level = 5
 
-    def add_context_tag(self, tag: str) ->None:
+    def add_context_tag(self, tag: str) -> None:
         """Add a context tag to the question."""
         if not self.context_tags:
             self.context_tags = []
         if tag not in self.context_tags:
             self.context_tags.append(tag)
 
-    def increment_usage(self) ->None:
+    def increment_usage(self) -> None:
         """Increment usage frequency counter."""
         self.usage_frequency += 1
 
-    def mark_validated(self, score: float=None) ->None:
+    def mark_validated(self, score: float = None) -> None:
         """Mark question as validated with optional score."""
         self.is_validated = True
         if score is not None:
             self.validation_score = Decimal(str(score))
 
-    def mark_human_reviewed(self) ->None:
+    def mark_human_reviewed(self) -> None:
         """Mark question as reviewed by human expert."""
         self.human_reviewed = True
 
-    def deactivate(self) ->None:
+    def deactivate(self) -> None:
         """Deactivate question (soft delete)."""
         self.is_active = False
         self.expiry_date = datetime.now(timezone.utc)
 
-    def is_applicable_for_context(self, context_tags: list) ->bool:
+    def is_applicable_for_context(self, context_tags: list) -> bool:
         """Check if question is applicable for given context tags."""
         if not self.is_active:
             return False
@@ -97,18 +96,16 @@ class AIQuestionBank(Base):
         context_tag_set = set(context_tags)
         return bool(question_tags.intersection(context_tag_set))
 
-    def get_difficulty_category(self) ->str:
+    def get_difficulty_category(self) -> str:
         """Get human-readable difficulty category."""
         if self.difficulty_level <= MAX_RETRIES:
-            return 'Easy'
+            return "Easy"
         elif self.difficulty_level <= 6:
-            return 'Medium'
+            return "Medium"
         elif self.difficulty_level <= 8:
-            return 'Hard'
+            return "Hard"
         else:
-            return 'Expert'
+            return "Expert"
 
-    def __repr__(self) ->str:
-        return (
-            f"<AIQuestionBank(category='{self.category}', type='{self.question_type}', difficulty={self.difficulty_level})>"
-            )
+    def __repr__(self) -> str:
+        return f"<AIQuestionBank(category='{self.category}', type='{self.question_type}', difficulty={self.difficulty_level})>"

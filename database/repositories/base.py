@@ -4,7 +4,7 @@ from typing import TypeVar, Generic, List, Optional, Type
 from uuid import UUID
 from sqlalchemy.orm import Session
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 class BaseRepository(Generic[T]):
@@ -16,9 +16,11 @@ class BaseRepository(Generic[T]):
 
     def get(self, id: UUID) -> Optional[T]:
         """Get entity by ID."""
-        return self.session.query(self.model_class).filter(
-            getattr(self.model_class, 'id', None) == id
-        ).first()
+        return (
+            self.session.query(self.model_class)
+            .filter(getattr(self.model_class, "id", None) == id)
+            .first()
+        )
 
     def get_all(self) -> List[T]:
         """Get all entities."""
@@ -45,9 +47,9 @@ class BaseRepository(Generic[T]):
     def exists(self, id: UUID) -> bool:
         """Check if entity exists."""
         return self.session.query(
-            self.session.query(self.model_class).filter(
-                getattr(self.model_class, 'id', None) == id
-            ).exists()
+            self.session.query(self.model_class)
+            .filter(getattr(self.model_class, "id", None) == id)
+            .exists()
         ).scalar()
 
     def count(self) -> int:

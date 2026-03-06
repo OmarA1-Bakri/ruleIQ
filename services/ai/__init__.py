@@ -64,25 +64,20 @@ from .providers import (
     ProviderFactory,
     GeminiProvider,
     OpenAIProvider,
-    AnthropicProvider
+    AnthropicProvider,
 )
-from .response import (
-    ResponseGenerator,
-    ResponseParser,
-    FallbackGenerator
-)
+from .response import ResponseGenerator, ResponseParser, FallbackGenerator
 from .domains import (
     AssessmentService,
     PolicyService,
     WorkflowService,
     EvidenceService,
-    ComplianceAnalysisService
+    ComplianceAnalysisService,
 )
 
 __all__ = [
     # Legacy API (façade)
     "ComplianceAssistant",
-
     # Tool system (existing)
     "BaseTool",
     "ToolExecutor",
@@ -94,7 +89,6 @@ __all__ = [
     "register_tool",
     "tool_executor",
     "tool_registry",
-
     # New architecture (optional, for advanced users)
     "AIProvider",
     "ProviderFactory",

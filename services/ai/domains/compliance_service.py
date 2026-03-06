@@ -21,18 +21,14 @@ class ComplianceAnalysisService:
     """Handles compliance analysis operations."""
 
     def __init__(
-        self,
-        response_generator: ResponseGenerator,
-        context_manager: ContextManager
+        self, response_generator: ResponseGenerator, context_manager: ContextManager
     ) -> None:
         """Initialize the compliance analysis service."""
         self.response_generator = response_generator
         self.context_manager = context_manager
 
     async def analyze_evidence_gap(
-        self,
-        business_profile_id: UUID,
-        framework: str
+        self, business_profile_id: UUID, framework: str
     ) -> Dict[str, Any]:
         """
         Analyze compliance evidence gaps for a specific framework.
@@ -54,20 +50,19 @@ class ComplianceAnalysisService:
         try:
             # Get business context and evidence
             context = await self.context_manager.get_conversation_context(
-                conversation_id=uuid4(),
-                business_profile_id=business_profile_id
+                conversation_id=uuid4(), business_profile_id=business_profile_id
             )
 
-            business_profile = context.get('business_profile', {})
-            evidence_items = context.get('recent_evidence', [])
+            business_profile = context.get("business_profile", {})
+            evidence_items = context.get("recent_evidence", [])
 
             # Build AI prompt for gap analysis
             prompt = f"""Analyze compliance evidence gaps for {framework}:
 
             Business Profile:
-            - Company: {business_profile.get('company_name', 'Unknown')}
-            - Industry: {business_profile.get('industry', 'Unknown')}
-            - Size: {business_profile.get('employee_count', 0)} employees
+            - Company: {business_profile.get("company_name", "Unknown")}
+            - Industry: {business_profile.get("industry", "Unknown")}
+            - Size: {business_profile.get("employee_count", 0)} employees
 
             Current Evidence Status:
             - Total Evidence Items: {len(evidence_items)}
@@ -86,69 +81,66 @@ class ComplianceAnalysisService:
             response = await self.response_generator.generate_simple(
                 system_prompt="You are a compliance expert analyzing evidence gaps.",
                 user_prompt=prompt,
-                task_type='compliance_analysis',
+                task_type="compliance_analysis",
                 context={
-                    'framework': framework,
-                    'business_profile': business_profile,
-                    'evidence_count': len(evidence_items)
-                }
+                    "framework": framework,
+                    "business_profile": business_profile,
+                    "evidence_count": len(evidence_items),
+                },
             )
 
             # Parse AI response
             try:
-                if isinstance(response, str) and response.strip().startswith('{'):
+                if isinstance(response, str) and response.strip().startswith("{"):
                     parsed_response = json.loads(response)
-                    completion_percentage = parsed_response.get('completion_percentage', 50)
-                    recommendations = parsed_response.get('recommendations', [])
-                    critical_gaps = parsed_response.get('critical_gaps', [])
-                    risk_level = parsed_response.get('risk_level', 'Medium')
+                    completion_percentage = parsed_response.get("completion_percentage", 50)
+                    recommendations = parsed_response.get("recommendations", [])
+                    critical_gaps = parsed_response.get("critical_gaps", [])
+                    risk_level = parsed_response.get("risk_level", "Medium")
                 else:
                     # Fallback parsing
                     completion_percentage = 30
                     recommendations = self._get_fallback_recommendations()
-                    critical_gaps = ['Analysis unavailable', 'Manual review needed']
-                    risk_level = 'Medium'
+                    critical_gaps = ["Analysis unavailable", "Manual review needed"]
+                    risk_level = "Medium"
 
             except (json.JSONDecodeError, AttributeError):
                 # Fallback to default recommendations
                 completion_percentage = 30
                 recommendations = self._get_fallback_recommendations()
-                critical_gaps = ['Documentation gaps', 'Policy updates needed']
-                risk_level = 'Medium'
+                critical_gaps = ["Documentation gaps", "Policy updates needed"]
+                risk_level = "Medium"
 
             # Summarize evidence types
             evidence_types_dict = self._get_evidence_types_summary(evidence_items)
             evidence_types = list(evidence_types_dict.keys())
 
             # Count recent activity
-            recent_activity = len([
-                item for item in evidence_items
-                if item.get('updated_at')
-            ])
+            recent_activity = len([item for item in evidence_items if item.get("updated_at")])
 
             return {
-                'framework': framework,
-                'completion_percentage': completion_percentage,
-                'evidence_collected': len(evidence_items),
-                'evidence_types': evidence_types,
-                'recent_activity': recent_activity,
-                'recommendations': recommendations,
-                'critical_gaps': critical_gaps,
-                'risk_level': risk_level
+                "framework": framework,
+                "completion_percentage": completion_percentage,
+                "evidence_collected": len(evidence_items),
+                "evidence_types": evidence_types,
+                "recent_activity": recent_activity,
+                "recommendations": recommendations,
+                "critical_gaps": critical_gaps,
+                "risk_level": risk_level,
             }
 
         except Exception as e:
             logger.error(f"Error analyzing evidence gap for {framework}: {e}", exc_info=True)
             # Return fallback response instead of raising
             return {
-                'framework': framework,
-                'completion_percentage': 30,
-                'evidence_collected': 0,
-                'evidence_types': [],
-                'recent_activity': 0,
-                'recommendations': self._get_fallback_recommendations(),
-                'critical_gaps': ['Analysis unavailable', 'Manual review needed'],
-                'risk_level': 'Medium'
+                "framework": framework,
+                "completion_percentage": 30,
+                "evidence_collected": 0,
+                "evidence_types": [],
+                "recent_activity": 0,
+                "recommendations": self._get_fallback_recommendations(),
+                "critical_gaps": ["Analysis unavailable", "Manual review needed"],
+                "risk_level": "Medium",
             }
 
     @staticmethod
@@ -168,15 +160,15 @@ class ComplianceAnalysisService:
         fact_checks = []
 
         # Check for framework-specific facts
-        if 'GDPR' in framework.upper() and '72' in response and 'hour' in response.lower():
-            fact_checks.append({'fact': '72 hours notification', 'verified': True})
+        if "GDPR" in framework.upper() and "72" in response and "hour" in response.lower():
+            fact_checks.append({"fact": "72 hours notification", "verified": True})
             accuracy_score += 0.1
 
         return {
-            'accuracy_score': min(accuracy_score, 1.0),
-            'fact_checks': fact_checks,
-            'confidence': 'Medium',
-            'sources': []
+            "accuracy_score": min(accuracy_score, 1.0),
+            "fact_checks": fact_checks,
+            "confidence": "Medium",
+            "sources": [],
         }
 
     @staticmethod
@@ -191,9 +183,9 @@ class ComplianceAnalysisService:
             Detection results dictionary
         """
         suspicious_patterns = [
-            r'€\d+,\d+.*registration.*fee',
-            r'\$\d+,\d+.*annual.*cost',
-            r'article.*\d+.*requires.*€',
+            r"€\d+,\d+.*registration.*fee",
+            r"\$\d+,\d+.*annual.*cost",
+            r"article.*\d+.*requires.*€",
         ]
 
         suspicious_claims = []
@@ -204,20 +196,17 @@ class ComplianceAnalysisService:
 
         hallucination_confidence = len(suspicious_claims) * 0.3
 
-        recommendation = 'Verify with official sources' if suspicious_claims else 'Appears accurate'
+        recommendation = "Verify with official sources" if suspicious_claims else "Appears accurate"
 
         return {
-            'hallucination_detected': len(suspicious_claims) > 0,
-            'confidence': min(hallucination_confidence, 1.0),
-            'suspicious_claims': suspicious_claims,
-            'recommendation': recommendation
+            "hallucination_detected": len(suspicious_claims) > 0,
+            "confidence": min(hallucination_confidence, 1.0),
+            "suspicious_claims": suspicious_claims,
+            "recommendation": recommendation,
         }
 
     def generate_compliance_mapping(
-        self,
-        policy: Dict[str, Any],
-        framework: str,
-        policy_type: str
+        self, policy: Dict[str, Any], framework: str, policy_type: str
     ) -> Dict[str, Any]:
         """
         Generate compliance mapping for a policy.
@@ -235,45 +224,45 @@ class ComplianceAnalysisService:
         """
         # Framework control mappings
         control_mappings = {
-            'ISO27001': {
-                'information_security': ['A.5.1.1', 'A.5.1.2'],
-                'access_control': ['A.9.1.1', 'A.9.1.2', 'A.9.2.1'],
-                'incident_management': ['A.16.1.1', 'A.16.1.2', 'A.16.1.3'],
-                'business_continuity': ['A.17.1.1', 'A.17.1.2', 'A.17.2.1']
+            "ISO27001": {
+                "information_security": ["A.5.1.1", "A.5.1.2"],
+                "access_control": ["A.9.1.1", "A.9.1.2", "A.9.2.1"],
+                "incident_management": ["A.16.1.1", "A.16.1.2", "A.16.1.3"],
+                "business_continuity": ["A.17.1.1", "A.17.1.2", "A.17.2.1"],
             },
-            'GDPR': {
-                'data_protection': ['Art. 5', 'Art. 6', 'Art. 7'],
-                'data_subject_rights': ['Art. 12', 'Art. 13', 'Art. 14', 'Art. 15-22'],
-                'privacy_by_design': ['Art. 25'],
-                'breach_notification': ['Art. 33', 'Art. 34']
+            "GDPR": {
+                "data_protection": ["Art. 5", "Art. 6", "Art. 7"],
+                "data_subject_rights": ["Art. 12", "Art. 13", "Art. 14", "Art. 15-22"],
+                "privacy_by_design": ["Art. 25"],
+                "breach_notification": ["Art. 33", "Art. 34"],
             },
-            'SOC2': {
-                'security': ['CC6.1', 'CC6.2', 'CC6.3'],
-                'availability': ['A1.1', 'A1.2', 'A1.3'],
-                'confidentiality': ['C1.1', 'C1.2'],
-                'processing_integrity': ['PI1.1', 'PI1.2']
-            }
+            "SOC2": {
+                "security": ["CC6.1", "CC6.2", "CC6.3"],
+                "availability": ["A1.1", "A1.2", "A1.3"],
+                "confidentiality": ["C1.1", "C1.2"],
+                "processing_integrity": ["PI1.1", "PI1.2"],
+            },
         }
 
         # Get mapped controls for this framework and policy type
         mapped_controls = control_mappings.get(framework, {}).get(policy_type, [])
 
         return {
-            'framework': framework,
-            'policy_type': policy_type,
-            'mapped_controls': mapped_controls,
-            'compliance_objectives': [
-                f'Ensure compliance with {framework} requirements',
-                'Establish clear governance and accountability',
-                'Implement effective risk management',
-                'Enable continuous monitoring and improvement'
+            "framework": framework,
+            "policy_type": policy_type,
+            "mapped_controls": mapped_controls,
+            "compliance_objectives": [
+                f"Ensure compliance with {framework} requirements",
+                "Establish clear governance and accountability",
+                "Implement effective risk management",
+                "Enable continuous monitoring and improvement",
             ],
-            'audit_considerations': [
-                'Document all policy implementations',
-                'Maintain evidence of compliance activities',
-                'Regular review and update cycles',
-                'Staff training and awareness programs'
-            ]
+            "audit_considerations": [
+                "Document all policy implementations",
+                "Maintain evidence of compliance activities",
+                "Regular review and update cycles",
+                "Staff training and awareness programs",
+            ],
         }
 
     def _get_evidence_types_summary(self, evidence_items: List[Dict[str, Any]]) -> Dict[str, int]:
@@ -288,7 +277,7 @@ class ComplianceAnalysisService:
         """
         type_counts = {}
         for item in evidence_items:
-            evidence_type = item.get('evidence_type', 'unknown')
+            evidence_type = item.get("evidence_type", "unknown")
             type_counts[evidence_type] = type_counts.get(evidence_type, 0) + 1
         return type_counts
 
@@ -301,18 +290,10 @@ class ComplianceAnalysisService:
         """
         return [
             {
-                'type': 'documentation',
-                'description': 'Review compliance documentation',
-                'priority': 'medium'
+                "type": "documentation",
+                "description": "Review compliance documentation",
+                "priority": "medium",
             },
-            {
-                'type': 'policy',
-                'description': 'Update security policies',
-                'priority': 'high'
-            },
-            {
-                'type': 'training',
-                'description': 'Conduct staff training',
-                'priority': 'medium'
-            }
+            {"type": "policy", "description": "Update security policies", "priority": "high"},
+            {"type": "training", "description": "Conduct staff training", "priority": "medium"},
         ]

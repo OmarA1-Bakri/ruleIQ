@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 Test-Driven Development suite for Evidence Collection Tasks Migration.
 Following TDD principles: Write tests first, then implementation.
@@ -94,7 +93,7 @@ def sample_state():
             "context": {
                 "user_id": str(uuid4()),
                 "business_profile_id": str(uuid4()),
-                "integration_id": "test_integration"
+                "integration_id": "test_integration",
             },
             "evidence_items": [],
             "validation_results": {},
@@ -133,9 +132,7 @@ class TestEvidenceStateManagement:
         assert sample_state.retry_count == 0
         assert sample_state.error_count == 0
 
-    async def test_evidence_accumulation_in_state(
-        self, sample_state, sample_evidence_data
-    ):
+    async def test_evidence_accumulation_in_state(self, sample_state, sample_evidence_data):
         """Test that evidence items are accumulated, not replaced."""
         # Add first evidence item
         sample_state.evidence_items.append({"id": str(uuid4()), **sample_evidence_data})
@@ -146,10 +143,7 @@ class TestEvidenceStateManagement:
         assert len(sample_state.evidence_items) == 2
 
         # Verify both items are preserved
-        assert all(
-            item.get("evidence_type") == "document"
-            for item in sample_state.evidence_items
-        )
+        assert all(item.get("evidence_type") == "document" for item in sample_state.evidence_items)
 
     async def test_state_transition_tracking(self, sample_state):
         """Test state transition tracking for evidence collection."""
@@ -197,18 +191,14 @@ class TestEvidenceStateManagement:
 class TestEvidenceValidationAndScoring:
     """Tests for evidence validation and scoring mechanisms."""
 
-    async def test_evidence_validation_success(
-        self, mock_processor, sample_evidence_data
-    ):
+    async def test_evidence_validation_success(self, mock_processor, sample_evidence_data):
         """Test successful evidence validation."""
         result = mock_processor.validate_evidence(sample_evidence_data)
         assert result["valid"] is True
         assert result["score"] == 0.95
         mock_processor.validate_evidence.assert_called_once_with(sample_evidence_data)
 
-    async def test_evidence_validation_failure(
-        self, mock_processor, sample_evidence_data
-    ):
+    async def test_evidence_validation_failure(self, mock_processor, sample_evidence_data):
         """Test evidence validation failure."""
         mock_processor.validate_evidence.return_value = {
             "valid": False,
@@ -292,9 +282,7 @@ class TestRetryAndFallbackMechanisms:
             retry_delays.append(delay + jitter)
 
         # Verify delays increase with some variance
-        assert all(
-            retry_delays[i] < retry_delays[i + 1] for i in range(len(retry_delays) - 1)
-        )
+        assert all(retry_delays[i] < retry_delays[i + 1] for i in range(len(retry_delays) - 1))
 
     async def test_fallback_to_cache(self, sample_evidence_data):
         """Test fallback to cached evidence when primary source fails."""
@@ -374,9 +362,7 @@ class TestRetryAndFallbackMechanisms:
 class TestEvidenceAggregationAndDeduplication:
     """Tests for evidence aggregation and deduplication logic."""
 
-    async def test_duplicate_detection(
-        self, mock_duplicate_detector, sample_evidence_data
-    ):
+    async def test_duplicate_detection(self, mock_duplicate_detector, sample_evidence_data):
         """Test duplicate evidence detection."""
         # First call - not duplicate
         is_dup = await mock_duplicate_detector.is_duplicate(sample_evidence_data)
@@ -453,10 +439,11 @@ class TestEvidenceAggregationAndDeduplication:
         for group_name, evidences in evidence_groups.items():
             merged[group_name] = {
                 "combined_score": round(
-                    sum(e["score"] for e in evidences) / len(evidences), 2,
+                    sum(e["score"] for e in evidences) / len(evidences),
+                    2,
                 ),
                 "all_findings": [f for e in evidences for f in e["findings"]],
-                "evidence_count": len(evidences)
+                "evidence_count": len(evidences),
             }
 
         assert merged["policy_compliance"]["combined_score"] == 0.85
@@ -631,9 +618,7 @@ class TestErrorHandlingAndRecovery:
             recovered_state["retry_count"] = recovered_state.get("retry_count", 0) + 1
 
             assert recovered_state["case_id"] == sample_state["case_id"]
-            assert (
-                recovered_state["retry_count"] == sample_state.get("retry_count", 0) + 1,
-            )
+            assert (recovered_state["retry_count"] == sample_state.get("retry_count", 0) + 1,)
 
 
 class TestIntegrationWithLangGraph:

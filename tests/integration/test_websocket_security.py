@@ -1,6 +1,7 @@
 """
 Integration tests for WebSocket security improvements.
 """
+
 import asyncio
 import json
 import pytest
@@ -16,27 +17,22 @@ from api.dependencies.auth import SECRET_KEY, ALGORITHM
 from database.user import User
 
 
-
 logger = logging.getLogger(__name__)
+
+
 class TestWebSocketSecurity:
     """Test suite for WebSocket JWT authentication via headers."""
 
     @pytest.fixture
     def valid_token(self):
         """Generate a valid JWT token for testing."""
-        payload = {
-            "sub": "test-user-123",
-            "exp": datetime.utcnow() + timedelta(hours=1)
-        }
+        payload = {"sub": "test-user-123", "exp": datetime.utcnow() + timedelta(hours=1)}
         return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
     @pytest.fixture
     def expired_token(self):
         """Generate an expired JWT token."""
-        payload = {
-            "sub": "test-user-123",
-            "exp": datetime.utcnow() - timedelta(hours=1)
-        }
+        payload = {"sub": "test-user-123", "exp": datetime.utcnow() - timedelta(hours=1)}
         return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
     @pytest.mark.asyncio
@@ -46,8 +42,7 @@ class TestWebSocketSecurity:
 
         # Test with Authorization header
         with client.websocket_connect(
-            "/api/v1/ai-cost/realtime-dashboard",
-            headers={"Authorization": f"Bearer {valid_token}"}
+            "/api/v1/ai-cost/realtime-dashboard", headers={"Authorization": f"Bearer {valid_token}"}
         ) as websocket:
             # Should connect successfully
             data = websocket.receive_json()
@@ -59,8 +54,7 @@ class TestWebSocketSecurity:
         client = TestClient(app)
 
         with client.websocket_connect(
-            "/api/v1/ai-cost/realtime-dashboard",
-            headers={"X-Auth-Token": valid_token}
+            "/api/v1/ai-cost/realtime-dashboard", headers={"X-Auth-Token": valid_token}
         ) as websocket:
             data = websocket.receive_json()
             assert data is not None
@@ -73,7 +67,7 @@ class TestWebSocketSecurity:
         with pytest.raises(Exception):
             with client.websocket_connect(
                 "/api/v1/ai-cost/realtime-dashboard",
-                headers={"Authorization": "Bearer invalid-token"}
+                headers={"Authorization": "Bearer invalid-token"},
             ) as websocket:
                 pass
 
@@ -85,7 +79,7 @@ class TestWebSocketSecurity:
         with pytest.raises(Exception):
             with client.websocket_connect(
                 "/api/v1/ai-cost/realtime-dashboard",
-                headers={"Authorization": f"Bearer {expired_token}"}
+                headers={"Authorization": f"Bearer {expired_token}"},
             ) as websocket:
                 pass
 
@@ -94,7 +88,7 @@ class TestWebSocketSecurity:
         """Test deprecated query parameter authentication still works with warning."""
         client = TestClient(app)
 
-        with patch('api.routers.ai_cost_websocket.logger') as mock_logger:
+        with patch("api.routers.ai_cost_websocket.logger") as mock_logger:
             with client.websocket_connect(
                 f"/api/v1/ai-cost/realtime-dashboard?token={valid_token}"
             ) as websocket:
@@ -112,9 +106,9 @@ class TestGrafanaSecurityConfig:
         from config.monitoring_security import get_grafana_credentials
 
         creds = get_grafana_credentials()
-        assert creds['username'] != 'admin'
-        assert creds['password'] != 'admin'
-        assert len(creds['password']) >= 20
+        assert creds["username"] != "admin"
+        assert creds["password"] != "admin"
+        assert len(creds["password"]) >= 20
 
     def test_grafana_password_strength(self):
         """Test Grafana password meets security requirements."""
@@ -149,27 +143,27 @@ class TestDatabaseConnectionPooling:
         from config.database_pool_config import ConnectionPoolConfig
 
         validation = ConnectionPoolConfig.validate_pool_config()
-        assert validation['pool_size_valid']
-        assert validation['max_overflow_valid']
-        assert validation['timeout_valid']
+        assert validation["pool_size_valid"]
+        assert validation["max_overflow_valid"]
+        assert validation["timeout_valid"]
 
     def test_production_pool_settings(self):
         """Test production pool settings are appropriate."""
         from config.database_pool_config import ConnectionPoolConfig
 
         settings = ConnectionPoolConfig.get_pool_settings(is_production=True)
-        assert settings['pool_size'] >= 20
-        assert settings['max_overflow'] >= 20
-        assert settings['pool_pre_ping'] is True
-        assert settings['pool_timeout'] >= 30
+        assert settings["pool_size"] >= 20
+        assert settings["max_overflow"] >= 20
+        assert settings["pool_pre_ping"] is True
+        assert settings["pool_timeout"] >= 30
 
     def test_async_pool_settings(self):
         """Test async pool settings."""
         from config.database_pool_config import ConnectionPoolConfig
 
         settings = ConnectionPoolConfig.get_async_pool_settings(is_production=True)
-        assert settings['pool_reset_on_return'] == 'commit'
-        assert 'server_settings' in settings['connect_args']
+        assert settings["pool_reset_on_return"] == "commit"
+        assert "server_settings" in settings["connect_args"]
 
     @pytest.mark.asyncio
     async def test_database_connection_with_pooling(self):
@@ -190,9 +184,9 @@ class TestDatabaseConnectionPooling:
         from config.database_pool_config import ConnectionPoolConfig
 
         limits = ConnectionPoolConfig.get_connection_limits()
-        assert limits['total_max_connections'] > 0
-        assert limits['per_service_pool_size'] > 0
-        assert limits['warning_threshold'] > limits['per_service_pool_size']
+        assert limits["total_max_connections"] > 0
+        assert limits["per_service_pool_size"] > 0
+        assert limits["warning_threshold"] > limits["per_service_pool_size"]
 
 
 class TestAPISecurityIntegration:
@@ -204,18 +198,14 @@ class TestAPISecurityIntegration:
 
         # Login to get token
         response = client.post(
-            "/api/v1/auth/token",
-            data={"username": "test@example.com", "password": "TestPass123!"}
+            "/api/v1/auth/token", data={"username": "test@example.com", "password": "TestPass123!"}
         )
 
         if response.status_code == 200:
             token = response.json()["access_token"]
 
             # Test authenticated endpoint
-            response = client.get(
-                "/api/v1/users/me",
-                headers={"Authorization": f"Bearer {token}"}
-            )
+            response = client.get("/api/v1/users/me", headers={"Authorization": f"Bearer {token}"})
             assert response.status_code in [200, 401]
 
     def test_rate_limiting(self):
@@ -236,10 +226,7 @@ class TestAPISecurityIntegration:
         """Test CORS is properly configured."""
         client = TestClient(app)
 
-        response = client.options(
-            "/api/v1/health",
-            headers={"Origin": "http://localhost:3000"}
-        )
+        response = client.options("/api/v1/health", headers={"Origin": "http://localhost:3000"})
 
         # Check CORS headers
         assert "access-control-allow-origin" in response.headers or response.status_code == 200

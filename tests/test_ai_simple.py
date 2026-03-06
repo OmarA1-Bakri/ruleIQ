@@ -2,6 +2,7 @@
 """
 Simple test for AI functionality with Neon database
 """
+
 import asyncio
 from dotenv import load_dotenv
 

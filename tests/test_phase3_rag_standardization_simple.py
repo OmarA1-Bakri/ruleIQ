@@ -32,9 +32,7 @@ class TestStandardizedRAG:
         os.environ["OPENAI_API_KEY"] = "test-key-for-testing"
 
         # Mock OpenAI embeddings to avoid API calls
-        with patch(
-            "langgraph_agent.agents.rag_standard.OpenAIEmbeddings"
-        ) as mock_embeddings:
+        with patch("langgraph_agent.agents.rag_standard.OpenAIEmbeddings") as mock_embeddings:
             # Create a properly mocked embeddings instance
             mock_embed = Mock()
             mock_embed.embed_query = Mock(return_value=[0.1] * 1536)
@@ -138,7 +136,7 @@ class TestStandardizedRAG:
         # Add test documents first
         documents = [
             "GDPR requires explicit consent for data processing.",
-            "ISO 27001 mandates information security management."
+            "ISO 27001 mandates information security management.",
         ]
 
         await standard_rag.add_documents(documents)
@@ -245,8 +243,7 @@ class TestPerformanceImprovement:
             assert "from langchain_community.vectorstores import FAISS" in content
             assert "from langchain.retrievers import MultiQueryRetriever" in content
             assert (
-                "from langchain_text_splitters import RecursiveCharacterTextSplitter"
-                in content,
+                "from langchain_text_splitters import RecursiveCharacterTextSplitter" in content,
             )
 
     def test_simplified_interface(self):

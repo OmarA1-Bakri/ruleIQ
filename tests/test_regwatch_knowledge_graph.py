@@ -6,6 +6,7 @@ MAX_ITEMS = 1000
 Test Suite for RegWatch Knowledge Graph with Memory Management Integration
 Phase 5: Comprehensive TDD implementation for regulatory knowledge graph
 """
+
 import pytest
 import asyncio
 from unittest.mock import Mock, AsyncMock, patch, MagicMock
@@ -14,9 +15,7 @@ from typing import Dict, List, Any, Optional
 import json
 import uuid
 
-from tests.test_constants import (
-    MAX_RETRIES
-)
+from tests.test_constants import MAX_RETRIES
 
 
 class TestGraphDataStructures:
@@ -25,37 +24,48 @@ class TestGraphDataStructures:
     @pytest.fixture
     def sample_graph_node(self):
         """Sample node data for testing"""
-        return {'id': str(uuid.uuid4()), 'type': 'regulation', 'properties':
-            {'name': 'GDPR Article 32', 'category': 'data_protection',
-            'jurisdiction': 'EU', 'effective_date': '2018-05-25',
-            'description': 'Security of processing'}, 'metadata': {
-            'created_at': datetime.now(timezone.utc).isoformat(),
-            'updated_at': datetime.now(timezone.utc).isoformat(), 'version': 1}
-            }
+        return {
+            "id": str(uuid.uuid4()),
+            "type": "regulation",
+            "properties": {
+                "name": "GDPR Article 32",
+                "category": "data_protection",
+                "jurisdiction": "EU",
+                "effective_date": "2018-05-25",
+                "description": "Security of processing",
+            },
+            "metadata": {
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+                "version": 1,
+            },
+        }
 
     @pytest.fixture
     def sample_relationship(self):
         """Sample relationship data for testing"""
-        return {'id': str(uuid.uuid4()), 'type': 'REQUIRES', 'source_id':
-            str(uuid.uuid4()), 'target_id': str(uuid.uuid4()), 'properties':
-            {'strength': 0.9, 'confidence': 0.85, 'evidence_count': 5}}
+        return {
+            "id": str(uuid.uuid4()),
+            "type": "REQUIRES",
+            "source_id": str(uuid.uuid4()),
+            "target_id": str(uuid.uuid4()),
+            "properties": {"strength": 0.9, "confidence": 0.85, "evidence_count": 5},
+        }
 
     def test_node_creation(self, sample_graph_node):
         """Test creation of graph nodes with proper validation"""
-        assert sample_graph_node['id']
-        assert sample_graph_node['type'] in ['regulation', 'control',
-            'evidence', 'obligation']
-        assert sample_graph_node['properties']
-        assert sample_graph_node['metadata']
+        assert sample_graph_node["id"]
+        assert sample_graph_node["type"] in ["regulation", "control", "evidence", "obligation"]
+        assert sample_graph_node["properties"]
+        assert sample_graph_node["metadata"]
 
     def test_relationship_creation(self, sample_relationship):
         """Test creation of relationships between nodes"""
-        assert sample_relationship['id']
-        assert sample_relationship['type'] in ['REQUIRES', 'IMPLEMENTS',
-            'EVIDENCES', 'RELATES_TO']
-        assert sample_relationship['source_id']
-        assert sample_relationship['target_id']
-        assert 0 <= sample_relationship['properties']['strength'] <= 1
+        assert sample_relationship["id"]
+        assert sample_relationship["type"] in ["REQUIRES", "IMPLEMENTS", "EVIDENCES", "RELATES_TO"]
+        assert sample_relationship["source_id"]
+        assert sample_relationship["target_id"]
+        assert 0 <= sample_relationship["properties"]["strength"] <= 1
 
     def test_graph_validation(self):
         """Test graph structure validation"""
@@ -72,15 +82,16 @@ class TestRelationshipMappingAlgorithms:
     @pytest.fixture
     def sample_obligation_control_map(self):
         """Sample mapping between obligations and controls"""
-        return {'obligation_1': ['control_1', 'control_2', 'control_3'],
-            'obligation_2': ['control_2', 'control_4'], 'obligation_3': [
-            'control_5', 'control_6']}
+        return {
+            "obligation_1": ["control_1", "control_2", "control_3"],
+            "obligation_2": ["control_2", "control_4"],
+            "obligation_3": ["control_5", "control_6"],
+        }
 
     def test_direct_mapping(self, sample_obligation_control_map):
         """Test direct obligation to control mapping"""
-        assert len(sample_obligation_control_map['obligation_1']
-            ) == MAX_RETRIES
-        assert 'control_2' in sample_obligation_control_map['obligation_1']
+        assert len(sample_obligation_control_map["obligation_1"]) == MAX_RETRIES
+        assert "control_2" in sample_obligation_control_map["obligation_1"]
 
     def test_transitive_relationships(self):
         """Test transitive relationship inference"""
@@ -104,12 +115,22 @@ class TestGraphQueryPerformance:
         nodes = []
         relationships = []
         for i in range(MAX_ITEMS):
-            nodes.append({'id': f'node_{i}', 'type': 'regulation' if i % 3 ==
-                0 else 'control', 'properties': {'name': f'Item {i}'}})
+            nodes.append(
+                {
+                    "id": f"node_{i}",
+                    "type": "regulation" if i % 3 == 0 else "control",
+                    "properties": {"name": f"Item {i}"},
+                }
+            )
         for i in range(5000):
-            relationships.append({'source_id': f'node_{i % 1000}',
-                'target_id': f'node_{(i + 1) % 1000}', 'type': 'RELATES_TO'})
-        return {'nodes': nodes, 'relationships': relationships}
+            relationships.append(
+                {
+                    "source_id": f"node_{i % 1000}",
+                    "target_id": f"node_{(i + 1) % 1000}",
+                    "type": "RELATES_TO",
+                }
+            )
+        return {"nodes": nodes, "relationships": relationships}
 
     @pytest.mark.asyncio
     async def test_query_response_time(self, large_graph_dataset):
@@ -182,14 +203,14 @@ class TestMemoryManagerIntegration:
         mock = Mock()
         mock.store_conversation = AsyncMock(return_value=True)
         mock.get_relevant_memories = AsyncMock(return_value=[])
-        mock.health_check = AsyncMock(return_value={'status': 'healthy'})
+        mock.health_check = AsyncMock(return_value={"status": "healthy"})
         return mock
 
     @pytest.fixture
     def mock_graphiti_client(self):
         """Mock Graphiti client for testing"""
         mock = Mock()
-        mock.add_episode = AsyncMock(return_value={'success': True})
+        mock.add_episode = AsyncMock(return_value={"success": True})
         mock.search = AsyncMock(return_value=[])
         mock.build_indices = AsyncMock(return_value=True)
         return mock
@@ -199,13 +220,13 @@ class TestMemoryManagerIntegration:
         """Test MemoryManager class initialization"""
         assert mock_memory_manager is not None
         health = await mock_memory_manager.health_check()
-        assert health['status'] == 'healthy'
+        assert health["status"] == "healthy"
 
     @pytest.mark.asyncio
     async def test_graphiti_dependency_mocking(self, mock_graphiti_client):
         """Test mocking of Graphiti-core dependencies"""
-        result = await mock_graphiti_client.add_episode('test_episode')
-        assert result['success'] is True
+        result = await mock_graphiti_client.add_episode("test_episode")
+        assert result["success"] is True
 
     @pytest.mark.asyncio
     async def test_multi_tenant_isolation(self):
@@ -215,17 +236,20 @@ class TestMemoryManagerIntegration:
     @pytest.mark.asyncio
     async def test_memory_type_handling(self):
         """Test different memory types (EPISODIC, SEMANTIC, etc.)"""
-        memory_types = ['EPISODIC', 'SEMANTIC', 'PROCEDURAL', 'REGULATORY']
+        memory_types = ["EPISODIC", "SEMANTIC", "PROCEDURAL", "REGULATORY"]
         for _mem_type in memory_types:
             pass
 
     @pytest.mark.asyncio
     async def test_conversation_summary_storage(self, mock_memory_manager):
         """Test conversation summary storage and retrieval"""
-        summary = {'session_id': str(uuid.uuid4()), 'user_id': 'test_user',
-            'summary': 'Discussion about GDPR compliance', 'key_points': [
-            'Article 32', 'Security measures'], 'timestamp': datetime.now(
-            timezone.utc).isoformat()}
+        summary = {
+            "session_id": str(uuid.uuid4()),
+            "user_id": "test_user",
+            "summary": "Discussion about GDPR compliance",
+            "key_points": ["Article 32", "Security measures"],
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
         result = await mock_memory_manager.store_conversation(summary)
         assert result is True
 
@@ -237,15 +261,14 @@ class TestMemoryManagerIntegration:
     @pytest.mark.asyncio
     async def test_semantic_search_capabilities(self, mock_memory_manager):
         """Test semantic search in memory"""
-        query = 'GDPR data protection requirements'
+        query = "GDPR data protection requirements"
         results = await mock_memory_manager.get_relevant_memories(query)
         assert isinstance(results, list)
 
     @pytest.mark.asyncio
     async def test_fallback_mode_without_neo4j(self):
         """Test fallback mode when Neo4j is unavailable"""
-        with patch('neo4j.GraphDatabase.driver', side_effect=Exception(
-            'Connection failed')):
+        with patch("neo4j.GraphDatabase.driver", side_effect=Exception("Connection failed")):
             pass
 
 
@@ -303,5 +326,5 @@ class TestSecurityAndCompliance:
         pass
 
 
-if __name__ == '__main__':
-    pytest.main([__file__, '-v', '--asyncio-mode=auto'])
+if __name__ == "__main__":
+    pytest.main([__file__, "-v", "--asyncio-mode=auto"])

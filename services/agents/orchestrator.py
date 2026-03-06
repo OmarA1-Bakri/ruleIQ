@@ -3,6 +3,7 @@ Agent Orchestrator Service - Core orchestration logic for multi-agent system.
 
 This service manages agent lifecycles, sessions, and coordination.
 """
+
 from typing import Dict, List, Optional, Any
 from uuid import UUID, uuid4
 from datetime import datetime, timedelta
@@ -19,6 +20,7 @@ logger = logging.getLogger(__name__)
 
 class AgentStatus(Enum):
     """Agent lifecycle states."""
+
     CREATED = "created"
     ACTIVE = "active"
     SUSPENDED = "suspended"
@@ -41,7 +43,7 @@ class OrchestratorService:
         name: str,
         persona_type: str,
         capabilities: Dict[str, Any],
-        config: Optional[Dict[str, Any]] = None
+        config: Optional[Dict[str, Any]] = None,
     ) -> Agent:
         """Create and register a new agent."""
         try:
@@ -51,7 +53,7 @@ class OrchestratorService:
                 persona_type=persona_type,
                 capabilities=capabilities,
                 config=config or {},
-                is_active=True
+                is_active=True,
             )
 
             self.db.add(agent)
@@ -71,9 +73,7 @@ class OrchestratorService:
     async def activate_agent(self, agent_id: UUID) -> bool:
         """Activate an agent for use."""
         try:
-            agent = self.db.query(Agent).filter(
-                Agent.agent_id == agent_id
-            ).first()
+            agent = self.db.query(Agent).filter(Agent.agent_id == agent_id).first()
 
             if not agent:
                 logger.warning(f"Agent {agent_id} not found")
@@ -128,9 +128,7 @@ class OrchestratorService:
             await self.suspend_agent(agent_id, "Termination requested")
 
             # Mark as terminated in database
-            agent = self.db.query(Agent).filter(
-                Agent.agent_id == agent_id
-            ).first()
+            agent = self.db.query(Agent).filter(Agent.agent_id == agent_id).first()
 
             if agent:
                 agent.is_active = False
@@ -149,7 +147,7 @@ class OrchestratorService:
         self,
         agent_id: UUID,
         user_id: Optional[str] = None,
-        initial_context: Optional[Dict[str, Any]] = None
+        initial_context: Optional[Dict[str, Any]] = None,
     ) -> AgentSession:
         """Create a new agent session."""
         try:
@@ -163,7 +161,7 @@ class OrchestratorService:
                 started_at=datetime.utcnow(),
                 context=initial_context or {},
                 session_metadata={},
-                trust_level=TrustLevel.L0_OBSERVED
+                trust_level=TrustLevel.L0_OBSERVED,
             )
 
             self.db.add(session)
@@ -224,9 +222,7 @@ class OrchestratorService:
     async def get_agent_metrics(self, agent_id: UUID) -> Dict[str, Any]:
         """Get performance metrics for an agent."""
         try:
-            sessions = self.db.query(AgentSession).filter(
-                AgentSession.agent_id == agent_id
-            ).all()
+            sessions = self.db.query(AgentSession).filter(AgentSession.agent_id == agent_id).all()
 
             total_sessions = len(sessions)
             active_sessions = len([s for s in sessions if s.ended_at is None])
@@ -247,7 +243,7 @@ class OrchestratorService:
                 "total_sessions": total_sessions,
                 "active_sessions": active_sessions,
                 "avg_session_duration_seconds": avg_session_duration,
-                "is_active": agent_id in self.agent_registry
+                "is_active": agent_id in self.agent_registry,
             }
 
         except SQLAlchemyError as e:

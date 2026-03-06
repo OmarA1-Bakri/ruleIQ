@@ -42,4 +42,4 @@ router.include_router(analytics_router)
 router.include_router(iq_agent_router)
 router.include_router(placeholder_router)
 
-__all__ = ['router']
+__all__ = ["router"]

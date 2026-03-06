@@ -4,8 +4,17 @@ from typing import Dict, Any
 from uuid import uuid4
 
 from sqlalchemy import (
-    Column, String, Boolean, Integer, Text, ForeignKey, Float,
-    DECIMAL, CheckConstraint, TIMESTAMP, Index
+    Column,
+    String,
+    Boolean,
+    Integer,
+    Text,
+    ForeignKey,
+    Float,
+    DECIMAL,
+    CheckConstraint,
+    TIMESTAMP,
+    Index,
 )
 from sqlalchemy.dialects.postgresql import UUID, JSONB, ARRAY, INET
 from sqlalchemy.ext.declarative import declarative_base
@@ -18,6 +27,7 @@ Base = declarative_base()
 
 class SchemaVersion(Base):
     """Track database schema versions."""
+
     __tablename__ = "schema_versions"
 
     version_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
@@ -30,6 +40,7 @@ class SchemaVersion(Base):
 
 class Agent(Base):
     """AI Agent configuration and metadata."""
+
     __tablename__ = "agents"
 
     agent_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
@@ -38,20 +49,26 @@ class Agent(Base):
     capabilities = Column(JSONB, nullable=False)
     config = Column(JSONB)
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.current_timestamp())
-    updated_at = Column(TIMESTAMP(timezone=True), server_default=func.current_timestamp(), onupdate=func.current_timestamp())
+    updated_at = Column(
+        TIMESTAMP(timezone=True),
+        server_default=func.current_timestamp(),
+        onupdate=func.current_timestamp(),
+    )
     is_active = Column(Boolean, default=True)
     version = Column(Integer, default=1, nullable=False)
 
     # Relationships
     sessions = relationship("AgentSession", back_populates="agent", cascade="all, delete-orphan")
-    knowledge_items = relationship("AgentKnowledge", back_populates="agent", cascade="all, delete-orphan")
+    knowledge_items = relationship(
+        "AgentKnowledge", back_populates="agent", cascade="all, delete-orphan"
+    )
     audit_logs = relationship("AgentAuditLog", back_populates="agent")
 
     # Constraints
     __table_args__ = (
         CheckConstraint(
             "persona_type IN ('developer', 'qa', 'architect', 'security', 'compliance', 'documentation', 'orchestrator')",
-            name="check_valid_persona_type"
+            name="check_valid_persona_type",
         ),
     )
 
@@ -65,37 +82,49 @@ class Agent(Base):
             "config": self.config,
             "is_active": self.is_active,
             "created_at": self.created_at.isoformat() if self.created_at else None,
-            "updated_at": self.updated_at.isoformat() if self.updated_at else None
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }
 
 
 class AgentSession(Base):
     """Agent interaction sessions with users."""
+
     __tablename__ = "agent_sessions"
 
     session_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    agent_id = Column(UUID(as_uuid=True), ForeignKey("agents.agent_id", ondelete="CASCADE"), nullable=False)
+    agent_id = Column(
+        UUID(as_uuid=True), ForeignKey("agents.agent_id", ondelete="CASCADE"), nullable=False
+    )
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.user_id", ondelete="SET NULL"))
     trust_level = Column(Integer, default=0)
     context = Column(JSONB)
     started_at = Column(TIMESTAMP(timezone=True), server_default=func.current_timestamp())
     ended_at = Column(TIMESTAMP(timezone=True))
     session_state = Column(String(20), default="active")
-    session_metadata = Column('metadata', JSONB)  # Map to 'metadata' column in DB
+    session_metadata = Column("metadata", JSONB)  # Map to 'metadata' column in DB
     version = Column(Integer, default=1, nullable=False)
 
     # Relationships
     agent = relationship("Agent", back_populates="sessions")
     user = relationship("User", backref="agent_sessions")
-    decisions = relationship("AgentDecision", back_populates="session", cascade="all, delete-orphan")
-    trust_metrics = relationship("TrustMetric", back_populates="session", cascade="all, delete-orphan")
-    messages = relationship("ConversationHistory", back_populates="session", cascade="all, delete-orphan")
+    decisions = relationship(
+        "AgentDecision", back_populates="session", cascade="all, delete-orphan"
+    )
+    trust_metrics = relationship(
+        "TrustMetric", back_populates="session", cascade="all, delete-orphan"
+    )
+    messages = relationship(
+        "ConversationHistory", back_populates="session", cascade="all, delete-orphan"
+    )
     audit_logs = relationship("AgentAuditLog", back_populates="session")
 
     # Constraints
     __table_args__ = (
         CheckConstraint("trust_level >= 0 AND trust_level <= 4", name="check_trust_level_range"),
-        CheckConstraint("session_state IN ('active', 'paused', 'completed', 'terminated')", name="check_session_state"),
+        CheckConstraint(
+            "session_state IN ('active', 'paused', 'completed', 'terminated')",
+            name="check_session_state",
+        ),
     )
 
     def to_dict(self) -> Dict[str, Any]:
@@ -109,19 +138,30 @@ class AgentSession(Base):
             "session_state": self.session_state,
             "started_at": self.started_at.isoformat() if self.started_at else None,
             "ended_at": self.ended_at.isoformat() if self.ended_at else None,
-            "metadata": self.session_metadata
+            "metadata": self.session_metadata,
         }
+
+
 class SessionContext(Base):
     """Agent session context."""
+
     __tablename__ = "session_contexts"
 
     context_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    session_id = Column(UUID(as_uuid=True), ForeignKey("agent_sessions.session_id", ondelete="CASCADE"), nullable=False)
+    session_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("agent_sessions.session_id", ondelete="CASCADE"),
+        nullable=False,
+    )
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.user_id", ondelete="SET NULL"))
     current_task = Column(Text)
     context_data = Column(JSONB, nullable=False, default=dict)
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.current_timestamp())
-    updated_at = Column(TIMESTAMP(timezone=True), server_default=func.current_timestamp(), onupdate=func.current_timestamp())
+    updated_at = Column(
+        TIMESTAMP(timezone=True),
+        server_default=func.current_timestamp(),
+        onupdate=func.current_timestamp(),
+    )
 
     # Relationships
     session = relationship("AgentSession", backref="contexts")
@@ -135,17 +175,21 @@ class SessionContext(Base):
             "current_task": self.current_task,
             "context_data": self.context_data,
             "created_at": self.created_at.isoformat() if self.created_at else None,
-            "updated_at": self.updated_at.isoformat() if self.updated_at else None
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }
-
 
 
 class AgentDecision(Base):
     """Agent decisions and actions taken."""
+
     __tablename__ = "agent_decisions"
 
     decision_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    session_id = Column(UUID(as_uuid=True), ForeignKey("agent_sessions.session_id", ondelete="CASCADE"), nullable=False)
+    session_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("agent_sessions.session_id", ondelete="CASCADE"),
+        nullable=False,
+    )
     decision_type = Column(String(50), nullable=False)
     input_context = Column(JSONB, nullable=False)
     decision_rationale = Column(Text)
@@ -160,11 +204,16 @@ class AgentDecision(Base):
 
     # Constraints
     __table_args__ = (
-        CheckConstraint("confidence_score >= 0 AND confidence_score <= 1", name="check_confidence_score_range"),
-        CheckConstraint("user_feedback IN ('approved', 'rejected', 'modified', 'pending')", name="check_user_feedback"),
+        CheckConstraint(
+            "confidence_score >= 0 AND confidence_score <= 1", name="check_confidence_score_range"
+        ),
+        CheckConstraint(
+            "user_feedback IN ('approved', 'rejected', 'modified', 'pending')",
+            name="check_user_feedback",
+        ),
         CheckConstraint(
             "decision_type IN ('code_generation', 'review', 'test', 'refactor', 'design', 'documentation', 'security_check')",
-            name="check_decision_type"
+            name="check_decision_type",
         ),
     )
 
@@ -180,16 +229,21 @@ class AgentDecision(Base):
             "confidence_score": float(self.confidence_score) if self.confidence_score else None,
             "user_feedback": self.user_feedback,
             "created_at": self.created_at.isoformat() if self.created_at else None,
-            "execution_time_ms": self.execution_time_ms
+            "execution_time_ms": self.execution_time_ms,
         }
 
 
 class TrustMetric(Base):
     """Trust metrics for agent performance."""
+
     __tablename__ = "trust_metrics"
 
     metric_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    session_id = Column(UUID(as_uuid=True), ForeignKey("agent_sessions.session_id", ondelete="CASCADE"), nullable=False)
+    session_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("agent_sessions.session_id", ondelete="CASCADE"),
+        nullable=False,
+    )
     metric_type = Column(String(50), nullable=False)
     metric_value = Column(DECIMAL(5, 2), nullable=False)
     measurement_context = Column(JSONB)
@@ -200,14 +254,20 @@ class TrustMetric(Base):
 
     # Constraints
     __table_args__ = (
-        CheckConstraint("metric_type IN ('accuracy', 'autonomy', 'complexity', 'reliability', 'efficiency')", name="check_metric_type"),
-        CheckConstraint("""
+        CheckConstraint(
+            "metric_type IN ('accuracy', 'autonomy', 'complexity', 'reliability', 'efficiency')",
+            name="check_metric_type",
+        ),
+        CheckConstraint(
+            """
             (metric_type = 'accuracy' AND metric_value >= 0 AND metric_value <= 100) OR
             (metric_type = 'autonomy' AND metric_value >= 0 AND metric_value <= 100) OR
             (metric_type = 'complexity' AND metric_value >= 0 AND metric_value <= 10) OR
             (metric_type = 'reliability' AND metric_value >= 0 AND metric_value <= 100) OR
             (metric_type = 'efficiency' AND metric_value >= 0 AND metric_value <= 100)
-        """, name="check_metric_value_ranges"),
+        """,
+            name="check_metric_value_ranges",
+        ),
     )
 
     def to_dict(self) -> Dict[str, Any]:
@@ -218,16 +278,19 @@ class TrustMetric(Base):
             "metric_type": self.metric_type,
             "metric_value": float(self.metric_value),
             "measurement_context": self.measurement_context,
-            "recorded_at": self.recorded_at.isoformat() if self.recorded_at else None
+            "recorded_at": self.recorded_at.isoformat() if self.recorded_at else None,
         }
 
 
 class AgentKnowledge(Base):
     """Agent knowledge base and patterns."""
+
     __tablename__ = "agent_knowledge"
 
     knowledge_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    agent_id = Column(UUID(as_uuid=True), ForeignKey("agents.agent_id", ondelete="CASCADE"), nullable=False)
+    agent_id = Column(
+        UUID(as_uuid=True), ForeignKey("agents.agent_id", ondelete="CASCADE"), nullable=False
+    )
     knowledge_type = Column(String(50), nullable=False)
     domain = Column(String(100), nullable=False)
     content = Column(JSONB, nullable=False)
@@ -242,8 +305,14 @@ class AgentKnowledge(Base):
 
     # Constraints
     __table_args__ = (
-        CheckConstraint("knowledge_type IN ('pattern', 'solution', 'preference', 'constraint', 'example')", name="check_knowledge_type"),
-        CheckConstraint("domain IN ('frontend', 'backend', 'testing', 'security', 'infrastructure', 'documentation')", name="check_domain"),
+        CheckConstraint(
+            "knowledge_type IN ('pattern', 'solution', 'preference', 'constraint', 'example')",
+            name="check_knowledge_type",
+        ),
+        CheckConstraint(
+            "domain IN ('frontend', 'backend', 'testing', 'security', 'infrastructure', 'documentation')",
+            name="check_domain",
+        ),
         CheckConstraint("success_rate >= 0 AND success_rate <= 1", name="check_success_rate_range"),
     )
 
@@ -258,32 +327,44 @@ class AgentKnowledge(Base):
             "usage_count": self.usage_count,
             "success_rate": float(self.success_rate) if self.success_rate else None,
             "created_at": self.created_at.isoformat() if self.created_at else None,
-            "last_used_at": self.last_used_at.isoformat() if self.last_used_at else None
+            "last_used_at": self.last_used_at.isoformat() if self.last_used_at else None,
         }
 
 
 class ConversationHistory(Base):
     """Conversation history between users and agents."""
+
     __tablename__ = "conversation_history"
 
     message_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    session_id = Column(UUID(as_uuid=True), ForeignKey("agent_sessions.session_id", ondelete="CASCADE"), nullable=False)
+    session_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("agent_sessions.session_id", ondelete="CASCADE"),
+        nullable=False,
+    )
     role = Column(String(20), nullable=False)
     content = Column(Text, nullable=False)
     message_type = Column(String(30))
-    parent_message_id = Column(UUID(as_uuid=True), ForeignKey("conversation_history.message_id", ondelete="SET NULL"))
+    parent_message_id = Column(
+        UUID(as_uuid=True), ForeignKey("conversation_history.message_id", ondelete="SET NULL")
+    )
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.current_timestamp())
     tokens_used = Column(Integer)
     model_used = Column(String(50))
 
     # Relationships
     session = relationship("AgentSession", back_populates="messages")
-    parent_message = relationship("ConversationHistory", remote_side=[message_id], backref="replies")
+    parent_message = relationship(
+        "ConversationHistory", remote_side=[message_id], backref="replies"
+    )
 
     # Constraints
     __table_args__ = (
         CheckConstraint("role IN ('user', 'agent', 'system', 'tool')", name="check_role"),
-        CheckConstraint("message_type IN ('text', 'code', 'command', 'file', 'error', 'warning', 'info')", name="check_message_type"),
+        CheckConstraint(
+            "message_type IN ('text', 'code', 'command', 'file', 'error', 'warning', 'info')",
+            name="check_message_type",
+        ),
     )
 
     def to_dict(self) -> Dict[str, Any]:
@@ -297,28 +378,33 @@ class ConversationHistory(Base):
             "parent_message_id": str(self.parent_message_id) if self.parent_message_id else None,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "tokens_used": self.tokens_used,
-            "model_used": self.model_used
+            "model_used": self.model_used,
         }
 
 
 class AgentState(Base):
     """Agent state persistence."""
+
     __tablename__ = "agent_states"
 
     state_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    agent_id = Column(UUID(as_uuid=True), ForeignKey("agents.agent_id", ondelete="CASCADE"), nullable=False)
+    agent_id = Column(
+        UUID(as_uuid=True), ForeignKey("agents.agent_id", ondelete="CASCADE"), nullable=False
+    )
     state_data = Column(JSONB, nullable=False)
     version = Column(Integer, default=1, nullable=False)
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.current_timestamp())
-    updated_at = Column(TIMESTAMP(timezone=True), server_default=func.current_timestamp(), onupdate=func.current_timestamp())
+    updated_at = Column(
+        TIMESTAMP(timezone=True),
+        server_default=func.current_timestamp(),
+        onupdate=func.current_timestamp(),
+    )
 
     # Relationships
     agent = relationship("Agent", backref="states")
 
     # Indexes
-    __table_args__ = (
-        Index('idx_agent_state_agent_version', 'agent_id', 'version'),
-    )
+    __table_args__ = (Index("idx_agent_state_agent_version", "agent_id", "version"),)
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert model to dictionary."""
@@ -328,16 +414,22 @@ class AgentState(Base):
             "state_data": self.state_data,
             "version": self.version,
             "created_at": self.created_at.isoformat() if self.created_at else None,
-            "updated_at": self.updated_at.isoformat() if self.updated_at else None
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }
+
 
 class AgentAuditLog(Base):
     """Audit log for agent actions."""
+
     __tablename__ = "agent_audit_log"
 
     audit_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    agent_id = Column(UUID(as_uuid=True), ForeignKey("agents.agent_id", ondelete="RESTRICT"), nullable=False)
-    session_id = Column(UUID(as_uuid=True), ForeignKey("agent_sessions.session_id", ondelete="SET NULL"))
+    agent_id = Column(
+        UUID(as_uuid=True), ForeignKey("agents.agent_id", ondelete="RESTRICT"), nullable=False
+    )
+    session_id = Column(
+        UUID(as_uuid=True), ForeignKey("agent_sessions.session_id", ondelete="SET NULL")
+    )
     action_type = Column(String(50), nullable=False)
     action_details = Column(JSONB, nullable=False)
     risk_level = Column(String(20))
@@ -353,7 +445,9 @@ class AgentAuditLog(Base):
 
     # Constraints
     __table_args__ = (
-        CheckConstraint("risk_level IN ('low', 'medium', 'high', 'critical')", name="check_risk_level"),
+        CheckConstraint(
+            "risk_level IN ('low', 'medium', 'high', 'critical')", name="check_risk_level"
+        ),
     )
 
     def to_dict(self) -> Dict[str, Any]:
@@ -368,5 +462,5 @@ class AgentAuditLog(Base):
             "user_id": str(self.user_id) if self.user_id else None,
             "timestamp": self.timestamp.isoformat() if self.timestamp else None,
             "ip_address": str(self.ip_address) if self.ip_address else None,
-            "user_agent": self.user_agent
+            "user_agent": self.user_agent,
         }

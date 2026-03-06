@@ -1,6 +1,5 @@
 """Add RBAC system database schema
 
-from __future__ import annotations
 
 Revision ID: 8b656f197a19
 Revises: b8a4b53d1de0
@@ -10,7 +9,6 @@ Create Date: 2025-07-25 03:32:39.337401
 
 from alembic import op
 import sqlalchemy as sa
-
 
 
 # Constants for commonly used strings
@@ -142,9 +140,7 @@ def upgrade() -> None:
             [USER_ID_FIELD], [USER_ID_COLUMN], name=op.f("fk_user_sessions_user_id_users")
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_user_sessions")),
-        sa.UniqueConstraint(
-            "session_token", name=op.f("uq_user_sessions_session_token")
-        ),
+        sa.UniqueConstraint("session_token", name=op.f("uq_user_sessions_session_token")),
     )
     op.create_table(
         "audit_logs",
@@ -180,9 +176,7 @@ def upgrade() -> None:
         sa.Column("business_profile_id", sa.UUID(), nullable=True),
         sa.Column(
             "access_type",
-            sa.Enum(
-                "own_data", "organization_data", "all_data", name="data_access_enum"
-            ),
+            sa.Enum("own_data", "organization_data", "all_data", name="data_access_enum"),
             nullable=False,
         ),
         sa.Column("granted_at", sa.DateTime(), nullable=True),

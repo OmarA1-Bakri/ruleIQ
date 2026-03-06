@@ -1,6 +1,5 @@
 """Add check constraint to compliance_frameworks
 
-from __future__ import annotations
 
 Revision ID: 802adb6d1be8
 Revises: cdd9337435cf
@@ -28,45 +27,27 @@ def upgrade() -> None:
         sa.Column("display_name", sa.String(), nullable=False),
         sa.Column("description", sa.Text(), nullable=False),
         sa.Column("category", sa.String(), nullable=False),
-        sa.Column(
-            "applicable_indu", postgresql.JSONB(astext_type=sa.Text()), nullable=True
-        ),
+        sa.Column("applicable_indu", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
         sa.Column("employee_thresh", sa.Integer(), nullable=True),
         sa.Column("revenue_thresho", sa.String(), nullable=True),
-        sa.Column(
-            "geographic_scop", postgresql.JSONB(astext_type=sa.Text()), nullable=True
-        ),
-        sa.Column(
-            "key_requirement", postgresql.JSONB(astext_type=sa.Text()), nullable=True
-        ),
-        sa.Column(
-            "control_domains", postgresql.JSONB(astext_type=sa.Text()), nullable=True
-        ),
-        sa.Column(
-            "evidence_types", postgresql.JSONB(astext_type=sa.Text()), nullable=True
-        ),
-        sa.Column(
-            "relevance_facto", postgresql.JSONB(astext_type=sa.Text()), nullable=True
-        ),
+        sa.Column("geographic_scop", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
+        sa.Column("key_requirement", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
+        sa.Column("control_domains", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
+        sa.Column("evidence_types", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
+        sa.Column("relevance_facto", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
         sa.Column("complexity_scor", sa.Integer(), nullable=True),
         sa.Column("implementation_", sa.Integer(), nullable=True),
         sa.Column("estimated_cost_", sa.String(), nullable=True),
         sa.Column("policy_template", sa.Text(), nullable=True),
-        sa.Column(
-            "control_templat", postgresql.JSONB(astext_type=sa.Text()), nullable=True
-        ),
-        sa.Column(
-            "evidence_templa", postgresql.JSONB(astext_type=sa.Text()), nullable=True
-        ),
+        sa.Column("control_templat", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
+        sa.Column("evidence_templa", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
         sa.Column("is_active", sa.Boolean(), nullable=True),
         sa.Column("version", sa.String(), nullable=True),
         sa.Column("created_at", sa.DateTime(), nullable=True),
         sa.Column("updated_at", sa.DateTime(), nullable=True),
         sa.CheckConstraint(
             "version ~ '^[0-9]+\\.[0-9]+(\\.[0-9]+)?$'",
-            name=op.f(
-                "ck_compliance_frameworks_ck_compliance_frameworks_version_format"
-            ),
+            name=op.f("ck_compliance_frameworks_ck_compliance_frameworks_version_format"),
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_compliance_frameworks")),
         sa.UniqueConstraint("name", name=op.f("uq_compliance_frameworks_name")),
@@ -97,27 +78,19 @@ def upgrade() -> None:
         sa.Column("provides_financial_services", sa.Boolean(), nullable=False),
         sa.Column("operates_critical_infrastructure", sa.Boolean(), nullable=False),
         sa.Column("has_international_operations", sa.Boolean(), nullable=False),
-        sa.Column(
-            "cloud_providers", postgresql.JSONB(astext_type=sa.Text()), nullable=True
-        ),
+        sa.Column("cloud_providers", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
         sa.Column("saas_tools", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
-        sa.Column(
-            "development_tools", postgresql.JSONB(astext_type=sa.Text()), nullable=True
-        ),
+        sa.Column("development_tools", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
         sa.Column(
             "existing_frameworks",
             postgresql.JSONB(astext_type=sa.Text()),
             nullable=True,
         ),
-        sa.Column(
-            "planned_frameworks", postgresql.JSONB(astext_type=sa.Text()), nullable=True
-        ),
+        sa.Column("planned_frameworks", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
         sa.Column("compliance_budget", sa.String(), nullable=True),
         sa.Column("compliance_timeline", sa.String(), nullable=True),
         sa.Column("assessment_completed", sa.Boolean(), nullable=True),
-        sa.Column(
-            "assessment_data", postgresql.JSONB(astext_type=sa.Text()), nullable=True
-        ),
+        sa.Column("assessment_data", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
         sa.Column("created_at", sa.DateTime(), nullable=True),
         sa.Column("updated_at", sa.DateTime(), nullable=True),
         sa.ForeignKeyConstraint(
@@ -144,15 +117,9 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id", name=op.f("pk_integrations")),
         sa.UniqueConstraint("user_id", "provider", name="unique_user_provider"),
     )
-    op.create_index(
-        "idx_provider_active", "integrations", ["provider", "is_active"], unique=False
-    )
-    op.create_index(
-        "idx_user_active", "integrations", ["user_id", "is_active"], unique=False
-    )
-    op.create_index(
-        "idx_user_provider", "integrations", ["user_id", "provider"], unique=False
-    )
+    op.create_index("idx_provider_active", "integrations", ["provider", "is_active"], unique=False)
+    op.create_index("idx_user_active", "integrations", ["user_id", "is_active"], unique=False)
+    op.create_index("idx_user_provider", "integrations", ["user_id", "provider"], unique=False)
     op.create_table(
         "assessment_sessions",
         sa.Column("id", sa.UUID(), nullable=False),
@@ -165,12 +132,8 @@ def upgrade() -> None:
         sa.Column("questions_answered", sa.Integer(), nullable=True),
         sa.Column("total_questions", sa.Integer(), nullable=True),
         sa.Column("responses", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
-        sa.Column(
-            "calculated_scores", postgresql.JSONB(astext_type=sa.Text()), nullable=True
-        ),
-        sa.Column(
-            "recommendations", postgresql.JSONB(astext_type=sa.Text()), nullable=True
-        ),
+        sa.Column("calculated_scores", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
+        sa.Column("recommendations", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
         sa.Column("started_at", sa.DateTime(), nullable=True),
         sa.Column("last_activity", sa.DateTime(), nullable=True),
         sa.Column("completed_at", sa.DateTime(), nullable=True),
@@ -179,9 +142,7 @@ def upgrade() -> None:
             postgresql.JSONB(astext_type=sa.Text()),
             nullable=True,
         ),
-        sa.Column(
-            "priority_order", postgresql.JSONB(astext_type=sa.Text()), nullable=True
-        ),
+        sa.Column("priority_order", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
         sa.Column("next_steps", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
         sa.Column("created_at", sa.DateTime(), nullable=True),
         sa.Column("updated_at", sa.DateTime(), nullable=True),
@@ -231,9 +192,7 @@ def upgrade() -> None:
         sa.Column("tags", sa.JSON(), nullable=True),
         sa.Column("file_path", sa.String(length=255), nullable=True),
         sa.Column("status", sa.String(length=20), nullable=True),
-        sa.Column(
-            "ai_metadata", postgresql.JSONB(astext_type=sa.Text()), nullable=True
-        ),
+        sa.Column("ai_metadata", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
         sa.Column("created_at", sa.DateTime(), nullable=True),
         sa.Column("updated_at", sa.DateTime(), nullable=True),
         sa.ForeignKeyConstraint(
@@ -246,9 +205,7 @@ def upgrade() -> None:
             ["compliance_frameworks.id"],
             name=op.f("fk_evidence_framework_id_compliance_frameworks"),
         ),
-        sa.ForeignKeyConstraint(
-            ["user_id"], ["users.id"], name=op.f("fk_evidence_user_id_users")
-        ),
+        sa.ForeignKeyConstraint(["user_id"], ["users.id"], name=op.f("fk_evidence_user_id_users")),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_evidence")),
     )
     op.create_table(
@@ -283,9 +240,7 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_evidence_collections")),
     )
-    op.create_index(
-        "idx_collection_created", "evidence_collections", ["created_at"], unique=False
-    )
+    op.create_index("idx_collection_created", "evidence_collections", ["created_at"], unique=False)
     op.create_index(
         "idx_collection_framework",
         "evidence_collections",
@@ -298,12 +253,8 @@ def upgrade() -> None:
         ["integration_id"],
         unique=False,
     )
-    op.create_index(
-        "idx_collection_status", "evidence_collections", ["status"], unique=False
-    )
-    op.create_index(
-        "idx_collection_user", "evidence_collections", ["user_id"], unique=False
-    )
+    op.create_index("idx_collection_status", "evidence_collections", ["status"], unique=False)
+    op.create_index("idx_collection_user", "evidence_collections", ["user_id"], unique=False)
     op.create_table(
         "evidence_items",
         sa.Column("id", sa.UUID(), nullable=False),
@@ -335,9 +286,7 @@ def upgrade() -> None:
         sa.Column("effort_estimate", sa.String(), nullable=True),
         sa.Column("audit_section", sa.String(), nullable=True),
         sa.Column("compliance_score_impact", sa.Float(), nullable=True),
-        sa.Column(
-            "ai_metadata", postgresql.JSONB(astext_type=sa.Text()), nullable=True
-        ),
+        sa.Column("ai_metadata", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
         sa.Column("created_at", sa.DateTime(), nullable=True),
         sa.Column("updated_at", sa.DateTime(), nullable=True),
         sa.ForeignKeyConstraint(
@@ -376,9 +325,7 @@ def upgrade() -> None:
         ),
         sa.Column("sections", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
         sa.Column("controls", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
-        sa.Column(
-            "responsibilities", postgresql.JSONB(astext_type=sa.Text()), nullable=True
-        ),
+        sa.Column("responsibilities", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
         sa.Column("word_count", sa.Integer(), nullable=True),
         sa.Column("estimated_reading_time", sa.Integer(), nullable=True),
         sa.Column("compliance_coverage", sa.Float(), nullable=True),
@@ -452,18 +399,14 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_integration_health_logs")),
     )
-    op.create_index(
-        "idx_health_checked", "integration_health_logs", ["checked_at"], unique=False
-    )
+    op.create_index("idx_health_checked", "integration_health_logs", ["checked_at"], unique=False)
     op.create_index(
         "idx_health_integration",
         "integration_health_logs",
         ["integration_id"],
         unique=False,
     )
-    op.create_index(
-        "idx_health_status", "integration_health_logs", ["status"], unique=False
-    )
+    op.create_index("idx_health_status", "integration_health_logs", ["status"], unique=False)
     op.create_table(
         "policies",
         sa.Column("id", sa.UUID(), nullable=False),
@@ -480,9 +423,7 @@ def upgrade() -> None:
             ["business_profiles.id"],
             name=op.f("fk_policies_business_profile_id_business_profiles"),
         ),
-        sa.ForeignKeyConstraint(
-            ["user_id"], ["users.id"], name=op.f("fk_policies_user_id_users")
-        ),
+        sa.ForeignKeyConstraint(["user_id"], ["users.id"], name=op.f("fk_policies_user_id_users")),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_policies")),
     )
     op.create_table(
@@ -595,9 +536,7 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(
             ["collection_id"],
             ["evidence_collections.id"],
-            name=op.f(
-                "fk_integration_evidence_items_collection_id_evidence_collections"
-            ),
+            name=op.f("fk_integration_evidence_items_collection_id_evidence_collections"),
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_integration_evidence_items")),
     )
@@ -661,9 +600,7 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(
             ["evidence_item_id"],
             ["integration_evidence_items.id"],
-            name=op.f(
-                "fk_evidence_audit_logs_evidence_item_id_integration_evidence_items"
-            ),
+            name=op.f("fk_evidence_audit_logs_evidence_item_id_integration_evidence_items"),
         ),
         sa.ForeignKeyConstraint(
             ["integration_id"],
@@ -676,18 +613,14 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id", name=op.f("pk_evidence_audit_logs")),
     )
     op.create_index("idx_audit_action", "evidence_audit_logs", ["action"], unique=False)
-    op.create_index(
-        "idx_audit_request", "evidence_audit_logs", ["request_id"], unique=False
-    )
+    op.create_index("idx_audit_request", "evidence_audit_logs", ["request_id"], unique=False)
     op.create_index(
         "idx_audit_resource",
         "evidence_audit_logs",
         ["resource_type", "resource_id"],
         unique=False,
     )
-    op.create_index(
-        "idx_audit_timestamp", "evidence_audit_logs", ["timestamp"], unique=False
-    )
+    op.create_index("idx_audit_timestamp", "evidence_audit_logs", ["timestamp"], unique=False)
     op.create_index("idx_audit_user", "evidence_audit_logs", ["user_id"], unique=False)
     # ### end Alembic commands ###
 

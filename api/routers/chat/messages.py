@@ -25,7 +25,11 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.post("/conversations/{conversation_id}/messages", response_model=MessageResponse, dependencies=[Depends(validate_request)])
+@router.post(
+    "/conversations/{conversation_id}/messages",
+    response_model=MessageResponse,
+    dependencies=[Depends(validate_request)],
+)
 async def send_message(
     conversation_id: UUID,
     request: SendMessageRequest,
@@ -37,7 +41,9 @@ async def send_message(
         from sqlalchemy import desc, select
 
         # Sanitize message content
-        request.message = SecurityValidator.validate_no_dangerous_content(request.message, "message")
+        request.message = SecurityValidator.validate_no_dangerous_content(
+            request.message, "message"
+        )
 
         # Verify conversation exists and belongs to user
         conv_stmt = select(ChatConversation).where(

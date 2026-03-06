@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 Compliance check nodes - migrated from Celery compliance_tasks.
 Implements compliance checking against regulations and requirements.
@@ -58,9 +57,7 @@ async def compliance_check_node(
 
     try:
         # Extract requirements from RAG documents
-        requirements = extract_requirements_from_rag(
-            state.get("relevant_documents", [])
-        )
+        requirements = extract_requirements_from_rag(state.get("relevant_documents", []))
 
         # Check compliance status
         compliance_status = await check_compliance_status(
@@ -76,9 +73,7 @@ async def compliance_check_node(
 
         # Calculate compliance score
         if compliance_status.get("obligations"):
-            satisfied = len(
-                [o for o in compliance_status["obligations"] if o["satisfied"]]
-            )
+            satisfied = len([o for o in compliance_status["obligations"] if o["satisfied"]])
             total = len(compliance_status["obligations"])
             compliance_score = (satisfied / total * 100) if total > 0 else 0
             state["compliance_data"]["compliance_score"] = compliance_score
@@ -90,9 +85,7 @@ async def compliance_check_node(
             state["metadata"]["notify_type"] = "violation"
             state["metadata"]["violation_count"] = len(violations)
 
-            logger.warning(
-                f"Found {len(violations)} compliance violations for {company_id}"
-            )
+            logger.warning(f"Found {len(violations)} compliance violations for {company_id}")
         else:
             logger.info(f"No compliance violations found for {company_id}")
 
@@ -155,9 +148,7 @@ def extract_requirements_from_rag(
                 }
             )
 
-    logger.info(
-        f"Extracted {len(requirements)} requirements from {len(documents)} documents"
-    )
+    logger.info(f"Extracted {len(requirements)} requirements from {len(documents)} documents")
 
     return requirements
 
@@ -237,9 +228,7 @@ async def check_compliance_status(
         total_obligations = len(obligations)
         satisfied_obligations = len([o for o in obligations if o["satisfied"]])
         compliance_score = (
-            (satisfied_obligations / total_obligations * 100)
-            if total_obligations > 0
-            else 100
+            (satisfied_obligations / total_obligations * 100) if total_obligations > 0 else 100
         )
 
         logger.info(
@@ -287,9 +276,7 @@ async def assess_compliance_risk(
     Returns:
         Updated state with risk assessment
     """
-    violations = (
-        state.get("compliance_data", {}).get("check_results", {}).get("violations", [])
-    )
+    violations = state.get("compliance_data", {}).get("check_results", {}).get("violations", [])
 
     # Simple risk scoring
     risk_score = 0

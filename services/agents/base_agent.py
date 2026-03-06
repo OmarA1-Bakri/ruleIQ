@@ -23,11 +23,7 @@ class BaseAgent(ABC):
 
     @abstractmethod
     async def suggest_action(
-        self,
-        action_type: str,
-        description: str,
-        rationale: str,
-        **kwargs
+        self, action_type: str, description: str, rationale: str, **kwargs
     ) -> Any:
         """Suggest an action for approval."""
         pass

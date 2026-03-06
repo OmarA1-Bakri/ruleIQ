@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 Core agent architecture with LangGraph state machine and multi-agent coordination.
 Production-ready implementation with streaming, context optimization, and error handling.
@@ -67,9 +66,7 @@ class AgentConfig:
     streaming_enabled: bool = True
 
     # Cost management
-    max_cost_per_session: float = (
-        COST_LIMITS["max_per_1k_tokens"] * 50
-    )  # $17.50 per session
+    max_cost_per_session: float = COST_LIMITS["max_per_1k_tokens"] * 50  # $17.50 per session
     cost_tracking_enabled: bool = True
 
     # Memory configuration
@@ -541,9 +538,7 @@ class ComplianceAgent:
         logger.info(f"Interrupted session {session_id}: {reason}")
         return True
 
-    async def resume_session(
-        self, session_id: str, human_input: Optional[str] = None
-    ) -> bool:
+    async def resume_session(self, session_id: str, human_input: Optional[str] = None) -> bool:
         """
         Resume an interrupted session.
 

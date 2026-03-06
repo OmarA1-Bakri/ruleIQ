@@ -24,10 +24,7 @@ async def test_rag_processing():
     print("=" * 50)
 
     # Check if OpenAI API key is set
-    if (
-        not os.getenv("OPENAI_API_KEY")
-        or os.getenv("OPENAI_API_KEY") == "your-openai-api-key"
-    ):
+    if not os.getenv("OPENAI_API_KEY") or os.getenv("OPENAI_API_KEY") == "your-openai-api-key":
         print("⚠️  OpenAI API key not set - skipping embedding tests")
         print("✅ Basic Supabase connection test passed")
         return True
@@ -101,7 +98,9 @@ This enables automatic state persistence between workflow runs.
         # Test querying
         print("\n🔍 Testing RAG query...")
         response = await rag_system.query_documentation(
-            "How do I set up state in LangGraph?", source_filter="test", max_results=2,
+            "How do I set up state in LangGraph?",
+            source_filter="test",
+            max_results=2,
         )
 
         print("💬 Query response:")

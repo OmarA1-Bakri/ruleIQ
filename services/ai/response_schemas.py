@@ -30,6 +30,8 @@ class PriorityLevel(str, Enum):
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
+
+
 #     URGENT = "urgent"  # Unused variable
 
 
@@ -39,21 +41,26 @@ class ConfidenceLevel(str, Enum):
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
+
+
 #     VERY_HIGH = "very_high"  # Unused variable
 
 
 class ImplementationEffort(str, Enum):
     """Implementation effort estimates."""
 
-#     MINIMAL = "minimal"  # < 1 week  # Unused variable
+    #     MINIMAL = "minimal"  # < 1 week  # Unused variable
     LOW = "low"  # 1-2 weeks
     MEDIUM = "medium"  # 2-6 weeks
     HIGH = "high"  # 6-12 weeks
+
+
 #     EXTENSIVE = "extensive"  # > 12 weeks  # Unused variable
 
 
 class RiskLevel(str, Enum):
     """Risk assessment levels."""
+
 
 #     LOW = "low"  # Unused variable
 #     MEDIUM = "medium"  # Unused variable

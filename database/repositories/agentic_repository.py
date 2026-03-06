@@ -8,8 +8,13 @@ from sqlalchemy import and_, desc, func
 from sqlalchemy.orm import Session
 
 from models.agentic_models import (
-    Agent, AgentSession, AgentDecision, TrustMetric,
-    AgentKnowledge, ConversationHistory, AgentAuditLog
+    Agent,
+    AgentSession,
+    AgentDecision,
+    TrustMetric,
+    AgentKnowledge,
+    ConversationHistory,
+    AgentAuditLog,
 )
 from database.repositories.base import BaseRepository
 
@@ -22,18 +27,15 @@ class AgentRepository(BaseRepository[Agent]):
 
     def get_by_persona_type(self, persona_type: str) -> List[Agent]:
         """Get all agents of a specific persona type."""
-        return self.session.query(Agent).filter(
-            and_(
-                Agent.persona_type == persona_type,
-                Agent.is_active
-            )
-        ).all()
+        return (
+            self.session.query(Agent)
+            .filter(and_(Agent.persona_type == persona_type, Agent.is_active))
+            .all()
+        )
 
     def get_active_agents(self) -> List[Agent]:
         """Get all active agents."""
-        return self.session.query(Agent).filter(
-            Agent.is_active
-        ).all()
+        return self.session.query(Agent).filter(Agent.is_active).all()
 
     def update_capabilities(self, agent_id: UUID, capabilities: Dict[str, Any]) -> Optional[Agent]:
         """Update agent capabilities."""
@@ -54,18 +56,14 @@ class AgentSessionRepository(BaseRepository[AgentSession]):
 
     def get_active_sessions(self, user_id: Optional[UUID] = None) -> List[AgentSession]:
         """Get active sessions, optionally filtered by user."""
-        query = self.session.query(AgentSession).filter(
-            AgentSession.session_state == "active"
-        )
+        query = self.session.query(AgentSession).filter(AgentSession.session_state == "active")
         if user_id:
             query = query.filter(AgentSession.user_id == user_id)
         return query.all()
 
     def get_sessions_by_trust_level(self, min_trust: int) -> List[AgentSession]:
         """Get sessions with minimum trust level."""
-        return self.session.query(AgentSession).filter(
-            AgentSession.trust_level >= min_trust
-        ).all()
+        return self.session.query(AgentSession).filter(AgentSession.trust_level >= min_trust).all()
 
     def update_trust_level(self, session_id: UUID, new_trust_level: int) -> Optional[AgentSession]:
         """Update session trust level."""
@@ -96,21 +94,28 @@ class AgentDecisionRepository(BaseRepository[AgentDecision]):
 
     def get_session_decisions(self, session_id: UUID) -> List[AgentDecision]:
         """Get all decisions for a session."""
-        return self.session.query(AgentDecision).filter(
-            AgentDecision.session_id == session_id
-        ).order_by(desc(AgentDecision.created_at)).all()
+        return (
+            self.session.query(AgentDecision)
+            .filter(AgentDecision.session_id == session_id)
+            .order_by(desc(AgentDecision.created_at))
+            .all()
+        )
 
     def get_decisions_by_type(self, decision_type: str) -> List[AgentDecision]:
         """Get decisions by type."""
-        return self.session.query(AgentDecision).filter(
-            AgentDecision.decision_type == decision_type
-        ).all()
+        return (
+            self.session.query(AgentDecision)
+            .filter(AgentDecision.decision_type == decision_type)
+            .all()
+        )
 
     def get_high_confidence_decisions(self, min_confidence: float = 0.8) -> List[AgentDecision]:
         """Get decisions with high confidence scores."""
-        return self.session.query(AgentDecision).filter(
-            AgentDecision.confidence_score >= min_confidence
-        ).all()
+        return (
+            self.session.query(AgentDecision)
+            .filter(AgentDecision.confidence_score >= min_confidence)
+            .all()
+        )
 
     def update_user_feedback(self, decision_id: UUID, feedback: str) -> Optional[AgentDecision]:
         """Update user feedback for a decision."""
@@ -130,37 +135,47 @@ class TrustMetricRepository(BaseRepository[TrustMetric]):
 
     def get_session_metrics(self, session_id: UUID) -> List[TrustMetric]:
         """Get all metrics for a session."""
-        return self.session.query(TrustMetric).filter(
-            TrustMetric.session_id == session_id
-        ).order_by(desc(TrustMetric.recorded_at)).all()
+        return (
+            self.session.query(TrustMetric)
+            .filter(TrustMetric.session_id == session_id)
+            .order_by(desc(TrustMetric.recorded_at))
+            .all()
+        )
 
     def get_average_metric(self, session_id: UUID, metric_type: str) -> Optional[float]:
         """Get average value for a specific metric type."""
-        result = self.session.query(func.avg(TrustMetric.metric_value)).filter(
-            and_(
-                TrustMetric.session_id == session_id,
-                TrustMetric.metric_type == metric_type
+        result = (
+            self.session.query(func.avg(TrustMetric.metric_value))
+            .filter(
+                and_(TrustMetric.session_id == session_id, TrustMetric.metric_type == metric_type)
             )
-        ).scalar()
+            .scalar()
+        )
         return float(result) if result else None
 
     def get_latest_metrics(self, session_id: UUID) -> Dict[str, float]:
         """Get latest value for each metric type."""
-        subquery = self.session.query(
-            TrustMetric.metric_type,
-            func.max(TrustMetric.recorded_at).label("max_recorded")
-        ).filter(
-            TrustMetric.session_id == session_id
-        ).group_by(TrustMetric.metric_type).subquery()
-
-        results = self.session.query(TrustMetric).join(
-            subquery,
-            and_(
-                TrustMetric.metric_type == subquery.c.metric_type,
-                TrustMetric.recorded_at == subquery.c.max_recorded,
-                TrustMetric.session_id == session_id
+        subquery = (
+            self.session.query(
+                TrustMetric.metric_type, func.max(TrustMetric.recorded_at).label("max_recorded")
             )
-        ).all()
+            .filter(TrustMetric.session_id == session_id)
+            .group_by(TrustMetric.metric_type)
+            .subquery()
+        )
+
+        results = (
+            self.session.query(TrustMetric)
+            .join(
+                subquery,
+                and_(
+                    TrustMetric.metric_type == subquery.c.metric_type,
+                    TrustMetric.recorded_at == subquery.c.max_recorded,
+                    TrustMetric.session_id == session_id,
+                ),
+            )
+            .all()
+        )
 
         return {metric.metric_type: float(metric.metric_value) for metric in results}
 
@@ -171,23 +186,27 @@ class AgentKnowledgeRepository(BaseRepository[AgentKnowledge]):
     def __init__(self, session: Session) -> None:
         super().__init__(AgentKnowledge, session)
 
-    def get_agent_knowledge(self, agent_id: UUID, domain: Optional[str] = None) -> List[AgentKnowledge]:
+    def get_agent_knowledge(
+        self, agent_id: UUID, domain: Optional[str] = None
+    ) -> List[AgentKnowledge]:
         """Get knowledge items for an agent, optionally filtered by domain."""
-        query = self.session.query(AgentKnowledge).filter(
-            AgentKnowledge.agent_id == agent_id
-        )
+        query = self.session.query(AgentKnowledge).filter(AgentKnowledge.agent_id == agent_id)
         if domain:
             query = query.filter(AgentKnowledge.domain == domain)
         return query.order_by(desc(AgentKnowledge.usage_count)).all()
 
     def get_successful_patterns(self, min_success_rate: float = 0.7) -> List[AgentKnowledge]:
         """Get knowledge patterns with high success rates."""
-        return self.session.query(AgentKnowledge).filter(
-            and_(
-                AgentKnowledge.success_rate >= min_success_rate,
-                AgentKnowledge.usage_count > 5  # Minimum usage for reliability
+        return (
+            self.session.query(AgentKnowledge)
+            .filter(
+                and_(
+                    AgentKnowledge.success_rate >= min_success_rate,
+                    AgentKnowledge.usage_count > 5,  # Minimum usage for reliability
+                )
             )
-        ).all()
+            .all()
+        )
 
     def increment_usage(self, knowledge_id: UUID, was_successful: bool) -> Optional[AgentKnowledge]:
         """Increment usage count and update success rate."""
@@ -217,11 +236,17 @@ class ConversationHistoryRepository(BaseRepository[ConversationHistory]):
     def __init__(self, session: Session) -> None:
         super().__init__(ConversationHistory, session)
 
-    def get_session_conversation(self, session_id: UUID, limit: int = 100) -> List[ConversationHistory]:
+    def get_session_conversation(
+        self, session_id: UUID, limit: int = 100
+    ) -> List[ConversationHistory]:
         """Get conversation history for a session."""
-        return self.session.query(ConversationHistory).filter(
-            ConversationHistory.session_id == session_id
-        ).order_by(desc(ConversationHistory.created_at)).limit(limit).all()
+        return (
+            self.session.query(ConversationHistory)
+            .filter(ConversationHistory.session_id == session_id)
+            .order_by(desc(ConversationHistory.created_at))
+            .limit(limit)
+            .all()
+        )
 
     def get_conversation_thread(self, message_id: UUID) -> List[ConversationHistory]:
         """Get conversation thread from a specific message."""
@@ -239,26 +264,31 @@ class ConversationHistoryRepository(BaseRepository[ConversationHistory]):
         messages.reverse()
 
         # Get child messages
-        children = self.session.query(ConversationHistory).filter(
-            ConversationHistory.parent_message_id == message_id
-        ).order_by(ConversationHistory.created_at).all()
+        children = (
+            self.session.query(ConversationHistory)
+            .filter(ConversationHistory.parent_message_id == message_id)
+            .order_by(ConversationHistory.created_at)
+            .all()
+        )
 
         messages.extend(children)
         return messages
 
     def get_token_usage_summary(self, session_id: UUID) -> Dict[str, int]:
         """Get token usage summary for a session."""
-        result = self.session.query(
-            func.sum(ConversationHistory.tokens_used).label("total_tokens"),
-            func.count(ConversationHistory.message_id).label("message_count")
-        ).filter(
-            ConversationHistory.session_id == session_id
-        ).first()
+        result = (
+            self.session.query(
+                func.sum(ConversationHistory.tokens_used).label("total_tokens"),
+                func.count(ConversationHistory.message_id).label("message_count"),
+            )
+            .filter(ConversationHistory.session_id == session_id)
+            .first()
+        )
 
         return {
             "total_tokens": result.total_tokens or 0,
             "message_count": result.message_count or 0,
-            "average_tokens": (result.total_tokens or 0) / (result.message_count or 1)
+            "average_tokens": (result.total_tokens or 0) / (result.message_count or 1),
         }
 
 
@@ -268,11 +298,11 @@ class AgentAuditLogRepository(BaseRepository[AgentAuditLog]):
     def __init__(self, session: Session) -> None:
         super().__init__(AgentAuditLog, session)
 
-    def get_agent_audit_logs(self, agent_id: UUID, risk_level: Optional[str] = None) -> List[AgentAuditLog]:
+    def get_agent_audit_logs(
+        self, agent_id: UUID, risk_level: Optional[str] = None
+    ) -> List[AgentAuditLog]:
         """Get audit logs for an agent, optionally filtered by risk level."""
-        query = self.session.query(AgentAuditLog).filter(
-            AgentAuditLog.agent_id == agent_id
-        )
+        query = self.session.query(AgentAuditLog).filter(AgentAuditLog.agent_id == agent_id)
         if risk_level:
             query = query.filter(AgentAuditLog.risk_level == risk_level)
         return query.order_by(desc(AgentAuditLog.timestamp)).all()
@@ -288,9 +318,13 @@ class AgentAuditLogRepository(BaseRepository[AgentAuditLog]):
 
     def get_user_audit_trail(self, user_id: UUID, limit: int = 100) -> List[AgentAuditLog]:
         """Get audit trail for a specific user."""
-        return self.session.query(AgentAuditLog).filter(
-            AgentAuditLog.user_id == user_id
-        ).order_by(desc(AgentAuditLog.timestamp)).limit(limit).all()
+        return (
+            self.session.query(AgentAuditLog)
+            .filter(AgentAuditLog.user_id == user_id)
+            .order_by(desc(AgentAuditLog.timestamp))
+            .limit(limit)
+            .all()
+        )
 
     def log_action(
         self,
@@ -301,7 +335,7 @@ class AgentAuditLogRepository(BaseRepository[AgentAuditLog]):
         session_id: Optional[UUID] = None,
         user_id: Optional[UUID] = None,
         ip_address: Optional[str] = None,
-        user_agent: Optional[str] = None
+        user_agent: Optional[str] = None,
     ) -> AgentAuditLog:
         """Create an audit log entry."""
         audit_log = AgentAuditLog(
@@ -312,7 +346,7 @@ class AgentAuditLogRepository(BaseRepository[AgentAuditLog]):
             risk_level=risk_level,
             user_id=user_id,
             ip_address=ip_address,
-            user_agent=user_agent
+            user_agent=user_agent,
         )
         self.session.add(audit_log)
         self.session.commit()

@@ -19,9 +19,7 @@ lines = output.split("\n")
 # Count results
 passed = sum(1 for line in lines if "PASSED" in line and "::" in line)
 failed = sum(1 for line in lines if "FAILED" in line and "::" in line)
-errors = sum(
-    1 for line in lines if "ERROR" in line and "::" in line and "log" not in line
-)
+errors = sum(1 for line in lines if "ERROR" in line and "::" in line and "log" not in line)
 skipped = sum(1 for line in lines if "SKIPPED" in line and "::" in line)
 
 print("Test Summary (excluding streaming tests):")

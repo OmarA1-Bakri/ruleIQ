@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 Integration tests for real compliance nodes implementation.
 Tests actual database operations and service connections.
@@ -142,7 +141,8 @@ class TestRealComplianceNodes:
                     mock_generate.return_value = mock_assessment
 
                     result = await update_compliance_for_profile(
-                        mock_db, mock_business_profile,
+                        mock_db,
+                        mock_business_profile,
                     )
 
                     assert result["profile_id"] == str(mock_business_profile.id)
@@ -183,12 +183,8 @@ class TestRealComplianceNodes:
         mock_assessment,
     ):
         """Test batch compliance update for all profiles."""
-        with patch(
-            "langgraph_agent.nodes.compliance_nodes_real.get_async_db"
-        ) as mock_get_db:
-            with patch(
-                "langgraph_agent.nodes.compliance_nodes_real.select"
-            ) as mock_select:
+        with patch("langgraph_agent.nodes.compliance_nodes_real.get_async_db") as mock_get_db:
+            with patch("langgraph_agent.nodes.compliance_nodes_real.select") as mock_select:
                 with patch(
                     "langgraph_agent.nodes.compliance_nodes_real.update_compliance_for_profile"
                 ) as mock_update:
@@ -216,36 +212,21 @@ class TestRealComplianceNodes:
 
                     assert "batch_update_results" in result["compliance_data"]
                     assert (
-                        result["compliance_data"]["batch_update_results"][
-                            "total_profiles",
-                        ]
-                        == 1,
+                        result["compliance_data"]["batch_update_results"]["total_profiles",] == 1,
                     )
                     assert (
-                        result["compliance_data"]["batch_update_results"][
-                            "updated_count",
-                        ]
-                        == 1,
+                        result["compliance_data"]["batch_update_results"]["updated_count",] == 1,
                     )
-                    assert (
-                        result["compliance_data"]["batch_update_results"]["error_count"]
-                        == 0,
-                    )
+                    assert (result["compliance_data"]["batch_update_results"]["error_count"] == 0,)
                     assert len(result["compliance_data"]["profiles"]) == 1
                     assert len(result["history"]) == 1
                     assert result["history"][0]["action"] == "batch_compliance_update"
 
     @pytest.mark.asyncio
-    async def test_batch_compliance_update_with_alerts(
-        self, mock_state, mock_business_profile
-    ):
+    async def test_batch_compliance_update_with_alerts(self, mock_state, mock_business_profile):
         """Test batch compliance update generates alerts for low scores."""
-        with patch(
-            "langgraph_agent.nodes.compliance_nodes_real.get_async_db"
-        ) as mock_get_db:
-            with patch(
-                "langgraph_agent.nodes.compliance_nodes_real.select"
-            ) as mock_select:
+        with patch("langgraph_agent.nodes.compliance_nodes_real.get_async_db") as mock_get_db:
+            with patch("langgraph_agent.nodes.compliance_nodes_real.select") as mock_select:
                 with patch(
                     "langgraph_agent.nodes.compliance_nodes_real.update_compliance_for_profile"
                 ) as mock_update:
@@ -271,16 +252,11 @@ class TestRealComplianceNodes:
 
                     result = await batch_compliance_update_node(mock_state)
 
-                    assert (
-                        len(result["compliance_data"]["batch_update_results"]["alerts"])
-                        == 1,
-                    )
+                    assert (len(result["compliance_data"]["batch_update_results"]["alerts"]) == 1,)
                     assert result["metadata"]["alerts_generated"]
                     assert result["metadata"]["alert_count"] == 1
 
-                    alert = result["compliance_data"]["batch_update_results"]["alerts"][
-                        0,
-                    ]
+                    alert = result["compliance_data"]["batch_update_results"]["alerts"][0,]
                     assert alert["score"] == 65.0
                     assert alert["message"] == "Compliance score is below threshold"
 
@@ -294,12 +270,8 @@ class TestRealComplianceNodes:
         mock_assessment,
     ):
         """Test single compliance check for a specific company."""
-        with patch(
-            "langgraph_agent.nodes.compliance_nodes_real.get_async_db"
-        ) as mock_get_db:
-            with patch(
-                "langgraph_agent.nodes.compliance_nodes_real.select"
-            ) as mock_select:
+        with patch("langgraph_agent.nodes.compliance_nodes_real.get_async_db") as mock_get_db:
+            with patch("langgraph_agent.nodes.compliance_nodes_real.select") as mock_select:
                 with patch(
                     "langgraph_agent.nodes.compliance_nodes_real.update_compliance_for_profile"
                 ) as mock_update:
@@ -326,10 +298,7 @@ class TestRealComplianceNodes:
                     result = await single_compliance_check_node(mock_state)
 
                     assert "check_results" in result["compliance_data"]
-                    assert (
-                        result["compliance_data"]["check_results"]["overall_score"]
-                        == 85.0,
-                    )
+                    assert (result["compliance_data"]["check_results"]["overall_score"] == 85.0,)
                     assert result["compliance_data"]["regulation"] == "GDPR"
                     assert len(result["history"]) == 1
                     assert result["history"][0]["action"] == "compliance_check"
@@ -349,12 +318,8 @@ class TestRealComplianceNodes:
     @pytest.mark.asyncio
     async def test_compliance_monitoring_node(self, mock_state, mock_business_profile):
         """Test compliance monitoring node."""
-        with patch(
-            "langgraph_agent.nodes.compliance_nodes_real.get_async_db"
-        ) as mock_get_db:
-            with patch(
-                "langgraph_agent.nodes.compliance_nodes_real.select"
-            ) as mock_select:
+        with patch("langgraph_agent.nodes.compliance_nodes_real.get_async_db") as mock_get_db:
+            with patch("langgraph_agent.nodes.compliance_nodes_real.select") as mock_select:
                 with patch(
                     "langgraph_agent.nodes.compliance_nodes_real.update_compliance_for_profile"
                 ) as mock_update:
@@ -384,22 +349,14 @@ class TestRealComplianceNodes:
 
                     assert "monitoring_results" in result["compliance_data"]
                     assert (
-                        result["compliance_data"]["monitoring_results"][
-                            "total_profiles",
-                        ]
-                        == 1,
+                        result["compliance_data"]["monitoring_results"]["total_profiles",] == 1,
                     )
                     assert (
-                        result["compliance_data"]["monitoring_results"][
-                            "alerts_generated",
-                        ]
-                        == 1,
+                        result["compliance_data"]["monitoring_results"]["alerts_generated",] == 1,
                     )
                     assert (
                         len(
-                            result["compliance_data"]["monitoring_results"][
-                                "low_score_profiles",
-                            ],
+                            result["compliance_data"]["monitoring_results"]["low_score_profiles",],
                         )
                         == 1,
                     )

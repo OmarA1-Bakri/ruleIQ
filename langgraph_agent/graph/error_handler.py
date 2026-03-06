@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 import logging
 
 
@@ -75,9 +74,7 @@ class ErrorHandlerNode:
             # Log the error handling invocation
             error_count = state.get("error_count", 0)
             retry_count = state.get("retry_count", 0)
-            logger.info(
-                f"Error handler invoked - errors: {error_count}, retries: {retry_count}"
-            )
+            logger.info(f"Error handler invoked - errors: {error_count}, retries: {retry_count}")
 
             # Check if we have errors to handle
             if not state.get("errors") or error_count == 0:
@@ -90,9 +87,7 @@ class ErrorHandlerNode:
 
             # Check retry limit
             if retry_count >= self.max_retries:
-                logger.warning(
-                    f"Max retries ({self.max_retries}) exceeded, activating fallback"
-                )
+                logger.warning(f"Max retries ({self.max_retries}) exceeded, activating fallback")
                 return await self._activate_fallback(state)
 
             # Apply appropriate retry strategy
@@ -144,17 +139,9 @@ class ErrorHandlerNode:
 
         # Classification logic based on error content
         # Check more specific patterns first
-        if (
-            "rate limit" in error_msg
-            or "429" in error_msg
-            or "too many requests" in error_msg
-        ):
+        if "rate limit" in error_msg or "429" in error_msg or "too many requests" in error_msg:
             return "rate_limit"
-        elif (
-            "network" in error_msg
-            or "dns" in error_msg
-            or "connection refused" in error_msg
-        ):
+        elif "network" in error_msg or "dns" in error_msg or "connection refused" in error_msg:
             return "network"
         elif (
             "database" in error_msg
@@ -163,11 +150,7 @@ class ErrorHandlerNode:
             or "connection pool" in error_msg
         ):
             return "database"
-        elif (
-            "timeout" in error_msg
-            or "timed out" in error_msg
-            or "deadline" in error_msg
-        ):
+        elif "timeout" in error_msg or "timed out" in error_msg or "deadline" in error_msg:
             return "timeout"
         elif (
             "api" in error_msg
@@ -188,9 +171,7 @@ class ErrorHandlerNode:
 
         return "unknown"
 
-    async def _handle_rate_limit(
-        self, state: EnhancedComplianceState
-    ) -> EnhancedComplianceState:
+    async def _handle_rate_limit(self, state: EnhancedComplianceState) -> EnhancedComplianceState:
         """
         Handle rate limit errors with exponential backoff and jitter.
 
@@ -261,9 +242,7 @@ class ErrorHandlerNode:
 
         return state
 
-    async def _handle_api_error(
-        self, state: EnhancedComplianceState
-    ) -> EnhancedComplianceState:
+    async def _handle_api_error(self, state: EnhancedComplianceState) -> EnhancedComplianceState:
         """
         Handle API errors with retry and potential fallback endpoints.
 
@@ -378,9 +357,7 @@ class ErrorHandlerNode:
 
         return state
 
-    async def _generic_retry(
-        self, state: EnhancedComplianceState
-    ) -> EnhancedComplianceState:
+    async def _generic_retry(self, state: EnhancedComplianceState) -> EnhancedComplianceState:
         """
         Generic retry strategy for unknown error types.
 
@@ -408,9 +385,7 @@ class ErrorHandlerNode:
 
         return state
 
-    async def handle_error(
-        self, state: Dict[str, Any], error: Exception
-    ) -> Dict[str, Any]:
+    async def handle_error(self, state: Dict[str, Any], error: Exception) -> Dict[str, Any]:
         """
         Handle an error and update state accordingly.
 
@@ -442,18 +417,14 @@ class ErrorHandlerNode:
         if retry_count < max_retries:
             state["retry_count"] = retry_count + 1
             state["task_status"] = "pending"  # Reset to pending for retry
-            logger.info(
-                f"Error handled, will retry. Attempt {retry_count + 1}/{max_retries}"
-            )
+            logger.info(f"Error handled, will retry. Attempt {retry_count + 1}/{max_retries}")
         else:
             state["task_status"] = "failed"
             logger.error(f"Max retries ({max_retries}) reached, marking as failed")
 
         return state
 
-    async def _activate_fallback(
-        self, state: EnhancedComplianceState
-    ) -> EnhancedComplianceState:
+    async def _activate_fallback(self, state: EnhancedComplianceState) -> EnhancedComplianceState:
         """
         Activate fallback mechanism when retries are exhausted.
 

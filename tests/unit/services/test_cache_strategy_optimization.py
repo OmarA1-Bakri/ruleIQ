@@ -82,9 +82,7 @@ class TestCacheStrategyOptimization:
         adjustment = cache_manager._calculate_ttl_adjustment(cache_key_slow, 2500)
         assert adjustment == -0.2  # Should decrease TTL for slow responses
 
-    def test_cache_warming_queue_management(
-        self, cache_manager, sample_business_profile
-    ):
+    def test_cache_warming_queue_management(self, cache_manager, sample_business_profile):
         """Test cache warming queue operations."""
         # Add items to warming queue with different priorities
         cache_manager.add_to_warming_queue(
@@ -137,9 +135,7 @@ class TestCacheStrategyOptimization:
 
     @pytest.mark.asyncio
     @patch("google.generativeai.caching.CachedContent.create")
-    async def test_process_warming_queue(
-        self, mock_create, cache_manager, sample_business_profile
-    ):
+    async def test_process_warming_queue(self, mock_create, cache_manager, sample_business_profile):
         """Test processing of cache warming queue."""
         # Mock successful cache creation
         mock_cached_content = Mock()
@@ -163,9 +159,7 @@ class TestCacheStrategyOptimization:
         assert processed == 1
         assert len(cache_manager.cache_warming_queue) == 0
 
-    def test_intelligent_invalidation_triggers(
-        self, cache_manager, sample_business_profile
-    ):
+    def test_intelligent_invalidation_triggers(self, cache_manager, sample_business_profile):
         """Test intelligent cache invalidation triggers."""
         business_profile_id = sample_business_profile["id"]
 
@@ -191,14 +185,12 @@ class TestCacheStrategyOptimization:
         # Test business profile update invalidation
         context = {"business_profile_id": business_profile_id}
         cache_manager.trigger_intelligent_invalidation(
-            "business_profile_update", context,
+            "business_profile_update",
+            context,
         )
 
         # Verify invalidation trigger was recorded
-        assert any(
-            "business_profile_update" in key
-            for key in cache_manager.invalidation_triggers
-        )
+        assert any("business_profile_update" in key for key in cache_manager.invalidation_triggers)
 
     def test_framework_invalidation(self, cache_manager):
         """Test framework-specific invalidation."""
@@ -356,7 +348,8 @@ class TestCacheStrategyOptimization:
 
         # Test invalidation (should be no-op)
         cache_manager.trigger_intelligent_invalidation(
-            "business_profile_update", {"business_profile_id": "test"},
+            "business_profile_update",
+            {"business_profile_id": "test"},
         )
         assert len(cache_manager.invalidation_triggers) == 0
 
@@ -427,7 +420,8 @@ class TestCacheStrategyIntegration:
 
         # Add to warming queue
         await assistant_with_optimized_cache._add_to_cache_warming_queue(
-            context, "assessment",
+            context,
+            "assessment",
         )
 
         # Process warming queue
@@ -443,7 +437,8 @@ class TestCacheStrategyIntegration:
 
         # Trigger invalidation
         await assistant_with_optimized_cache.trigger_cache_invalidation(
-            "business_profile_update", context,
+            "business_profile_update",
+            context,
         )
 
         # Should not raise exceptions

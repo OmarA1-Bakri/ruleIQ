@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 Evidence Collector service for LangGraph integration.
 Bridges to existing evidence collection services.
@@ -37,11 +36,11 @@ class EvidenceCollector:
         # Generate evidence for each obligation
         for i, obligation in enumerate(obligations[:5]):  # Limit to 5 for performance
             evidence_item = {
-                "id": f"evidence_{i+1}",
-                "obligation_id": obligation.get("id", f"ob_{i+1}"),
+                "id": f"evidence_{i + 1}",
+                "obligation_id": obligation.get("id", f"ob_{i + 1}"),
                 "type": "document",
-                "title": f'Evidence for {obligation.get("title", "Requirement")}',
-                "description": f'Documentation supporting compliance with {obligation.get("framework", "standard")}',
+                "title": f"Evidence for {obligation.get('title', 'Requirement')}",
+                "description": f"Documentation supporting compliance with {obligation.get('framework', 'standard')}",
                 "collected_at": datetime.now(timezone.utc).isoformat(),
                 "status": "collected",
                 # Use SHA-256 instead of MD5 for security compliance, truncated for ID compatibility
@@ -60,9 +59,7 @@ class EvidenceCollector:
                     "collected_at": datetime.now(timezone.utc).isoformat(),
                     "status": "pending_review",
                     # Use SHA-256 instead of MD5 for security compliance, truncated for ID compatibility
-                    "hash": hashlib.sha256(
-                        f"{company_id}_{framework}".encode()
-                    ).hexdigest()[:16],
+                    "hash": hashlib.sha256(f"{company_id}_{framework}".encode()).hexdigest()[:16],
                 }
             )
 

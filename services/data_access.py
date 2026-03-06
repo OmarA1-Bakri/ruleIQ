@@ -1,9 +1,9 @@
 """
-from __future__ import annotations
 
 Simple data access layer for SMB-focused ownership model.
 No complex RBAC - just owner-based access control.
 """
+
 from typing import Any
 from typing import List
 
@@ -155,9 +155,7 @@ class DataAccess:
         return resource
 
     @staticmethod
-    async def create_owned_async(
-        db: AsyncSession, model: Any, user: User, **data
-    ) -> Any:
+    async def create_owned_async(db: AsyncSession, model: Any, user: User, **data) -> Any:
         """
         Async version of create_owned.
         """
@@ -203,7 +201,11 @@ class DataAccess:
         Async version of delete_owned.
         """
         resource = await DataAccess.ensure_owner_async(
-            db, model, resource_id, user, resource_name,
+            db,
+            model,
+            resource_id,
+            user,
+            resource_name,
         )
         await db.delete(resource)
         await db.commit()

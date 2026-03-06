@@ -62,10 +62,10 @@ class ValidationAudit(Base):
 
     # Indexes for common queries
     __table_args__ = (
-        Index('idx_validation_audit_user_timestamp', 'user_id', 'timestamp'),
-        Index('idx_validation_audit_confidence', 'confidence_score', 'requires_review'),
-        Index('idx_validation_audit_review_status', 'review_status', 'reviewed_at'),
-        Index('idx_validation_audit_session', 'session_id', 'timestamp'),
+        Index("idx_validation_audit_user_timestamp", "user_id", "timestamp"),
+        Index("idx_validation_audit_confidence", "confidence_score", "requires_review"),
+        Index("idx_validation_audit_review_status", "review_status", "reviewed_at"),
+        Index("idx_validation_audit_session", "session_id", "timestamp"),
     )
 
 
@@ -97,7 +97,9 @@ class HumanReviewQueue(Base):
     assigned_at = Column(DateTime(timezone=True), nullable=True)
 
     # Timestamps
-    created_at = Column(DateTime(timezone=True), nullable=False, default=datetime.utcnow, index=True)
+    created_at = Column(
+        DateTime(timezone=True), nullable=False, default=datetime.utcnow, index=True
+    )
     updated_at = Column(DateTime(timezone=True), nullable=True, onupdate=datetime.utcnow)
     completed_at = Column(DateTime(timezone=True), nullable=True)
 
@@ -112,9 +114,9 @@ class HumanReviewQueue(Base):
 
     # Indexes for queue management
     __table_args__ = (
-        Index('idx_review_queue_priority', 'status', 'priority', 'priority_score'),
-        Index('idx_review_queue_assignment', 'assigned_to', 'status'),
-        Index('idx_review_queue_sla', 'sla_deadline', 'sla_breached'),
+        Index("idx_review_queue_priority", "status", "priority", "priority_score"),
+        Index("idx_review_queue_assignment", "assigned_to", "status"),
+        Index("idx_review_queue_sla", "sla_deadline", "sla_breached"),
     )
 
 
@@ -127,7 +129,9 @@ class ValidationMetricsHistory(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
 
     # Timestamp for this snapshot
-    snapshot_timestamp = Column(DateTime(timezone=True), nullable=False, default=datetime.utcnow, index=True)
+    snapshot_timestamp = Column(
+        DateTime(timezone=True), nullable=False, default=datetime.utcnow, index=True
+    )
     period_start = Column(DateTime(timezone=True), nullable=False, index=True)
     period_end = Column(DateTime(timezone=True), nullable=False)
 
@@ -176,6 +180,6 @@ class ValidationMetricsHistory(Base):
 
     # Indexes for reporting
     __table_args__ = (
-        Index('idx_metrics_history_period', 'period_start', 'period_end'),
-        Index('idx_metrics_history_snapshot', 'snapshot_timestamp'),
+        Index("idx_metrics_history_period", "period_start", "period_end"),
+        Index("idx_metrics_history_snapshot", "snapshot_timestamp"),
     )

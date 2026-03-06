@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 Standardized RAG system using LangChain components.
 
@@ -116,9 +115,7 @@ class StandardizedRAG:
         else:
             # Fallback to multi-query without reranking
             self.retriever = multi_query_retriever
-            logger.warning(
-                "Cohere API key not found, using multi-query without reranking"
-            )
+            logger.warning("Cohere API key not found, using multi-query without reranking")
 
     async def add_documents(
         self, documents: List[str], metadatas: Optional[List[Dict[str, Any]]] = None
@@ -202,9 +199,7 @@ class StandardizedRAG:
                     }
                 )
 
-            logger.info(
-                f"Retrieved {len(results)} documents for query: {query[:50]}..."
-            )
+            logger.info(f"Retrieved {len(results)} documents for query: {query[:50]}...")
             return results
 
         except Exception as e:
@@ -225,9 +220,7 @@ class StandardizedRAG:
 
             # Get document count if available
             doc_count = "unknown"
-            if hasattr(self.vector_store, "index") and hasattr(
-                self.vector_store.index, "ntotal"
-            ):
+            if hasattr(self.vector_store, "index") and hasattr(self.vector_store.index, "ntotal"):
                 doc_count = self.vector_store.index.ntotal
 
             return {
@@ -275,9 +268,7 @@ class StandardizedRAG:
         """
         try:
             doc_count = 0
-            if hasattr(self.vector_store, "index") and hasattr(
-                self.vector_store.index, "ntotal"
-            ):
+            if hasattr(self.vector_store, "index") and hasattr(self.vector_store.index, "ntotal"):
                 doc_count = self.vector_store.index.ntotal
 
             return {

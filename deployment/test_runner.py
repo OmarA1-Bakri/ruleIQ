@@ -40,13 +40,7 @@ class TestRunner:
             message: Message to log
             level: Log level (info, success, warning, error)
         """
-        symbols = {
-            "info": "ℹ️",
-            "success": "✅",
-            "warning": "⚠️",
-            "error": "❌",
-            "test": "🧪"
-        }
+        symbols = {"info": "ℹ️", "success": "✅", "warning": "⚠️", "error": "❌", "test": "🧪"}
 
         colors = {
             "info": "\033[94m",
@@ -54,14 +48,16 @@ class TestRunner:
             "warning": "\033[93m",
             "error": "\033[91m",
             "test": "\033[95m",
-            "reset": "\033[0m"
+            "reset": "\033[0m",
         }
 
         symbol = symbols.get(level, "ℹ️")
         color = colors.get(level, colors["info"])
         print(f"{color}{symbol} {message}{colors['reset']}")
 
-    def run_command(self, command: str, description: str, timeout: int = 300) -> Tuple[bool, str, float]:
+    def run_command(
+        self, command: str, description: str, timeout: int = 300
+    ) -> Tuple[bool, str, float]:
         """Execute a test command and capture results.
 
         Args:
@@ -77,11 +73,7 @@ class TestRunner:
 
         try:
             result = subprocess.run(
-                command,
-                shell=True,
-                capture_output=True,
-                text=True,
-                timeout=timeout
+                command, shell=True, capture_output=True, text=True, timeout=timeout
             )
 
             duration = time.time() - start
@@ -119,6 +111,7 @@ class TestRunner:
         # Parse pytest output
         if "passed" in output or "failed" in output:
             import re
+
             # Look for pytest summary
             pattern = r"(\d+) passed.*?(\d+) failed.*?(\d+) skipped"
             match = re.search(pattern, output)
@@ -151,12 +144,14 @@ class TestRunner:
             if self.parallel:
                 test_commands.append(("make test-groups-parallel", "Parallel test groups"))
             else:
-                test_commands.extend([
-                    ("make test-core", "Core tests"),
-                    ("make test-api", "API tests"),
-                    ("make test-services", "Service tests"),
-                    ("make test-models", "Model tests")
-                ])
+                test_commands.extend(
+                    [
+                        ("make test-core", "Core tests"),
+                        ("make test-api", "API tests"),
+                        ("make test-services", "Service tests"),
+                        ("make test-models", "Model tests"),
+                    ]
+                )
         else:
             # Fallback to direct pytest
             test_commands.append(("pytest tests/unit -v", "Unit tests"))
@@ -167,7 +162,7 @@ class TestRunner:
             self.results[f"unit_{description.lower().replace(' ', '_')}"] = {
                 "status": success,
                 "duration": duration,
-                "command": command
+                "command": command,
             }
             if not success:
                 all_passed = False
@@ -184,14 +179,21 @@ class TestRunner:
 
         # Use Makefile integration test targets
         if Path("Makefile").exists():
-            test_commands.append(("make test-integration-comprehensive", "Comprehensive integration tests"))
+            test_commands.append(
+                ("make test-integration-comprehensive", "Comprehensive integration tests")
+            )
         else:
             # Fallback to direct pytest
-            test_commands.extend([
-                ("pytest tests/integration -v", "Integration tests"),
-                ("pytest tests/test_database_integration.py -v", "Database integration"),
-                ("pytest tests/test_agentic_system_integration.py -v", "Agent system integration")
-            ])
+            test_commands.extend(
+                [
+                    ("pytest tests/integration -v", "Integration tests"),
+                    ("pytest tests/test_database_integration.py -v", "Database integration"),
+                    (
+                        "pytest tests/test_agentic_system_integration.py -v",
+                        "Agent system integration",
+                    ),
+                ]
+            )
 
         all_passed = True
         for command, description in test_commands:
@@ -199,7 +201,7 @@ class TestRunner:
             self.results[f"integration_{description.lower().replace(' ', '_')}"] = {
                 "status": success,
                 "duration": duration,
-                "command": command
+                "command": command,
             }
             if not success:
                 all_passed = False
@@ -217,7 +219,7 @@ class TestRunner:
             ("pytest tests/test_cache_security.py -v", "Cache security tests"),
             ("pytest tests/test_security_regression.py -v", "Security regression tests"),
             ("bandit -r api/ services/ -f json -o security_report.json", "Bandit security scan"),
-            ("ruff check --select S", "Security linting")
+            ("ruff check --select S", "Security linting"),
         ]
 
         all_passed = True
@@ -233,7 +235,7 @@ class TestRunner:
             self.results[f"security_{description.lower().replace(' ', '_')}"] = {
                 "status": success,
                 "duration": duration,
-                "command": command
+                "command": command,
             }
             if not success:
                 all_passed = False
@@ -247,10 +249,13 @@ class TestRunner:
         self.log("=" * 60)
 
         test_commands = [
-            ("pytest tests/test_database_performance_optimization.py -v", "Database performance tests"),
+            (
+                "pytest tests/test_database_performance_optimization.py -v",
+                "Database performance tests",
+            ),
             ("pytest tests/test_load_balancing_scaling.py -v", "Load balancing tests"),
             ("pytest tests/test_caching_system.py -v", "Caching system tests"),
-            ("pytest tests/test_connection_pool_manager.py -v", "Connection pool tests")
+            ("pytest tests/test_connection_pool_manager.py -v", "Connection pool tests"),
         ]
 
         # Add performance directory tests if it exists
@@ -270,7 +275,7 @@ class TestRunner:
             self.results[f"performance_{description.lower().replace(' ', '_')}"] = {
                 "status": success,
                 "duration": duration,
-                "command": command
+                "command": command,
             }
             if not success:
                 all_passed = False
@@ -286,7 +291,7 @@ class TestRunner:
         test_commands = [
             ("python validate_endpoints.py", "API endpoint validation"),
             ("make validate-fastapi", "FastAPI validation"),
-            ("pytest tests/test_auth_service.py -v", "Authentication tests")
+            ("pytest tests/test_auth_service.py -v", "Authentication tests"),
         ]
 
         all_passed = True
@@ -307,7 +312,7 @@ class TestRunner:
             self.results[f"api_{description.lower().replace(' ', '_')}"] = {
                 "status": success,
                 "duration": duration,
-                "command": command
+                "command": command,
             }
             if not success:
                 all_passed = False
@@ -327,7 +332,7 @@ class TestRunner:
         test_commands = [
             ("cd frontend && pnpm test", "Frontend unit tests"),
             ("cd frontend && pnpm run lint", "Frontend linting"),
-            ("cd frontend && pnpm run type-check", "TypeScript validation")
+            ("cd frontend && pnpm run type-check", "TypeScript validation"),
         ]
 
         all_passed = True
@@ -336,7 +341,7 @@ class TestRunner:
             self.results[f"frontend_{description.lower().replace(' ', '_')}"] = {
                 "status": success,
                 "duration": duration,
-                "command": command
+                "command": command,
             }
             if not success:
                 all_passed = False
@@ -354,7 +359,10 @@ class TestRunner:
             ("pytest tests/test_database_health.py -v", "Database health tests"),
             ("pytest tests/test_database_providers.py -v", "Database provider tests"),
             ("pytest tests/test_database_dependencies.py -v", "Database dependency tests"),
-            ("pytest tests/test_database_backward_compatibility.py -v", "Database compatibility tests")
+            (
+                "pytest tests/test_database_backward_compatibility.py -v",
+                "Database compatibility tests",
+            ),
         ]
 
         all_passed = True
@@ -375,7 +383,7 @@ class TestRunner:
             self.results[f"database_{description.lower().replace(' ', '_')}"] = {
                 "status": success,
                 "duration": duration,
-                "command": command
+                "command": command,
             }
             if not success:
                 all_passed = False
@@ -393,7 +401,7 @@ class TestRunner:
             ("ruff format --check .", "Code formatting check"),
             ("pytest tests/test_import_cleanup.py -v", "Import cleanup tests"),
             ("pytest tests/test_syntax_validation.py -v", "Syntax validation tests"),
-            ("pytest tests/test_type_annotations.py -v", "Type annotation tests")
+            ("pytest tests/test_type_annotations.py -v", "Type annotation tests"),
         ]
 
         all_passed = True
@@ -409,7 +417,7 @@ class TestRunner:
             self.results[f"quality_{description.lower().replace(' ', '_')}"] = {
                 "status": success,
                 "duration": duration,
-                "command": command
+                "command": command,
             }
             if not success:
                 all_passed = False
@@ -434,7 +442,7 @@ class TestRunner:
             "api": 0.15,
             "database": 0.10,
             "quality": 0.05,
-            "frontend": 0.05
+            "frontend": 0.05,
         }
 
         weighted_score = 0.0
@@ -477,12 +485,12 @@ class TestRunner:
                 "total": self.total_tests,
                 "passed": self.passed_tests,
                 "failed": self.failed_tests,
-                "skipped": self.skipped_tests
+                "skipped": self.skipped_tests,
             },
             "confidence_score": f"{confidence_score:.1f}%",
             "deployment_ready": confidence_score >= 80.0,
             "results": self.results,
-            "recommendations": self.get_recommendations(confidence_score)
+            "recommendations": self.get_recommendations(confidence_score),
         }
 
         return report
@@ -524,7 +532,9 @@ class TestRunner:
             if result.get("duration", 0) > 60
         ]
         if slow_tests:
-            recommendations.append(f"⏱️ Optimize slow tests: {', '.join([t[0] for t in slow_tests])}")
+            recommendations.append(
+                f"⏱️ Optimize slow tests: {', '.join([t[0] for t in slow_tests])}"
+            )
 
         return recommendations
 
@@ -549,7 +559,7 @@ class TestRunner:
             (self.run_database_tests, "Database Tests"),
             (self.run_performance_tests, "Performance Tests"),
             (self.run_code_quality_tests, "Code Quality"),
-            (self.run_frontend_tests, "Frontend Tests")
+            (self.run_frontend_tests, "Frontend Tests"),
         ]
 
         overall_success = True
@@ -588,7 +598,11 @@ class TestRunner:
 
         print(f"\n🎯 Deployment Confidence Score: {report['confidence_score']}")
 
-        status = "✅ READY FOR DEPLOYMENT" if report['deployment_ready'] else "❌ NOT READY FOR DEPLOYMENT"
+        status = (
+            "✅ READY FOR DEPLOYMENT"
+            if report["deployment_ready"]
+            else "❌ NOT READY FOR DEPLOYMENT"
+        )
         print(f"\nDeployment Status: {status}")
 
         print("\n📝 RECOMMENDATIONS:")
@@ -596,7 +610,9 @@ class TestRunner:
             print(f"  {rec}")
 
         # Show failed tests
-        failed_tests = [name for name, result in report["results"].items() if not result.get("status", False)]
+        failed_tests = [
+            name for name, result in report["results"].items() if not result.get("status", False)
+        ]
         if failed_tests:
             print("\n❌ FAILED TESTS:")
             for test in failed_tests:
@@ -608,8 +624,12 @@ def main():
     parser = argparse.ArgumentParser(description="Comprehensive test runner for ruleIQ deployment")
     parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose output")
     parser.add_argument("--sequential", "-s", action="store_true", help="Run tests sequentially")
-    parser.add_argument("--suite", choices=["unit", "integration", "security", "performance", "all"],
-                       default="all", help="Test suite to run")
+    parser.add_argument(
+        "--suite",
+        choices=["unit", "integration", "security", "performance", "all"],
+        default="all",
+        help="Test suite to run",
+    )
     parser.add_argument("--report", "-r", help="Output report file path")
     parser.add_argument("--timeout", "-t", type=int, default=300, help="Test timeout in seconds")
 

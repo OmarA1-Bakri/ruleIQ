@@ -6,8 +6,6 @@ This script updates docs/PHASE2_BASELINE.txt, with emphasis on separating:
 - RUFF_SUPPRESSED
 """
 
-from __future__ import annotations
-
 import re
 import subprocess
 from pathlib import Path

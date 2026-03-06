@@ -15,10 +15,9 @@ class TestDatabaseFixtures:
         assert db_session is not None
         # Test transaction rollback
         from database import User
+
         user = User(
-            email="fixture-test@example.com",
-            full_name="Fixture Test",
-            hashed_password="test"
+            email="fixture-test@example.com", full_name="Fixture Test", hashed_password="test"
         )
         db_session.add(user)
         db_session.commit()
@@ -54,6 +53,7 @@ class TestDatabaseFixtures:
         assert async_db_session is not None
         # Test basic query
         from sqlalchemy import text
+
         result = await async_db_session.execute(text("SELECT 1"))
         assert result is not None
 
@@ -81,16 +81,14 @@ class TestExternalServiceMocks:
 
         # Test chat completion
         response = mock_openai.chat.completions.create(
-            messages=[{"role": "user", "content": "test"}],
-            model="gpt-4"
+            messages=[{"role": "user", "content": "test"}], model="gpt-4"
         )
         assert response is not None
         assert response.choices[0].message.content is not None
 
         # Test embeddings
         embedding_response = mock_openai.embeddings.create(
-            input="test text",
-            model="text-embedding-ada-002"
+            input="test text", model="text-embedding-ada-002"
         )
         assert embedding_response is not None
         assert embedding_response.data[0].embedding is not None
@@ -100,8 +98,7 @@ class TestExternalServiceMocks:
         assert mock_anthropic is not None
 
         response = mock_anthropic.messages.create(
-            messages=[{"role": "user", "content": "test"}],
-            model="claude-3-opus"
+            messages=[{"role": "user", "content": "test"}], model="claude-3-opus"
         )
         assert response is not None
         assert response.content[0].text is not None
@@ -120,18 +117,13 @@ class TestExternalServiceMocks:
         assert mock_s3 is not None
 
         # Test object operations
-        result = mock_s3.put_object(
-            Bucket="test-bucket",
-            Key="test-key",
-            Body=b"test content"
-        )
+        result = mock_s3.put_object(Bucket="test-bucket", Key="test-key", Body=b"test content")
         assert result is not None
         assert "ETag" in result
 
         # Test presigned URL
         url = mock_s3.generate_presigned_url(
-            "get_object",
-            Params={"Bucket": "test-bucket", "Key": "test-key"}
+            "get_object", Params={"Bucket": "test-bucket", "Key": "test-key"}
         )
         assert url is not None
         assert "https://" in url
@@ -141,18 +133,12 @@ class TestExternalServiceMocks:
         assert mock_stripe is not None
 
         # Test customer creation
-        customer = mock_stripe.Customer.create(
-            email="test@example.com",
-            name="Test Customer"
-        )
+        customer = mock_stripe.Customer.create(email="test@example.com", name="Test Customer")
         assert customer is not None
         assert customer.id.startswith("cus_")
 
         # Test payment intent
-        intent = mock_stripe.PaymentIntent.create(
-            amount=1000,
-            currency="usd"
-        )
+        intent = mock_stripe.PaymentIntent.create(amount=1000, currency="usd")
         assert intent is not None
         assert intent.id.startswith("pi_")
 
@@ -160,12 +146,14 @@ class TestExternalServiceMocks:
         """Test that mock_sendgrid fixture works."""
         assert mock_sendgrid is not None
 
-        response = mock_sendgrid.send({
-            "to": "test@example.com",
-            "from": "sender@example.com",
-            "subject": "Test",
-            "body": "Test email"
-        })
+        response = mock_sendgrid.send(
+            {
+                "to": "test@example.com",
+                "from": "sender@example.com",
+                "subject": "Test",
+                "body": "Test email",
+            }
+        )
         assert response is not None
         assert response.status_code == 202
 
@@ -297,6 +285,7 @@ class TestAutoMocking:
 
         # Check that environment variables are set
         import os
+
         assert os.environ.get("DISABLE_EXTERNAL_SERVICES") == "true"
         assert os.environ.get("SENTRY_DSN") == ""
 
@@ -321,7 +310,7 @@ class TestFixtureIsolation:
         user = User(
             email="isolation-test-1@example.com",
             full_name="Isolation Test 1",
-            hashed_password="test"
+            hashed_password="test",
         )
         db_session.add(user)
         db_session.commit()
@@ -335,9 +324,7 @@ class TestFixtureIsolation:
         from database import User
 
         # Check that user from previous test doesn't exist
-        user = db_session.query(User).filter_by(
-            email="isolation-test-1@example.com"
-        ).first()
+        user = db_session.query(User).filter_by(email="isolation-test-1@example.com").first()
         assert user is None
 
 

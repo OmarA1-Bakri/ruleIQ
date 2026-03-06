@@ -4,6 +4,7 @@ Backward compatibility tests for database dependency injection system
 Tests that existing database access patterns continue to work during
 and after migration to the new dependency injection system.
 """
+
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 from typing import Dict, Any, Generator
@@ -20,7 +21,7 @@ from database.db_setup import (
     _ENGINE,
     _ASYNC_ENGINE,
     _SESSION_LOCAL,
-    _ASYNC_SESSION_LOCAL
+    _ASYNC_SESSION_LOCAL,
 )
 
 
@@ -35,7 +36,7 @@ class TestLegacyDatabaseFunctions:
         mock_session_local = AsyncMock()
         mock_session_local.return_value = mock_session
 
-        with patch('database.db_setup._ASYNC_SESSION_LOCAL', mock_session_local):
+        with patch("database.db_setup._ASYNC_SESSION_LOCAL", mock_session_local):
             # Test the context manager
             async with get_async_db() as session:
                 assert session == mock_session
@@ -50,7 +51,7 @@ class TestLegacyDatabaseFunctions:
         mock_session_local = MagicMock()
         mock_session_local.return_value = mock_session
 
-        with patch('database.db_setup._SESSION_LOCAL', mock_session_local):
+        with patch("database.db_setup._SESSION_LOCAL", mock_session_local):
             # Test the context manager
             with get_db_session() as session:
                 assert session == mock_session
@@ -66,7 +67,7 @@ class TestLegacyDatabaseFunctions:
         mock_session_local = MagicMock()
         mock_session_local.return_value = mock_session
 
-        with patch('database.db_setup._SESSION_LOCAL', mock_session_local):
+        with patch("database.db_setup._SESSION_LOCAL", mock_session_local):
             # Test the generator function
             sessions = list(get_db())
             assert len(sessions) == 1
@@ -75,8 +76,8 @@ class TestLegacyDatabaseFunctions:
             # Verify session was properly closed
             mock_session.close.assert_called_once()
 
-    @patch('database.db_setup._ENGINE')
-    @patch('database.db_setup.text')
+    @patch("database.db_setup._ENGINE")
+    @patch("database.db_setup.text")
     def test_test_database_connection_sync(self, mock_text, mock_engine):
         """Test that synchronous database connection testing still works."""
         # Mock the engine and connection
@@ -95,8 +96,8 @@ class TestLegacyDatabaseFunctions:
         mock_connection.execute.assert_called_once_with(mock_sql)
 
     @pytest.mark.asyncio
-    @patch('database.db_setup._ASYNC_ENGINE')
-    @patch('database.db_setup.text')
+    @patch("database.db_setup._ASYNC_ENGINE")
+    @patch("database.db_setup.text")
     async def test_test_async_database_connection(self, mock_text, mock_async_engine):
         """Test that asynchronous database connection testing still works."""
         # Mock the async engine and connection
@@ -118,8 +119,8 @@ class TestLegacyDatabaseFunctions:
 class TestGlobalStateCompatibility:
     """Test that global database state remains compatible."""
 
-    @patch('database.db_setup._ENGINE')
-    @patch('database.db_setup._ASYNC_ENGINE')
+    @patch("database.db_setup._ENGINE")
+    @patch("database.db_setup._ASYNC_ENGINE")
     def test_get_engine_info_compatibility(self, mock_async_engine, mock_engine):
         """Test that get_engine_info still provides expected information."""
         # Mock engines
@@ -142,16 +143,16 @@ class TestGlobalStateCompatibility:
         info = get_engine_info()
 
         expected_keys = [
-            'sync_engine_initialized',
-            'async_engine_initialized',
-            'async_pool_size',
-            'async_pool_checked_in',
-            'async_pool_checked_out',
-            'async_pool_overflow',
-            'sync_pool_size',
-            'sync_pool_checked_in',
-            'sync_pool_checked_out',
-            'sync_pool_overflow'
+            "sync_engine_initialized",
+            "async_engine_initialized",
+            "async_pool_size",
+            "async_pool_checked_in",
+            "async_pool_checked_out",
+            "async_pool_overflow",
+            "sync_pool_size",
+            "sync_pool_checked_in",
+            "sync_pool_checked_out",
+            "sync_pool_overflow",
         ]
 
         for key in expected_keys:
@@ -162,18 +163,22 @@ class TestGlobalStateCompatibility:
         # This should not raise an exception
         # The actual value depends on whether the engine is initialized
         # We just verify it exists
-        assert async_session_maker is not None or async_session_maker is None  # Could be None if not initialized
+        assert (
+            async_session_maker is not None or async_session_maker is None
+        )  # Could be None if not initialized
 
 
 class TestDatabaseInitializationCompatibility:
     """Test that database initialization remains compatible."""
 
-    @patch('database.db_setup._init_sync_db')
-    @patch('database.db_setup._init_async_db')
-    @patch('database.db_setup.test_database_connection')
-    @patch('database.db_setup.Base')
-    @patch('database.db_setup._ENGINE')
-    def test_init_db_compatibility(self, mock_engine, mock_base, mock_test_conn, mock_init_async, mock_init_sync):
+    @patch("database.db_setup._init_sync_db")
+    @patch("database.db_setup._init_async_db")
+    @patch("database.db_setup.test_database_connection")
+    @patch("database.db_setup.Base")
+    @patch("database.db_setup._ENGINE")
+    def test_init_db_compatibility(
+        self, mock_engine, mock_base, mock_test_conn, mock_init_async, mock_init_sync
+    ):
         """Test that init_db still works as expected."""
         # Mock successful initialization
         mock_test_conn.return_value = True
@@ -187,8 +192,8 @@ class TestDatabaseInitializationCompatibility:
         mock_test_conn.assert_called_once()
         mock_base.metadata.create_all.assert_called_once_with(bind=mock_engine)
 
-    @patch('database.db_setup._init_sync_db')
-    @patch('database.db_setup.test_database_connection')
+    @patch("database.db_setup._init_sync_db")
+    @patch("database.db_setup.test_database_connection")
     def test_init_db_failure_handling(self, mock_test_conn, mock_init_sync):
         """Test that init_db properly handles failures."""
         mock_test_conn.return_value = False
@@ -211,20 +216,23 @@ class TestMigrationPathCompatibility:
         mock_new_provider = AsyncMock()
         mock_new_provider.execute_query.return_value = [{"result": "success"}]
 
-        with patch('database.db_setup.get_async_db') as mock_legacy_get_db, \
-             patch('database.dependencies.get_postgres_provider') as mock_new_get_provider:
-
+        with (
+            patch("database.db_setup.get_async_db") as mock_legacy_get_db,
+            patch("database.dependencies.get_postgres_provider") as mock_new_get_provider,
+        ):
             # Setup mocks
             mock_legacy_get_db.return_value.__aenter__.return_value = mock_legacy_session
             mock_new_get_provider.return_value = mock_new_provider
 
             # Test legacy usage
             from database.db_setup import get_async_db
+
             async with get_async_db() as legacy_session:
                 await legacy_session.execute("SELECT 1")
 
             # Test new usage
             from database.dependencies import get_postgres_provider
+
             mock_request = MagicMock()
             new_provider = await get_postgres_provider(mock_request)
             result = await new_provider.execute_query("SELECT 1")
@@ -245,8 +253,9 @@ class TestMigrationPathCompatibility:
                 test_database_connection,
                 get_engine_info,
                 cleanup_db_connections,
-                async_session_maker
+                async_session_maker,
             )
+
             # Success - all imports worked
             assert True
         except ImportError as e:
@@ -274,7 +283,7 @@ class TestMigrationPathCompatibility:
         mock_tx = AsyncMock()
         mock_session.begin_transaction.return_value = mock_tx
 
-        with patch('database.db_setup._ASYNC_SESSION_LOCAL') as mock_session_local:
+        with patch("database.db_setup._ASYNC_SESSION_LOCAL") as mock_session_local:
             mock_session_local.return_value = mock_session
 
             # This tests that the session can still be used for transactions
@@ -286,12 +295,13 @@ class TestMigrationPathCompatibility:
 class TestConfigurationCompatibility:
     """Test that configuration remains compatible."""
 
-    @patch('database.db_setup.DatabaseConfig.get_database_urls')
-    @patch('database.db_setup.DatabaseConfig.get_engine_kwargs')
-    @patch('database.db_setup.create_engine')
-    @patch('database.db_setup.async_sessionmaker')
-    def test_engine_initialization_compatibility(self, mock_async_sessionmaker, mock_create_engine,
-                                               mock_get_engine_kwargs, mock_get_urls):
+    @patch("database.db_setup.DatabaseConfig.get_database_urls")
+    @patch("database.db_setup.DatabaseConfig.get_engine_kwargs")
+    @patch("database.db_setup.create_engine")
+    @patch("database.db_setup.async_sessionmaker")
+    def test_engine_initialization_compatibility(
+        self, mock_async_sessionmaker, mock_create_engine, mock_get_engine_kwargs, mock_get_urls
+    ):
         """Test that engine initialization still uses existing config."""
         from database.db_setup import _init_async_db
 
@@ -314,11 +324,14 @@ class TestConfigurationCompatibility:
 
     def test_environment_variable_usage(self):
         """Test that environment variables are still used."""
-        with patch.dict('os.environ', {
-            'DATABASE_URL': 'postgresql://test:test@localhost/testdb',
-            'DB_POOL_SIZE': '15',
-            'DB_MAX_OVERFLOW': '25'
-        }):
+        with patch.dict(
+            "os.environ",
+            {
+                "DATABASE_URL": "postgresql://test:test@localhost/testdb",
+                "DB_POOL_SIZE": "15",
+                "DB_MAX_OVERFLOW": "25",
+            },
+        ):
             # The actual validation would happen during config.get_database_urls()
             # and config.get_engine_kwargs()
             from database.db_setup import DatabaseConfig
@@ -335,7 +348,7 @@ class TestConfigurationCompatibility:
 class TestErrorHandlingCompatibility:
     """Test that error handling remains compatible."""
 
-    @patch('database.db_setup._ENGINE', None)
+    @patch("database.db_setup._ENGINE", None)
     def test_connection_test_failure_handling(self):
         """Test that connection test failures are handled gracefully."""
         # When engine is None, connection test should fail gracefully
@@ -343,16 +356,16 @@ class TestErrorHandlingCompatibility:
         assert result is False
 
     @pytest.mark.asyncio
-    @patch('database.db_setup._ASYNC_ENGINE', None)
+    @patch("database.db_setup._ASYNC_ENGINE", None)
     async def test_async_connection_test_failure_handling(self):
         """Test that async connection test failures are handled gracefully."""
         # When async engine is None, connection test should fail gracefully
         result = await test_database_connection()
         assert result is False
 
-    @patch('database.db_setup._init_sync_db')
-    @patch('database.db_setup._init_async_db')
-    @patch('database.db_setup.test_database_connection')
+    @patch("database.db_setup._init_sync_db")
+    @patch("database.db_setup._init_async_db")
+    @patch("database.db_setup.test_database_connection")
     def test_init_db_error_handling(self, mock_test_conn, mock_init_async, mock_init_sync):
         """Test that init_db handles errors properly."""
         mock_test_conn.return_value = False
@@ -378,7 +391,7 @@ class TestPerformanceCompatibility:
             mock_session = AsyncMock()
             return mock_session
 
-        with patch('database.db_setup._ASYNC_SESSION_LOCAL') as mock_session_local:
+        with patch("database.db_setup._ASYNC_SESSION_LOCAL") as mock_session_local:
             mock_session_local.side_effect = count_calls
 
             # Simulate multiple database operations
@@ -397,7 +410,7 @@ class TestPerformanceCompatibility:
         mock_session_local = MagicMock()
         mock_session_local.return_value = mock_session
 
-        with patch('database.db_setup._SESSION_LOCAL', mock_session_local):
+        with patch("database.db_setup._SESSION_LOCAL", mock_session_local):
             start_time = time.time()
 
             # Simulate many context manager usages
@@ -418,8 +431,8 @@ class TestPerformanceCompatibility:
 class TestMonitoringCompatibility:
     """Test that monitoring and observability remain compatible."""
 
-    @patch('database.db_setup._ENGINE')
-    @patch('database.db_setup._ASYNC_ENGINE')
+    @patch("database.db_setup._ENGINE")
+    @patch("database.db_setup._ASYNC_ENGINE")
     def test_engine_info_monitoring(self, mock_async_engine, mock_engine):
         """Test that engine monitoring information is still available."""
         from database.db_setup import get_engine_info
@@ -439,9 +452,16 @@ class TestMonitoringCompatibility:
 
         # Should contain expected monitoring information
         expected_keys = [
-            'sync_engine_initialized', 'async_engine_initialized',
-            'sync_pool_size', 'sync_pool_checked_in', 'sync_pool_checked_out', 'sync_pool_overflow',
-            'async_pool_size', 'async_pool_checked_in', 'async_pool_checked_out', 'async_pool_overflow'
+            "sync_engine_initialized",
+            "async_engine_initialized",
+            "sync_pool_size",
+            "sync_pool_checked_in",
+            "sync_pool_checked_out",
+            "sync_pool_overflow",
+            "async_pool_size",
+            "async_pool_checked_in",
+            "async_pool_checked_out",
+            "async_pool_overflow",
         ]
 
         for key in expected_keys:
@@ -456,9 +476,10 @@ class TestMonitoringCompatibility:
         mock_engine = MagicMock()
         mock_async_engine = AsyncMock()
 
-        with patch('database.db_setup._ENGINE', mock_engine), \
-             patch('database.db_setup._ASYNC_ENGINE', mock_async_engine):
-
+        with (
+            patch("database.db_setup._ENGINE", mock_engine),
+            patch("database.db_setup._ASYNC_ENGINE", mock_async_engine),
+        ):
             await cleanup_db_connections()
 
             # Engines should be disposed and set to None

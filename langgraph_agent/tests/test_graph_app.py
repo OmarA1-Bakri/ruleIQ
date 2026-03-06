@@ -124,9 +124,7 @@ class TestNodeFunctions:
     @pytest.mark.asyncio
     async def test_evidence_collector_node(self):
         """Test evidence collector node execution."""
-        state = create_initial_state(
-            company_id=uuid4(), user_input="Help me collect evidence"
-        )
+        state = create_initial_state(company_id=uuid4(), user_input="Help me collect evidence")
 
         result = await evidence_collector_node(state)
 
@@ -139,9 +137,7 @@ class TestNodeFunctions:
     @pytest.mark.asyncio
     async def test_legal_reviewer_node(self):
         """Test legal reviewer node execution."""
-        state = create_initial_state(
-            company_id=uuid4(), user_input="I need legal review"
-        )
+        state = create_initial_state(company_id=uuid4(), user_input="I need legal review")
 
         result = await legal_reviewer_node(state)
 
@@ -181,9 +177,7 @@ class TestGraphCreation:
 
         # Should be able to call compile without errors
         # We'll mock the checkpointer since we don't have a real DB connection
-        with patch(
-            "langgraph_agent.graph.app.create_checkpointer"
-        ) as mock_checkpointer:
+        with patch("langgraph_agent.graph.app.create_checkpointer") as mock_checkpointer:
             mock_checkpointer.return_value = Mock()
 
             try:
@@ -201,9 +195,7 @@ class TestGraphInvocation:
         """Test basic graph invocation flow."""
         # Mock the compiled graph behavior
         mock_compiled_graph = AsyncMock()
-        mock_final_state = create_initial_state(
-            company_id=uuid4(), user_input="Test GDPR question"
-        )
+        mock_final_state = create_initial_state(company_id=uuid4(), user_input="Test GDPR question")
         mock_final_state["current_node"] = "compliance_analyzer"
         mock_final_state["next_node"] = "END"
 
@@ -227,9 +219,7 @@ class TestGraphInvocation:
     async def test_invoke_graph_with_thread_id(self):
         """Test graph invocation with specific thread ID."""
         mock_compiled_graph = AsyncMock()
-        mock_final_state = create_initial_state(
-            company_id=uuid4(), user_input="Test input"
-        )
+        mock_final_state = create_initial_state(company_id=uuid4(), user_input="Test input")
         mock_compiled_graph.ainvoke.return_value = mock_final_state
 
         thread_id = "custom_thread_123"
@@ -268,9 +258,7 @@ class TestGraphInvocation:
     async def test_invoke_graph_slo_monitoring(self):
         """Test SLO monitoring in graph invocation."""
         mock_compiled_graph = AsyncMock()
-        mock_final_state = create_initial_state(
-            company_id=uuid4(), user_input="Test input"
-        )
+        mock_final_state = create_initial_state(company_id=uuid4(), user_input="Test input")
         mock_compiled_graph.ainvoke.return_value = mock_final_state
 
         with patch("langgraph_agent.graph.app.logger") as mock_logger:

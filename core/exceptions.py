@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 Defines the custom exception hierarchy for the application.
 
@@ -26,9 +25,7 @@ class ApplicationException(Exception):
 class DatabaseException(ApplicationException):
     """Raised for general database-related errors."""
 
-    def __init__(
-        self, message: str = "A database error occurred.", status_code: int = 500
-    ) -> None:
+    def __init__(self, message: str = "A database error occurred.", status_code: int = 500) -> None:
         super().__init__(message, status_code)
 
 
@@ -78,9 +75,7 @@ class ValidationException(BusinessLogicException):
 class AuthorizationException(BusinessLogicException):
     """Raised for authorization or permission errors."""
 
-    def __init__(
-        self, message: str = "You do not have permission to perform this action."
-    ) -> None:
+    def __init__(self, message: str = "You do not have permission to perform this action.") -> None:
         super().__init__(message, status_code=403)
 
 
@@ -115,9 +110,7 @@ class AIException(ApplicationException):
 class APIError(ApplicationException):
     """Base class for API related errors."""
 
-    def __init__(
-        self, message: str = "An API error occurred.", status_code: int = 500
-    ) -> None:
+    def __init__(self, message: str = "An API error occurred.", status_code: int = 500) -> None:
         super().__init__(message, status_code)
 
 

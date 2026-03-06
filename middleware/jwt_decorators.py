@@ -4,6 +4,7 @@ JWT Authentication Decorators for RuleIQ API
 Provides decorator-based authentication for route protection.
 Part of SEC-005: Complete JWT Coverage Extension
 """
+
 from functools import wraps
 from typing import Optional, Callable
 from fastapi import Depends, HTTPException, status
@@ -12,11 +13,7 @@ from jose import JWTError, jwt
 from datetime import datetime, timezone
 import logging
 
-from api.dependencies.auth import (
-    is_token_blacklisted,
-    SECRET_KEY,
-    ALGORITHM
-)
+from api.dependencies.auth import is_token_blacklisted, SECRET_KEY, ALGORITHM
 from database.user import User
 
 logger = logging.getLogger(__name__)
@@ -44,6 +41,7 @@ class JWTMiddleware:
             async def protected_route(current_user: User = Depends(get_current_user)):
                 return {"user": current_user.email}
         """
+
         @wraps(func)
         async def wrapper(*args, **kwargs):
             # The actual authentication is handled by get_current_user dependency
@@ -65,14 +63,14 @@ class JWTMiddleware:
             async def admin_route(current_user: User = Depends(get_current_user)):
                 return {"admin": True}
         """
+
         @wraps(func)
         async def wrapper(*args, **kwargs):
             # Check if current_user is in kwargs (injected by FastAPI)
-            current_user = kwargs.get('current_user')
-            if current_user and not getattr(current_user, 'is_admin', False):
+            current_user = kwargs.get("current_user")
+            if current_user and not getattr(current_user, "is_admin", False):
                 raise HTTPException(
-                    status_code=status.HTTP_403_FORBIDDEN,
-                    detail="Admin privileges required"
+                    status_code=status.HTTP_403_FORBIDDEN, detail="Admin privileges required"
                 )
             return await func(*args, **kwargs)
 
@@ -91,22 +89,24 @@ class JWTMiddleware:
             async def moderator_route(current_user: User = Depends(get_current_user)):
                 return {"role": current_user.role}
         """
+
         def decorator(func: Callable) -> Callable:
             @wraps(func)
             async def wrapper(*args, **kwargs):
-                current_user = kwargs.get('current_user')
+                current_user = kwargs.get("current_user")
                 if current_user:
-                    user_role = getattr(current_user, 'role', None)
+                    user_role = getattr(current_user, "role", None)
                     if user_role not in allowed_roles:
                         raise HTTPException(
                             status_code=status.HTTP_403_FORBIDDEN,
-                            detail=f"Role required: {', '.join(allowed_roles)}"
+                            detail=f"Role required: {', '.join(allowed_roles)}",
                         )
                 return await func(*args, **kwargs)
 
             wrapper.__requires_auth__ = True
             wrapper.__required_roles__ = allowed_roles
             return wrapper
+
         return decorator
 
     @staticmethod
@@ -122,6 +122,7 @@ class JWTMiddleware:
                     return {"personalized": True, "user": current_user.email}
                 return {"personalized": False}
         """
+
         @wraps(func)
         async def wrapper(*args, **kwargs):
             return await func(*args, **kwargs)
@@ -149,7 +150,7 @@ class JWTMiddleware:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Authentication required",
-                headers={"WWW-Authenticate": "Bearer"}
+                headers={"WWW-Authenticate": "Bearer"},
             )
 
         token = credentials.credentials
@@ -160,29 +161,29 @@ class JWTMiddleware:
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
                     detail="Token has been revoked",
-                    headers={"WWW-Authenticate": "Bearer"}
+                    headers={"WWW-Authenticate": "Bearer"},
                 )
 
             # Decode and validate token
             payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
 
             # Check token type
-            if payload.get('type') != 'access':
+            if payload.get("type") != "access":
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
                     detail="Invalid token type",
-                    headers={"WWW-Authenticate": "Bearer"}
+                    headers={"WWW-Authenticate": "Bearer"},
                 )
 
             # Check expiration
-            exp = payload.get('exp')
+            exp = payload.get("exp")
             if exp:
                 exp_datetime = datetime.fromtimestamp(exp, tz=timezone.utc)
                 if exp_datetime < datetime.now(timezone.utc):
                     raise HTTPException(
                         status_code=status.HTTP_401_UNAUTHORIZED,
                         detail="Token has expired",
-                        headers={"WWW-Authenticate": "Bearer"}
+                        headers={"WWW-Authenticate": "Bearer"},
                     )
 
             return payload
@@ -192,13 +193,13 @@ class JWTMiddleware:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid token",
-                headers={"WWW-Authenticate": "Bearer"}
+                headers={"WWW-Authenticate": "Bearer"},
             )
 
 
 async def get_current_user_optional(
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
-    db = Depends(get_async_db)
+    db=Depends(get_async_db),
 ) -> Optional[User]:
     """
     Get current user if authenticated, None otherwise.
@@ -210,11 +211,12 @@ async def get_current_user_optional(
 
     try:
         payload = await JWTMiddleware.validate_token(credentials)
-        user_id = payload.get('sub')
+        user_id = payload.get("sub")
         if not user_id:
             return None
 
         from sqlalchemy.future import select
+
         result = await db.execute(select(User).where(User.id == user_id))
         return result.scalars().first()
     except:

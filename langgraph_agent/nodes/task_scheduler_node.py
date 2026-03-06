@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 Task scheduler node for LangGraph workflow.
 Manages task scheduling and orchestration.
@@ -65,13 +64,9 @@ async def task_scheduler_node(state: UnifiedComplianceState) -> UnifiedComplianc
                 {
                     "task_type": "report_generation",
                     "priority": "medium",
-                    "scheduled_time": get_next_scheduled_time(
-                        schedule_type, delay_hours=1
-                    ),
+                    "scheduled_time": get_next_scheduled_time(schedule_type, delay_hours=1),
                     "metadata": {
-                        "report_type": metadata.get(
-                            "report_type", "compliance_summary"
-                        ),
+                        "report_type": metadata.get("report_type", "compliance_summary"),
                         "format": metadata.get("report_format", "pdf"),
                     },
                 }
@@ -83,9 +78,7 @@ async def task_scheduler_node(state: UnifiedComplianceState) -> UnifiedComplianc
                 {
                     "task_type": "notification",
                     "priority": "low",
-                    "scheduled_time": get_next_scheduled_time(
-                        schedule_type, delay_hours=2
-                    ),
+                    "scheduled_time": get_next_scheduled_time(schedule_type, delay_hours=2),
                     "metadata": {
                         "recipient_emails": metadata.get("recipient_emails", []),
                         "notification_type": "compliance_update",
@@ -98,9 +91,7 @@ async def task_scheduler_node(state: UnifiedComplianceState) -> UnifiedComplianc
             task["task_id"] = generate_task_id()
             task["status"] = "scheduled"
             state["scheduled_tasks"].append(task)
-            logger.info(
-                f"Scheduled task: {task['task_type']} with ID: {task['task_id']}"
-            )
+            logger.info(f"Scheduled task: {task['task_type']} with ID: {task['task_id']}")
 
         # Update workflow metadata
         state["metadata"]["tasks_scheduled"] = len(tasks_to_schedule)
@@ -271,9 +262,7 @@ async def execute_scheduled_tasks(
             scheduled_time = datetime.fromisoformat(task["scheduled_time"])
 
             if scheduled_time <= current_time:
-                logger.info(
-                    f"Executing scheduled task: {task['task_id']} - {task['task_type']}"
-                )
+                logger.info(f"Executing scheduled task: {task['task_id']} - {task['task_type']}")
                 task["status"] = "executing"
 
                 # In production, this would trigger the appropriate node

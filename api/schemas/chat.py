@@ -64,7 +64,9 @@ class CreateConversationRequest(BaseModel):
 
     title: Optional[str] = Field(None, max_length=255, description="Optional conversation title")
     initial_message: Optional[str] = Field(
-        None, max_length=2000, description="Optional initial message",
+        None,
+        max_length=2000,
+        description="Optional initial message",
     )
 
 
@@ -81,7 +83,8 @@ class EvidenceRecommendationRequest(BaseModel):
     """Request schema for getting evidence recommendations."""
 
     framework: Optional[str] = Field(
-        None, description="Specific framework to get recommendations for",
+        None,
+        description="Specific framework to get recommendations for",
     )
 
 

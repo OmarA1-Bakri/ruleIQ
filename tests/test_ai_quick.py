@@ -2,6 +2,7 @@
 """
 Quick AI test without running the full API server
 """
+
 import asyncio
 import os
 from dotenv import load_dotenv

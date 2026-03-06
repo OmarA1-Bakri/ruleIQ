@@ -11,14 +11,24 @@ from alembic import command
 from alembic.config import Config
 
 from models.agentic_models import (
-    Agent, AgentSession, AgentDecision, TrustMetric,
-    AgentKnowledge, ConversationHistory, AgentAuditLog,
-    SchemaVersion, Base
+    Agent,
+    AgentSession,
+    AgentDecision,
+    TrustMetric,
+    AgentKnowledge,
+    ConversationHistory,
+    AgentAuditLog,
+    SchemaVersion,
+    Base,
 )
 from database.repositories.agentic_repository import (
-    AgentRepository, AgentSessionRepository, AgentDecisionRepository,
-    TrustMetricRepository, AgentKnowledgeRepository,
-    ConversationHistoryRepository, AgentAuditLogRepository
+    AgentRepository,
+    AgentSessionRepository,
+    AgentDecisionRepository,
+    TrustMetricRepository,
+    AgentKnowledgeRepository,
+    ConversationHistoryRepository,
+    AgentAuditLogRepository,
 )
 
 
@@ -47,7 +57,7 @@ def sample_agent(test_db):
         name="TestAgent",
         persona_type="developer",
         capabilities={"languages": ["python", "javascript"], "skills": ["testing", "debugging"]},
-        config={"max_tokens": 1000, "temperature": 0.7}
+        config={"max_tokens": 1000, "temperature": 0.7},
     )
     test_db.add(agent)
     test_db.commit()
@@ -67,7 +77,7 @@ def sample_session(test_db, sample_agent, sample_user_id):
         agent_id=sample_agent.agent_id,
         user_id=sample_user_id,
         trust_level=2,
-        context={"current_task": "testing"}
+        context={"current_task": "testing"},
     )
     test_db.add(session)
     test_db.commit()
@@ -83,7 +93,7 @@ class TestSchemaConstraints:
             agent = Agent(
                 name="InvalidAgent",
                 persona_type="invalid_type",  # Invalid type
-                capabilities={}
+                capabilities={},
             )
             test_db.add(agent)
             test_db.commit()
@@ -93,7 +103,7 @@ class TestSchemaConstraints:
         with pytest.raises(IntegrityError):
             session = AgentSession(
                 agent_id=sample_agent.agent_id,
-                trust_level=5  # Invalid trust level
+                trust_level=5,  # Invalid trust level
             )
             test_db.add(session)
             test_db.commit()
@@ -106,7 +116,7 @@ class TestSchemaConstraints:
                 decision_type="code_generation",
                 input_context={},
                 action_taken={},
-                confidence_score=Decimal("1.5")  # Invalid score
+                confidence_score=Decimal("1.5"),  # Invalid score
             )
             test_db.add(decision)
             test_db.commit()
@@ -117,7 +127,7 @@ class TestSchemaConstraints:
         metric1 = TrustMetric(
             session_id=sample_session.session_id,
             metric_type="accuracy",
-            metric_value=Decimal("85.5")
+            metric_value=Decimal("85.5"),
         )
         test_db.add(metric1)
         test_db.commit()
@@ -127,7 +137,7 @@ class TestSchemaConstraints:
             metric2 = TrustMetric(
                 session_id=sample_session.session_id,
                 metric_type="accuracy",
-                metric_value=Decimal("150.0")
+                metric_value=Decimal("150.0"),
             )
             test_db.add(metric2)
             test_db.commit()
@@ -139,13 +149,10 @@ class TestSchemaConstraints:
             session_id=sample_session.session_id,
             decision_type="code_generation",
             input_context={},
-            action_taken={}
+            action_taken={},
         )
         knowledge = AgentKnowledge(
-            agent_id=sample_agent.agent_id,
-            knowledge_type="pattern",
-            domain="backend",
-            content={}
+            agent_id=sample_agent.agent_id, knowledge_type="pattern", domain="backend", content={}
         )
         test_db.add_all([decision, knowledge])
         test_db.commit()
@@ -155,16 +162,24 @@ class TestSchemaConstraints:
         test_db.commit()
 
         # Verify cascaded deletes
-        assert test_db.query(AgentSession).filter_by(session_id=sample_session.session_id).first() is None
-        assert test_db.query(AgentDecision).filter_by(decision_id=decision.decision_id).first() is None
-        assert test_db.query(AgentKnowledge).filter_by(knowledge_id=knowledge.knowledge_id).first() is None
+        assert (
+            test_db.query(AgentSession).filter_by(session_id=sample_session.session_id).first()
+            is None
+        )
+        assert (
+            test_db.query(AgentDecision).filter_by(decision_id=decision.decision_id).first() is None
+        )
+        assert (
+            test_db.query(AgentKnowledge).filter_by(knowledge_id=knowledge.knowledge_id).first()
+            is None
+        )
 
     def test_restrict_delete_agent_with_audit_logs(self, test_db, sample_agent):
         """Test RESTRICT delete for agent with audit logs."""
         audit_log = AgentAuditLog(
             agent_id=sample_agent.agent_id,
             action_type="code_generation",
-            action_details={"files_created": 3}
+            action_details={"files_created": 3},
         )
         test_db.add(audit_log)
         test_db.commit()
@@ -217,7 +232,7 @@ class TestRepositoryOperations:
             decision_type="code_generation",
             input_context={"prompt": "Create a test"},
             action_taken={"code": "def test(): pass"},
-            confidence_score=Decimal("0.85")
+            confidence_score=Decimal("0.85"),
         )
         test_db.add(decision)
         test_db.commit()
@@ -232,9 +247,21 @@ class TestRepositoryOperations:
 
         # Add multiple metrics
         metrics = [
-            TrustMetric(session_id=sample_session.session_id, metric_type="accuracy", metric_value=Decimal("80")),
-            TrustMetric(session_id=sample_session.session_id, metric_type="accuracy", metric_value=Decimal("90")),
-            TrustMetric(session_id=sample_session.session_id, metric_type="accuracy", metric_value=Decimal("85")),
+            TrustMetric(
+                session_id=sample_session.session_id,
+                metric_type="accuracy",
+                metric_value=Decimal("80"),
+            ),
+            TrustMetric(
+                session_id=sample_session.session_id,
+                metric_type="accuracy",
+                metric_value=Decimal("90"),
+            ),
+            TrustMetric(
+                session_id=sample_session.session_id,
+                metric_type="accuracy",
+                metric_value=Decimal("85"),
+            ),
         ]
         test_db.add_all(metrics)
         test_db.commit()
@@ -253,7 +280,7 @@ class TestRepositoryOperations:
             knowledge_type="pattern",
             domain="backend",
             content={"pattern": "repository_pattern"},
-            usage_count=0
+            usage_count=0,
         )
         test_db.add(knowledge)
         test_db.commit()
@@ -274,10 +301,7 @@ class TestRepositoryOperations:
 
         # Create conversation thread
         msg1 = ConversationHistory(
-            session_id=sample_session.session_id,
-            role="user",
-            content="Hello",
-            message_type="text"
+            session_id=sample_session.session_id, role="user", content="Hello", message_type="text"
         )
         test_db.add(msg1)
         test_db.commit()
@@ -287,7 +311,7 @@ class TestRepositoryOperations:
             role="agent",
             content="Hi there!",
             message_type="text",
-            parent_message_id=msg1.message_id
+            parent_message_id=msg1.message_id,
         )
         test_db.add(msg2)
         test_db.commit()
@@ -304,10 +328,30 @@ class TestRepositoryOperations:
 
         # Create audit logs with different risk levels
         logs = [
-            AgentAuditLog(agent_id=sample_agent.agent_id, action_type="read", action_details={}, risk_level="low"),
-            AgentAuditLog(agent_id=sample_agent.agent_id, action_type="write", action_details={}, risk_level="medium"),
-            AgentAuditLog(agent_id=sample_agent.agent_id, action_type="delete", action_details={}, risk_level="high"),
-            AgentAuditLog(agent_id=sample_agent.agent_id, action_type="admin", action_details={}, risk_level="critical"),
+            AgentAuditLog(
+                agent_id=sample_agent.agent_id,
+                action_type="read",
+                action_details={},
+                risk_level="low",
+            ),
+            AgentAuditLog(
+                agent_id=sample_agent.agent_id,
+                action_type="write",
+                action_details={},
+                risk_level="medium",
+            ),
+            AgentAuditLog(
+                agent_id=sample_agent.agent_id,
+                action_type="delete",
+                action_details={},
+                risk_level="high",
+            ),
+            AgentAuditLog(
+                agent_id=sample_agent.agent_id,
+                action_type="admin",
+                action_details={},
+                risk_level="critical",
+            ),
         ]
         test_db.add_all(logs)
         test_db.commit()
@@ -331,7 +375,7 @@ class TestPerformance:
                 decision_type="code_generation",
                 input_context={"index": i},
                 action_taken={"result": f"action_{i}"},
-                confidence_score=Decimal("0.85")
+                confidence_score=Decimal("0.85"),
             )
             decisions.append(decision)
 
@@ -340,6 +384,7 @@ class TestPerformance:
 
         # Test query performance
         import time
+
         start = time.time()
 
         repo = AgentDecisionRepository(test_db)
@@ -353,11 +398,13 @@ class TestPerformance:
     def test_index_usage(self, test_db):
         """Test that indexes are being used for queries."""
         # Check index existence
-        result = test_db.execute(text("""
+        result = test_db.execute(
+            text("""
             SELECT indexname FROM pg_indexes 
             WHERE tablename = 'agent_sessions' 
             AND indexname = 'idx_agent_sessions_agent_id'
-        """))
+        """)
+        )
 
         indexes = result.fetchall()
         assert len(indexes) > 0  # Index should exist
@@ -376,11 +423,13 @@ class TestMigration:
         # Verify tables exist
         engine = create_engine(config.get_main_option("sqlalchemy.url"))
         with engine.connect() as conn:
-            result = conn.execute(text("""
+            result = conn.execute(
+                text("""
                 SELECT table_name FROM information_schema.tables 
                 WHERE table_schema = 'public' 
                 AND table_name IN ('agents', 'agent_sessions', 'agent_decisions')
-            """))
+            """)
+            )
             tables = [row[0] for row in result]
 
             assert "agents" in tables
@@ -398,11 +447,13 @@ class TestMigration:
         # Verify tables are removed
         engine = create_engine(config.get_main_option("sqlalchemy.url"))
         with engine.connect() as conn:
-            result = conn.execute(text("""
+            result = conn.execute(
+                text("""
                 SELECT table_name FROM information_schema.tables 
                 WHERE table_schema = 'public' 
                 AND table_name = 'agents'
-            """))
+            """)
+            )
             tables = result.fetchall()
 
             assert len(tables) == 0  # Table should not exist
@@ -417,11 +468,13 @@ class TestDataRetention:
         # In production, we would test actual PostgreSQL partitioning
 
         # Verify the table has the necessary columns for partitioning
-        result = test_db.execute(text("""
+        result = test_db.execute(
+            text("""
             SELECT column_name FROM information_schema.columns 
             WHERE table_name = 'conversation_history' 
             AND column_name = 'created_at'
-        """))
+        """)
+        )
 
         columns = result.fetchall()
         assert len(columns) > 0  # created_at column exists for partitioning
@@ -439,10 +492,7 @@ class TestConcurrency:
         initial_version = agent.version
 
         # Update capabilities
-        updated = repo.update_capabilities(
-            sample_agent.agent_id,
-            {"languages": ["python", "rust"]}
-        )
+        updated = repo.update_capabilities(sample_agent.agent_id, {"languages": ["python", "rust"]})
 
         # Version should increment
         assert updated.version == initial_version + 1
@@ -452,11 +502,7 @@ class TestConcurrency:
         from concurrent.futures import ThreadPoolExecutor
 
         def create_session(agent_id, user_id):
-            session = AgentSession(
-                agent_id=agent_id,
-                user_id=user_id,
-                trust_level=0
-            )
+            session = AgentSession(agent_id=agent_id, user_id=user_id, trust_level=0)
             test_db.add(session)
             test_db.commit()
             return session.session_id

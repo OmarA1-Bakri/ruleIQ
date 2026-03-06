@@ -4,6 +4,7 @@ Unit tests for database/providers.py
 Tests the DatabaseProvider interface and concrete implementations
 for PostgreSQL and Neo4j database services.
 """
+
 import pytest
 import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -17,7 +18,7 @@ from database.providers import (
     Neo4jProvider,
     DatabaseConfig,
     ConnectionHealth,
-    DatabaseError
+    DatabaseError,
 )
 
 
@@ -33,6 +34,7 @@ class TestDatabaseProvider:
     @pytest.mark.asyncio
     async def test_abstract_method_signatures(self):
         """Test that abstract methods have correct signatures."""
+
         # Create a concrete implementation for testing
         class ConcreteProvider(DatabaseProvider):
             async def initialize(self) -> bool:
@@ -44,7 +46,9 @@ class TestDatabaseProvider:
             async def health_check(self) -> ConnectionHealth:
                 return ConnectionHealth(status="healthy", details={})
 
-            async def execute_query(self, query: str, params: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
+            async def execute_query(
+                self, query: str, params: Optional[Dict[str, Any]] = None
+            ) -> List[Dict[str, Any]]:
                 return []
 
             async def execute_transaction(self, queries: List[Dict[str, Any]]) -> bool:
@@ -80,7 +84,7 @@ class TestPostgreSQLProvider:
     @pytest.fixture
     def provider(self, mock_engine):
         """Create PostgreSQL provider with mocked engine."""
-        with patch('database.providers.create_async_engine', return_value=mock_engine):
+        with patch("database.providers.create_async_engine", return_value=mock_engine):
             provider = PostgreSQLProvider()
             return provider
 
@@ -130,7 +134,9 @@ class TestPostgreSQLProvider:
     async def test_health_check_unhealthy(self, provider, mock_session):
         """Test health check when database is unhealthy."""
         provider.session_factory = MagicMock()
-        provider.session_factory.return_value.__aenter__.side_effect = Exception("Connection failed")
+        provider.session_factory.return_value.__aenter__.side_effect = Exception(
+            "Connection failed"
+        )
 
         health = await provider.health_check()
 
@@ -178,7 +184,10 @@ class TestPostgreSQLProvider:
 
         queries = [
             {"query": "INSERT INTO test (name) VALUES (:name)", "params": {"name": "test1"}},
-            {"query": "UPDATE test SET name = :name WHERE id = :id", "params": {"name": "test2", "id": 1}}
+            {
+                "query": "UPDATE test SET name = :name WHERE id = :id",
+                "params": {"name": "test2", "id": 1},
+            },
         ]
 
         result = await provider.execute_transaction(queries)
@@ -224,7 +233,7 @@ class TestNeo4jProvider:
     @pytest.fixture
     def provider(self, mock_driver):
         """Create Neo4j provider with mocked driver."""
-        with patch('database.providers.GraphDatabase.driver', return_value=mock_driver):
+        with patch("database.providers.GraphDatabase.driver", return_value=mock_driver):
             provider = Neo4jProvider()
             return provider
 
@@ -237,15 +246,15 @@ class TestNeo4jProvider:
     async def test_initialize_success(self, provider, mock_driver):
         """Test successful initialization."""
         # Mock successful connection test
-        with patch.object(provider, '_verify_connection', return_value=True):
-            with patch.object(provider, '_initialize_schema'):
+        with patch.object(provider, "_verify_connection", return_value=True):
+            with patch.object(provider, "_initialize_schema"):
                 result = await provider.initialize()
                 assert result is True
 
     @pytest.mark.asyncio
     async def test_initialize_connection_failure(self, provider):
         """Test initialization failure due to connection issues."""
-        with patch.object(provider, '_verify_connection', return_value=False):
+        with patch.object(provider, "_verify_connection", return_value=False):
             result = await provider.initialize()
             assert result is False
 
@@ -314,7 +323,10 @@ class TestNeo4jProvider:
 
         queries = [
             {"query": "CREATE (n:Test {name: $name})", "params": {"name": "test1"}},
-            {"query": "MATCH (n:Test {name: $name}) SET n.value = $value", "params": {"name": "test1", "value": 100}}
+            {
+                "query": "MATCH (n:Test {name: $name}) SET n.value = $value",
+                "params": {"name": "test1", "value": 100},
+            },
         ]
 
         result = await provider.execute_transaction(queries)
@@ -345,7 +357,7 @@ class TestDatabaseConfig:
         """Test getting PostgreSQL provider."""
         config = DatabaseConfig()
 
-        with patch('database.providers.PostgreSQLProvider') as mock_provider_class:
+        with patch("database.providers.PostgreSQLProvider") as mock_provider_class:
             mock_provider = AsyncMock()
             mock_provider_class.return_value = mock_provider
             mock_provider.initialize.return_value = True
@@ -360,7 +372,7 @@ class TestDatabaseConfig:
         """Test getting Neo4j provider."""
         config = DatabaseConfig()
 
-        with patch('database.providers.Neo4jProvider') as mock_provider_class:
+        with patch("database.providers.Neo4jProvider") as mock_provider_class:
             mock_provider = AsyncMock()
             mock_provider_class.return_value = mock_provider
             mock_provider.initialize.return_value = True
@@ -383,7 +395,7 @@ class TestDatabaseConfig:
         """Test provider initialization failure."""
         config = DatabaseConfig()
 
-        with patch('database.providers.PostgreSQLProvider') as mock_provider_class:
+        with patch("database.providers.PostgreSQLProvider") as mock_provider_class:
             mock_provider = AsyncMock()
             mock_provider_class.return_value = mock_provider
             mock_provider.initialize.return_value = False
@@ -405,12 +417,11 @@ class TestConnectionHealth:
     def test_health_with_timestamp(self):
         """Test ConnectionHealth with timestamp."""
         import time
+
         timestamp = time.time()
 
         health = ConnectionHealth(
-            status="healthy",
-            details={"response_time": 0.1},
-            timestamp=timestamp
+            status="healthy", details={"response_time": 0.1}, timestamp=timestamp
         )
 
         assert health.timestamp == timestamp

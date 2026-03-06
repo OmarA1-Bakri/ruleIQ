@@ -1,4 +1,5 @@
 """Test Neo4j Community Edition Docker setup."""
+
 from typing import Any
 
 import os
@@ -62,7 +63,8 @@ class TestNeo4jSetup:
             for i in range(max_retries):
                 try:
                     driver = GraphDatabase.driver(
-                        "bolt://localhost:7687", auth=("neo4j", "please_change"),
+                        "bolt://localhost:7687",
+                        auth=("neo4j", "please_change"),
                     )
                     with driver.session() as session:
                         session.run("RETURN 1")
@@ -90,7 +92,8 @@ class TestNeo4jSetup:
     def test_neo4j_connection(self, neo4j_container: Any) -> Any:
         """Test connection to Neo4j."""
         driver = GraphDatabase.driver(
-            "bolt://localhost:7687", auth=("neo4j", "test_password123"),
+            "bolt://localhost:7687",
+            auth=("neo4j", "test_password123"),
         )
 
         with driver.session() as session:
@@ -103,7 +106,8 @@ class TestNeo4jSetup:
     def test_vector_index_support(self, neo4j_container: Any) -> Any:
         """Test that Neo4j supports VECTOR indexes."""
         driver = GraphDatabase.driver(
-            "bolt://localhost:7687", auth=("neo4j", "test_password123"),
+            "bolt://localhost:7687",
+            auth=("neo4j", "test_password123"),
         )
 
         with driver.session() as session:
@@ -148,7 +152,8 @@ class TestNeo4jSetup:
     def test_memory_configuration(self, neo4j_container: Any) -> Any:
         """Test Neo4j memory configuration."""
         driver = GraphDatabase.driver(
-            "bolt://localhost:7687", auth=("neo4j", "test_password123"),
+            "bolt://localhost:7687",
+            auth=("neo4j", "test_password123"),
         )
 
         with driver.session() as session:

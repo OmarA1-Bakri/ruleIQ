@@ -5,7 +5,6 @@ Implements circuit breaker pattern, fallback responses, and
 service health checks to ensure system resilience.
 """
 
-
 import asyncio
 import logging
 from datetime import datetime, timezone
@@ -21,6 +20,7 @@ logger = logging.getLogger(__name__)
 
 class ServiceState(str, Enum):
     """Service operational state."""
+
     HEALTHY = "healthy"
     DEGRADED = "degraded"
     CIRCUIT_OPEN = "circuit_open"
@@ -29,6 +29,7 @@ class ServiceState(str, Enum):
 
 class CircuitState(str, Enum):
     """Circuit breaker state."""
+
     CLOSED = "closed"
     OPEN = "open"
     HALF_OPEN = "half_open"
@@ -44,7 +45,7 @@ class CircuitBreaker:
         name: str,
         failure_threshold: int = 5,
         recovery_timeout: int = 60,
-        expected_exception: type = Exception
+        expected_exception: type = Exception,
     ) -> None:
         self.name = name
         self.failure_threshold = failure_threshold
@@ -65,8 +66,7 @@ class CircuitBreaker:
                 self._half_open_calls = 0
             else:
                 raise HTTPException(
-                    status_code=503,
-                    detail=f"Service {self.name} is temporarily unavailable"
+                    status_code=503, detail=f"Service {self.name} is temporarily unavailable"
                 )
 
         try:
@@ -85,8 +85,7 @@ class CircuitBreaker:
                 self._half_open_calls = 0
             else:
                 raise HTTPException(
-                    status_code=503,
-                    detail=f"Service {self.name} is temporarily unavailable"
+                    status_code=503, detail=f"Service {self.name} is temporarily unavailable"
                 )
 
         try:
@@ -124,10 +123,13 @@ class CircuitBreaker:
 
         if self.failure_count >= self.failure_threshold:
             self.state = CircuitState.OPEN
-            logger.warning(f"Circuit breaker {self.name} opened after {self.failure_count} failures")
+            logger.warning(
+                f"Circuit breaker {self.name} opened after {self.failure_count} failures"
+            )
 
         # Track metrics
         from monitoring.metrics import get_metrics_collector
+
         metrics = get_metrics_collector()
         metrics.track_request_metrics
 
@@ -146,10 +148,7 @@ class ServiceHealthChecker:
         self.degraded_features: Set[str] = set()
 
     def register_service(
-        self,
-        name: str,
-        health_check: Callable,
-        circuit_breaker: Optional[CircuitBreaker] = None
+        self, name: str, health_check: Callable, circuit_breaker: Optional[CircuitBreaker] = None
     ):
         """Register a service for health monitoring."""
         self.services[name] = ServiceState.HEALTHY
@@ -176,6 +175,7 @@ class ServiceHealthChecker:
 
             # Update metrics
             from monitoring.metrics import get_metrics_collector
+
             metrics = get_metrics_collector()
             metrics.update_service_availability(service_name, result)
 
@@ -187,6 +187,7 @@ class ServiceHealthChecker:
 
             # Update metrics
             from monitoring.metrics import get_metrics_collector
+
             metrics = get_metrics_collector()
             metrics.update_service_availability(service_name, False)
 
@@ -224,7 +225,7 @@ class ServiceHealthChecker:
         self.cached_responses[key] = {
             "data": response,
             "cached_at": datetime.now(timezone.utc),
-            "ttl": ttl
+            "ttl": ttl,
         }
 
     def get_cached_response(self, key: str) -> Optional[Dict[str, Any]]:
@@ -254,10 +255,12 @@ class GracefulDegradationMiddleware(BaseHTTPMiddleware):
 
     def _initialize_health_checks(self):
         """Initialize default health checks."""
+
         # Database health check
         async def check_database():
             try:
                 from database.db_setup import get_async_db
+
                 async for db in get_async_db():
                     await db.execute("SELECT 1")
                     return True
@@ -268,6 +271,7 @@ class GracefulDegradationMiddleware(BaseHTTPMiddleware):
         async def check_redis():
             try:
                 from config.cache import get_redis_client
+
                 redis_client = await get_redis_client()
                 await redis_client.ping()
                 return True
@@ -286,8 +290,8 @@ class GracefulDegradationMiddleware(BaseHTTPMiddleware):
                 status_code=503,
                 content={
                     "error": "Service is in read-only mode",
-                    "message": "Only read operations are currently available"
-                }
+                    "message": "Only read operations are currently available",
+                },
             )
 
         # Check for degraded features
@@ -298,20 +302,15 @@ class GracefulDegradationMiddleware(BaseHTTPMiddleware):
             cached = self.health_checker.get_cached_response(cache_key)
             if cached:
                 return JSONResponse(
-                    status_code=200,
-                    content={
-                        **cached,
-                        "_cached": True,
-                        "_degraded": True
-                    }
+                    status_code=200, content={**cached, "_cached": True, "_degraded": True}
                 )
             else:
                 return JSONResponse(
                     status_code=503,
                     content={
                         "error": f"Feature {feature} is temporarily unavailable",
-                        "message": "Please try again later"
-                    }
+                        "message": "Please try again later",
+                    },
                 )
 
         # Process request with circuit breaker
@@ -334,12 +333,7 @@ class GracefulDegradationMiddleware(BaseHTTPMiddleware):
                 cached = self.health_checker.get_cached_response(cache_key)
                 if cached:
                     return JSONResponse(
-                        status_code=200,
-                        content={
-                            **cached,
-                            "_cached": True,
-                            "_fallback": True
-                        }
+                        status_code=200, content={**cached, "_cached": True, "_fallback": True}
                     )
                 raise e
 
@@ -361,7 +355,7 @@ class GracefulDegradationMiddleware(BaseHTTPMiddleware):
                 "auth": "authentication",
                 "users": "database",
                 "ai": "ai_service",
-                "compliance": "compliance_engine"
+                "compliance": "compliance_engine",
             }
             return service_map.get(parts[1], parts[1])
         return ""
@@ -396,7 +390,8 @@ class FeatureFlagDegradation:
 
         # Update feature flag system
         from config.feature_flags import feature_flags
-        if hasattr(feature_flags, 'disable_flag'):
+
+        if hasattr(feature_flags, "disable_flag"):
             feature_flags.disable_flag(flag_name)
 
     def enable_flag(self, flag_name: str):
@@ -406,7 +401,8 @@ class FeatureFlagDegradation:
 
         # Update feature flag system
         from config.feature_flags import feature_flags
-        if hasattr(feature_flags, 'enable_flag'):
+
+        if hasattr(feature_flags, "enable_flag"):
             feature_flags.enable_flag(flag_name)
 
     def reset_error_count(self, flag_name: str):

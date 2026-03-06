@@ -37,13 +37,7 @@ class EnvironmentSetup:
             message: Message to log
             level: Log level
         """
-        symbols = {
-            "info": "ℹ️",
-            "success": "✅",
-            "warning": "⚠️",
-            "error": "❌",
-            "config": "⚙️"
-        }
+        symbols = {"info": "ℹ️", "success": "✅", "warning": "⚠️", "error": "❌", "config": "⚙️"}
 
         colors = {
             "info": "\033[94m",
@@ -51,7 +45,7 @@ class EnvironmentSetup:
             "warning": "\033[93m",
             "error": "\033[91m",
             "config": "\033[95m",
-            "reset": "\033[0m"
+            "reset": "\033[0m",
         }
 
         symbol = symbols.get(level, "ℹ️")
@@ -80,7 +74,9 @@ class EnvironmentSetup:
         """
         if Path(self.env_file).exists():
             existing_config = dotenv_values(self.env_file)
-            self.log(f"Loaded {len(existing_config)} existing variables from {self.env_file}", "info")
+            self.log(
+                f"Loaded {len(existing_config)} existing variables from {self.env_file}", "info"
+            )
             return existing_config
 
         # Try loading base .env file
@@ -109,50 +105,30 @@ class EnvironmentSetup:
         # Database configuration
         if self.environment == "production":
             self.config["DATABASE_URL"] = self.config.get(
-                "DATABASE_URL",
-                "postgresql://ruleiq_user:secure_password@db:5432/ruleiq_prod"
+                "DATABASE_URL", "postgresql://ruleiq_user:secure_password@db:5432/ruleiq_prod"
             )
             self.config["DATABASE_POOL_SIZE"] = "20"
             self.config["DATABASE_MAX_OVERFLOW"] = "40"
         else:
             self.config["DATABASE_URL"] = self.config.get(
-                "DATABASE_URL",
-                "postgresql://ruleiq_user:password@localhost:5432/ruleiq_dev"
+                "DATABASE_URL", "postgresql://ruleiq_user:password@localhost:5432/ruleiq_dev"
             )
             self.config["DATABASE_POOL_SIZE"] = "5"
             self.config["DATABASE_MAX_OVERFLOW"] = "10"
 
         # Redis configuration
         if self.environment == "production":
-            self.config["REDIS_URL"] = self.config.get(
-                "REDIS_URL",
-                "redis://redis:6379/0"
-            )
+            self.config["REDIS_URL"] = self.config.get("REDIS_URL", "redis://redis:6379/0")
         else:
-            self.config["REDIS_URL"] = self.config.get(
-                "REDIS_URL",
-                "redis://localhost:6379/0"
-            )
+            self.config["REDIS_URL"] = self.config.get("REDIS_URL", "redis://localhost:6379/0")
 
         # Application URLs
         if self.environment == "production":
-            self.config["FRONTEND_URL"] = self.config.get(
-                "FRONTEND_URL",
-                "https://ruleiq.com"
-            )
-            self.config["BACKEND_URL"] = self.config.get(
-                "BACKEND_URL",
-                "https://api.ruleiq.com"
-            )
+            self.config["FRONTEND_URL"] = self.config.get("FRONTEND_URL", "https://ruleiq.com")
+            self.config["BACKEND_URL"] = self.config.get("BACKEND_URL", "https://api.ruleiq.com")
         else:
-            self.config["FRONTEND_URL"] = self.config.get(
-                "FRONTEND_URL",
-                "http://localhost:3000"
-            )
-            self.config["BACKEND_URL"] = self.config.get(
-                "BACKEND_URL",
-                "http://localhost:8000"
-            )
+            self.config["FRONTEND_URL"] = self.config.get("FRONTEND_URL", "http://localhost:3000")
+            self.config["BACKEND_URL"] = self.config.get("BACKEND_URL", "http://localhost:8000")
 
         # Environment settings
         self.config["ENVIRONMENT"] = self.environment
@@ -182,10 +158,7 @@ class EnvironmentSetup:
             self.secrets_to_generate.append("ENCRYPTION_KEY")
 
         # CORS settings
-        self.config["CORS_ORIGINS"] = self.config.get(
-            "CORS_ORIGINS",
-            self.config["FRONTEND_URL"]
-        )
+        self.config["CORS_ORIGINS"] = self.config.get("CORS_ORIGINS", self.config["FRONTEND_URL"])
 
         # Security headers
         self.config["SECURE_HEADERS"] = "true" if self.environment == "production" else "false"
@@ -252,7 +225,9 @@ class EnvironmentSetup:
         # Feature flags
         self.config["ENABLE_AI_FEATURES"] = "true"
         self.config["ENABLE_CACHING"] = "true"
-        self.config["ENABLE_RATE_LIMITING"] = "true" if self.environment == "production" else "false"
+        self.config["ENABLE_RATE_LIMITING"] = (
+            "true" if self.environment == "production" else "false"
+        )
         self.config["ENABLE_AUDIT_LOGGING"] = "true"
 
         # Rate limiting configuration
@@ -299,7 +274,7 @@ class EnvironmentSetup:
             "API_KEY",
             "FRONTEND_URL",
             "BACKEND_URL",
-            "ENVIRONMENT"
+            "ENVIRONMENT",
         ]
 
         missing_vars = []
@@ -312,7 +287,9 @@ class EnvironmentSetup:
             return False
 
         # Validate OpenAI API key for AI features
-        if self.config.get("ENABLE_AI_FEATURES") == "true" and not self.config.get("OPENAI_API_KEY"):
+        if self.config.get("ENABLE_AI_FEATURES") == "true" and not self.config.get(
+            "OPENAI_API_KEY"
+        ):
             self.log("AI features enabled but OPENAI_API_KEY not set", "warning")
 
         self.log("Configuration validated successfully", "success")
@@ -331,14 +308,26 @@ class EnvironmentSetup:
             "Database": ["DATABASE_URL", "DATABASE_POOL_SIZE", "DATABASE_MAX_OVERFLOW"],
             "Redis": ["REDIS_URL"],
             "URLs": ["FRONTEND_URL", "BACKEND_URL"],
-            "Security": ["JWT_SECRET", "API_KEY", "ENCRYPTION_KEY", "CORS_ORIGINS",
-                        "SECURE_HEADERS", "HTTPS_ONLY"],
-            "API Keys": ["OPENAI_API_KEY", "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY",
-                        "GOOGLE_WORKSPACE_CREDENTIALS", "AZURE_CLIENT_ID", "OKTA_DOMAIN"],
+            "Security": [
+                "JWT_SECRET",
+                "API_KEY",
+                "ENCRYPTION_KEY",
+                "CORS_ORIGINS",
+                "SECURE_HEADERS",
+                "HTTPS_ONLY",
+            ],
+            "API Keys": [
+                "OPENAI_API_KEY",
+                "AWS_ACCESS_KEY_ID",
+                "AWS_SECRET_ACCESS_KEY",
+                "GOOGLE_WORKSPACE_CREDENTIALS",
+                "AZURE_CLIENT_ID",
+                "OKTA_DOMAIN",
+            ],
             "Monitoring": ["SENTRY_DSN", "ENABLE_METRICS", "HEALTH_CHECK_PATH"],
             "Feature Flags": ["ENABLE_AI_FEATURES", "ENABLE_CACHING", "ENABLE_RATE_LIMITING"],
             "Email": ["SMTP_HOST", "SMTP_PORT", "EMAIL_FROM"],
-            "Other": []
+            "Other": [],
         }
 
         # Write to file
@@ -454,15 +443,10 @@ def main():
     """Main entry point for environment setup."""
     parser = argparse.ArgumentParser(description="Environment setup for ruleIQ deployment")
     parser.add_argument(
-        "--env",
-        choices=["staging", "production"],
-        default="staging",
-        help="Target environment"
+        "--env", choices=["staging", "production"], default="staging", help="Target environment"
     )
     parser.add_argument(
-        "--validate-only",
-        action="store_true",
-        help="Only validate existing configuration"
+        "--validate-only", action="store_true", help="Only validate existing configuration"
     )
 
     args = parser.parse_args()

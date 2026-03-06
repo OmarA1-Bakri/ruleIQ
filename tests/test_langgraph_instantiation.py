@@ -31,7 +31,8 @@ async def test_instantiation():
         # Create instance
         print("📊 Creating MasterIntegrationGraph instance...")
         graph = await MasterIntegrationGraph.create(
-            database_url=db_url, enable_streaming=True,
+            database_url=db_url,
+            enable_streaming=True,
         )
         print("✅ Graph instance created successfully")
 

@@ -46,16 +46,19 @@ class ProviderResponse:
 
 class ProviderUnavailableError(Exception):
     """Raised when a provider is unavailable."""
+
     pass
 
 
 class ProviderTimeoutError(Exception):
     """Raised when a provider request times out."""
+
     pass
 
 
 class ProviderQuotaError(Exception):
     """Raised when a provider quota is exceeded."""
+
     pass
 
 
@@ -82,11 +85,7 @@ class AIProvider(ABC):
         pass
 
     @abstractmethod
-    async def generate_stream(
-        self,
-        prompt: str,
-        config: ProviderConfig
-    ) -> AsyncIterator[str]:
+    async def generate_stream(self, prompt: str, config: ProviderConfig) -> AsyncIterator[str]:
         """
         Generate a streaming response from the AI model.
 

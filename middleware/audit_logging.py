@@ -18,22 +18,31 @@ from database.session import SessionLocal
 logger = logging.getLogger(__name__)
 
 # Context variable for audit context
-audit_context: ContextVar[Dict[str, Any]] = ContextVar('audit_context', default={})
+audit_context: ContextVar[Dict[str, Any]] = ContextVar("audit_context", default={})
 
 
 class AuditLogger:
     """Centralized audit logging service."""
 
     SENSITIVE_FIELDS = {
-        'password', 'token', 'secret', 'api_key', 'access_token',
-        'refresh_token', 'credit_card', 'ssn', 'bank_account'
+        "password",
+        "token",
+        "secret",
+        "api_key",
+        "access_token",
+        "refresh_token",
+        "credit_card",
+        "ssn",
+        "bank_account",
     }
 
     CRITICAL_OPERATIONS = {
-        'DELETE', 'PUT', 'PATCH',  # Data modification
-        'POST /api/auth',  # Authentication
-        'POST /api/admin',  # Admin operations
-        'POST /api/payment',  # Payment operations
+        "DELETE",
+        "PUT",
+        "PATCH",  # Data modification
+        "POST /api/auth",  # Authentication
+        "POST /api/admin",  # Admin operations
+        "POST /api/payment",  # Payment operations
     }
 
     def __init__(self) -> None:
@@ -89,7 +98,7 @@ class AuditLogger:
         result: Optional[str] = None,
         details: Optional[Dict] = None,
         ip_address: Optional[str] = None,
-        user_agent: Optional[str] = None
+        user_agent: Optional[str] = None,
     ):
         """Log an audit event."""
         await self._start_flush_timer()
@@ -153,7 +162,11 @@ class AuditLogger:
             return True
 
         # Security violations
-        return event["event_type"] in ["UNAUTHORIZED_ACCESS", "PERMISSION_DENIED", "SECURITY_VIOLATION"]
+        return event["event_type"] in [
+            "UNAUTHORIZED_ACCESS",
+            "PERMISSION_DENIED",
+            "SECURITY_VIOLATION",
+        ]
 
     async def flush(self):
         """Flush audit logs to database."""
@@ -193,11 +206,13 @@ class AuditLoggingMiddleware(BaseHTTPMiddleware):
         request_id = self._generate_request_id(request)
 
         # Set audit context
-        audit_context.set({
-            "request_id": request_id,
-            "session_id": request.cookies.get("session_id"),
-            "start_time": datetime.utcnow()
-        })
+        audit_context.set(
+            {
+                "request_id": request_id,
+                "session_id": request.cookies.get("session_id"),
+                "start_time": datetime.utcnow(),
+            }
+        )
 
         # Extract request details
         user_id = getattr(request.state, "user_id", None)
@@ -214,8 +229,8 @@ class AuditLoggingMiddleware(BaseHTTPMiddleware):
             user_agent=user_agent,
             details={
                 "query_params": dict(request.query_params),
-                "headers": self._get_safe_headers(request.headers)
-            }
+                "headers": self._get_safe_headers(request.headers),
+            },
         )
 
         # Process request
@@ -232,8 +247,8 @@ class AuditLoggingMiddleware(BaseHTTPMiddleware):
                 ip_address=ip_address,
                 details={
                     "status_code": response.status_code,
-                    "duration_ms": self._calculate_duration()
-                }
+                    "duration_ms": self._calculate_duration(),
+                },
             )
 
             # Log specific events based on endpoint
@@ -250,10 +265,7 @@ class AuditLoggingMiddleware(BaseHTTPMiddleware):
                 action=request.method,
                 result="ERROR",
                 ip_address=ip_address,
-                details={
-                    "error": str(e),
-                    "error_type": type(e).__name__
-                }
+                details={"error": str(e), "error_type": type(e).__name__},
             )
             raise
 
@@ -270,7 +282,7 @@ class AuditLoggingMiddleware(BaseHTTPMiddleware):
     def _get_safe_headers(self, headers: Dict) -> Dict:
         """Get headers with sensitive values redacted."""
         safe_headers = {}
-        sensitive_headers = {'authorization', 'cookie', 'x-api-key'}
+        sensitive_headers = {"authorization", "cookie", "x-api-key"}
 
         for key, value in headers.items():
             if key.lower() in sensitive_headers:
@@ -288,7 +300,9 @@ class AuditLoggingMiddleware(BaseHTTPMiddleware):
             return int(duration)
         return 0
 
-    async def _log_specific_events(self, request: Request, response: Response, user_id: Optional[str]):
+    async def _log_specific_events(
+        self, request: Request, response: Response, user_id: Optional[str]
+    ):
         """Log specific events based on endpoint patterns."""
         path = request.url.path
         method = request.method
@@ -301,14 +315,14 @@ class AuditLoggingMiddleware(BaseHTTPMiddleware):
                         event_type="AUTH_SUCCESS",
                         user_id=user_id,
                         action="LOGIN",
-                        ip_address=request.client.host if request.client else None
+                        ip_address=request.client.host if request.client else None,
                     )
                 else:
                     await self.audit_logger.log_event(
                         event_type="AUTH_FAILED",
                         user_id=user_id,
                         action="LOGIN",
-                        ip_address=request.client.host if request.client else None
+                        ip_address=request.client.host if request.client else None,
                     )
 
             elif path == "/api/auth/logout":
@@ -316,7 +330,7 @@ class AuditLoggingMiddleware(BaseHTTPMiddleware):
                     event_type="AUTH_LOGOUT",
                     user_id=user_id,
                     action="LOGOUT",
-                    ip_address=request.client.host if request.client else None
+                    ip_address=request.client.host if request.client else None,
                 )
 
         # Admin operations
@@ -327,7 +341,7 @@ class AuditLoggingMiddleware(BaseHTTPMiddleware):
                 resource=path,
                 action=method,
                 result="SUCCESS" if response.status_code < 400 else "FAILURE",
-                ip_address=request.client.host if request.client else None
+                ip_address=request.client.host if request.client else None,
             )
 
         # Data modifications
@@ -338,7 +352,7 @@ class AuditLoggingMiddleware(BaseHTTPMiddleware):
                 resource=path,
                 action=method,
                 result="SUCCESS" if response.status_code < 400 else "FAILURE",
-                ip_address=request.client.host if request.client else None
+                ip_address=request.client.host if request.client else None,
             )
 
         # Payment operations
@@ -350,7 +364,7 @@ class AuditLoggingMiddleware(BaseHTTPMiddleware):
                 action=method,
                 result="SUCCESS" if response.status_code < 400 else "FAILURE",
                 ip_address=request.client.host if request.client else None,
-                details={"status_code": response.status_code}
+                details={"status_code": response.status_code},
             )
 
         # Compliance operations
@@ -360,13 +374,14 @@ class AuditLoggingMiddleware(BaseHTTPMiddleware):
                 user_id=user_id,
                 resource=path,
                 action=method,
-                ip_address=request.client.host if request.client else None
+                ip_address=request.client.host if request.client else None,
             )
 
 
 # Audit log decorators for function-level logging
 def audit_operation(operation_type: str, resource_type: str = None):
     """Decorator for auditing function operations."""
+
     def decorator(func):
         async def wrapper(*args, **kwargs):
             # Get current user from context
@@ -378,7 +393,7 @@ def audit_operation(operation_type: str, resource_type: str = None):
                 user_id=user_id,
                 resource=resource_type,
                 action=func.__name__,
-                details={"args": str(args)[:200], "kwargs": str(kwargs)[:200]}
+                details={"args": str(args)[:200], "kwargs": str(kwargs)[:200]},
             )
 
             try:
@@ -391,7 +406,7 @@ def audit_operation(operation_type: str, resource_type: str = None):
                     user_id=user_id,
                     resource=resource_type,
                     action=func.__name__,
-                    result="SUCCESS"
+                    result="SUCCESS",
                 )
 
                 return result
@@ -404,11 +419,12 @@ def audit_operation(operation_type: str, resource_type: str = None):
                     resource=resource_type,
                     action=func.__name__,
                     result="FAILURE",
-                    details={"error": str(e)}
+                    details={"error": str(e)},
                 )
                 raise
 
         return wrapper
+
     return decorator
 
 
@@ -419,14 +435,14 @@ def setup_audit_logging(app):
     logger.info("Audit logging middleware configured")
     return audit_logger
 
+
 # Create a module-level audit logger instance
 audit_logger = AuditLogger()
 
+
 # Helper function for compatibility with security validation
 async def log_security_event(
-    request: Request,
-    event_type: str,
-    details: Optional[Dict[str, Any]] = None
+    request: Request, event_type: str, details: Optional[Dict[str, Any]] = None
 ) -> None:
     """
     Helper function for logging security events.
@@ -436,5 +452,5 @@ async def log_security_event(
         event_type=event_type,
         details=details,
         ip_address=request.client.host if request.client else None,
-        user_agent=request.headers.get("user-agent", "")
+        user_agent=request.headers.get("user-agent", ""),
     )

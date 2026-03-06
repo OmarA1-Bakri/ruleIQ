@@ -2,7 +2,7 @@
 Comprehensive Test Suite for Database Performance Optimization
 
 This module provides extensive unit and integration tests for the database performance
-optimization system, covering all requirements specified in Priority 3.2: Database 
+optimization system, covering all requirements specified in Priority 3.2: Database
 Performance Optimization.
 
 Tests cover:
@@ -74,6 +74,7 @@ class MockRedisClient:
 
     async def keys(self, pattern: str) -> List[str]:
         import fnmatch
+
         return [k for k in self.data if fnmatch.fnmatch(k, pattern)]
 
 
@@ -85,12 +86,14 @@ class TestQueryOptimizationFramework:
         """Create test database session"""
         # Use in-memory SQLite for testing
         from sqlalchemy.ext.asyncio import create_async_engine
+
         engine = create_async_engine("sqlite+aiosqlite:///:memory:")
         session_maker = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
         # Create tables for testing
         async with engine.begin() as conn:
-            await conn.execute(text("""
+            await conn.execute(
+                text("""
                 CREATE TABLE evidence_item (
                     id TEXT PRIMARY KEY,
                     user_id TEXT,
@@ -101,8 +104,10 @@ class TestQueryOptimizationFramework:
                     business_profile_id TEXT,
                     framework_id TEXT
                 )
-            """))
-            await conn.execute(text("""
+            """)
+            )
+            await conn.execute(
+                text("""
                 CREATE TABLE business_profile (
                     id TEXT PRIMARY KEY,
                     user_id TEXT,
@@ -110,8 +115,10 @@ class TestQueryOptimizationFramework:
                     industry TEXT,
                     created_at TIMESTAMP
                 )
-            """))
-            await conn.execute(text("""
+            """)
+            )
+            await conn.execute(
+                text("""
                 CREATE TABLE compliance_framework (
                     id TEXT PRIMARY KEY,
                     name TEXT,
@@ -119,7 +126,8 @@ class TestQueryOptimizationFramework:
                     description TEXT,
                     is_active BOOLEAN
                 )
-            """))
+            """)
+            )
 
         async with session_maker() as session:
             yield session
@@ -147,11 +155,11 @@ class TestQueryOptimizationFramework:
                 "Total Cost": 150.0,
                 "Actual Total Time": 25.0,
                 "Actual Rows": 100,
-                "Node Type": "Seq Scan"
+                "Node Type": "Seq Scan",
             }
         }
 
-        with patch.object(query_optimizer.db, 'execute') as mock_execute:
+        with patch.object(query_optimizer.db, "execute") as mock_execute:
             mock_result = Mock()
             mock_result.fetchone.return_value = [mock_plan]
             mock_execute.return_value = mock_result
@@ -167,13 +175,27 @@ class TestQueryOptimizationFramework:
     async def test_slow_query_detection(self, query_optimizer):
         """Test slow query detection from pg_stat_statements"""
         mock_rows = [
-            Mock(query="SELECT * FROM large_table", calls=1000, total_exec_time=50000.0,
-                 mean_exec_time=50.0, max_exec_time=100.0, rows=10000, hit_percent=95.0),
-            Mock(query="SELECT id FROM small_table", calls=5000, total_exec_time=1000.0,
-                 mean_exec_time=0.2, max_exec_time=1.0, rows=5000, hit_percent=99.0)
+            Mock(
+                query="SELECT * FROM large_table",
+                calls=1000,
+                total_exec_time=50000.0,
+                mean_exec_time=50.0,
+                max_exec_time=100.0,
+                rows=10000,
+                hit_percent=95.0,
+            ),
+            Mock(
+                query="SELECT id FROM small_table",
+                calls=5000,
+                total_exec_time=1000.0,
+                mean_exec_time=0.2,
+                max_exec_time=1.0,
+                rows=5000,
+                hit_percent=99.0,
+            ),
         ]
 
-        with patch.object(query_optimizer.db, 'execute') as mock_execute:
+        with patch.object(query_optimizer.db, "execute") as mock_execute:
             mock_result = Mock()
             mock_result.fetchall.return_value = mock_rows
             mock_execute.return_value = mock_result
@@ -189,13 +211,27 @@ class TestQueryOptimizationFramework:
     async def test_index_usage_statistics(self, query_optimizer):
         """Test index usage statistics collection"""
         mock_rows = [
-            Mock(schemaname="public", tablename="evidence_item", indexname="idx_evidence_user",
-                 idx_scan=1000, idx_tup_read=50000, idx_tup_fetch=45000, size="10 MB"),
-            Mock(schemaname="public", tablename="evidence_item", indexname="idx_unused",
-                 idx_scan=5, idx_tup_read=100, idx_tup_fetch=95, size="5 MB")
+            Mock(
+                schemaname="public",
+                tablename="evidence_item",
+                indexname="idx_evidence_user",
+                idx_scan=1000,
+                idx_tup_read=50000,
+                idx_tup_fetch=45000,
+                size="10 MB",
+            ),
+            Mock(
+                schemaname="public",
+                tablename="evidence_item",
+                indexname="idx_unused",
+                idx_scan=5,
+                idx_tup_read=100,
+                idx_tup_fetch=95,
+                size="5 MB",
+            ),
         ]
 
-        with patch.object(query_optimizer.db, 'execute') as mock_execute:
+        with patch.object(query_optimizer.db, "execute") as mock_execute:
             mock_result = Mock()
             mock_result.fetchall.return_value = mock_rows
             mock_execute.return_value = mock_result
@@ -265,11 +301,7 @@ class TestConnectionPoolOptimization:
     def pool_config(self):
         """Create connection pool configuration"""
         return ConnectionPoolConfig(
-            min_size=5,
-            max_size=50,
-            max_idle_time=300,
-            max_lifetime=3600,
-            acquire_timeout=60.0
+            min_size=5, max_size=50, max_idle_time=300, max_lifetime=3600, acquire_timeout=60.0
         )
 
     @pytest.mark.asyncio
@@ -278,20 +310,11 @@ class TestConnectionPoolOptimization:
         provider = PostgreSQLProvider()
 
         # Mock healthy connection check
-        mock_pool_stats = {
-            "pool_size": 20,
-            "checked_in": 15,
-            "checked_out": 5,
-            "overflow": 0
-        }
+        mock_pool_stats = {"pool_size": 20, "checked_in": 15, "checked_out": 5, "overflow": 0}
 
-        with patch.object(provider, 'health_check') as mock_health:
+        with patch.object(provider, "health_check") as mock_health:
             mock_health.return_value = Mock(
-                status="healthy",
-                details={
-                    "response_time": 0.05,
-                    "pool_stats": mock_pool_stats
-                }
+                status="healthy", details={"response_time": 0.05, "pool_stats": mock_pool_stats}
             )
 
             health = await provider.health_check()
@@ -306,11 +329,15 @@ class TestConnectionPoolOptimization:
         optimizer = QueryOptimizer(None)  # We'll mock the db
 
         mock_rows = [
-            Mock(total_connections=25, active_connections=20, idle_connections=3,
-                 idle_in_transaction=2)
+            Mock(
+                total_connections=25,
+                active_connections=20,
+                idle_connections=3,
+                idle_in_transaction=2,
+            )
         ]
 
-        with patch.object(optimizer, 'db') as mock_db:
+        with patch.object(optimizer, "db") as mock_db:
             mock_result = Mock()
             mock_result.fetchone.return_value = mock_rows[0]
             mock_db.execute.return_value = mock_result
@@ -341,7 +368,7 @@ class TestConnectionPoolOptimization:
         provider = PostgreSQLProvider()
 
         # Test connection recovery after timeout
-        with patch.object(provider, 'health_check') as mock_health:
+        with patch.object(provider, "health_check") as mock_health:
             # First call - unhealthy (timeout)
             mock_health.return_value = Mock(status="unhealthy", details={"error": "timeout"})
 
@@ -387,7 +414,7 @@ class TestAdvancedIndexingStrategy:
             "scans": 1500,
             "pages": 100,
             "size_mb": 5.2,
-            "last_used": datetime.now() - timedelta(hours=2)
+            "last_used": datetime.now() - timedelta(hours=2),
         }
 
         # Test index effectiveness calculation
@@ -400,7 +427,7 @@ class TestAdvancedIndexingStrategy:
         # Mock unused index detection
         unused_indexes = [
             {"index": "idx_old_unused", "scans": 0, "size_mb": 50},
-            {"index": "idx_rarely_used", "scans": 2, "size_mb": 25}
+            {"index": "idx_rarely_used", "scans": 2, "size_mb": 25},
         ]
 
         # Should identify indexes with very low usage
@@ -423,7 +450,9 @@ class TestAdvancedIndexingStrategy:
         slow_query = "SELECT * FROM evidence_item WHERE user_id = $1 AND created_at > $2 ORDER BY created_at DESC"
 
         # Should recommend composite index
-        recommended_index = "CREATE INDEX idx_evidence_user_created ON evidence_item (user_id, created_at DESC)"
+        recommended_index = (
+            "CREATE INDEX idx_evidence_user_created ON evidence_item (user_id, created_at DESC)"
+        )
 
         assert "user_id" in recommended_index
         assert "created_at" in recommended_index
@@ -446,12 +475,12 @@ class TestDatabaseMonitoringAndMetrics:
             "execution_time_ms": 45.2,
             "rows_returned": 150,
             "cache_hit_ratio": 0.85,
-            "timestamp": datetime.now()
+            "timestamp": datetime.now(),
         }
 
         # Test metrics aggregation
         assert query_metrics["execution_time_ms"] < 100  # Under threshold
-        assert query_metrics["cache_hit_ratio"] > 0.8    # Good cache performance
+        assert query_metrics["cache_hit_ratio"] > 0.8  # Good cache performance
 
     @pytest.mark.asyncio
     async def test_connection_pool_metrics(self, metrics_collector):
@@ -462,7 +491,7 @@ class TestDatabaseMonitoringAndMetrics:
             "idle_connections": 5,
             "waiting_clients": 2,
             "avg_wait_time_ms": 15.5,
-            "connection_turnover_rate": 0.3
+            "connection_turnover_rate": 0.3,
         }
 
         # Test pool efficiency calculations
@@ -480,13 +509,13 @@ class TestDatabaseMonitoringAndMetrics:
             "avg_scan_time_ms": 2.1,
             "fragmentation_percent": 15.5,
             "size_mb": 45.2,
-            "last_rebuild": datetime.now() - timedelta(days=30)
+            "last_rebuild": datetime.now() - timedelta(days=30),
         }
 
         # Test index health indicators
-        assert index_metrics["hit_rate"] > 0.9          # Excellent hit rate
+        assert index_metrics["hit_rate"] > 0.9  # Excellent hit rate
         assert index_metrics["fragmentation_percent"] < 20  # Acceptable fragmentation
-        assert index_metrics["avg_scan_time_ms"] < 5       # Fast scans
+        assert index_metrics["avg_scan_time_ms"] < 5  # Fast scans
 
     @pytest.mark.asyncio
     async def test_database_health_monitoring(self, metrics_collector):
@@ -498,15 +527,15 @@ class TestDatabaseMonitoringAndMetrics:
             "active_connections": 42,
             "slow_queries_count": 3,
             "deadlocks_count": 0,
-            "uptime_hours": 168.5
+            "uptime_hours": 168.5,
         }
 
         # Test health status determination
         is_healthy = (
-            health_metrics["cpu_usage_percent"] < 80 and
-            health_metrics["memory_usage_percent"] < 85 and
-            health_metrics["slow_queries_count"] < 10 and
-            health_metrics["deadlocks_count"] == 0
+            health_metrics["cpu_usage_percent"] < 80
+            and health_metrics["memory_usage_percent"] < 85
+            and health_metrics["slow_queries_count"] < 10
+            and health_metrics["deadlocks_count"] == 0
         )
 
         assert is_healthy is True
@@ -520,15 +549,15 @@ class TestDatabaseMonitoringAndMetrics:
                 "execution_time_ms": 1250.5,
                 "timestamp": datetime.now(),
                 "user_id": "user123",
-                "connection_id": "conn456"
+                "connection_id": "conn456",
             },
             {
                 "query": "SELECT COUNT(*) FROM assessment_session WHERE created_at > $1",
                 "execution_time_ms": 890.2,
                 "timestamp": datetime.now(),
                 "user_id": "user789",
-                "connection_id": "conn101"
-            }
+                "connection_id": "conn101",
+            },
         ]
 
         # Test slow query analysis
@@ -553,7 +582,7 @@ class TestReadWriteSplitting:
         read_queries = [
             "SELECT * FROM evidence_item WHERE user_id = $1",
             "SELECT COUNT(*) FROM assessment_session",
-            "SELECT * FROM compliance_framework WHERE is_active = true"
+            "SELECT * FROM compliance_framework WHERE is_active = true",
         ]
 
         # All should be routed to read replicas
@@ -569,14 +598,16 @@ class TestReadWriteSplitting:
         write_queries = [
             "INSERT INTO evidence_item (id, user_id, evidence_name) VALUES ($1, $2, $3)",
             "UPDATE evidence_item SET status = $1 WHERE id = $2",
-            "DELETE FROM assessment_session WHERE id = $1"
+            "DELETE FROM assessment_session WHERE id = $1",
         ]
 
         # All should be routed to master
         for query in write_queries:
-            assert (query.strip().upper().startswith("INSERT") or
-                   query.strip().upper().startswith("UPDATE") or
-                   query.strip().upper().startswith("DELETE"))
+            assert (
+                query.strip().upper().startswith("INSERT")
+                or query.strip().upper().startswith("UPDATE")
+                or query.strip().upper().startswith("DELETE")
+            )
 
     @pytest.mark.asyncio
     async def test_load_balancing_across_replicas(self, rw_splitter):
@@ -585,7 +616,7 @@ class TestReadWriteSplitting:
         replicas = [
             {"id": "replica1", "host": "replica1.example.com", "healthy": True, "load": 0.3},
             {"id": "replica2", "host": "replica2.example.com", "healthy": True, "load": 0.7},
-            {"id": "replica3", "host": "replica3.example.com", "healthy": False, "load": 0.0}
+            {"id": "replica3", "host": "replica3.example.com", "healthy": False, "load": 0.0},
         ]
 
         # Should select replica with lowest load
@@ -602,12 +633,15 @@ class TestReadWriteSplitting:
         replication_status = {
             "replica1": {"lag_seconds": 2.5, "healthy": True},
             "replica2": {"lag_seconds": 45.0, "healthy": True},  # High lag
-            "replica3": {"lag_seconds": 1.2, "healthy": True}
+            "replica3": {"lag_seconds": 1.2, "healthy": True},
         }
 
         # Should prefer low-lag replicas for time-sensitive queries
-        low_lag_replicas = [r for r, status in replication_status.items()
-                          if status["lag_seconds"] < 10 and status["healthy"]]
+        low_lag_replicas = [
+            r
+            for r, status in replication_status.items()
+            if status["lag_seconds"] < 10 and status["healthy"]
+        ]
 
         assert len(low_lag_replicas) == 2  # replica1 and replica3
         assert "replica2" not in low_lag_replicas
@@ -644,8 +678,10 @@ class TestQueryResultStreaming:
 
         # Test streaming in chunks
         chunk_size = 1000
-        chunks = [large_result_set[i:i + chunk_size]
-                 for i in range(0, len(large_result_set), chunk_size)]
+        chunks = [
+            large_result_set[i : i + chunk_size]
+            for i in range(0, len(large_result_set), chunk_size)
+        ]
 
         assert len(chunks) == 10  # 10000 / 1000
         assert len(chunks[0]) == 1000
@@ -671,7 +707,7 @@ class TestQueryResultStreaming:
         cursor_states = [
             {"cursor": "start", "offset": 0, "limit": 100},
             {"cursor": "eyJpZCI6OTl9", "offset": 100, "limit": 100},  # Base64 encoded
-            {"cursor": "eyJpZCI6MTk5fQ==", "offset": 200, "limit": 100}
+            {"cursor": "eyJpZCI6MTk5fQ==", "offset": 200, "limit": 100},
         ]
 
         # Test cursor advancement
@@ -714,7 +750,7 @@ class TestDatabaseMigrationOptimization:
             "ALTER TABLE evidence_item RENAME TO evidence_item_old",
             "ALTER TABLE evidence_item_new RENAME TO evidence_item",
             "COMMIT",
-            "DROP TABLE evidence_item_old"
+            "DROP TABLE evidence_item_old",
         ]
 
         # Verify zero-downtime approach
@@ -745,7 +781,7 @@ class TestDatabaseMigrationOptimization:
             "ALTER TABLE evidence_item RENAME TO evidence_item_failed",
             "ALTER TABLE evidence_item_backup RENAME TO evidence_item",
             "DROP TABLE evidence_item_failed",
-            "DROP INDEX IF EXISTS idx_failed_migration"
+            "DROP INDEX IF EXISTS idx_failed_migration",
         ]
 
         # Verify rollback restores original state
@@ -760,7 +796,7 @@ class TestDatabaseMigrationOptimization:
             {"name": "schema_compatibility", "type": "unit", "status": "pass"},
             {"name": "data_integrity", "type": "integration", "status": "pass"},
             {"name": "performance_regression", "type": "performance", "status": "pass"},
-            {"name": "rollback_functionality", "type": "integration", "status": "pass"}
+            {"name": "rollback_functionality", "type": "integration", "status": "pass"},
         ]
 
         # All tests should pass
@@ -786,7 +822,8 @@ class TestPerformanceBenchmarks:
 
         async with engine.begin() as conn:
             # Create test tables with indexes
-            await conn.execute(text("""
+            await conn.execute(
+                text("""
                 CREATE TABLE benchmark_evidence (
                     id TEXT PRIMARY KEY,
                     user_id TEXT,
@@ -794,9 +831,14 @@ class TestPerformanceBenchmarks:
                     status TEXT,
                     created_at TIMESTAMP
                 )
-            """))
-            await conn.execute(text("CREATE INDEX idx_benchmark_user ON benchmark_evidence (user_id)"))
-            await conn.execute(text("CREATE INDEX idx_benchmark_status ON benchmark_evidence (status)"))
+            """)
+            )
+            await conn.execute(
+                text("CREATE INDEX idx_benchmark_user ON benchmark_evidence (user_id)")
+            )
+            await conn.execute(
+                text("CREATE INDEX idx_benchmark_status ON benchmark_evidence (status)")
+            )
 
         async with session_maker() as session:
             yield session
@@ -808,16 +850,23 @@ class TestPerformanceBenchmarks:
         """Benchmark query optimization performance improvements"""
         # Setup test data
         test_data = [
-            {"id": f"bench_{i}", "user_id": f"user_{i % 100}", "evidence_name": f"Evidence {i}",
-             "status": "approved" if i % 2 == 0 else "pending", "created_at": datetime.now()}
+            {
+                "id": f"bench_{i}",
+                "user_id": f"user_{i % 100}",
+                "evidence_name": f"Evidence {i}",
+                "status": "approved" if i % 2 == 0 else "pending",
+                "created_at": datetime.now(),
+            }
             for i in range(10000)
         ]
 
         # Insert test data
         for item in test_data:
             await benchmark_db_session.execute(
-                text("INSERT INTO benchmark_evidence VALUES (:id, :user_id, :evidence_name, :status, :created_at)"),
-                item
+                text(
+                    "INSERT INTO benchmark_evidence VALUES (:id, :user_id, :evidence_name, :status, :created_at)"
+                ),
+                item,
             )
         await benchmark_db_session.commit()
 
@@ -825,8 +874,10 @@ class TestPerformanceBenchmarks:
         @benchmark
         async def optimized_query():
             result = await benchmark_db_session.execute(
-                text("SELECT * FROM benchmark_evidence WHERE user_id = :user_id AND status = :status"),
-                {"user_id": "user_50", "status": "approved"}
+                text(
+                    "SELECT * FROM benchmark_evidence WHERE user_id = :user_id AND status = :status"
+                ),
+                {"user_id": "user_50", "status": "approved"},
             )
             return result.fetchall()
 
@@ -836,6 +887,7 @@ class TestPerformanceBenchmarks:
     @pytest.mark.asyncio
     async def test_connection_pool_efficiency(self, benchmark):
         """Benchmark connection pool efficiency improvements"""
+
         # Mock connection pool operations
         @benchmark
         async def connection_operations():
@@ -852,12 +904,13 @@ class TestPerformanceBenchmarks:
     @pytest.mark.asyncio
     async def test_index_performance_impact(self, benchmark_db_session, benchmark):
         """Benchmark index performance impact"""
+
         # Test query with and without index
         @benchmark
         async def indexed_query():
             result = await benchmark_db_session.execute(
                 text("SELECT COUNT(*) FROM benchmark_evidence WHERE user_id = :user_id"),
-                {"user_id": "user_25"}
+                {"user_id": "user_25"},
             )
             return result.scalar()
 
@@ -881,7 +934,7 @@ class TestPerformanceBenchmarks:
             chunk_size = 1000
             total = 0
             for i in range(0, len(large_dataset), chunk_size):
-                chunk = large_dataset[i:i + chunk_size]
+                chunk = large_dataset[i : i + chunk_size]
                 total += sum(chunk)
             return total
 
@@ -905,7 +958,7 @@ class TestIntegrationAndEndToEnd:
             "create_recommended_indexes",
             "implement_read_write_splitting",
             "setup_monitoring_and_alerts",
-            "validate_performance_improvements"
+            "validate_performance_improvements",
         ]
 
         # Simulate pipeline execution
@@ -926,39 +979,41 @@ class TestIntegrationAndEndToEnd:
                 "enabled": True,
                 "slow_query_threshold_ms": 100,
                 "cache_enabled": True,
-                "cache_ttl_seconds": 300
+                "cache_ttl_seconds": 300,
             },
             "connection_pool": {
                 "dynamic_sizing": True,
                 "min_connections": 5,
                 "max_connections": 50,
-                "health_check_interval": 30
+                "health_check_interval": 30,
             },
             "indexing": {
                 "auto_recommendations": True,
                 "maintenance_schedule": "weekly",
-                "cleanup_unused_threshold_days": 90
+                "cleanup_unused_threshold_days": 90,
             },
             "monitoring": {
                 "metrics_collection_interval": 60,
                 "alerting_enabled": True,
-                "performance_baselines_enabled": True
+                "performance_baselines_enabled": True,
             },
             "read_write_splitting": {
                 "enabled": True,
                 "replica_count": 3,
-                "load_balancing_strategy": "least_loaded"
+                "load_balancing_strategy": "least_loaded",
             },
-            "streaming": {
-                "chunk_size": 1000,
-                "compression_enabled": True,
-                "memory_limit_mb": 100
-            }
+            "streaming": {"chunk_size": 1000, "compression_enabled": True, "memory_limit_mb": 100},
         }
 
         # Validate configuration structure
-        required_sections = ["query_optimization", "connection_pool", "indexing",
-                           "monitoring", "read_write_splitting", "streaming"]
+        required_sections = [
+            "query_optimization",
+            "connection_pool",
+            "indexing",
+            "monitoring",
+            "read_write_splitting",
+            "streaming",
+        ]
 
         for section in required_sections:
             assert section in optimization_config
@@ -973,7 +1028,7 @@ class TestIntegrationAndEndToEnd:
             {"type": "replica_failure", "recovery": "failover_to_healthy_replica"},
             {"type": "migration_failure", "recovery": "rollback_to_backup"},
             {"type": "pool_exhaustion", "recovery": "increase_pool_size"},
-            {"type": "index_corruption", "recovery": "rebuild_index"}
+            {"type": "index_corruption", "recovery": "rebuild_index"},
         ]
 
         # Test recovery strategies
@@ -989,14 +1044,14 @@ class TestIntegrationAndEndToEnd:
             "avg_query_time_ms": 25.0,
             "cache_hit_rate": 0.85,
             "connection_pool_utilization": 0.65,
-            "index_hit_rate": 0.90
+            "index_hit_rate": 0.90,
         }
 
         current_metrics = {
             "avg_query_time_ms": 45.0,  # Regression
-            "cache_hit_rate": 0.82,     # Slight decline
+            "cache_hit_rate": 0.82,  # Slight decline
             "connection_pool_utilization": 0.78,  # Increased load
-            "index_hit_rate": 0.88      # Slight decline
+            "index_hit_rate": 0.88,  # Slight decline
         }
 
         # Detect regressions
@@ -1005,9 +1060,17 @@ class TestIntegrationAndEndToEnd:
             current = current_metrics[metric]
             if metric.endswith("_ms"):  # Higher is worse
                 if current > baseline * 1.5:  # 50% degradation threshold
-                    regressions[metric] = {"baseline": baseline, "current": current, "change": current - baseline}
+                    regressions[metric] = {
+                        "baseline": baseline,
+                        "current": current,
+                        "change": current - baseline,
+                    }
             elif current < baseline * 0.9:  # 10% degradation threshold
-                regressions[metric] = {"baseline": baseline, "current": current, "change": current - baseline}
+                regressions[metric] = {
+                    "baseline": baseline,
+                    "current": current,
+                    "change": current - baseline,
+                }
 
         assert "avg_query_time_ms" in regressions  # Query time regression detected
         assert len(regressions) >= 1

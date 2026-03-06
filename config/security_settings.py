@@ -2,6 +2,7 @@
 Security Settings Module
 Centralized security configuration for production-ready deployment
 """
+
 import os
 from typing import List, Dict, Any, Optional
 from enum import Enum
@@ -10,6 +11,7 @@ from pydantic import BaseModel, Field
 
 class SecurityEnvironment(str, Enum):
     """Security environment levels"""
+
     DEVELOPMENT = "development"
     STAGING = "staging"
     PRODUCTION = "production"
@@ -24,20 +26,13 @@ class CORSConfig(BaseModel):
         default_factory=lambda: [
             "https://app.ruleiq.com",
             "https://www.ruleiq.com",
-            "https://staging.ruleiq.com"
+            "https://staging.ruleiq.com",
         ]
     )
 
     # Allowed methods - explicit list
     allowed_methods: List[str] = Field(
-        default_factory=lambda: [
-            "GET",
-            "POST",
-            "PUT",
-            "PATCH",
-            "DELETE",
-            "OPTIONS"
-        ]
+        default_factory=lambda: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
     )
 
     # Allowed headers - explicit list
@@ -51,7 +46,7 @@ class CORSConfig(BaseModel):
             "Accept",
             "Accept-Language",
             "Content-Language",
-            "Origin"
+            "Origin",
         ]
     )
 
@@ -63,7 +58,7 @@ class CORSConfig(BaseModel):
             "X-RateLimit-Remaining",
             "X-RateLimit-Reset",
             "Content-Length",
-            "Content-Type"
+            "Content-Type",
         ]
     )
 
@@ -76,7 +71,7 @@ class CORSConfig(BaseModel):
         default_factory=lambda: [
             "wss://app.ruleiq.com",
             "wss://www.ruleiq.com",
-            "wss://staging.ruleiq.com"
+            "wss://staging.ruleiq.com",
         ]
     )
 
@@ -84,12 +79,16 @@ class CORSConfig(BaseModel):
         """Get environment-specific CORS configuration"""
         if env == SecurityEnvironment.DEVELOPMENT:
             return {
-                "allow_origins": ["http://localhost:3000", "http://localhost:8000", "http://127.0.0.1:3000"],
+                "allow_origins": [
+                    "http://localhost:3000",
+                    "http://localhost:8000",
+                    "http://127.0.0.1:3000",
+                ],
                 "allow_methods": self.allowed_methods,
                 "allow_headers": self.allowed_headers,
                 "expose_headers": self.exposed_headers,
                 "allow_credentials": True,
-                "max_age": 3600
+                "max_age": 3600,
             }
         elif env == SecurityEnvironment.TESTING:
             return {
@@ -98,7 +97,7 @@ class CORSConfig(BaseModel):
                 "allow_headers": self.allowed_headers,
                 "expose_headers": self.exposed_headers,
                 "allow_credentials": True,
-                "max_age": 3600
+                "max_age": 3600,
             }
         else:  # Production and Staging
             return {
@@ -107,7 +106,7 @@ class CORSConfig(BaseModel):
                 "allow_headers": self.allowed_headers,
                 "expose_headers": self.exposed_headers,
                 "allow_credentials": self.allow_credentials,
-                "max_age": self.max_age
+                "max_age": self.max_age,
             }
 
 
@@ -145,6 +144,7 @@ class JWTConfig(BaseModel):
 
 class RedisFailureStrategy(str, Enum):
     """Redis failure handling strategies"""
+
     FAIL_OPEN = "fail_open"  # Allow access when Redis is down
     FAIL_CLOSED = "fail_closed"  # Deny access when Redis is down
     DEGRADED = "degraded"  # Limited functionality when Redis is down
@@ -230,9 +230,7 @@ class SecuritySettings(BaseModel):
     """Master security configuration"""
 
     environment: SecurityEnvironment = Field(
-        default_factory=lambda: SecurityEnvironment(
-            os.getenv("ENVIRONMENT", "development").lower()
-        )
+        default_factory=lambda: SecurityEnvironment(os.getenv("ENVIRONMENT", "development").lower())
     )
 
     # Sub-configurations
@@ -261,7 +259,7 @@ class SecuritySettings(BaseModel):
             "connect-src": "'self' wss://app.ruleiq.com",
             "frame-ancestors": "'none'",
             "base-uri": "'self'",
-            "form-action": "'self'"
+            "form-action": "'self'",
         }
     )
 

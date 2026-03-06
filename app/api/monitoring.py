@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 Monitoring endpoints for health checks and metrics.
 """
@@ -44,9 +43,7 @@ def setup_health_checks() -> None:
 
     # Memory health check
     register_health_check(
-        MemoryHealthCheck(
-            warning_threshold=85.0, critical_threshold=95.0, name="memory"
-        )
+        MemoryHealthCheck(warning_threshold=85.0, critical_threshold=95.0, name="memory")
     )
 
     # External service health checks (optional)
@@ -89,9 +86,7 @@ async def readiness_check() -> Dict[str, Any]:
 
     # Return 503 if not healthy
     if result["status"] != "healthy":
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=result
-        )
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=result)
 
     return result
 
@@ -122,9 +117,7 @@ async def metrics_endpoint() -> PlainTextResponse:
         # Add metric line
         prometheus_output.append(f"{name}{label_str} {value}")
 
-    return PlainTextResponse(
-        content="\n".join(prometheus_output), media_type="text/plain"
-    )
+    return PlainTextResponse(content="\n".join(prometheus_output), media_type="text/plain")
 
 
 @router.get("/metrics/json", tags=["monitoring"])
@@ -182,8 +175,7 @@ async def debug_info() -> Dict[str, Any]:
         "environment": settings.environment,
         "debug_mode": settings.debug,
         "cors_origins": settings.cors_origins,
-        "database_connected": hasattr(settings, "database_url")
-        and bool(settings.database_url),
+        "database_connected": hasattr(settings, "database_url") and bool(settings.database_url),
         "redis_connected": hasattr(settings, "redis_url") and bool(settings.redis_url),
     }
 

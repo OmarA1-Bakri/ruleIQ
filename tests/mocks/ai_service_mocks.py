@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 Comprehensive AI Service Mocks for Testing
 
@@ -94,7 +93,9 @@ class MockComplianceAssistant:
 
         # Generate contextual follow-up questions
         follow_ups = self._generate_followup_questions(
-            question_text, user_answer, framework_id,
+            question_text,
+            user_answer,
+            framework_id,
         )
 
         return {
@@ -148,7 +149,9 @@ class MockComplianceAssistant:
 
         return {
             "recommendations": self._generate_personalized_recommendations(
-                gaps, industry, size,
+                gaps,
+                industry,
+                size,
             ),
             "implementation_plan": self._create_implementation_plan(
                 timeline_preferences,
@@ -158,9 +161,7 @@ class MockComplianceAssistant:
             "generated_at": datetime.now(timezone.utc).isoformat(),
         }
 
-    def _generate_contextual_guidance(
-        self, question_text: str, framework_id: str
-    ) -> str:
+    def _generate_contextual_guidance(self, question_text: str, framework_id: str) -> str:
         """Generate contextual guidance based on question and framework"""
         question_lower = question_text.lower()
 
@@ -210,7 +211,8 @@ class MockComplianceAssistant:
             ],
         }
         return topics_map.get(
-            framework_id.lower(), ["Compliance", "Risk Management", "Controls"],
+            framework_id.lower(),
+            ["Compliance", "Risk Management", "Controls"],
         )
 
     def _get_follow_up_suggestions(self, question_text: str) -> List[str]:
@@ -227,13 +229,13 @@ class MockComplianceAssistant:
             return [
                 "How often is this policy reviewed?",
                 "Who is responsible for policy compliance?",
-                "How do you train staff on this policy?"
+                "How do you train staff on this policy?",
             ]
         else:
             return [
                 "What is your current implementation status?",
                 "What challenges do you face with this requirement?",
-                "Do you have documented procedures for this?"
+                "Do you have documented procedures for this?",
             ]
 
     def _get_source_references(self, framework_id: str) -> List[str]:
@@ -245,7 +247,8 @@ class MockComplianceAssistant:
             "hipaa": ["45 CFR 164", "HHS Guidance", "NIST 800-66"],
         }
         return references_map.get(
-            framework_id.lower(), [f"{framework_id} Standards", "Regulatory Guidance"],
+            framework_id.lower(),
+            [f"{framework_id} Standards", "Regulatory Guidance"],
         )
 
     def _generate_followup_questions(
@@ -270,7 +273,7 @@ class MockComplianceAssistant:
                         "validation": {"required": True},
                         "metadata": {
                             "source": "ai",
-                            "reasoning": "Need to understand data types for risk assessment"
+                            "reasoning": "Need to understand data types for risk assessment",
                         },
                     },
                 )
@@ -288,7 +291,7 @@ class MockComplianceAssistant:
                         "validation": {"required": True},
                         "metadata": {
                             "source": "ai",
-                            "reasoning": "Legal basis is required for GDPR compliance"
+                            "reasoning": "Legal basis is required for GDPR compliance",
                         },
                     },
                 )
@@ -323,9 +326,7 @@ class MockComplianceAssistant:
 
         return gaps
 
-    def _generate_recommendations(
-        self, completion: float, framework_id: str
-    ) -> List[Dict]:
+    def _generate_recommendations(self, completion: float, framework_id: str) -> List[Dict]:
         """Generate recommendations based on completion and framework"""
         recommendations = []
 

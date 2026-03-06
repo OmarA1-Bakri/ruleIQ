@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 Integration tests for ComplianceState with LangGraph and PostgreSQL.
 
@@ -71,9 +70,7 @@ def compliance_state_to_dict(state: ComplianceState) -> Dict[str, Any]:
         "trace_id": state.trace_id,
         "context": state.context.model_dump() if state.context else {},
         "memory": (
-            state.memory.model_dump()
-            if state.memory
-            else {"episodic": [], "semantic": {}},
+            state.memory.model_dump() if state.memory else {"episodic": [], "semantic": {}},
         ),
         "evidence": [e.model_dump() for e in state.evidence],
         "decisions": [d.model_dump() for d in state.decisions],
@@ -245,7 +242,9 @@ class TestStateWithLangGraph:
 
         workflow.set_entry_point("check")
         workflow.add_conditional_edges(
-            "check", route_evidence, {"collect": "collect", "generate": "generate"},
+            "check",
+            route_evidence,
+            {"collect": "collect", "generate": "generate"},
         )
         workflow.add_edge("collect", "generate")
         workflow.add_edge("generate", END)
@@ -639,7 +638,9 @@ class TestComplexWorkflow:
 
         workflow.set_entry_point("collect")
         workflow.add_conditional_edges(
-            "collect", route_after_evidence, {"evaluate": "evaluate", "end": END},
+            "collect",
+            route_after_evidence,
+            {"evaluate": "evaluate", "end": END},
         )
         workflow.add_edge("evaluate", "recommend")
         workflow.add_edge("recommend", END)
@@ -666,12 +667,9 @@ class TestComplexWorkflow:
         # Verify workflow completion
         assert result["workflow_status"] == "completed"
         assert len(result.get("evidence", [])) == 2
-        assert (
-            len(result.get("decisions", [])) >= 2
-        )  # At least policy eval + recommendations
+        assert len(result.get("decisions", [])) >= 2  # At least policy eval + recommendations
         assert any(
-            d.get("action") == "recommendations_generated"
-            for d in result.get("decisions", [])
+            d.get("action") == "recommendations_generated" for d in result.get("decisions", [])
         )
 
         # Verify context preserved

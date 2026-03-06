@@ -51,7 +51,9 @@ class CacheInvalidator:
             # Delegate to cache_manager's invalidate_pattern method
             invalidated_count = await self.cache_manager.invalidate_pattern(pattern)
 
-            logger.info(f"Invalidated {invalidated_count} cache entries matching pattern: {pattern}")
+            logger.info(
+                f"Invalidated {invalidated_count} cache entries matching pattern: {pattern}"
+            )
 
             return invalidated_count
 

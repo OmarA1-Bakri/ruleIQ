@@ -32,11 +32,13 @@ logger = get_logger(__name__)
 # Comment 10: Custom exception classes
 class ExperimentNotFoundError(Exception):
     """Raised when an experiment is not found."""
+
     pass
 
 
 class InvalidExperimentConfig(Exception):
     """Raised when experiment configuration is invalid."""
+
     pass
 
 
@@ -51,6 +53,8 @@ class ExperimentType(Enum):
     ASSESSMENT_METHODOLOGY = "assessment_methodology"
 
     # MetricType imported from analytics_monitor above
+
+
 #     CATEGORICAL = "categorical"  # User preferences, status categories  # Unused variable
 #     COUNT = "count"  # Number of actions, events  # Unused variable
 
@@ -110,9 +114,7 @@ class ExperimentConfig:
     traffic_split: Dict[str, float] = field(
         default_factory=lambda: {"control": 0.5, "treatment": 0.5},
     )
-    stratification_keys: List[str] = field(
-        default_factory=list
-    )  # User segments, regions, etc.
+    stratification_keys: List[str] = field(default_factory=list)  # User segments, regions, etc.
 
     # Duration and sample size
     min_sample_size: int = 100
@@ -181,7 +183,9 @@ class StorageBackend(ABC):
         pass
 
     @abstractmethod
-    def query(self, experiment_id: str, filters: Optional[Dict[str, Any]] = None) -> List[ExperimentData]:
+    def query(
+        self, experiment_id: str, filters: Optional[Dict[str, Any]] = None
+    ) -> List[ExperimentData]:
         """Query experiment data."""
         pass
 
@@ -206,7 +210,9 @@ class InMemoryStorageBackend(StorageBackend):
             self.data[experiment_id] = []
         self.data[experiment_id].append(data)
 
-    def query(self, experiment_id: str, filters: Optional[Dict[str, Any]] = None) -> List[ExperimentData]:
+    def query(
+        self, experiment_id: str, filters: Optional[Dict[str, Any]] = None
+    ) -> List[ExperimentData]:
         if experiment_id not in self.data:
             return []
         # For in-memory, we return all data (filtering can be added if needed)
@@ -221,7 +227,9 @@ class AnalyticsFacade(ABC):
     """Abstract facade for analytics operations."""
 
     @abstractmethod
-    async def record_metric(self, metric_type: Any, name: str, value: float, metadata: Dict[str, Any]) -> None:
+    async def record_metric(
+        self, metric_type: Any, name: str, value: float, metadata: Dict[str, Any]
+    ) -> None:
         """Record a metric asynchronously."""
         pass
 
@@ -232,16 +240,23 @@ class DefaultAnalyticsFacade(AnalyticsFacade):
     def __init__(self, monitor=None) -> None:
         self.monitor = monitor or _analytics_monitor
 
-    async def record_metric(self, metric_type: Any, name: str, value: float, metadata: Dict[str, Any]) -> None:
-        if hasattr(self.monitor, 'record_metric') and asyncio.iscoroutinefunction(self.monitor.record_metric):
+    async def record_metric(
+        self, metric_type: Any, name: str, value: float, metadata: Dict[str, Any]
+    ) -> None:
+        if hasattr(self.monitor, "record_metric") and asyncio.iscoroutinefunction(
+            self.monitor.record_metric
+        ):
             await self.monitor.record_metric(metric_type, name, value, metadata)
 
 
 class ABTestingFramework:
     """Comprehensive A/B Testing Framework with rigorous statistical analysis."""
 
-    def __init__(self, storage_backend: Optional[StorageBackend] = None,
-                 analytics_facade: Optional[AnalyticsFacade] = None) -> None:
+    def __init__(
+        self,
+        storage_backend: Optional[StorageBackend] = None,
+        analytics_facade: Optional[AnalyticsFacade] = None,
+    ) -> None:
         """Initialize the A/B testing framework.
 
         Args:
@@ -283,8 +298,9 @@ class ABTestingFramework:
             thread = threading.Thread(target=run_in_thread, daemon=True)
             thread.start()
 
-    def _validate_metric_value(self, value: Union[float, int, str, bool],
-                              metric_type: ExperimentMetricType) -> Union[float, int, str, bool]:
+    def _validate_metric_value(
+        self, value: Union[float, int, str, bool], metric_type: ExperimentMetricType
+    ) -> Union[float, int, str, bool]:
         """Validate and coerce metric value to match expected type.
 
         Args:
@@ -310,7 +326,7 @@ class ABTestingFramework:
             if isinstance(value, (int, float)):
                 return bool(value)
             if isinstance(value, str):
-                return value.lower() in ('true', '1', 'yes')
+                return value.lower() in ("true", "1", "yes")
             raise InvalidExperimentConfig(
                 f"Cannot convert value '{value}' to bool for BINARY metric"
             )
@@ -371,10 +387,7 @@ class ABTestingFramework:
         )
 
         # Comment 12: Return experiment ID and recommended sample size
-        return {
-            "experiment_id": experiment_id,
-            "recommended_sample_size": required_sample_size
-        }
+        return {"experiment_id": experiment_id, "recommended_sample_size": required_sample_size}
 
     def start_experiment(self, experiment_id: str) -> bool:
         """
@@ -438,9 +451,7 @@ class ABTestingFramework:
 
         # Add stratification if configured
         if config.stratification_keys and context:
-            strata_values = [
-                str(context.get(key, "unknown")) for key in config.stratification_keys
-            ]
+            strata_values = [str(context.get(key, "unknown")) for key in config.stratification_keys]
             hash_input += ":" + ":".join(strata_values)
 
         # Generate hash and convert to assignment
@@ -450,9 +461,9 @@ class ABTestingFramework:
         # Comment 4: Explicit variant mapping with deterministic ordering
         # First check for standard keys, then fall back to sorted order
         variant_keys = list(config.traffic_split.keys())
-        if 'control' in variant_keys and 'treatment' in variant_keys:
+        if "control" in variant_keys and "treatment" in variant_keys:
             # Use explicit control/treatment ordering
-            ordered_variants = ['control'] + [k for k in variant_keys if k != 'control']
+            ordered_variants = ["control"] + [k for k in variant_keys if k != "control"]
         else:
             # Deterministic ordering by sorting keys
             ordered_variants = sorted(variant_keys)
@@ -565,7 +576,10 @@ class ABTestingFramework:
 
         # Perform statistical analysis
         result = self._perform_statistical_test(
-            test_type, variant_data, config, confidence_level,
+            test_type,
+            variant_data,
+            config,
+            confidence_level,
         )
 
         # Store result
@@ -673,7 +687,9 @@ class ABTestingFramework:
                 treatment_var = np.var(treatment_data)
 
                 if control_var == 0 or treatment_var == 0:
-                    logger.info("Zero variance detected in one or both groups, using non-parametric test")
+                    logger.info(
+                        "Zero variance detected in one or both groups, using non-parametric test"
+                    )
                     return StatisticalTest.MANN_WHITNEY
 
                 # Test for equal variances
@@ -697,7 +713,9 @@ class ABTestingFramework:
         return StatisticalTest.T_TEST  # Default
 
     # Comment 8: Split into smaller helper methods
-    def _prepare_data_for_test(self, variant_data: Dict[str, List], test_type: StatisticalTest) -> Tuple:
+    def _prepare_data_for_test(
+        self, variant_data: Dict[str, List], test_type: StatisticalTest
+    ) -> Tuple:
         """Prepare data for statistical testing based on test type.
 
         Args:
@@ -724,9 +742,13 @@ class ABTestingFramework:
                 )
             return variants, control_data, treatment_data
 
-    def _calculate_effect_size(self, metric_type: ExperimentMetricType,
-                               control_data: Any, treatment_data: Any,
-                               test_type: StatisticalTest) -> float:
+    def _calculate_effect_size(
+        self,
+        metric_type: ExperimentMetricType,
+        control_data: Any,
+        treatment_data: Any,
+        test_type: StatisticalTest,
+    ) -> float:
         """Calculate effect size based on metric type.
 
         Comment 5: Compute effect size conditionally based on metric type.
@@ -768,10 +790,9 @@ class ABTestingFramework:
                 all_categories = set(control_counts.keys()) | set(treatment_counts.keys())
                 contingency_table = []
                 for category in all_categories:
-                    contingency_table.append([
-                        control_counts.get(category, 0),
-                        treatment_counts.get(category, 0)
-                    ])
+                    contingency_table.append(
+                        [control_counts.get(category, 0), treatment_counts.get(category, 0)]
+                    )
 
                 chi2, _, _, _ = chi2_contingency(contingency_table)
                 n = len(control_data) + len(treatment_data)
@@ -794,24 +815,30 @@ class ABTestingFramework:
 
         return 0.0
 
-    def _run_t_test(self, control_data: np.ndarray, treatment_data: np.ndarray) -> Tuple[float, float, str]:
+    def _run_t_test(
+        self, control_data: np.ndarray, treatment_data: np.ndarray
+    ) -> Tuple[float, float, str]:
         """Run two-sample t-test."""
         statistic, p_value = ttest_ind(control_data, treatment_data, equal_var=True)
         return statistic, p_value, "Two-sample t-test (equal variances)"
 
-    def _run_welch(self, control_data: np.ndarray, treatment_data: np.ndarray) -> Tuple[float, float, str]:
+    def _run_welch(
+        self, control_data: np.ndarray, treatment_data: np.ndarray
+    ) -> Tuple[float, float, str]:
         """Run Welch's t-test."""
         statistic, p_value = ttest_ind(control_data, treatment_data, equal_var=False)
         return statistic, p_value, "Welch's t-test (unequal variances)"
 
-    def _run_mann_whitney(self, control_data: np.ndarray, treatment_data: np.ndarray) -> Tuple[float, float, str]:
+    def _run_mann_whitney(
+        self, control_data: np.ndarray, treatment_data: np.ndarray
+    ) -> Tuple[float, float, str]:
         """Run Mann-Whitney U test."""
-        statistic, p_value = mannwhitneyu(
-            control_data, treatment_data, alternative="two-sided"
-        )
+        statistic, p_value = mannwhitneyu(control_data, treatment_data, alternative="two-sided")
         return statistic, p_value, "Mann-Whitney U test"
 
-    def _run_chi_squared(self, control_data: List, treatment_data: List) -> Tuple[float, float, str]:
+    def _run_chi_squared(
+        self, control_data: List, treatment_data: List
+    ) -> Tuple[float, float, str]:
         """Run chi-squared test."""
         control_counts = self._get_category_counts(control_data)
         treatment_counts = self._get_category_counts(treatment_data)
@@ -820,17 +847,20 @@ class ABTestingFramework:
         all_categories = set(control_counts.keys()) | set(treatment_counts.keys())
         contingency_table = []
         for category in all_categories:
-            contingency_table.append([
-                control_counts.get(category, 0),
-                treatment_counts.get(category, 0)
-            ])
+            contingency_table.append(
+                [control_counts.get(category, 0), treatment_counts.get(category, 0)]
+            )
 
         chi2, p_value, _, _ = chi2_contingency(contingency_table)
         return chi2, p_value, "Chi-squared test"
 
-    def _compute_confidence_interval(self, test_type: StatisticalTest,
-                                    control_data: np.ndarray, treatment_data: np.ndarray,
-                                    alpha: float) -> Optional[Tuple[float, float]]:
+    def _compute_confidence_interval(
+        self,
+        test_type: StatisticalTest,
+        control_data: np.ndarray,
+        treatment_data: np.ndarray,
+        alpha: float,
+    ) -> Optional[Tuple[float, float]]:
         """Compute confidence interval for the test.
 
         Comment 11: Add numeric stability checks for Welch df calculation.
@@ -855,10 +885,9 @@ class ABTestingFramework:
             numerator = (
                 control_std**2 / len(control_data) + treatment_std**2 / len(treatment_data)
             ) ** 2
-            denominator = (
-                control_std**4 / (len(control_data) ** 2 * (len(control_data) - 1)) +
-                treatment_std**4 / (len(treatment_data) ** 2 * (len(treatment_data) - 1))
-            )
+            denominator = control_std**4 / (
+                len(control_data) ** 2 * (len(control_data) - 1)
+            ) + treatment_std**4 / (len(treatment_data) ** 2 * (len(treatment_data) - 1))
 
             if denominator == 0 or not np.isfinite(numerator / denominator):
                 logger.warning("Welch df calculation unstable, using conservative df")
@@ -900,7 +929,9 @@ class ABTestingFramework:
             raise ValueError("Currently only supports two-variant experiments")
 
         # Prepare data based on test type
-        variants, control_data, treatment_data = self._prepare_data_for_test(variant_data, test_type)
+        variants, control_data, treatment_data = self._prepare_data_for_test(
+            variant_data, test_type
+        )
 
         # Run appropriate statistical test
         if test_type == StatisticalTest.T_TEST:
@@ -915,10 +946,14 @@ class ABTestingFramework:
             raise ValueError(f"Unsupported test type: {test_type}")
 
         # Calculate effect size based on metric type
-        effect_size = self._calculate_effect_size(config.metric_type, control_data, treatment_data, test_type)
+        effect_size = self._calculate_effect_size(
+            config.metric_type, control_data, treatment_data, test_type
+        )
 
         # Compute confidence interval if applicable
-        confidence_interval = self._compute_confidence_interval(test_type, control_data, treatment_data, alpha)
+        confidence_interval = self._compute_confidence_interval(
+            test_type, control_data, treatment_data, alpha
+        )
 
         # Calculate statistical power
         if test_type != StatisticalTest.CHI_SQUARED:
@@ -981,9 +1016,7 @@ class ABTestingFramework:
             counts[str(value)] += 1
         return dict(counts)
 
-    def _calculate_power(
-        self, effect_size: float, n1: int, n2: int, alpha: float
-    ) -> float:
+    def _calculate_power(self, effect_size: float, n1: int, n2: int, alpha: float) -> float:
         """
         Calculate statistical power for the test.
 
@@ -1039,15 +1072,20 @@ class ABTestingFramework:
             return f"INSUFFICIENT DATA: Low power ({power:.2f}). Collect more data or increase effect size."
 
         elif not is_significant and power >= 0.8:
-            return f"NO EFFECT: Well-powered test shows no significant difference (power={power:.2f})"
+            return (
+                f"NO EFFECT: Well-powered test shows no significant difference (power={power:.2f})"
+            )
 
         else:
             return f"CONTINUE MONITORING: p={p_value:.4f}, effect size={effect_size:.3f}, power={power:.2f}"
 
-    def get_experiment_summary(self, experiment_id: str,
-                               limit: Optional[int] = None,
-                               offset: int = 0,
-                               include_full_data: bool = False) -> Dict[str, Any]:
+    def get_experiment_summary(
+        self,
+        experiment_id: str,
+        limit: Optional[int] = None,
+        offset: int = 0,
+        include_full_data: bool = False,
+    ) -> Dict[str, Any]:
         """
         Get comprehensive summary of an experiment.
 
@@ -1071,7 +1109,7 @@ class ABTestingFramework:
         if include_full_data:
             data = self.storage_backend.query(experiment_id)
             if limit is not None:
-                data = data[offset:offset + limit]
+                data = data[offset : offset + limit]
         else:
             # Only get count for metadata
             data = []  # Don't load full data
@@ -1115,8 +1153,8 @@ class ABTestingFramework:
                     "offset": offset,
                     "limit": limit,
                     "include_full_data": include_full_data,
-                    "returned": len(data) if include_full_data else 0
-                }
+                    "returned": len(data) if include_full_data else 0,
+                },
             },
             "results": [
                 {

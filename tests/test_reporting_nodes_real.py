@@ -23,6 +23,7 @@ from database.evidence_item import EvidenceItem
 from database.generated_policy import GeneratedPolicy
 from database.user import User
 
+
 class TestReportingNodesRealImplementation:
     """Test suite for real reporting nodes that connect to actual services."""
 
@@ -101,20 +102,18 @@ class TestReportingNodesRealImplementation:
         sample_state["db_session"] = mock_db_session
 
         # Setup mocks
-        with patch(
-            "langgraph_agent.nodes.reporting_nodes_real.ReportScheduler"
-        ) as MockScheduler, patch(
-            "langgraph_agent.nodes.reporting_nodes_real.ReportGenerator"
-        ) as MockGenerator, patch(
-            "langgraph_agent.nodes.reporting_nodes_real.PDFGenerator"
-        ) as MockPDF, patch(
-            "langgraph_agent.nodes.reporting_nodes_real.send_scheduled_report_email"
-        ) as mock_send_email, patch(
-            "langgraph_agent.nodes.reporting_nodes_real.save_report_file"
-        ) as mock_save_file, patch(
-            "langgraph_agent.nodes.reporting_nodes_real.should_run_schedule"
-        ) as mock_should_run:
-
+        with (
+            patch("langgraph_agent.nodes.reporting_nodes_real.ReportScheduler") as MockScheduler,
+            patch("langgraph_agent.nodes.reporting_nodes_real.ReportGenerator") as MockGenerator,
+            patch("langgraph_agent.nodes.reporting_nodes_real.PDFGenerator") as MockPDF,
+            patch(
+                "langgraph_agent.nodes.reporting_nodes_real.send_scheduled_report_email"
+            ) as mock_send_email,
+            patch("langgraph_agent.nodes.reporting_nodes_real.save_report_file") as mock_save_file,
+            patch(
+                "langgraph_agent.nodes.reporting_nodes_real.should_run_schedule"
+            ) as mock_should_run,
+        ):
             # Configure should_run_schedule
             mock_should_run.return_value = True
 
@@ -196,10 +195,7 @@ class TestReportingNodesRealImplementation:
         # Add database session to state
         sample_state["db_session"] = mock_db_session
 
-        with patch(
-            "langgraph_agent.nodes.reporting_nodes_real.ReportScheduler"
-        ) as MockScheduler:
-
+        with patch("langgraph_agent.nodes.reporting_nodes_real.ReportScheduler") as MockScheduler:
             mock_scheduler = AsyncMock()
             mock_scheduler.get_active_schedules = AsyncMock(return_value=[])
             MockScheduler.return_value = mock_scheduler
@@ -209,9 +205,7 @@ class TestReportingNodesRealImplementation:
 
             # Verify no reports were generated
             assert (
-                result_state.get("report_data", {})
-                .get("scheduled_reports", {})
-                .get("generated", 0)
+                result_state.get("report_data", {}).get("scheduled_reports", {}).get("generated", 0)
                 == 0,
             )
 
@@ -226,16 +220,16 @@ class TestReportingNodesRealImplementation:
         # Add database session to state
         sample_state["db_session"] = mock_db_session
 
-        with patch(
-            "langgraph_agent.nodes.reporting_nodes_real.ReportScheduler"
-        ) as MockScheduler, patch(
-            "langgraph_agent.nodes.reporting_nodes_real.ReportGenerator"
-        ) as MockGenerator, patch(
-            "langgraph_agent.nodes.reporting_nodes_real.send_scheduled_report_email"
-        ) as mock_send_email, patch(
-            "langgraph_agent.nodes.reporting_nodes_real.should_run_schedule"
-        ) as mock_should_run:
-
+        with (
+            patch("langgraph_agent.nodes.reporting_nodes_real.ReportScheduler") as MockScheduler,
+            patch("langgraph_agent.nodes.reporting_nodes_real.ReportGenerator") as MockGenerator,
+            patch(
+                "langgraph_agent.nodes.reporting_nodes_real.send_scheduled_report_email"
+            ) as mock_send_email,
+            patch(
+                "langgraph_agent.nodes.reporting_nodes_real.should_run_schedule"
+            ) as mock_should_run,
+        ):
             mock_should_run.return_value = True
 
             mock_scheduler = AsyncMock()
@@ -263,9 +257,7 @@ class TestReportingNodesRealImplementation:
             mock_send_email.assert_called_once()
 
             # Verify state was updated correctly
-            assert "scheduled_reports" in result_state.get(
-                "report_data", {}
-            )  # No attachments
+            assert "scheduled_reports" in result_state.get("report_data", {})  # No attachments
 
     @pytest.mark.asyncio
     async def test_generate_scheduled_reports_node_error_handling(
@@ -275,14 +267,13 @@ class TestReportingNodesRealImplementation:
         # Add database session to state
         sample_state["db_session"] = mock_db_session
 
-        with patch(
-            "langgraph_agent.nodes.reporting_nodes_real.ReportScheduler"
-        ) as MockScheduler, patch(
-            "langgraph_agent.nodes.reporting_nodes_real.ReportGenerator"
-        ) as MockGenerator, patch(
-            "langgraph_agent.nodes.reporting_nodes_real.should_run_schedule"
-        ) as mock_should_run:
-
+        with (
+            patch("langgraph_agent.nodes.reporting_nodes_real.ReportScheduler") as MockScheduler,
+            patch("langgraph_agent.nodes.reporting_nodes_real.ReportGenerator") as MockGenerator,
+            patch(
+                "langgraph_agent.nodes.reporting_nodes_real.should_run_schedule"
+            ) as mock_should_run,
+        ):
             mock_should_run.return_value = True
 
             mock_scheduler = AsyncMock()
@@ -329,12 +320,12 @@ class TestReportingNodesRealImplementation:
         # Add database to state
         sample_state["db_session"] = mock_db_session
 
-        with patch(
-            "langgraph_agent.nodes.reporting_nodes_real.ReportGenerator"
-        ) as MockGenerator, patch(
-            "langgraph_agent.nodes.reporting_nodes_real.send_email_with_attachment"
-        ) as mock_send_email:
-
+        with (
+            patch("langgraph_agent.nodes.reporting_nodes_real.ReportGenerator") as MockGenerator,
+            patch(
+                "langgraph_agent.nodes.reporting_nodes_real.send_email_with_attachment"
+            ) as mock_send_email,
+        ):
             mock_generator = AsyncMock()
             mock_generator.generate_report = AsyncMock(
                 return_value={
@@ -396,8 +387,7 @@ class TestReportingNodesRealImplementation:
         # Verify error was added to state
         assert len(result_state["errors"]) > 0
         assert (
-            "user_id and business_profile_id are required"
-            in result_state["errors"][0]["message"],
+            "user_id and business_profile_id are required" in result_state["errors"][0]["message"],
         )
         assert result_state["error_count"] == 1
 
@@ -416,12 +406,12 @@ class TestReportingNodesRealImplementation:
         # Add database to state
         sample_state["db_session"] = mock_db_session
 
-        with patch(
-            "langgraph_agent.nodes.reporting_nodes_real.ReportScheduler"
-        ) as MockScheduler, patch(
-            "langgraph_agent.nodes.reporting_nodes_real._send_email_directly"
-        ) as mock_send_email:
-
+        with (
+            patch("langgraph_agent.nodes.reporting_nodes_real.ReportScheduler") as MockScheduler,
+            patch(
+                "langgraph_agent.nodes.reporting_nodes_real._send_email_directly"
+            ) as mock_send_email,
+        ):
             mock_scheduler = AsyncMock()
             mock_scheduler.get_active_schedules = AsyncMock(
                 return_value=[mock_report_schedule],
@@ -448,10 +438,7 @@ class TestReportingNodesRealImplementation:
         # Add database to state
         sample_state["db_session"] = mock_db_session
 
-        with patch(
-            "langgraph_agent.nodes.reporting_nodes_real.ReportScheduler"
-        ) as MockScheduler:
-
+        with patch("langgraph_agent.nodes.reporting_nodes_real.ReportScheduler") as MockScheduler:
             mock_scheduler = AsyncMock()
             mock_scheduler.get_active_schedules = AsyncMock(return_value=[])
             MockScheduler.return_value = mock_scheduler
@@ -467,31 +454,34 @@ class TestReportingNodesRealImplementation:
         """Test synchronous email sending (mock implementation)."""
         # Import the function from the correct module
         from langgraph_agent.nodes.reporting_nodes_real import _send_email_directly
+
         # Mock the function for testing
-        with patch('langgraph_agent.nodes.reporting_nodes_real._send_email_directly') as mock_email:
+        with patch("langgraph_agent.nodes.reporting_nodes_real._send_email_directly") as mock_email:
             mock_email.return_value = True
             result = mock_email(
-            ["test@example.com"],
-            "Test Subject",
-            "Test Body",
-            [{"filename": "report.pdf", "content": b"PDF content"}],
-        )
+                ["test@example.com"],
+                "Test Subject",
+                "Test Body",
+                [{"filename": "report.pdf", "content": b"PDF content"}],
+            )
 
         assert result
 
     def test_send_email_sync_multiple_recipients(self):
         """Test email sending to multiple recipients."""
         from langgraph_agent.nodes.reporting_nodes_real import _send_email_directly
-        with patch('langgraph_agent.nodes.reporting_nodes_real._send_email_directly') as mock_email:
+
+        with patch("langgraph_agent.nodes.reporting_nodes_real._send_email_directly") as mock_email:
             mock_email.return_value = True
             result = mock_email(
-            ["user1@example.com", "user2@example.com", "compliance@example.com"],
-            "Compliance Report",
-            "Please find the attached compliance report.",
-            None,
-        )
+                ["user1@example.com", "user2@example.com", "compliance@example.com"],
+                "Compliance Report",
+                "Please find the attached compliance report.",
+                None,
+            )
 
         assert result
+
 
 class TestReportGeneratorIntegration:
     """Test integration with ReportGenerator service."""
@@ -524,7 +514,7 @@ class TestReportGeneratorIntegration:
             policy = MagicMock(spec=GeneratedPolicy)
             policy.id = uuid4()
             policy.business_profile_id = uuid4()
-            policy.title = f"Policy {i+1}"
+            policy.title = f"Policy {i + 1}"
             policies.append(policy)
         return policies
 
@@ -674,6 +664,7 @@ class TestReportGeneratorIntegration:
         )
         return profile
 
+
 class TestPDFGeneratorIntegration:
     """Test integration with PDFGenerator service."""
 
@@ -720,6 +711,7 @@ class TestPDFGeneratorIntegration:
         # Verify PDF was generated
         assert isinstance(pdf_content, bytes)
         assert pdf_content.startswith(b"%PDF")
+
 
 class TestReportSchedulerIntegration:
     """Test integration with ReportScheduler service."""
@@ -786,13 +778,16 @@ class TestReportSchedulerIntegration:
 
         scheduler = ReportScheduler(mock_db_session)
         await scheduler.update_schedule_status(
-            schedule_id, "success", distribution_successful=True,
+            schedule_id,
+            "success",
+            distribution_successful=True,
         )
 
         # Verify schedule was updated
         assert mock_schedule.last_run_at is not None
         assert mock_db_session.add.called
         assert mock_db_session.commit.called
+
 
 class TestErrorHandlingAndEdgeCases:
     """Test error handling and edge cases in reporting nodes."""
@@ -845,9 +840,7 @@ class TestErrorHandlingAndEdgeCases:
         assert result_state["error_count"] == 1
 
     @pytest.mark.asyncio
-    async def test_multiple_schedules_batch_processing(
-        self, mock_db_session, sample_state
-    ):
+    async def test_multiple_schedules_batch_processing(self, mock_db_session, sample_state):
         """Test processing multiple schedules in batch."""
         # Create multiple schedules
         schedules = []
@@ -868,18 +861,17 @@ class TestErrorHandlingAndEdgeCases:
         # Add database to state
         sample_state["db_session"] = mock_db_session
 
-        with patch(
-            "langgraph_agent.nodes.reporting_nodes_real.ReportScheduler"
-        ) as MockScheduler, patch(
-            "langgraph_agent.nodes.reporting_nodes_real.ReportGenerator"
-        ) as MockGenerator, patch(
-            "langgraph_agent.nodes.reporting_nodes_real.PDFGenerator"
-        ) as MockPDF, patch(
-            "langgraph_agent.nodes.reporting_nodes_real.save_report_file"
-        ) as mock_save_report, patch(
-            "langgraph_agent.nodes.reporting_nodes_real.send_scheduled_report_email"
-        ) as mock_send_email:
-
+        with (
+            patch("langgraph_agent.nodes.reporting_nodes_real.ReportScheduler") as MockScheduler,
+            patch("langgraph_agent.nodes.reporting_nodes_real.ReportGenerator") as MockGenerator,
+            patch("langgraph_agent.nodes.reporting_nodes_real.PDFGenerator") as MockPDF,
+            patch(
+                "langgraph_agent.nodes.reporting_nodes_real.save_report_file"
+            ) as mock_save_report,
+            patch(
+                "langgraph_agent.nodes.reporting_nodes_real.send_scheduled_report_email"
+            ) as mock_send_email,
+        ):
             mock_scheduler = AsyncMock()
             mock_scheduler.get_active_schedules = AsyncMock(return_value=schedules)
             mock_scheduler.update_schedule_status = AsyncMock()
@@ -927,14 +919,13 @@ class TestErrorHandlingAndEdgeCases:
         # Add database to state
         sample_state["db_session"] = mock_db_session
 
-        with patch(
-            "langgraph_agent.nodes.reporting_nodes_real.ReportScheduler"
-        ) as MockScheduler, patch(
-            "langgraph_agent.nodes.reporting_nodes_real.ReportGenerator"
-        ) as MockGenerator, patch(
-            "langgraph_agent.nodes.reporting_nodes_real._send_email_directly"
-        ) as mock_send_email:
-
+        with (
+            patch("langgraph_agent.nodes.reporting_nodes_real.ReportScheduler") as MockScheduler,
+            patch("langgraph_agent.nodes.reporting_nodes_real.ReportGenerator") as MockGenerator,
+            patch(
+                "langgraph_agent.nodes.reporting_nodes_real._send_email_directly"
+            ) as mock_send_email,
+        ):
             mock_scheduler = AsyncMock()
             mock_scheduler.get_active_schedules = AsyncMock(return_value=schedules)
             mock_scheduler.update_schedule_status = AsyncMock()
@@ -968,6 +959,7 @@ class TestErrorHandlingAndEdgeCases:
                 if call[0][1] == "failed"
             ]
             assert len(failed_calls) == 1
+
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

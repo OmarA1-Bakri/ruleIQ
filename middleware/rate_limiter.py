@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 
 class UserTier(str, Enum):
     """User tier levels for rate limiting."""
+
     ANONYMOUS = "anonymous"
     AUTHENTICATED = "authenticated"
     PREMIUM = "premium"
@@ -85,21 +86,21 @@ class RateLimiter:
             socket_connect_timeout=5,
             socket_timeout=5,
             retry_on_timeout=True,
-            health_check_interval=30
+            health_check_interval=30,
         )
         return redis.Redis(connection_pool=pool, decode_responses=False)
 
     def _load_config(self):
         """Load rate limit configuration from settings."""
         # Load from environment or config file
-        if hasattr(settings, 'RATE_LIMIT_IP_WHITELIST'):
+        if hasattr(settings, "RATE_LIMIT_IP_WHITELIST"):
             self.IP_WHITELIST.update(settings.RATE_LIMIT_IP_WHITELIST)
 
-        if hasattr(settings, 'RATE_LIMIT_SERVICE_ACCOUNTS'):
+        if hasattr(settings, "RATE_LIMIT_SERVICE_ACCOUNTS"):
             self.SERVICE_ACCOUNTS.update(settings.RATE_LIMIT_SERVICE_ACCOUNTS)
 
         # Override default limits if configured
-        if hasattr(settings, 'RATE_LIMITS'):
+        if hasattr(settings, "RATE_LIMITS"):
             for tier, limits in settings.RATE_LIMITS.items():
                 if tier in UserTier:
                     self.DEFAULT_LIMITS[UserTier(tier)] = limits
@@ -187,6 +188,7 @@ class RateLimiter:
             if "*" in pattern:
                 # Convert pattern to regex
                 import re
+
                 regex_pattern = pattern.replace("*", ".*")
                 if re.match(regex_pattern, endpoint):
                     return limits
@@ -289,7 +291,7 @@ class RateLimiter:
                 "remaining": remaining,
                 "reset": reset_time,
                 "window": window_seconds,
-                "tier": tier.value
+                "tier": tier.value,
             }
 
             # Check if limit exceeded
@@ -359,18 +361,14 @@ class RateLimiter:
             if endpoint:
                 stats_key = f"{self.stats_prefix}{endpoint}"
                 stats = self.redis_client.hgetall(stats_key)
-                return {
-                    k.decode(): int(v) for k, v in stats.items()
-                }
+                return {k.decode(): int(v) for k, v in stats.items()}
             else:
                 # Get all stats
                 all_stats = {}
                 for key in self.redis_client.scan_iter(f"{self.stats_prefix}*"):
                     endpoint = key.decode().replace(self.stats_prefix, "")
                     stats = self.redis_client.hgetall(key)
-                    all_stats[endpoint] = {
-                        k.decode(): int(v) for k, v in stats.items()
-                    }
+                    all_stats[endpoint] = {k.decode(): int(v) for k, v in stats.items()}
                 return all_stats
 
         except redis.RedisError:
@@ -424,14 +422,14 @@ class RateLimitMiddleware:
                     "retry_after": rate_info.get("retry_after", 60),
                     "limit": rate_info.get("limit"),
                     "remaining": 0,
-                    "reset": rate_info.get("reset")
+                    "reset": rate_info.get("reset"),
                 },
                 headers={
                     "X-RateLimit-Limit": str(rate_info.get("limit", 0)),
                     "X-RateLimit-Remaining": "0",
                     "X-RateLimit-Reset": str(rate_info.get("reset", 0)),
-                    "Retry-After": str(rate_info.get("retry_after", 60))
-                }
+                    "Retry-After": str(rate_info.get("retry_after", 60)),
+                },
             )
 
         # Process request

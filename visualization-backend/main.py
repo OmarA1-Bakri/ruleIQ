@@ -10,11 +10,16 @@ app = FastAPI(title="RuleIQ Visualization API", version="1.0.0")
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:3001", "*"],  # In production, specify exact origins
+    allow_origins=[
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "*",
+    ],  # In production, specify exact origins
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 # Health Check Endpoint
 @app.get("/health")
@@ -28,9 +33,10 @@ async def health_check():
         "metrics": {
             "cpu_usage": round(random.uniform(10, 90), 2),
             "memory_usage": round(random.uniform(30, 80), 2),
-            "active_connections": random.randint(10, 500)
-        }
+            "active_connections": random.randint(10, 500),
+        },
     }
+
 
 # Time Series Data Endpoint
 @app.get("/timeseries")
@@ -45,7 +51,13 @@ async def get_timeseries(points: int = 100, streams: int = 3):
 
     # Generate multiple data streams
     series_data = []
-    series_names = ["Compliance Score", "Security Index", "Performance Metric", "Risk Factor", "Efficiency Rate"]
+    series_names = [
+        "Compliance Score",
+        "Security Index",
+        "Performance Metric",
+        "Risk Factor",
+        "Efficiency Rate",
+    ]
 
     for stream in range(min(streams, len(series_names))):
         # Generate realistic looking data with trends
@@ -68,13 +80,15 @@ async def get_timeseries(points: int = 100, streams: int = 3):
 
             values.append(round(current, 2))
 
-        series_data.append({
-            "name": series_names[stream],
-            "data": values,
-            "type": "line" if stream < 2 else "area",
-            "smooth": True,
-            "color": ["#8B5CF6", "#A855F7", "#C084FC", "#E9D5FF", "#C0C0C0"][stream]
-        })
+        series_data.append(
+            {
+                "name": series_names[stream],
+                "data": values,
+                "type": "line" if stream < 2 else "area",
+                "smooth": True,
+                "color": ["#8B5CF6", "#A855F7", "#C084FC", "#E9D5FF", "#C0C0C0"][stream],
+            }
+        )
 
     return {
         "timestamps": time_points,
@@ -82,9 +96,10 @@ async def get_timeseries(points: int = 100, streams: int = 3):
         "metadata": {
             "updated_at": datetime.now().isoformat(),
             "points": points,
-            "streams": len(series_data)
-        }
+            "streams": len(series_data),
+        },
     }
+
 
 # Candlestick Data Endpoint
 @app.get("/candles")
@@ -115,15 +130,17 @@ async def get_candlestick_data(days: int = 30):
         # Volume with some correlation to volatility
         volume = int(1000000 * (1 + abs(high - low) / base_price) * random.uniform(0.5, 1.5))
 
-        candles.append({
-            "timestamp": (base_time + timedelta(days=day)).isoformat(),
-            "open": round(open_price, 2),
-            "high": round(high, 2),
-            "low": round(low, 2),
-            "close": round(close, 2),
-            "volume": volume,
-            "color": "#10B981" if close >= open_price else "#EF4444"
-        })
+        candles.append(
+            {
+                "timestamp": (base_time + timedelta(days=day)).isoformat(),
+                "open": round(open_price, 2),
+                "high": round(high, 2),
+                "low": round(low, 2),
+                "close": round(close, 2),
+                "volume": volume,
+                "color": "#10B981" if close >= open_price else "#EF4444",
+            }
+        )
 
     # Add moving averages
     ma_5 = []
@@ -131,27 +148,26 @@ async def get_candlestick_data(days: int = 30):
 
     for i in range(len(candles)):
         if i >= 4:
-            ma_5.append(round(sum(c["close"] for c in candles[i-4:i+1]) / 5, 2))
+            ma_5.append(round(sum(c["close"] for c in candles[i - 4 : i + 1]) / 5, 2))
         else:
             ma_5.append(None)
 
         if i >= 19:
-            ma_20.append(round(sum(c["close"] for c in candles[i-19:i+1]) / 20, 2))
+            ma_20.append(round(sum(c["close"] for c in candles[i - 19 : i + 1]) / 20, 2))
         else:
             ma_20.append(None)
 
     return {
         "candles": candles,
-        "indicators": {
-            "ma5": ma_5,
-            "ma20": ma_20
-        },
+        "indicators": {"ma5": ma_5, "ma20": ma_20},
         "metadata": {
             "symbol": "RULE/IQ",
             "exchange": "Quantum Exchange",
-            "updated_at": datetime.now().isoformat()
-        }
+            "updated_at": datetime.now().isoformat(),
+        },
     }
+
+
 # Network Graph Data Endpoint
 @app.get("/graph")
 async def get_network_graph(nodes: int = 50, clusters: int = 5):
@@ -163,7 +179,13 @@ async def get_network_graph(nodes: int = 50, clusters: int = 5):
 
     # Define cluster centers and colors
     cluster_colors = ["#8B5CF6", "#A855F7", "#C084FC", "#10B981", "#F59E0B"]
-    cluster_names = ["Core Systems", "Security Layer", "Data Pipeline", "User Interface", "External APIs"]
+    cluster_names = [
+        "Core Systems",
+        "Security Layer",
+        "Data Pipeline",
+        "User Interface",
+        "External APIs",
+    ]
 
     for i in range(nodes):
         cluster_id = i % clusters
@@ -181,8 +203,8 @@ async def get_network_graph(nodes: int = 50, clusters: int = 5):
             "metrics": {
                 "traffic": random.randint(100, 10000),
                 "latency": round(random.uniform(1, 100), 2),
-                "errors": random.randint(0, 50)
-            }
+                "errors": random.randint(0, 50),
+            },
         }
 
         graph_nodes.append(node)
@@ -197,24 +219,30 @@ async def get_network_graph(nodes: int = 50, clusters: int = 5):
         same_cluster = node_clusters[i % clusters]
         for j in same_cluster:
             if i != j and random.random() < 0.3:  # 30% chance within cluster
-                edges.append({
-                    "id": f"edge_{edge_count}",
-                    "source": f"node_{i}",
-                    "target": f"node_{j}",
-                    "weight": random.uniform(0.1, 1),
-                    "color": cluster_colors[i % clusters] + "40"  # Add transparency
-                })
+                edges.append(
+                    {
+                        "id": f"edge_{edge_count}",
+                        "source": f"node_{i}",
+                        "target": f"node_{j}",
+                        "weight": random.uniform(0.1, 1),
+                        "color": cluster_colors[i % clusters] + "40",  # Add transparency
+                    }
+                )
                 edge_count += 1
         # Connect to nodes in other clusters (lower probability)
         for j in range(nodes):
-            if i != j and (j % clusters) != (i % clusters) and random.random() < 0.05:  # 5% chance between clusters
-                edges.append({
-                    "id": f"edge_{edge_count}",
-                    "source": f"node_{i}",
-                    "target": f"node_{j}",
-                    "weight": random.uniform(0.1, 0.5),
-                    "color": "#C0C0C040"  # Silver with transparency
-                })
+            if (
+                i != j and (j % clusters) != (i % clusters) and random.random() < 0.05
+            ):  # 5% chance between clusters
+                edges.append(
+                    {
+                        "id": f"edge_{edge_count}",
+                        "source": f"node_{i}",
+                        "target": f"node_{j}",
+                        "weight": random.uniform(0.1, 0.5),
+                        "color": "#C0C0C040",  # Silver with transparency
+                    }
+                )
                 edge_count += 1
 
     return {
@@ -225,9 +253,10 @@ async def get_network_graph(nodes: int = 50, clusters: int = 5):
             "edge_count": len(edges),
             "clusters": clusters,
             "density": len(edges) / (nodes * (nodes - 1) / 2) if nodes > 1 else 0,
-            "updated_at": datetime.now().isoformat()
-        }
+            "updated_at": datetime.now().isoformat(),
+        },
     }
+
 
 # Vega-Lite Spec Endpoint
 @app.get("/vega-spec")
@@ -237,13 +266,15 @@ async def get_vega_spec(chart_type: str = "scatter"):
     # Generate sample data
     data_points = []
     for i in range(100):
-        data_points.append({
-            "x": random.gauss(50, 15),
-            "y": random.gauss(50, 15),
-            "category": f"Category {random.randint(1, 5)}",
-            "value": random.uniform(10, 100),
-            "timestamp": (datetime.now() - timedelta(hours=100-i)).isoformat()
-        })
+        data_points.append(
+            {
+                "x": random.gauss(50, 15),
+                "y": random.gauss(50, 15),
+                "category": f"Category {random.randint(1, 5)}",
+                "value": random.uniform(10, 100),
+                "timestamp": (datetime.now() - timedelta(hours=100 - i)).isoformat(),
+            }
+        )
 
     specs = {
         "scatter": {
@@ -254,24 +285,32 @@ async def get_vega_spec(chart_type: str = "scatter"):
             "encoding": {
                 "x": {"field": "x", "type": "quantitative", "title": "X Axis"},
                 "y": {"field": "y", "type": "quantitative", "title": "Y Axis"},
-                "color": {"field": "category", "type": "nominal", "scale": {
-                    "range": ["#8B5CF6", "#A855F7", "#C084FC", "#10B981", "#F59E0B"]
-                }},
+                "color": {
+                    "field": "category",
+                    "type": "nominal",
+                    "scale": {"range": ["#8B5CF6", "#A855F7", "#C084FC", "#10B981", "#F59E0B"]},
+                },
                 "tooltip": [
                     {"field": "x", "type": "quantitative", "format": ".2f"},
                     {"field": "y", "type": "quantitative", "format": ".2f"},
-                    {"field": "category", "type": "nominal"}
-                ]
+                    {"field": "category", "type": "nominal"},
+                ],
             },
             "config": {
                 "background": "#0A0A0B",
-                "axis": {"gridColor": "#374151", "domainColor": "#9CA3AF", "tickColor": "#9CA3AF", "labelColor": "#9CA3AF"},
-                "legend": {"labelColor": "#9CA3AF", "titleColor": "#F3F4F6"}
-            }
+                "axis": {
+                    "gridColor": "#374151",
+                    "domainColor": "#9CA3AF",
+                    "tickColor": "#9CA3AF",
+                    "labelColor": "#9CA3AF",
+                },
+                "legend": {"labelColor": "#9CA3AF", "titleColor": "#F3F4F6"},
+            },
         }
     }
 
     return specs.get(chart_type, specs["scatter"])
+
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)

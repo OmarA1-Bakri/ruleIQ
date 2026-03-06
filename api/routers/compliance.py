@@ -1,4 +1,3 @@
-
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict
 
@@ -39,7 +38,9 @@ async def get_compliance_status(
     - Recent activity summary
     """
     try:
-        profile_stmt = select(BusinessProfile).where(BusinessProfile.user_id == str(current_user.id))
+        profile_stmt = select(BusinessProfile).where(
+            BusinessProfile.user_id == str(current_user.id)
+        )
         profile_result = await db.execute(profile_stmt)
         profile = profile_result.scalars().first()
         if not profile:
@@ -66,7 +67,8 @@ async def get_compliance_status(
         framework_count = 0
         for framework in all_frameworks:
             framework_evidence_stmt = select(EvidenceItem).where(
-                EvidenceItem.user_id == str(current_user.id), EvidenceItem.framework_id == framework["id"]
+                EvidenceItem.user_id == str(current_user.id),
+                EvidenceItem.framework_id == framework["id"],
             )
             framework_evidence_result = await db.execute(framework_evidence_stmt)
             framework_evidence = framework_evidence_result.scalars().all()
@@ -85,12 +87,16 @@ async def get_compliance_status(
             else:
                 evidence_count = len(framework_evidence)
                 approved_evidence = len([e for e in framework_evidence if e.status == "approved"])
-                framework_score = approved_evidence / max(evidence_count, 1) * 100 if evidence_count > 0 else 0.0
+                framework_score = (
+                    approved_evidence / max(evidence_count, 1) * 100 if evidence_count > 0 else 0.0
+                )
             framework_scores[framework.name] = round(framework_score, 1)
             if framework_evidence:
                 total_score += framework_score
                 framework_count += 1
-        overall_score = round(total_score / max(framework_count, 1), 1) if framework_count > 0 else 0.0
+        overall_score = (
+            round(total_score / max(framework_count, 1), 1) if framework_count > 0 else 0.0
+        )
         if overall_score >= 90:
             status = "excellent"
         elif overall_score >= 75:
@@ -104,7 +110,10 @@ async def get_compliance_status(
         recent_cutoff = datetime.now(timezone.utc) - timedelta(days=30)
         recent_evidence_stmt = (
             select(EvidenceItem)
-            .where(EvidenceItem.user_id == str(current_user.id), EvidenceItem.updated_at >= recent_cutoff)
+            .where(
+                EvidenceItem.user_id == str(current_user.id),
+                EvidenceItem.updated_at >= recent_cutoff,
+            )
             .order_by(EvidenceItem.updated_at.desc())
             .limit(10)
         )
@@ -162,13 +171,16 @@ async def get_compliance_status(
         }
     except Exception as e:
         raise HTTPException(
-            status_code=HTTP_INTERNAL_SERVER_ERROR, detail=f"Failed to retrieve compliance status: {e!s}"
+            status_code=HTTP_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to retrieve compliance status: {e!s}",
         )
 
 
 @router.get("/status/{framework_id}", response_model=ComplianceStatusResponse)
 async def get_framework_compliance_status(
-    framework_id: str, current_user: User = Depends(get_current_active_user), db: AsyncSession = Depends(get_async_db)
+    framework_id: str,
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_async_db),
 ) -> Dict[str, Any]:
     """
     Get compliance status for a specific framework.
@@ -184,7 +196,9 @@ async def get_framework_compliance_status(
 
 @router.post("/tasks")
 async def create_compliance_task(
-    task_data: dict, current_user: User = Depends(get_current_active_user), db: AsyncSession = Depends(get_async_db)
+    task_data: dict,
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_async_db),
 ) -> Dict[str, Any]:
     """Create a new compliance task."""
     return {
@@ -220,7 +234,9 @@ async def update_compliance_task(
 
 @router.post("/risks")
 async def create_compliance_risk(
-    risk_data: dict, current_user: User = Depends(get_current_active_user), db: AsyncSession = Depends(get_async_db)
+    risk_data: dict,
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_async_db),
 ) -> Dict[str, Any]:
     """Create a new compliance risk."""
     return {
@@ -321,13 +337,19 @@ async def get_compliance_dashboard(
             {"action": "Review Tasks", "path": "/compliance/tasks"},
             {"action": "View Risks", "path": "/compliance/risks"},
         ],
-        "compliance_trends": {"30_day_change": 5.2, "trend_direction": "improving", "forecast": "on_track"},
+        "compliance_trends": {
+            "30_day_change": 5.2,
+            "trend_direction": "improving",
+            "forecast": "on_track",
+        },
     }
 
 
 @router.post("/certificate/generate")
 async def generate_compliance_certificate(
-    request_data: dict, current_user: User = Depends(get_current_active_user), db: AsyncSession = Depends(get_async_db)
+    request_data: dict,
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_async_db),
 ) -> Dict[str, Any]:
     """Generate a compliance certificate."""
     framework_id = request_data.get("framework_id")
@@ -349,7 +371,9 @@ async def generate_compliance_certificate(
 
 @router.post("/query")
 async def query_compliance(
-    request: dict, current_user: User = Depends(get_current_active_user), db: AsyncSession = Depends(get_async_db)
+    request: dict,
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_async_db),
 ) -> Dict[str, Any]:
     """
     Query compliance information using AI assistant.
@@ -398,7 +422,8 @@ async def query_compliance(
             "procedure",
         ]
         is_compliance_related = any(
-            keyword in question.lower() or keyword in framework.lower() for keyword in compliance_keywords
+            keyword in question.lower() or keyword in framework.lower()
+            for keyword in compliance_keywords
         )
         if not is_compliance_related:
             out_of_scope_keywords = ["weather", "pasta", "cooking", "joke", "recipe", "sports"]
@@ -421,10 +446,15 @@ async def query_compliance(
             "answer": answer,
             "framework": framework,
             "confidence": "high",
-            "sources": [f"{framework} official documentation" if framework else "Compliance best practices"],
+            "sources": [
+                f"{framework} official documentation" if framework else "Compliance best practices"
+            ],
             "generated_at": datetime.now(timezone.utc).isoformat(),
         }
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=HTTP_INTERNAL_SERVER_ERROR, detail=f"Failed to process compliance query: {e!s}")
+        raise HTTPException(
+            status_code=HTTP_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to process compliance query: {e!s}",
+        )

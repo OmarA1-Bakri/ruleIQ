@@ -71,7 +71,8 @@ async def test_agentic_rag():
         # Test implementation guidance
         print("\n📖 Testing implementation guidance...")
         guidance = await service.get_implementation_guidance(
-            topic="agent design patterns", framework="pydantic_ai",
+            topic="agent design patterns",
+            framework="pydantic_ai",
         )
         print(f"Guidance: {guidance[:200]}...")
 
@@ -88,7 +89,8 @@ async def test_agentic_rag():
 if __name__ == "__main__":
     # Set environment variables for testing
     os.environ.setdefault(
-        "DATABASE_URL", "postgresql://postgres:password@localhost:5432/compliancegpt",
+        "DATABASE_URL",
+        "postgresql://postgres:password@localhost:5432/compliancegpt",
     )
     os.environ.setdefault("REDIS_URL", "redis://localhost:6379")
     os.environ.setdefault("OPENAI_API_KEY", "your-openai-key-here")

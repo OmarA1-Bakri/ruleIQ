@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import List, Set, Dict, Tuple, Optional
 import logging
 
-logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
+logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -45,7 +45,7 @@ class UnusedImportDetector(ast.NodeVisitor):
             return
 
         for alias in node.names:
-            if alias.name == '*':
+            if alias.name == "*":
                 # Skip star imports for now
                 continue
             name = alias.asname if alias.asname else alias.name
@@ -58,11 +58,12 @@ class UnusedImportDetector(ast.NodeVisitor):
     def visit_If(self, node: ast.If) -> None:
         """Track TYPE_CHECKING blocks."""
         # Check if this is a TYPE_CHECKING block
-        if (isinstance(node.test, ast.Name) and node.test.id == "TYPE_CHECKING") or \
-           (isinstance(node.test, ast.Attribute) and
-            isinstance(node.test.value, ast.Name) and
-            node.test.value.id == "typing" and
-            node.test.attr == "TYPE_CHECKING"):
+        if (isinstance(node.test, ast.Name) and node.test.id == "TYPE_CHECKING") or (
+            isinstance(node.test, ast.Attribute)
+            and isinstance(node.test.value, ast.Name)
+            and node.test.value.id == "typing"
+            and node.test.attr == "TYPE_CHECKING"
+        ):
             old_state = self.in_type_checking
             self.in_type_checking = True
             for stmt in node.body:
@@ -130,12 +131,13 @@ class UnusedImportDetector(ast.NodeVisitor):
         elif isinstance(annotation, ast.Constant) and isinstance(annotation.value, str):
             # String annotations
             try:
-                parsed = ast.parse(annotation.value, mode='eval')
+                parsed = ast.parse(annotation.value, mode="eval")
                 self._extract_annotation_names(parsed.body)
             except:
                 # If we can't parse it, extract simple names
                 import re
-                names = re.findall(r'\b[A-Za-z_][A-Za-z0-9_]*\b', annotation.value)
+
+                names = re.findall(r"\b[A-Za-z_][A-Za-z0-9_]*\b", annotation.value)
                 self.annotations.update(names)
         elif isinstance(annotation, ast.Subscript):
             self._extract_annotation_names(annotation.value)
@@ -143,7 +145,7 @@ class UnusedImportDetector(ast.NodeVisitor):
         elif isinstance(annotation, ast.Attribute):
             if isinstance(annotation.value, ast.Name):
                 self.annotations.add(annotation.value.id)
-        elif hasattr(annotation, '_fields'):
+        elif hasattr(annotation, "_fields"):
             # Recursively process composite annotations
             for field in annotation._fields:
                 value = getattr(annotation, field, None)
@@ -177,7 +179,7 @@ def find_unused_imports(file_path: Path) -> Tuple[List[str], Optional[str]]:
         Tuple of (list of unused import names, error message if any)
     """
     try:
-        with open(file_path, 'r', encoding='utf-8') as f:
+        with open(file_path, "r", encoding="utf-8") as f:
             content = f.read()
 
         tree = ast.parse(content, filename=str(file_path))
@@ -207,7 +209,7 @@ def remove_unused_imports(file_path: Path, unused: List[str], dry_run: bool = Fa
         return False
 
     try:
-        with open(file_path, 'r', encoding='utf-8') as f:
+        with open(file_path, "r", encoding="utf-8") as f:
             lines = f.readlines()
 
         modified_lines = []
@@ -218,7 +220,7 @@ def remove_unused_imports(file_path: Path, unused: List[str], dry_run: bool = Fa
             should_keep = True
             stripped = line.strip()
 
-            if stripped.startswith(('import ', 'from ')):
+            if stripped.startswith(("import ", "from ")):
                 for name in unused:
                     # Check various import patterns
                     patterns = [
@@ -231,6 +233,7 @@ def remove_unused_imports(file_path: Path, unused: List[str], dry_run: bool = Fa
                     ]
 
                     import re
+
                     for pattern in patterns:
                         if re.search(pattern, line):
                             should_keep = False
@@ -246,11 +249,13 @@ def remove_unused_imports(file_path: Path, unused: List[str], dry_run: bool = Fa
 
         if imports_removed:
             if not dry_run:
-                with open(file_path, 'w', encoding='utf-8') as f:
+                with open(file_path, "w", encoding="utf-8") as f:
                     f.writelines(modified_lines)
                 logger.info(f"  Removed {len(imports_removed)} unused imports from {file_path}")
             else:
-                logger.info(f"  Would remove {len(imports_removed)} unused imports from {file_path}")
+                logger.info(
+                    f"  Would remove {len(imports_removed)} unused imports from {file_path}"
+                )
             return True
 
         return False
@@ -273,29 +278,29 @@ def process_directory(directory: Path, dry_run: bool = False, fix: bool = False)
         Statistics dictionary
     """
     stats = {
-        'files_processed': 0,
-        'files_with_unused': 0,
-        'total_unused': 0,
-        'files_fixed': 0,
-        'errors': 0
+        "files_processed": 0,
+        "files_with_unused": 0,
+        "total_unused": 0,
+        "files_fixed": 0,
+        "errors": 0,
     }
 
-    for py_file in directory.rglob('*.py'):
+    for py_file in directory.rglob("*.py"):
         # Skip virtual environments and build directories
-        if any(part in py_file.parts for part in ['.venv', 'venv', '__pycache__', 'build', 'dist']):
+        if any(part in py_file.parts for part in [".venv", "venv", "__pycache__", "build", "dist"]):
             continue
 
-        stats['files_processed'] += 1
+        stats["files_processed"] += 1
         unused, error = find_unused_imports(py_file)
 
         if error:
             logger.warning(error)
-            stats['errors'] += 1
+            stats["errors"] += 1
             continue
 
         if unused:
-            stats['files_with_unused'] += 1
-            stats['total_unused'] += len(unused)
+            stats["files_with_unused"] += 1
+            stats["total_unused"] += len(unused)
 
             rel_path = py_file.relative_to(directory)
             logger.info(f"\n{rel_path}: {len(unused)} unused imports")
@@ -303,36 +308,22 @@ def process_directory(directory: Path, dry_run: bool = False, fix: bool = False)
                 logger.info(f"  - {name}")
 
             if fix and remove_unused_imports(py_file, unused, dry_run):
-                stats['files_fixed'] += 1
+                stats["files_fixed"] += 1
 
     return stats
 
 
 def main():
     """Main entry point."""
-    parser = argparse.ArgumentParser(
-        description='Detect and remove unused imports in Python code'
+    parser = argparse.ArgumentParser(description="Detect and remove unused imports in Python code")
+    parser.add_argument("path", type=Path, help="File or directory to process")
+    parser.add_argument(
+        "--fix", action="store_true", help="Remove unused imports (default is to only report)"
     )
     parser.add_argument(
-        'path',
-        type=Path,
-        help='File or directory to process'
+        "--dry-run", action="store_true", help="Show what would be changed without modifying files"
     )
-    parser.add_argument(
-        '--fix',
-        action='store_true',
-        help='Remove unused imports (default is to only report)'
-    )
-    parser.add_argument(
-        '--dry-run',
-        action='store_true',
-        help='Show what would be changed without modifying files'
-    )
-    parser.add_argument(
-        '--quiet',
-        action='store_true',
-        help='Suppress detailed output'
-    )
+    parser.add_argument("--quiet", action="store_true", help="Suppress detailed output")
 
     args = parser.parse_args()
 
@@ -362,20 +353,20 @@ def main():
         logger.info(f"Processing directory: {args.path}")
         stats = process_directory(args.path, args.dry_run, args.fix)
 
-        logger.info("\n" + "="*50)
+        logger.info("\n" + "=" * 50)
         logger.info("Summary:")
         logger.info(f"  Files processed: {stats['files_processed']}")
         logger.info(f"  Files with unused imports: {stats['files_with_unused']}")
         logger.info(f"  Total unused imports: {stats['total_unused']}")
         if args.fix:
             logger.info(f"  Files fixed: {stats['files_fixed']}")
-        if stats['errors']:
+        if stats["errors"]:
             logger.info(f"  Errors: {stats['errors']}")
 
         # Exit with non-zero if unused imports were found and not fixed
-        if stats['files_with_unused'] > 0 and not args.fix:
+        if stats["files_with_unused"] > 0 and not args.fix:
             sys.exit(1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

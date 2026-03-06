@@ -178,7 +178,8 @@ class FreemiumAssessmentService:
                             else 0,
                         ),
                         "total_questions_planned": agent_state.get(
-                            "total_questions_planned", self.MAX_QUESTIONS_PER_SESSION,
+                            "total_questions_planned",
+                            self.MAX_QUESTIONS_PER_SESSION,
                         ),
                         "using_langgraph": True,
                         "generation_timestamp": datetime.now(timezone.utc).isoformat(),
@@ -190,7 +191,8 @@ class FreemiumAssessmentService:
                         # Last message should be the introduction/first question
                         session.current_question_id = "agent_intro"
                         session.total_questions = agent_state.get(
-                            "total_questions_planned", self.MIN_QUESTIONS_FOR_RESULTS,
+                            "total_questions_planned",
+                            self.MIN_QUESTIONS_FOR_RESULTS,
                         )
                 else:
                     use_langgraph = False
@@ -225,11 +227,11 @@ class FreemiumAssessmentService:
 
             await self.db.commit()
 
-#             questions_count = (  # Unused variable
-#                 session.ai_responses.get("questions_generated", 0)
-#                 if self.USE_LANGGRAPH_AGENT
-#                 else len(initial_questions if "initial_questions" in locals() else [])
-#             )
+            #             questions_count = (  # Unused variable
+            #                 session.ai_responses.get("questions_generated", 0)
+            #                 if self.USE_LANGGRAPH_AGENT
+            #                 else len(initial_questions if "initial_questions" in locals() else [])
+            #             )
             logger.info(
                 f"Session created successfully: {session.id} with LangGraph "
                 f"{'enabled' if self.USE_LANGGRAPH_AGENT else 'disabled'}"
@@ -280,9 +282,7 @@ class FreemiumAssessmentService:
             )
 
             # Check if using LangGraph agent
-            if session.ai_responses and session.ai_responses.get(
-                "using_langgraph", False
-            ):
+            if session.ai_responses and session.ai_responses.get("using_langgraph", False):
                 # Process answer with LangGraph agent
                 agent_state = await self.assessment_agent.process_user_response(
                     session_id=str(session.id),
@@ -319,14 +319,10 @@ class FreemiumAssessmentService:
                 # Only mark as completed if we have enough questions AND the phase is completion
                 questions_answered = session.questions_answered
                 is_completion_phase = phase_value.lower() in ["completion", "completed"]
-                has_enough_answers = (
-                    questions_answered >= self.MIN_QUESTIONS_FOR_RESULTS,
-                )
+                has_enough_answers = (questions_answered >= self.MIN_QUESTIONS_FOR_RESULTS,)
 
                 completion_status = (
-                    "completed"
-                    if (is_completion_phase and has_enough_answers)
-                    else "in_progress",
+                    "completed" if (is_completion_phase and has_enough_answers) else "in_progress",
                 )
 
                 logger.info(
@@ -349,7 +345,8 @@ class FreemiumAssessmentService:
                                     "question_text": msg.content,
                                     "question_type": "conversational",
                                     "category": agent_state.get(
-                                        "current_phase", "general",
+                                        "current_phase",
+                                        "general",
                                     ),
                                 }
                                 break
@@ -415,7 +412,8 @@ class FreemiumAssessmentService:
                         and session.questions_answered < self.MAX_QUESTIONS_PER_SESSION
                     ):
                         next_question = await self._generate_follow_up_question(
-                            session_id=session_id, previous_answers=session.user_answers,
+                            session_id=session_id,
+                            previous_answers=session.user_answers,
                         )
                     else:
                         completion_status = "completed"
@@ -450,7 +448,8 @@ class FreemiumAssessmentService:
             # Add AI insights if available
             if answer_confidence == "high" and len(answer) > 50:
                 response["insights"] = await self._generate_answer_insights(
-                    question_id, answer,
+                    question_id,
+                    answer,
                 )
 
             logger.info(f"Answer processed successfully for session: {session_id}")
@@ -511,7 +510,8 @@ class FreemiumAssessmentService:
 
             # Calculate compliance score
             compliance_score = self._calculate_compliance_score(
-                session.user_answers, session.assessment_type,
+                session.user_answers,
+                session.assessment_type,
             )
 
             # Determine risk level
@@ -519,22 +519,32 @@ class FreemiumAssessmentService:
 
             # Generate personalized recommendations
             recommendations = await self._generate_recommendations(
-                assessment_context, ai_analysis, compliance_score,
+                assessment_context,
+                ai_analysis,
+                compliance_score,
             )
 
             # Identify compliance gaps
             gaps_identified = self._identify_compliance_gaps(
-                session.user_answers, session.assessment_type, ai_analysis,
+                session.user_answers,
+                session.assessment_type,
+                ai_analysis,
             )
 
             # Generate conversion opportunities
             conversion_opportunities = self._generate_conversion_opportunities(
-                compliance_score, risk_level, gaps_identified, lead,
+                compliance_score,
+                risk_level,
+                gaps_identified,
+                lead,
             )
 
             # Create results summary
             results_summary = await self._generate_results_summary(
-                compliance_score, risk_level, recommendations, gaps_identified,
+                compliance_score,
+                risk_level,
+                recommendations,
+                gaps_identified,
             )
 
             # Store results in session
@@ -601,7 +611,8 @@ class FreemiumAssessmentService:
 
             # Adjust for confidence level
             confidence_multiplier = {"high": 1.5, "medium": 1.0, "low": 0.8}.get(
-                confidence, 1.0,
+                confidence,
+                1.0,
             )
 
             # Adjust for question complexity (look up in question bank if available)
@@ -616,9 +627,7 @@ class FreemiumAssessmentService:
                 )
                 question = result.scalar_one_or_none()
                 if question:
-                    difficulty_multiplier = (
-                        question.difficulty_level / 5.0
-                    )  # Scale 1-10 to 0.2-2.0
+                    difficulty_multiplier = question.difficulty_level / 5.0  # Scale 1-10 to 0.2-2.0
                     base_score = int(base_score * difficulty_multiplier)
             except (ValueError, TypeError):
                 # Not a UUID, skip database lookup for dynamic questions
@@ -676,7 +685,8 @@ class FreemiumAssessmentService:
             )
 
             return questions_data.get(
-                "questions", self._get_fallback_questions(assessment_type),
+                "questions",
+                self._get_fallback_questions(assessment_type),
             )
 
         except Exception as e:
@@ -724,7 +734,7 @@ class FreemiumAssessmentService:
                         "Yes, occasionally",
                         "No",
                         "Planning to start",
-                    ]
+                    ],
                 },
                 {
                     "question_id": "gen_005",
@@ -774,7 +784,7 @@ class FreemiumAssessmentService:
                         "Yes, partially",
                         "No",
                         "Don't know",
-                    ]
+                    ],
                 },
             ],
             "gdpr": [
@@ -847,12 +857,7 @@ class FreemiumAssessmentService:
                     "question_text": "Do you use multi-factor authentication for business systems?",
                     "question_type": "yes_no",
                     "category": "access_control",
-                    "options": [
-                        "Yes, everywhere",
-                        "Yes, partially",
-                        "No",
-                        "Don't know"
-                    ]
+                    "options": ["Yes, everywhere", "Yes, partially", "No", "Don't know"],
                 },
                 {
                     "question_id": "sec_002",
@@ -913,7 +918,7 @@ class FreemiumAssessmentService:
                         "Automated tools",
                         "Manual reviews",
                         "No active monitoring",
-                    ]
+                    ],
                 },
                 {
                     "question_id": "sec_007",
@@ -998,7 +1003,8 @@ class FreemiumAssessmentService:
         try:
             if self.circuit_breaker.is_model_available("gemini-2.5-flash"):
                 follow_up = await self.assistant.generate_followup_questions(
-                    previous_answers=previous_answers, max_questions=1,
+                    previous_answers=previous_answers,
+                    max_questions=1,
                 )
                 questions = follow_up.get("questions", [])
                 return questions[0] if questions else None
@@ -1036,7 +1042,8 @@ class FreemiumAssessmentService:
 
                 # Generate a smart follow-up question based on what we've learned
                 follow_up = await self.assistant.generate_followup_questions(
-                    previous_answers=session.user_answers, max_questions=1,
+                    previous_answers=session.user_answers,
+                    max_questions=1,
                 )
                 questions = follow_up.get("questions", [])
                 if questions:
@@ -1054,9 +1061,7 @@ class FreemiumAssessmentService:
             logger.error(f"Error getting next question: {str(e)}")
             return None
 
-    async def _generate_ai_analysis(
-        self, assessment_context: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    async def _generate_ai_analysis(self, assessment_context: Dict[str, Any]) -> Dict[str, Any]:
         """Generate AI-powered analysis of assessment responses."""
         try:
             if self.circuit_breaker.is_model_available("gemini-2.5-flash"):
@@ -1077,9 +1082,7 @@ class FreemiumAssessmentService:
             logger.error(f"Error generating AI analysis: {str(e)}")
             return {"analysis": "Analysis failed", "error": str(e)}
 
-    def _calculate_compliance_score(
-        self, answers: Dict[str, Any], assessment_type: str
-    ) -> float:
+    def _calculate_compliance_score(self, answers: Dict[str, Any], assessment_type: str) -> float:
         """Calculate compliance score based on answers."""
         if not answers:
             return 0.0
@@ -1104,15 +1107,14 @@ class FreemiumAssessmentService:
 
             # Adjust for confidence
             confidence_multiplier = {"high": 1.0, "medium": 0.9, "low": 0.7}.get(
-                confidence, 0.8,
+                confidence,
+                0.8,
             )
             total_score += score * confidence_multiplier
 
         return round(total_score / answer_count, 1)
 
-    def _determine_risk_level(
-        self, compliance_score: float, ai_analysis: Dict[str, Any]
-    ) -> str:
+    def _determine_risk_level(self, compliance_score: float, ai_analysis: Dict[str, Any]) -> str:
         """Determine risk level based on compliance score and AI analysis."""
         if compliance_score >= 80:
             return "low"
@@ -1145,9 +1147,7 @@ class FreemiumAssessmentService:
             logger.error(f"Error generating recommendations: {str(e)}")
             return self._get_fallback_recommendations(compliance_score)
 
-    def _get_fallback_recommendations(
-        self, compliance_score: float
-    ) -> List[Dict[str, Any]]:
+    def _get_fallback_recommendations(self, compliance_score: float) -> List[Dict[str, Any]]:
         """Get fallback recommendations when AI is unavailable."""
         if compliance_score < 40:
             return [
@@ -1249,7 +1249,7 @@ class FreemiumAssessmentService:
         summary_parts = [
             f"Your compliance score is {compliance_score}% with a {risk_level} risk level.",
             f"We identified {len(gaps_identified)} areas for improvement.",
-            f"Our analysis includes {len(recommendations)} personalized recommendations."
+            f"Our analysis includes {len(recommendations)} personalized recommendations.",
         ]
 
         if compliance_score >= 80:
@@ -1265,9 +1265,7 @@ class FreemiumAssessmentService:
 
         return " ".join(summary_parts)
 
-    def _generate_next_steps(
-        self, compliance_score: float, risk_level: str
-    ) -> List[str]:
+    def _generate_next_steps(self, compliance_score: float, risk_level: str) -> List[str]:
         """Generate actionable next steps."""
         steps = []
 
@@ -1298,14 +1296,13 @@ class FreemiumAssessmentService:
 
         return steps
 
-    async def _generate_answer_insights(
-        self, question_id: str, answer: str
-    ) -> Dict[str, Any]:
+    async def _generate_answer_insights(self, question_id: str, answer: str) -> Dict[str, Any]:
         """Generate insights for a specific answer."""
         try:
             if self.circuit_breaker.is_model_available("gemini-2.5-flash"):
                 insights = await self.assistant.analyze_specific_answer(
-                    question_id=question_id, answer=answer,
+                    question_id=question_id,
+                    answer=answer,
                 )
                 return insights
             else:

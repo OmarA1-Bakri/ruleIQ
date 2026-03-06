@@ -14,57 +14,58 @@ TEST_SUITES = {
         "description": "All integration tests",
         "paths": ["tests/integration/"],
         "markers": "integration",
-        "timeout": 300
+        "timeout": 300,
     },
     "api-workflows": {
         "description": "API workflow integration tests",
         "paths": ["tests/integration/test_api_workflows.py"],
         "markers": "integration and api",
-        "timeout": 120
+        "timeout": 120,
     },
     "external-services": {
         "description": "External service integration tests",
         "paths": ["tests/integration/test_external_services.py"],
         "markers": "integration and external",
-        "timeout": 180
+        "timeout": 180,
     },
     "contracts": {
         "description": "Contract validation tests",
         "paths": ["tests/integration/test_contracts.py"],
         "markers": "integration and contract",
-        "timeout": 90
+        "timeout": 90,
     },
     "database": {
         "description": "Database integration tests",
         "paths": ["tests/integration/test_database.py"],
         "markers": "integration and database",
-        "timeout": 120
+        "timeout": 120,
     },
     "security": {
         "description": "Security integration tests",
         "paths": ["tests/integration/test_security.py"],
         "markers": "integration and security",
-        "timeout": 150
+        "timeout": 150,
     },
     "performance": {
         "description": "Performance integration tests",
         "paths": ["tests/integration/test_performance.py"],
         "markers": "integration and performance",
-        "timeout": 240
+        "timeout": 240,
     },
     "ai-services": {
         "description": "AI service integration tests",
         "paths": ["tests/integration/test_ai_services.py"],
         "markers": "integration and ai",
-        "timeout": 180
+        "timeout": 180,
     },
     "e2e": {
         "description": "End-to-end integration tests",
         "paths": ["tests/integration/test_e2e.py"],
         "markers": "integration and e2e",
-        "timeout": 300
-    }
+        "timeout": 300,
+    },
 }
+
 
 def run_integration_suite(suite_name):
     """Run a specific integration test suite."""
@@ -102,19 +103,14 @@ def run_integration_suite(suite_name):
         cmd.extend(["-m", suite["markers"]])
 
     # Add timeout and other options
-    cmd.extend([
-        f"--timeout={suite['timeout']}",
-        "--tb=short",
-        "--maxfail=3",
-        "-v"
-    ])
+    cmd.extend([f"--timeout={suite['timeout']}", "--tb=short", "--maxfail=3", "-v"])
 
     # Run the tests
     try:
         result = subprocess.run(
             cmd,
             cwd=Path(__file__).parent.parent,
-            timeout=suite["timeout"] + 30  # Give extra time for cleanup
+            timeout=suite["timeout"] + 30,  # Give extra time for cleanup
         )
         return result.returncode
     except subprocess.TimeoutExpired:
@@ -124,6 +120,7 @@ def run_integration_suite(suite_name):
         print(f"\nError running test suite: {e}")
         return 1
 
+
 def list_suites():
     """List all available integration test suites."""
     print("\nAvailable Integration Test Suites:")
@@ -132,20 +129,11 @@ def list_suites():
         print(f"  {suite_name:20} - {suite['description']}")
     print("=" * 60)
 
+
 def main():
-    parser = argparse.ArgumentParser(
-        description="Run integration tests for ruleIQ"
-    )
-    parser.add_argument(
-        "--suite",
-        choices=list(TEST_SUITES.keys()),
-        help="Test suite to run"
-    )
-    parser.add_argument(
-        "--list",
-        action="store_true",
-        help="List available test suites"
-    )
+    parser = argparse.ArgumentParser(description="Run integration tests for ruleIQ")
+    parser.add_argument("--suite", choices=list(TEST_SUITES.keys()), help="Test suite to run")
+    parser.add_argument("--list", action="store_true", help="List available test suites")
 
     args = parser.parse_args()
 
@@ -159,6 +147,7 @@ def main():
         return 1
 
     return run_integration_suite(args.suite)
+
 
 if __name__ == "__main__":
     sys.exit(main())

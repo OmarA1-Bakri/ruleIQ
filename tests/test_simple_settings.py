@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 """Test simplified settings"""
 
-from __future__ import annotations
-
 import os
 from typing import List, Annotated, Any
 from pydantic import Field, BeforeValidator

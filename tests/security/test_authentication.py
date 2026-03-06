@@ -42,7 +42,9 @@ class TestAuthenticationSecurity:
             assert response.status_code in [
                 401,
                 422,
-            ], f"Endpoint {method} {endpoint} should require authentication or validate input (got {response.status_code})"
+            ], (
+                f"Endpoint {method} {endpoint} should require authentication or validate input (got {response.status_code})"
+            )
             # Only check authentication message for 401 responses
             if response.status_code == 401:
                 response_data = response.json()
@@ -73,12 +75,11 @@ class TestAuthenticationSecurity:
         for token in invalid_tokens:
             headers = {"Authorization": token} if token else {}
             response = unauthenticated_test_client.get(
-                "/api/business-profiles", headers=headers,
+                "/api/business-profiles",
+                headers=headers,
             )
 
-            assert (
-                response.status_code == 401
-            ), f"Invalid token should be rejected: {token}"
+            assert response.status_code == 401, f"Invalid token should be rejected: {token}"
             response_data = response.json()
             assert "detail" in response_data
 
@@ -90,7 +91,8 @@ class TestAuthenticationSecurity:
         """Test proper handling of expired tokens"""
         headers = {"Authorization": f"Bearer {expired_token}"}
         response = unauthenticated_test_client.get(
-            "/api/business-profiles", headers=headers,
+            "/api/business-profiles",
+            headers=headers,
         )
 
         assert response.status_code == 401
@@ -105,7 +107,8 @@ class TestAuthenticationSecurity:
         """Test that tokens without Bearer prefix are rejected"""
         headers = {"Authorization": auth_token}  # Missing "Bearer " prefix
         response = unauthenticated_test_client.get(
-            "/api/business-profiles", headers=headers,
+            "/api/business-profiles",
+            headers=headers,
         )
 
         assert response.status_code == 401
@@ -124,7 +127,8 @@ class TestAuthenticationSecurity:
 
         for headers in malformed_headers:
             response = unauthenticated_test_client.get(
-                "/api/business-profiles", headers=headers,
+                "/api/business-profiles",
+                headers=headers,
             )
             assert response.status_code == 401
 
@@ -151,17 +155,13 @@ class TestAuthenticationSecurity:
 
             response = client.post("/api/auth/register", json=registration_data)
 
-            assert (
-                response.status_code == 422
-            ), f"Weak password should be rejected: {weak_password}"
+            assert response.status_code == 422, f"Weak password should be rejected: {weak_password}"
             response_data = response.json()
             assert "detail" in response_data
 
             # Check that password validation errors are present
             password_errors = [
-                error
-                for error in response_data["detail"]
-                if "password" in str(error).lower()
+                error for error in response_data["detail"] if "password" in str(error).lower()
             ]
             assert len(password_errors) > 0
 
@@ -190,12 +190,11 @@ class TestAuthenticationSecurity:
                 password_errors = [
                     error
                     for error in response_data["detail"]
-                    if "password" in str(error).lower()
-                    and "strength" in str(error).lower()
+                    if "password" in str(error).lower() and "strength" in str(error).lower()
                 ]
-                assert (
-                    len(password_errors) == 0
-                ), f"Strong password should not be rejected for strength: {strong_password}"
+                assert len(password_errors) == 0, (
+                    f"Strong password should not be rejected for strength: {strong_password}"
+                )
 
     @pytest.mark.skip(
         reason="Account lockout is implemented via rate limiting which is disabled in test environment",
@@ -299,11 +298,12 @@ class TestAuthenticationSecurity:
 
         # Times should not differ by more than 50% (adjust threshold as needed)
         time_difference = abs(avg_existing - avg_non_existent) / max(
-            avg_existing, avg_non_existent,
+            avg_existing,
+            avg_non_existent,
         )
-        assert (
-            time_difference < 0.5
-        ), "Response times differ too much between existing and non-existent emails"
+        assert time_difference < 0.5, (
+            "Response times differ too much between existing and non-existent emails"
+        )
 
     def test_session_management_security(self, client, sample_user_data):
         """Test secure session management"""
@@ -356,7 +356,9 @@ class TestAuthenticationSecurity:
 
         # Test successful password change
         change_response = client.post(
-            "/api/auth/change-password", json=password_change_data, headers=headers,
+            "/api/auth/change-password",
+            json=password_change_data,
+            headers=headers,
         )
 
         if change_response.status_code == 200:
@@ -453,9 +455,7 @@ class TestTokenSecurity:
                     "private_key",
                 ]
                 for field in sensitive_fields:
-                    assert (
-                        field not in token_data
-                    ), f"Token contains sensitive field: {field}"
+                    assert field not in token_data, f"Token contains sensitive field: {field}"
 
                 # Token should contain minimal necessary information
                 expected_fields = ["sub", "exp", "iat"]  # subject, expiry, issued at
@@ -491,9 +491,7 @@ class TestTokenSecurity:
         immediate_response = client.get("/api/users/me", headers=headers)
         assert immediate_response.status_code == 200
 
-    def test_token_signature_validation(
-        self, unauthenticated_test_client, sample_user_data
-    ):
+    def test_token_signature_validation(self, unauthenticated_test_client, sample_user_data):
         """Test that tokens with invalid signatures are rejected"""
         # Get a valid token
         unauthenticated_test_client.post("/api/auth/register", json=sample_user_data)
@@ -519,9 +517,7 @@ class TestTokenSecurity:
             # Should be rejected due to invalid signature
             assert response.status_code == 401
 
-    def test_token_algorithm_confusion(
-        self, unauthenticated_test_client, sample_user_data
-    ):
+    def test_token_algorithm_confusion(self, unauthenticated_test_client, sample_user_data):
         """Test protection against JWT algorithm confusion attacks"""
         # This is a complex test that would require crafting specific JWT tokens
         # For now, we test that only expected algorithms are accepted
@@ -582,14 +578,17 @@ class TestAuthorizationSecurity:
             "employee_count": 50,
         }
         profile_response = client.post(
-            "/api/business-profiles", json=profile_data, headers=user1_headers,
+            "/api/business-profiles",
+            json=profile_data,
+            headers=user1_headers,
         )
         assert profile_response.status_code == 201
         profile_id = profile_response.json()["id"]
 
         # User 2 should not be able to access User 1's business profile
         unauthorized_response = client.get(
-            f"/api/business-profiles/{profile_id}", headers=user2_headers,
+            f"/api/business-profiles/{profile_id}",
+            headers=user2_headers,
         )
         assert unauthorized_response.status_code in [403, 404]
 
@@ -603,7 +602,8 @@ class TestAuthorizationSecurity:
 
         # User 2 should not be able to delete User 1's business profile
         delete_response = client.delete(
-            f"/api/business-profiles/{profile_id}", headers=user2_headers,
+            f"/api/business-profiles/{profile_id}",
+            headers=user2_headers,
         )
         assert delete_response.status_code in [403, 404]
 
@@ -726,6 +726,4 @@ class TestAuthorizationSecurity:
             # Should not include malicious origin in Access-Control-Allow-Origin
             if "Access-Control-Allow-Origin" in response.headers:
                 allowed_origin = response.headers["Access-Control-Allow-Origin"]
-                assert (
-                    allowed_origin != origin
-                ), f"Malicious origin should not be allowed: {origin}"
+                assert allowed_origin != origin, f"Malicious origin should not be allowed: {origin}"

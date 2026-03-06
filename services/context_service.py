@@ -29,20 +29,20 @@ logger = logging.getLogger(__name__)
 
 
 class InteractionType(str, Enum):
-#     ASSESSMENT_START = "assessment_start"  # Unused variable
-#     ASSESSMENT_CONTINUE = "assessment_continue"  # Unused variable
-#     ASSESSMENT_COMPLETE = "assessment_complete"  # Unused variable
-#     POLICY_GENERATION = "policy_generation"  # Unused variable
-#     POLICY_APPROVAL = "policy_approval"  # Unused variable
-#     BUSINESS_PROFILE_UPDATE = "business_profile_update"  # Unused variable
-#     QUESTION_ASKED = "question_asked"  # Unused variable
-#     RECOMMENDATION_ACCEPTED = "recommendation_accepted"  # Unused variable
-#     RECOMMENDATION_REJECTED = "recommendation_rejected"  # Unused variable
-#     AUTOMATION_DELEGATED = "automation_delegated"  # Unused variable
-#     ERROR_ENCOUNTERED = "error_encountered"  # Unused variable
-
+    #     ASSESSMENT_START = "assessment_start"  # Unused variable
+    #     ASSESSMENT_CONTINUE = "assessment_continue"  # Unused variable
+    #     ASSESSMENT_COMPLETE = "assessment_complete"  # Unused variable
+    #     POLICY_GENERATION = "policy_generation"  # Unused variable
+    #     POLICY_APPROVAL = "policy_approval"  # Unused variable
+    #     BUSINESS_PROFILE_UPDATE = "business_profile_update"  # Unused variable
+    #     QUESTION_ASKED = "question_asked"  # Unused variable
+    #     RECOMMENDATION_ACCEPTED = "recommendation_accepted"  # Unused variable
+    #     RECOMMENDATION_REJECTED = "recommendation_rejected"  # Unused variable
+    #     AUTOMATION_DELEGATED = "automation_delegated"  # Unused variable
+    #     ERROR_ENCOUNTERED = "error_encountered"  # Unused variable
 
     """Trust levels for user interactions"""
+
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
@@ -156,7 +156,9 @@ class UserContextService:
         try:
             # Initialize Redis connection for session state
             self.redis_client = redis.Redis(
-                host="localhost", port=6379, decode_responses=True,
+                host="localhost",
+                port=6379,
+                decode_responses=True,
             )
             await self.redis_client.ping()
             logger.info("Context service initialized successfully")
@@ -199,9 +201,7 @@ class UserContextService:
             )
 
             # Store in Redis for fast access (TTL: 30 days)
-            redis_key = (
-                f"user_interaction:{user_id}:{interaction.timestamp.timestamp()}",
-            )
+            redis_key = (f"user_interaction:{user_id}:{interaction.timestamp.timestamp()}",)
             interaction_data = asdict(interaction)
             # Convert datetime to ISO string for JSON serialization
             interaction_data["timestamp"] = interaction.timestamp.isoformat()
@@ -217,7 +217,8 @@ class UserContextService:
             await self.redis_client.lpush(recent_key, redis_key)
             await self.redis_client.ltrim(recent_key, 0, 99)  # Keep last 100
             await self.redis_client.expire(
-                recent_key, int(timedelta(days=30).total_seconds()),
+                recent_key,
+                int(timedelta(days=30).total_seconds()),
             )
 
             # Update user patterns asynchronously
@@ -260,7 +261,9 @@ class UserContextService:
                 pattern_data = asdict(patterns)
                 pattern_data["last_updated"] = patterns.last_updated.isoformat()
                 await self.cache_service.set(
-                    cache_key, json.dumps(pattern_data), ttl=3600,
+                    cache_key,
+                    json.dumps(pattern_data),
+                    ttl=3600,
                 )
 
             return patterns
@@ -269,9 +272,7 @@ class UserContextService:
             logger.error(f"Failed to retrieve user patterns: {e}")
             return None
 
-    async def update_trust_score(
-        self, user_id: str, success_metrics: Dict[str, Any]
-    ) -> bool:
+    async def update_trust_score(self, user_id: str, success_metrics: Dict[str, Any]) -> bool:
         """
         Update user trust score based on interaction success
 
@@ -360,7 +361,8 @@ class UserContextService:
             # Predict based on common patterns
             if "assessment" in patterns.common_tasks:
                 last_assessment = await self._get_last_interaction_of_type(
-                    user_id, InteractionType.ASSESSMENT_COMPLETE,
+                    user_id,
+                    InteractionType.ASSESSMENT_COMPLETE,
                 )
                 if (
                     last_assessment
@@ -402,7 +404,9 @@ class UserContextService:
                     )
 
             return sorted(
-                predictions, key=lambda x: x.confidence * x.urgency, reverse=True,
+                predictions,
+                key=lambda x: x.confidence * x.urgency,
+                reverse=True,
             )
 
         except Exception as e:
@@ -422,7 +426,9 @@ class UserContextService:
         """
         try:
             session_context = SessionContext(
-                session_id=session_id, user_id=user_id, start_time=datetime.now(timezone.utc),
+                session_id=session_id,
+                user_id=user_id,
+                start_time=datetime.now(timezone.utc),
             )
 
             # Store in memory for fast access
@@ -482,9 +488,7 @@ class UserContextService:
             logger.error(f"Failed to get session context: {e}")
             return None
 
-    async def update_session_context(
-        self, session_id: str, updates: Dict[str, Any]
-    ) -> bool:
+    async def update_session_context(self, session_id: str, updates: Dict[str, Any]) -> bool:
         """
         Update session context with new information
 

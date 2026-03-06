@@ -43,9 +43,7 @@ class TestAIOptimizationPerformance:
     """Performance tests for AI optimization features."""
 
     @pytest.mark.asyncio
-    async def test_model_selection_performance(
-        self, compliance_assistant, performance_config
-    ):
+    async def test_model_selection_performance(self, compliance_assistant, performance_config):
         """Test model selection performance under load."""
         selection_times = []
 
@@ -53,7 +51,8 @@ class TestAIOptimizationPerformance:
             start_time = time.time()
 
             model = compliance_assistant._get_task_appropriate_model(
-                "analysis", {"framework": "gdpr", "prompt_length": 1000},
+                "analysis",
+                {"framework": "gdpr", "prompt_length": 1000},
             )
 
             selection_time = time.time() - start_time
@@ -69,9 +68,7 @@ class TestAIOptimizationPerformance:
         assert max_time < 0.05, f"Max selection time {max_time:.3f}s too slow"
 
     @pytest.mark.asyncio
-    async def test_circuit_breaker_performance(
-        self, compliance_assistant, performance_config
-    ):
+    async def test_circuit_breaker_performance(self, compliance_assistant, performance_config):
         """Test circuit breaker performance impact."""
         circuit_breaker = compliance_assistant.circuit_breaker
 
@@ -85,21 +82,15 @@ class TestAIOptimizationPerformance:
             assert is_available is not None
 
         avg_check_time = statistics.mean(check_times)
-        assert (
-            avg_check_time < 0.001
-        ), f"Circuit breaker check too slow: {avg_check_time:.4f}s"
+        assert avg_check_time < 0.001, f"Circuit breaker check too slow: {avg_check_time:.4f}s"
 
     @pytest.mark.asyncio
-    async def test_streaming_performance(
-        self, compliance_assistant, performance_config
-    ):
+    async def test_streaming_performance(self, compliance_assistant, performance_config):
         """Test streaming response performance."""
         # Mock streaming chunks
         mock_chunks = [f"Chunk {i} " for i in range(50)]
 
-        with patch.object(
-            compliance_assistant, "_get_task_appropriate_model"
-        ) as mock_get_model:
+        with patch.object(compliance_assistant, "_get_task_appropriate_model") as mock_get_model:
             mock_model = Mock()
             mock_model.generate_content_stream.return_value = iter(
                 [Mock(text=chunk) for chunk in mock_chunks],
@@ -126,14 +117,10 @@ class TestAIOptimizationPerformance:
 
                 # Calculate throughput (chunks per second)
                 throughput = len(chunks_received) / total_time
-                assert (
-                    throughput > 10
-                ), f"Streaming throughput too low: {throughput:.1f} chunks/s"
+                assert throughput > 10, f"Streaming throughput too low: {throughput:.1f} chunks/s"
 
     @pytest.mark.asyncio
-    async def test_concurrent_streaming_performance(
-        self, compliance_assistant, performance_config
-    ):
+    async def test_concurrent_streaming_performance(self, compliance_assistant, performance_config):
         """Test performance under concurrent streaming load."""
 
         async def single_streaming_request():
@@ -191,9 +178,7 @@ class TestAIOptimizationPerformance:
                 assert throughput >= performance_config["min_throughput"]
 
     @pytest.mark.asyncio
-    async def test_model_fallback_performance(
-        self, compliance_assistant, performance_config
-    ):
+    async def test_model_fallback_performance(self, compliance_assistant, performance_config):
         """Test performance of model fallback mechanism."""
         fallback_times = []
 
@@ -220,14 +205,10 @@ class TestAIOptimizationPerformance:
         if fallback_times:
             avg_fallback_time = statistics.mean(fallback_times)
             # Fallback should be fast (< 100ms)
-            assert (
-                avg_fallback_time < 0.1
-            ), f"Fallback too slow: {avg_fallback_time:.3f}s"
+            assert avg_fallback_time < 0.1, f"Fallback too slow: {avg_fallback_time:.3f}s"
 
     @pytest.mark.asyncio
-    async def test_memory_usage_streaming(
-        self, compliance_assistant, performance_config
-    ):
+    async def test_memory_usage_streaming(self, compliance_assistant, performance_config):
         """Test memory usage during streaming operations."""
         import os
 
@@ -237,13 +218,9 @@ class TestAIOptimizationPerformance:
         initial_memory = process.memory_info().rss / 1024 / 1024  # MB
 
         # Create large streaming response
-        large_chunks = [
-            f"Large chunk {i} with substantial content " * 10 for i in range(100)
-        ]
+        large_chunks = [f"Large chunk {i} with substantial content " * 10 for i in range(100)]
 
-        with patch.object(
-            compliance_assistant, "_get_task_appropriate_model"
-        ) as mock_get_model:
+        with patch.object(compliance_assistant, "_get_task_appropriate_model") as mock_get_model:
             mock_model = Mock()
 
             # Create a generator function that yields proper mock objects
@@ -253,9 +230,7 @@ class TestAIOptimizationPerformance:
                     mock_chunk.text = chunk
                     yield mock_chunk
 
-            mock_model.generate_content_stream.return_value = (
-                create_streaming_response(),
-            )
+            mock_model.generate_content_stream.return_value = (create_streaming_response(),)
             mock_get_model.return_value = (mock_model, "test_instruction_id")
 
             with patch.object(
@@ -299,9 +274,9 @@ class TestAIOptimizationPerformance:
         # Circuit breaker overhead should be reasonable
         # If baseline is too small, just check absolute time is reasonable
         if baseline_time < 0.001:  # Less than 1ms
-            assert (
-                circuit_breaker_time < 0.1
-            ), f"Circuit breaker absolute time too slow: {circuit_breaker_time:.3f}s"
+            assert circuit_breaker_time < 0.1, (
+                f"Circuit breaker absolute time too slow: {circuit_breaker_time:.3f}s"
+            )
         else:
             overhead = (circuit_breaker_time - baseline_time) / baseline_time
             assert overhead < 5.0, f"Circuit breaker overhead too high: {overhead:.2%}"
@@ -338,7 +313,8 @@ class TestAIOptimizationPerformance:
                 mock_get_model.return_value = mock_model
 
                 model = compliance_assistant._get_task_appropriate_model(
-                    scenario["type"], {"complexity": scenario["complexity"]},
+                    scenario["type"],
+                    {"complexity": scenario["complexity"]},
                 )
 
                 assert model is not None
@@ -353,9 +329,7 @@ class TestAIOptimizationPerformance:
         assert light_ratio >= 0.3, f"Light model usage too low: {light_ratio:.2%}"
 
     @pytest.mark.asyncio
-    async def test_end_to_end_performance(
-        self, compliance_assistant, performance_config
-    ):
+    async def test_end_to_end_performance(self, compliance_assistant, performance_config):
         """Test end-to-end performance of optimized AI system."""
         # Simulate complete assessment analysis workflow
         assessment_data = {
@@ -377,9 +351,7 @@ class TestAIOptimizationPerformance:
             ) as mock_prompt:
                 mock_prompt.return_value = {"user": "Analysis prompt"}
 
-                with patch.object(
-                    compliance_assistant, "_stream_response"
-                ) as mock_stream:
+                with patch.object(compliance_assistant, "_stream_response") as mock_stream:
 
                     async def mock_response():
                         for i in range(10):
@@ -389,9 +361,7 @@ class TestAIOptimizationPerformance:
                     mock_stream.return_value = mock_response()
 
                     chunks = []
-                    async for (
-                        chunk
-                    ) in compliance_assistant.analyze_assessment_results_stream(
+                    async for chunk in compliance_assistant.analyze_assessment_results_stream(
                         assessment_data["responses"],
                         assessment_data["framework"],
                         "profile-123",

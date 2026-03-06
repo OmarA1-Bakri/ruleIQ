@@ -21,13 +21,10 @@ class TestAuthenticationEndpoints:
             "password": "SecurePassword123!",
             "full_name": "New Test User",
             "company": "Test Corp",
-            "role": "compliance_manager"
+            "role": "compliance_manager",
         }
 
-        response = integration_client.post(
-            "/api/v1/auth/register",
-            json=registration_data
-        )
+        response = integration_client.post("/api/v1/auth/register", json=registration_data)
 
         assert response.status_code == 201
         data = response.json()
@@ -37,24 +34,22 @@ class TestAuthenticationEndpoints:
 
         # Verify user in database
         from database import User
-        user = integration_db_session.query(User).filter_by(
-            email=registration_data["email"]
-        ).first()
+
+        user = (
+            integration_db_session.query(User).filter_by(email=registration_data["email"]).first()
+        )
         assert user is not None
         assert user.is_active is True
         assert user.is_verified is False  # Email not verified yet
 
     def test_user_login_flow(self, integration_client, sample_integration_data):
         """Test user login with valid credentials."""
-        login_data = {
-            "username": "user0@integration.test",
-            "password": "Password0123!"
-        }
+        login_data = {"username": "user0@integration.test", "password": "Password0123!"}
 
         response = integration_client.post(
             "/api/v1/auth/login",
             data=login_data,  # Form data for OAuth2
-            headers={"Content-Type": "application/x-www-form-urlencoded"}
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
         )
 
         assert response.status_code == 200
@@ -68,11 +63,8 @@ class TestAuthenticationEndpoints:
         # Wrong password
         response = integration_client.post(
             "/api/v1/auth/login",
-            data={
-                "username": "user0@integration.test",
-                "password": "WrongPassword!"
-            },
-            headers={"Content-Type": "application/x-www-form-urlencoded"}
+            data={"username": "user0@integration.test", "password": "WrongPassword!"},
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
         )
         assert response.status_code == 401
         assert "Invalid credentials" in response.json()["detail"]
@@ -80,46 +72,38 @@ class TestAuthenticationEndpoints:
         # Non-existent user
         response = integration_client.post(
             "/api/v1/auth/login",
-            data={
-                "username": "nonexistent@test.com",
-                "password": "Password123!"
-            },
-            headers={"Content-Type": "application/x-www-form-urlencoded"}
+            data={"username": "nonexistent@test.com", "password": "Password123!"},
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
         )
         assert response.status_code == 401
 
     def test_token_refresh_flow(self, integration_client, integration_auth_headers):
         """Test JWT token refresh."""
         # Get current user to verify token works
-        response = integration_client.get(
-            "/api/v1/users/me",
-            headers=integration_auth_headers
-        )
+        response = integration_client.get("/api/v1/users/me", headers=integration_auth_headers)
         assert response.status_code == 200
 
         # Request token refresh
-        response = integration_client.post(
-            "/api/v1/auth/refresh",
-            headers=integration_auth_headers
-        )
+        response = integration_client.post("/api/v1/auth/refresh", headers=integration_auth_headers)
 
         assert response.status_code == 200
         data = response.json()
         assert "access_token" in data
         assert data["access_token"] != integration_auth_headers["Authorization"].split()[1]
 
-    def test_password_reset_flow(self, integration_client, sample_integration_data, mock_all_external_services):
+    def test_password_reset_flow(
+        self, integration_client, sample_integration_data, mock_all_external_services
+    ):
         """Test complete password reset flow."""
         # Request password reset
         response = integration_client.post(
-            "/api/v1/auth/forgot-password",
-            json={"email": "user0@integration.test"}
+            "/api/v1/auth/forgot-password", json={"email": "user0@integration.test"}
         )
         assert response.status_code == 200
         assert "Password reset email sent" in response.json()["message"]
 
         # Verify email was "sent" (mocked)
-        assert mock_all_external_services['sendgrid'].return_value.send.called
+        assert mock_all_external_services["sendgrid"].return_value.send.called
 
     def test_email_verification_flow(self, integration_client, integration_db_session):
         """Test email verification process."""
@@ -131,7 +115,7 @@ class TestAuthenticationEndpoints:
             email="unverified@test.com",
             full_name="Unverified User",
             hashed_password="hashed",
-            is_verified=False
+            is_verified=False,
         )
         integration_db_session.add(user)
         integration_db_session.commit()
@@ -140,10 +124,7 @@ class TestAuthenticationEndpoints:
         token = create_verification_token(user.email)
 
         # Verify email
-        response = integration_client.post(
-            "/api/v1/auth/verify-email",
-            json={"token": token}
-        )
+        response = integration_client.post("/api/v1/auth/verify-email", json={"token": token})
 
         assert response.status_code == 200
 
@@ -158,10 +139,7 @@ class TestUserEndpoints:
 
     def test_get_current_user(self, integration_client, integration_auth_headers):
         """Test getting current user profile."""
-        response = integration_client.get(
-            "/api/v1/users/me",
-            headers=integration_auth_headers
-        )
+        response = integration_client.get("/api/v1/users/me", headers=integration_auth_headers)
 
         assert response.status_code == 200
         data = response.json()
@@ -173,42 +151,35 @@ class TestUserEndpoints:
         update_data = {
             "full_name": "Updated Name",
             "company": "New Company",
-            "phone": "+1234567890"
+            "phone": "+1234567890",
         }
 
         response = integration_client.put(
-            "/api/v1/users/me",
-            json=update_data,
-            headers=integration_auth_headers
+            "/api/v1/users/me", json=update_data, headers=integration_auth_headers
         )
 
         assert response.status_code == 200
         data = response.json()
         assert data["full_name"] == update_data["full_name"]
 
-    def test_delete_user_account(self, integration_client, integration_auth_headers, integration_db_session):
+    def test_delete_user_account(
+        self, integration_client, integration_auth_headers, integration_db_session
+    ):
         """Test user account deletion."""
         # Delete account
-        response = integration_client.delete(
-            "/api/v1/users/me",
-            headers=integration_auth_headers
-        )
+        response = integration_client.delete("/api/v1/users/me", headers=integration_auth_headers)
 
         assert response.status_code == 204
 
         # Verify user is soft-deleted
         from database import User
-        user = integration_db_session.query(User).filter_by(
-            email="integration@test.com"
-        ).first()
+
+        user = integration_db_session.query(User).filter_by(email="integration@test.com").first()
         assert user.is_active is False
 
     def test_list_users_admin_only(self, integration_client, integration_admin_headers):
         """Test admin endpoint to list all users."""
-        response = integration_client.get(
-            "/api/v1/users/",
-            headers=integration_admin_headers
-        )
+        response = integration_client.get("/api/v1/users/", headers=integration_admin_headers)
 
         assert response.status_code == 200
         data = response.json()
@@ -217,10 +188,7 @@ class TestUserEndpoints:
 
     def test_unauthorized_admin_access(self, integration_client, integration_auth_headers):
         """Test that non-admin users cannot access admin endpoints."""
-        response = integration_client.get(
-            "/api/v1/users/",
-            headers=integration_auth_headers
-        )
+        response = integration_client.get("/api/v1/users/", headers=integration_auth_headers)
 
         assert response.status_code == 403
         assert "Not authorized" in response.json()["detail"]
@@ -230,11 +198,12 @@ class TestUserEndpoints:
 class TestComplianceEndpoints:
     """Test compliance-related API endpoints."""
 
-    def test_list_frameworks(self, integration_client, integration_auth_headers, sample_integration_data):
+    def test_list_frameworks(
+        self, integration_client, integration_auth_headers, sample_integration_data
+    ):
         """Test listing available compliance frameworks."""
         response = integration_client.get(
-            "/api/v1/compliance/frameworks",
-            headers=integration_auth_headers
+            "/api/v1/compliance/frameworks", headers=integration_auth_headers
         )
 
         assert response.status_code == 200
@@ -245,13 +214,14 @@ class TestComplianceEndpoints:
         assert "SOC 2" in framework_names
         assert "ISO 27001" in framework_names
 
-    def test_get_framework_details(self, integration_client, integration_auth_headers, sample_integration_data):
+    def test_get_framework_details(
+        self, integration_client, integration_auth_headers, sample_integration_data
+    ):
         """Test getting specific framework details."""
-        framework_id = sample_integration_data['frameworks'][0].id
+        framework_id = sample_integration_data["frameworks"][0].id
 
         response = integration_client.get(
-            f"/api/v1/compliance/frameworks/{framework_id}",
-            headers=integration_auth_headers
+            f"/api/v1/compliance/frameworks/{framework_id}", headers=integration_auth_headers
         )
 
         assert response.status_code == 200
@@ -259,20 +229,20 @@ class TestComplianceEndpoints:
         assert data["name"] == "GDPR"
         assert "requirements" in data
 
-    def test_create_assessment(self, integration_client, integration_auth_headers, sample_integration_data):
+    def test_create_assessment(
+        self, integration_client, integration_auth_headers, sample_integration_data
+    ):
         """Test creating a new compliance assessment."""
-        framework_id = sample_integration_data['frameworks'][0].id
+        framework_id = sample_integration_data["frameworks"][0].id
 
         assessment_data = {
             "framework_id": framework_id,
             "name": "Q1 2024 GDPR Assessment",
-            "description": "Quarterly compliance check"
+            "description": "Quarterly compliance check",
         }
 
         response = integration_client.post(
-            "/api/v1/compliance/assessments",
-            json=assessment_data,
-            headers=integration_auth_headers
+            "/api/v1/compliance/assessments", json=assessment_data, headers=integration_auth_headers
         )
 
         assert response.status_code == 201
@@ -281,29 +251,27 @@ class TestComplianceEndpoints:
         assert data["status"] == "draft"
         assert "id" in data
 
-    def test_update_assessment_responses(self, integration_client, integration_auth_headers, sample_integration_data):
+    def test_update_assessment_responses(
+        self, integration_client, integration_auth_headers, sample_integration_data
+    ):
         """Test updating assessment responses."""
-        assessment = sample_integration_data['assessments'][0]
+        assessment = sample_integration_data["assessments"][0]
 
         response_data = {
             "responses": {
                 "GDPR-1": {
                     "status": "compliant",
                     "evidence": ["policy.pdf"],
-                    "notes": "Implemented and documented"
+                    "notes": "Implemented and documented",
                 },
-                "GDPR-2": {
-                    "status": "partial",
-                    "evidence": [],
-                    "notes": "In progress"
-                }
+                "GDPR-2": {"status": "partial", "evidence": [], "notes": "In progress"},
             }
         }
 
         response = integration_client.put(
             f"/api/v1/compliance/assessments/{assessment.id}/responses",
             json=response_data,
-            headers=integration_auth_headers
+            headers=integration_auth_headers,
         )
 
         assert response.status_code == 200
@@ -311,13 +279,19 @@ class TestComplianceEndpoints:
         assert "GDPR-1" in data["responses"]
         assert data["responses"]["GDPR-1"]["status"] == "compliant"
 
-    def test_generate_compliance_report(self, integration_client, integration_auth_headers, sample_integration_data, mock_all_external_services):
+    def test_generate_compliance_report(
+        self,
+        integration_client,
+        integration_auth_headers,
+        sample_integration_data,
+        mock_all_external_services,
+    ):
         """Test generating a compliance report."""
-        assessment = sample_integration_data['assessments'][0]
+        assessment = sample_integration_data["assessments"][0]
 
         response = integration_client.post(
             f"/api/v1/compliance/assessments/{assessment.id}/report",
-            headers=integration_auth_headers
+            headers=integration_auth_headers,
         )
 
         assert response.status_code == 200
@@ -326,7 +300,7 @@ class TestComplianceEndpoints:
         assert data["status"] == "generated"
 
         # Verify S3 upload was called (mocked)
-        assert mock_all_external_services['s3'].put_object.called
+        assert mock_all_external_services["s3"].put_object.called
 
 
 @pytest.mark.integration
@@ -344,9 +318,7 @@ class TestDocumentEndpoints:
             response = integration_client.post(
                 "/api/v1/documents/upload",
                 files=files,
-                headers={
-                    "Authorization": integration_auth_headers["Authorization"]
-                }
+                headers={"Authorization": integration_auth_headers["Authorization"]},
             )
 
         assert response.status_code == 201
@@ -357,16 +329,15 @@ class TestDocumentEndpoints:
 
     def test_list_documents(self, integration_client, integration_auth_headers):
         """Test listing user documents."""
-        response = integration_client.get(
-            "/api/v1/documents",
-            headers=integration_auth_headers
-        )
+        response = integration_client.get("/api/v1/documents", headers=integration_auth_headers)
 
         assert response.status_code == 200
         data = response.json()
         assert isinstance(data, list)
 
-    def test_delete_document(self, integration_client, integration_auth_headers, integration_db_session):
+    def test_delete_document(
+        self, integration_client, integration_auth_headers, integration_db_session
+    ):
         """Test document deletion."""
         from database import Document
 
@@ -376,14 +347,13 @@ class TestDocumentEndpoints:
             filename="test.pdf",
             file_path="/uploads/test.pdf",
             file_size=1024,
-            mime_type="application/pdf"
+            mime_type="application/pdf",
         )
         integration_db_session.add(doc)
         integration_db_session.commit()
 
         response = integration_client.delete(
-            f"/api/v1/documents/{doc.id}",
-            headers=integration_auth_headers
+            f"/api/v1/documents/{doc.id}", headers=integration_auth_headers
         )
 
         assert response.status_code == 204
@@ -397,19 +367,19 @@ class TestDocumentEndpoints:
 class TestNotificationEndpoints:
     """Test notification endpoints."""
 
-    def test_send_email_notification(self, integration_client, integration_auth_headers, mock_all_external_services):
+    def test_send_email_notification(
+        self, integration_client, integration_auth_headers, mock_all_external_services
+    ):
         """Test sending email notifications."""
         notification_data = {
             "recipient": "user@test.com",
             "subject": "Test Notification",
             "body": "This is a test notification",
-            "template": "default"
+            "template": "default",
         }
 
         response = integration_client.post(
-            "/api/v1/notifications/email",
-            json=notification_data,
-            headers=integration_auth_headers
+            "/api/v1/notifications/email", json=notification_data, headers=integration_auth_headers
         )
 
         assert response.status_code == 200
@@ -417,13 +387,12 @@ class TestNotificationEndpoints:
         assert data["status"] == "sent"
 
         # Verify SendGrid was called
-        assert mock_all_external_services['sendgrid'].return_value.send.called
+        assert mock_all_external_services["sendgrid"].return_value.send.called
 
     def test_get_notification_preferences(self, integration_client, integration_auth_headers):
         """Test getting user notification preferences."""
         response = integration_client.get(
-            "/api/v1/notifications/preferences",
-            headers=integration_auth_headers
+            "/api/v1/notifications/preferences", headers=integration_auth_headers
         )
 
         assert response.status_code == 200
@@ -438,13 +407,11 @@ class TestNotificationEndpoints:
             "email_enabled": False,
             "sms_enabled": True,
             "push_enabled": True,
-            "frequency": "weekly"
+            "frequency": "weekly",
         }
 
         response = integration_client.put(
-            "/api/v1/notifications/preferences",
-            json=preferences,
-            headers=integration_auth_headers
+            "/api/v1/notifications/preferences", json=preferences, headers=integration_auth_headers
         )
 
         assert response.status_code == 200
@@ -457,17 +424,16 @@ class TestNotificationEndpoints:
 class TestBillingEndpoints:
     """Test billing and subscription endpoints."""
 
-    def test_create_subscription(self, integration_client, integration_auth_headers, mock_all_external_services):
+    def test_create_subscription(
+        self, integration_client, integration_auth_headers, mock_all_external_services
+    ):
         """Test creating a subscription."""
-        subscription_data = {
-            "plan_id": "pro_monthly",
-            "payment_method_id": "pm_test_123"
-        }
+        subscription_data = {"plan_id": "pro_monthly", "payment_method_id": "pm_test_123"}
 
         response = integration_client.post(
             "/api/v1/billing/subscriptions",
             json=subscription_data,
-            headers=integration_auth_headers
+            headers=integration_auth_headers,
         )
 
         assert response.status_code == 201
@@ -479,8 +445,7 @@ class TestBillingEndpoints:
     def test_get_billing_history(self, integration_client, integration_auth_headers):
         """Test retrieving billing history."""
         response = integration_client.get(
-            "/api/v1/billing/history",
-            headers=integration_auth_headers
+            "/api/v1/billing/history", headers=integration_auth_headers
         )
 
         assert response.status_code == 200
@@ -490,8 +455,7 @@ class TestBillingEndpoints:
     def test_cancel_subscription(self, integration_client, integration_auth_headers):
         """Test cancelling a subscription."""
         response = integration_client.delete(
-            "/api/v1/billing/subscriptions/current",
-            headers=integration_auth_headers
+            "/api/v1/billing/subscriptions/current", headers=integration_auth_headers
         )
 
         assert response.status_code == 200
@@ -526,10 +490,7 @@ class TestHealthEndpoints:
 
     def test_metrics_endpoint(self, integration_client, integration_admin_headers):
         """Test metrics endpoint (admin only)."""
-        response = integration_client.get(
-            "/metrics",
-            headers=integration_admin_headers
-        )
+        response = integration_client.get("/metrics", headers=integration_admin_headers)
 
         assert response.status_code == 200
         # Prometheus format text
@@ -547,10 +508,7 @@ class TestRateLimiting:
         # Make multiple rapid requests
         responses = []
         for _ in range(102):  # Assuming limit is 100 per minute
-            response = integration_client.get(
-                "/api/v1/users/me",
-                headers=integration_auth_headers
-            )
+            response = integration_client.get("/api/v1/users/me", headers=integration_auth_headers)
             responses.append(response)
 
         # Check that we got rate limited
@@ -573,10 +531,7 @@ class TestCORSConfiguration:
         """Test CORS headers are properly set."""
         response = integration_client.options(
             "/api/v1/auth/login",
-            headers={
-                "Origin": "https://example.com",
-                "Access-Control-Request-Method": "POST"
-            }
+            headers={"Origin": "https://example.com", "Access-Control-Request-Method": "POST"},
         )
 
         assert response.status_code == 200
@@ -601,7 +556,7 @@ class TestErrorHandling:
         """Test 400 error for invalid request data."""
         response = integration_client.post(
             "/api/v1/auth/register",
-            json={"invalid": "data"}  # Missing required fields
+            json={"invalid": "data"},  # Missing required fields
         )
 
         assert response.status_code == 422  # FastAPI validation error
@@ -612,8 +567,7 @@ class TestErrorHandling:
     def test_401_unauthorized(self, integration_client):
         """Test 401 error for unauthorized access."""
         response = integration_client.get(
-            "/api/v1/users/me",
-            headers={"Authorization": "Bearer invalid_token"}
+            "/api/v1/users/me", headers={"Authorization": "Bearer invalid_token"}
         )
 
         assert response.status_code == 401
@@ -621,8 +575,11 @@ class TestErrorHandling:
         assert "detail" in data
         assert "Invalid" in data["detail"] or "Unauthorized" in data["detail"]
 
-    def test_500_internal_error_handling(self, integration_client, integration_auth_headers, monkeypatch):
+    def test_500_internal_error_handling(
+        self, integration_client, integration_auth_headers, monkeypatch
+    ):
         """Test 500 error handling and error reporting."""
+
         # Mock a function to raise an exception
         def raise_error(*args, **kwargs):
             raise Exception("Simulated internal error")

@@ -24,11 +24,7 @@ class TestCacheHashingSecurity:
     def test_cache_keys_use_sha256(self):
         """Ensure cache keys are generated using SHA-256"""
         # Test API key generation
-        api_key = CacheKeyBuilder.build_api_key(
-            "GET",
-            "/api/test",
-            {"param": "value"}
-        )
+        api_key = CacheKeyBuilder.build_api_key("GET", "/api/test", {"param": "value"})
 
         # The key should contain a SHA-256 hash (truncated)
         assert "api:" in api_key
@@ -39,7 +35,7 @@ class TestCacheHashingSecurity:
         assert len(parts) >= 3
         hash_part = parts[-1]
         assert len(hash_part) <= 32  # Should be truncated SHA-256
-        assert all(c in '0123456789abcdef' for c in hash_part.lower())
+        assert all(c in "0123456789abcdef" for c in hash_part.lower())
 
     def test_no_md5_usage_in_cache_keys(self):
         """Ensure MD5 is not used for cache key generation"""
@@ -54,10 +50,7 @@ class TestCacheHashingSecurity:
         assert md5_hash != sha256_hash[:32]
 
         # Cache keys should use SHA-256 pattern
-        compute_key = CacheKeyBuilder.build_computation_key(
-            "test_operation",
-            test_data
-        )
+        compute_key = CacheKeyBuilder.build_computation_key("test_operation", test_data)
 
         # Should not contain MD5 hash
         assert md5_hash not in compute_key
@@ -79,7 +72,7 @@ class TestCacheHashingSecurity:
         parts = compressed.split(":")
         hash_part = parts[-1]
         assert len(hash_part) == 16  # COMPRESSED_KEY_HASH_LENGTH
-        assert all(c in '0123456789abcdef' for c in hash_part.lower())
+        assert all(c in "0123456789abcdef" for c in hash_part.lower())
 
 
 class TestCacheExceptionHandling:
@@ -109,7 +102,7 @@ class TestCacheExceptionHandling:
         cache_manager = CacheManager()
 
         # Mock Redis client with specific exceptions
-        with patch('database.redis_client.get_redis_client') as mock_get_redis:
+        with patch("database.redis_client.get_redis_client") as mock_get_redis:
             # Import Redis exceptions
             from redis.exceptions import RedisError, ConnectionError as RedisConnectionError
 
@@ -135,17 +128,17 @@ class TestCacheExceptionHandling:
 
         # Check that we're not catching bare Exception in critical methods
         # Note: Some Exception catches are acceptable if they log and re-raise
-        critical_methods = ['get', 'set', 'delete']
+        critical_methods = ["get", "set", "delete"]
 
         # This is a simplified check - in practice you'd use AST parsing
-        assert 'except:' not in source  # No bare except
+        assert "except:" not in source  # No bare except
 
         # Count Exception catches vs specific catches
-        broad_catches = source.count('except Exception')
+        broad_catches = source.count("except Exception")
         specific_catches = (
-            source.count('except (Redis') +
-            source.count('except (TypeError') +
-            source.count('except (ValueError')
+            source.count("except (Redis")
+            + source.count("except (TypeError")
+            + source.count("except (ValueError")
         )
 
         # Should have more specific than broad catches
@@ -163,7 +156,7 @@ class TestCacheSecurityConstants:
             DEFAULT_EXTERNAL_API_TTL,
             DEFAULT_STARTUP_TTL,
             DEFAULT_BACKGROUND_TTL,
-            BACKGROUND_WARMING_INTERVAL
+            BACKGROUND_WARMING_INTERVAL,
         )
 
         # All TTL constants should be defined
@@ -183,7 +176,7 @@ class TestCacheSecurityConstants:
             COMPUTE_PARAM_HASH_LENGTH,
             EXTERNAL_PARAM_HASH_LENGTH,
             MAX_CACHE_KEY_LENGTH,
-            CACHE_KEY_PREFIX_MAX_LENGTH
+            CACHE_KEY_PREFIX_MAX_LENGTH,
         )
 
         # All hash constants should be defined
@@ -203,7 +196,7 @@ class TestCacheSecurityConstants:
             WARNING_RESPONSE_TIME_THRESHOLD,
             HIT_RATE_WEIGHT,
             RESPONSE_TIME_WEIGHT,
-            ERROR_RATE_WEIGHT
+            ERROR_RATE_WEIGHT,
         )
 
         # All metrics constants should be defined
@@ -244,7 +237,7 @@ class TestCacheKeySecurityPatterns:
         sensitive_params = {
             "password": "secret123",
             "api_key": "sk_test_123456",
-            "token": "bearer_token_xyz"
+            "token": "bearer_token_xyz",
         }
 
         key = CacheKeyBuilder.build_api_key("POST", "/auth", sensitive_params)
@@ -272,6 +265,7 @@ class TestCacheDualReadCompatibility:
         # The dual-read code should be present
         # This tests that the migration compatibility layer exists
         import inspect
+
         source = inspect.getsource(CacheManager.cache_api_response)
 
         # Should have migration/legacy handling code
@@ -280,6 +274,7 @@ class TestCacheDualReadCompatibility:
     def test_migration_script_exists(self):
         """Ensure migration script is available"""
         from pathlib import Path
+
         migration_script = Path("scripts/migrate_cache_hashing.py")
         assert migration_script.exists()
 
@@ -292,6 +287,7 @@ class TestCacheDualReadCompatibility:
     def test_validation_script_exists(self):
         """Ensure validation script is available"""
         from pathlib import Path
+
         validation_script = Path("scripts/validate_cache_security.py")
         assert validation_script.exists()
 

@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 RAG (Retrieval-Augmented Generation) node for LangGraph workflow.
 Provides document retrieval and query capabilities.
@@ -92,9 +91,7 @@ async def rag_query_node(state: UnifiedComplianceState) -> UnifiedComplianceStat
         if "error_count" not in state:
             state["error_count"] = 0
 
-        state["errors"].append(
-            {"type": "RAGError", "message": str(e), "node": "rag_query_node"}
-        )
+        state["errors"].append({"type": "RAGError", "message": str(e), "node": "rag_query_node"})
         state["error_count"] += 1
 
         return state
@@ -116,9 +113,7 @@ async def retrieve_compliance_documents(
         List of relevant documents
     """
     try:
-        logger.info(
-            f"Retrieving documents for query: {query}, regulation: {regulation}"
-        )
+        logger.info(f"Retrieving documents for query: {query}, regulation: {regulation}")
 
         # Placeholder implementation
         # In production, this would:

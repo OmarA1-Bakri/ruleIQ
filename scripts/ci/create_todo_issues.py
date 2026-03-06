@@ -35,7 +35,7 @@ class GitHubIssueCreator:
         self.api_base = "https://api.github.com"
         self.headers = {
             "Authorization": f"token {token}",
-            "Accept": "application/vnd.github.v3+json"
+            "Accept": "application/vnd.github.v3+json",
         }
 
     def create_issue(self, title: str, body: str, labels: list[str]) -> int:
@@ -54,11 +54,7 @@ class GitHubIssueCreator:
             requests.HTTPError: If API call fails
         """
         url = f"{self.api_base}/repos/{self.repo}/issues"
-        data = {
-            "title": title,
-            "body": body,
-            "labels": labels
-        }
+        data = {"title": title, "body": body, "labels": labels}
         response = requests.post(url, headers=self.headers, json=data)
         response.raise_for_status()
         return response.json()["number"]
@@ -222,23 +218,33 @@ def get_labels_for_todo(todo: TodoItem) -> list[str]:
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Create GitHub issues for TODOs')
-    parser.add_argument('--token', help='GitHub personal access token (or set GITHUB_TOKEN env var)')
-    parser.add_argument('--repo', required=True, help='Repository in format owner/repo')
-    parser.add_argument('--severity', choices=['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'],
-                        help='Only create issues for this severity')
-    parser.add_argument('--dry-run', action='store_true',
-                        help='Show what would be created without creating')
-    parser.add_argument('--batch-similar', action='store_true',
-                        help='Group similar TODOs into single issues')
-    parser.add_argument('--max-issues', type=int, default=50,
-                        help='Maximum number of issues to create in one run')
+    parser = argparse.ArgumentParser(description="Create GitHub issues for TODOs")
+    parser.add_argument(
+        "--token", help="GitHub personal access token (or set GITHUB_TOKEN env var)"
+    )
+    parser.add_argument("--repo", required=True, help="Repository in format owner/repo")
+    parser.add_argument(
+        "--severity",
+        choices=["CRITICAL", "HIGH", "MEDIUM", "LOW"],
+        help="Only create issues for this severity",
+    )
+    parser.add_argument(
+        "--dry-run", action="store_true", help="Show what would be created without creating"
+    )
+    parser.add_argument(
+        "--batch-similar", action="store_true", help="Group similar TODOs into single issues"
+    )
+    parser.add_argument(
+        "--max-issues", type=int, default=50, help="Maximum number of issues to create in one run"
+    )
     args = parser.parse_args()
 
     # Get GitHub token
-    token = args.token or os.environ.get('GITHUB_TOKEN')
+    token = args.token or os.environ.get("GITHUB_TOKEN")
     if not token:
-        print("❌ Error: GitHub token required. Use --token or set GITHUB_TOKEN environment variable")
+        print(
+            "❌ Error: GitHub token required. Use --token or set GITHUB_TOKEN environment variable"
+        )
         sys.exit(1)
 
     # Scan for TODOs
@@ -273,7 +279,7 @@ def main():
     # Limit number of issues
     if len(groups) > args.max_issues:
         print(f"⚠️ Warning: Would create {len(groups)} issues, limiting to {args.max_issues}")
-        groups = dict(list(groups.items())[:args.max_issues])
+        groups = dict(list(groups.items())[: args.max_issues])
 
     # Create issues
     creator = GitHubIssueCreator(token, args.repo)

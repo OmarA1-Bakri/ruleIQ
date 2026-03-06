@@ -4,6 +4,7 @@ Unit tests for database/health.py
 Tests the health monitoring and metrics collection functionality
 for database services.
 """
+
 import pytest
 import time
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -16,7 +17,7 @@ from database.health import (
     PostgreSQLHealthMonitor,
     Neo4jHealthMonitor,
     HealthMetrics,
-    HealthStatus
+    HealthStatus,
 )
 
 
@@ -45,7 +46,7 @@ class TestHealthMetrics:
             status=HealthStatus.HEALTHY,
             response_time=0.1,
             timestamp=time.time(),
-            details={"connections": 5}
+            details={"connections": 5},
         )
 
         assert metrics.status == HealthStatus.HEALTHY
@@ -55,7 +56,9 @@ class TestHealthMetrics:
 
     def test_health_metrics_defaults(self):
         """Test HealthMetrics default values."""
-        metrics = HealthMetrics(status=HealthStatus.HEALTHY, response_time=0.05, timestamp=time.time())
+        metrics = HealthMetrics(
+            status=HealthStatus.HEALTHY, response_time=0.05, timestamp=time.time()
+        )
 
         assert metrics.details == {}
         assert isinstance(metrics.timestamp, float)
@@ -67,7 +70,7 @@ class TestHealthMetrics:
             status=HealthStatus.HEALTHY,
             response_time=0.1,
             timestamp=timestamp,
-            details={"test": "value"}
+            details={"test": "value"},
         )
 
         result = metrics.to_dict()
@@ -75,7 +78,7 @@ class TestHealthMetrics:
             "status": "healthy",
             "response_time": 0.1,
             "timestamp": timestamp,
-            "details": {"test": "value"}
+            "details": {"test": "value"},
         }
 
         assert result == expected
@@ -98,13 +101,12 @@ class TestDatabaseHealthMonitorAbstract:
     @pytest.mark.asyncio
     async def test_abstract_method_signatures(self):
         """Test that abstract methods have correct signatures."""
+
         # Create a concrete implementation for testing
         class ConcreteMonitor(DatabaseHealthMonitor):
             async def check_health(self) -> HealthMetrics:
                 return HealthMetrics(
-                    status=HealthStatus.HEALTHY,
-                    response_time=0.1,
-                    timestamp=time.time()
+                    status=HealthStatus.HEALTHY, response_time=0.1, timestamp=time.time()
                 )
 
         monitor = ConcreteMonitor("test")
@@ -134,11 +136,11 @@ class TestPostgreSQLHealthMonitor:
         mock_provider.execute_query.return_value = [{"test": 1}]
 
         # Mock PostgreSQL metrics
-        with patch.object(monitor, '_get_postgres_metrics') as mock_postgres_metrics:
+        with patch.object(monitor, "_get_postgres_metrics") as mock_postgres_metrics:
             mock_postgres_metrics.return_value = {
                 "active_connections": 10,
                 "database_size": "50 MB",
-                "long_running_queries": 2
+                "long_running_queries": 2,
             }
 
             metrics = await monitor.check_health()
@@ -164,22 +166,26 @@ class TestPostgreSQLHealthMonitor:
         # Mock slow query response
         mock_provider.execute_query.return_value = [{"test": 1}]
 
-        with patch('time.time') as mock_time:
+        with patch("time.time") as mock_time:
             # Simulate slow response (over 1 second)
             mock_time.side_effect = [0.0, 1.5]  # Start and end times
 
-            with patch.object(monitor, '_get_postgres_metrics') as mock_pool_metrics:
+            with patch.object(monitor, "_get_postgres_metrics") as mock_pool_metrics:
                 mock_pool_metrics.return_value = {
                     "active_connections": 10,
                     "database_size": "50 MB",
-                    "long_running_queries": 5
+                    "long_running_queries": 5,
                 }
 
                 metrics = await monitor.check_health()
 
                 # Since we can't directly control the health status logic,
                 # we'll just check that a metric was created
-                assert metrics.status in [HealthStatus.HEALTHY, HealthStatus.DEGRADED, HealthStatus.UNHEALTHY]
+                assert metrics.status in [
+                    HealthStatus.HEALTHY,
+                    HealthStatus.DEGRADED,
+                    HealthStatus.UNHEALTHY,
+                ]
                 assert metrics.response_time >= 0
 
     @pytest.mark.asyncio
@@ -189,7 +195,7 @@ class TestPostgreSQLHealthMonitor:
         mock_provider.execute_query.side_effect = [
             [{"active_connections": 15}],  # Connection count query
             [{"db_size": "100 MB"}],  # Database size query
-            [{"long_running_queries": 3}]  # Long running queries
+            [{"long_running_queries": 3}],  # Long running queries
         ]
 
         metrics = await monitor._get_postgres_metrics()
@@ -220,7 +226,7 @@ class TestNeo4jHealthMonitor:
         mock_provider.execute_query.return_value = [{"test": 1}]
 
         # Mock Neo4j metrics
-        with patch.object(monitor, '_get_neo4j_metrics') as mock_stats:
+        with patch.object(monitor, "_get_neo4j_metrics") as mock_stats:
             mock_stats.return_value = {"node_count": 1000, "relationship_count": 5000}
 
             metrics = await monitor.check_health()
@@ -245,7 +251,7 @@ class TestNeo4jHealthMonitor:
         mock_provider.execute_query.side_effect = [
             [{"node_count": 1000}],  # Node count query
             [{"relationship_count": 5000}],  # Relationship count query
-            [{"name": "neo4j", "edition": "Community", "version": "4.4.0"}]  # Database info query
+            [{"name": "neo4j", "edition": "Community", "version": "4.4.0"}],  # Database info query
         ]
 
         stats = await monitor._get_neo4j_metrics()
@@ -258,7 +264,6 @@ class TestNeo4jHealthMonitor:
 # Removed TestDatabaseHealthMonitor class as DatabaseHealthMonitor is abstract
 # and there's no concrete implementation to test.
 # The individual monitor implementations (PostgreSQL, Neo4j) are tested separately.
-
 
 
 # Removed TestHealthMonitorIntegration class as it references a non-existent

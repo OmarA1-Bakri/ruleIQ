@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 Database Performance Tests
 
@@ -175,7 +174,8 @@ class TestDatabaseQueryPerformance:
             # Count by type
             type_counts = (
                 db_session.query(
-                    EvidenceItem.evidence_type, func.count(EvidenceItem.id),
+                    EvidenceItem.evidence_type,
+                    func.count(EvidenceItem.id),
                 )
                 .filter(EvidenceItem.user_id == sample_user.id)
                 .group_by(EvidenceItem.evidence_type)
@@ -247,8 +247,7 @@ class TestDatabaseQueryPerformance:
                 )
                 .filter(
                     EvidenceItem.user_id == sample_user.id,
-                    BusinessProfile.industry
-                    == "Technology",  # Use correct industry from fixture
+                    BusinessProfile.industry == "Technology",  # Use correct industry from fixture
                     EvidenceItem.status == "collected",
                 )
                 .limit(50)
@@ -291,9 +290,7 @@ class TestDatabaseConnectionPerformance:
                 # Simulate typical database operations (reduced workload)
                 for i in range(3):
                     # Query operation
-                    result = thread_session.execute(
-                        text("SELECT 1 as test_value")
-                    ).fetchone()
+                    result = thread_session.execute(text("SELECT 1 as test_value")).fetchone()
                     assert result.test_value == 1
 
                     # Insert operation
@@ -338,9 +335,7 @@ class TestDatabaseConnectionPerformance:
         # Test with multiple concurrent connections
         num_threads = 20
         with ThreadPoolExecutor(max_workers=num_threads) as executor:
-            futures = [
-                executor.submit(database_operation, i) for i in range(num_threads)
-            ]
+            futures = [executor.submit(database_operation, i) for i in range(num_threads)]
             results = [future.result() for future in as_completed(futures)]
 
         # Analyze results
@@ -352,13 +347,9 @@ class TestDatabaseConnectionPerformance:
 
         # Performance assertions (adjusted for concurrent session creation overhead)
         assert len(successful) >= num_threads * 0.8  # At least 80% success rate
-        assert (
-            avg_duration < 10.0
-        )  # Average operation < 10s (includes session creation)
+        assert avg_duration < 10.0  # Average operation < 10s (includes session creation)
         assert max_duration < 15.0  # No operation > 15s
-        assert (
-            len(failed) <= num_threads * 0.2
-        )  # Allow some failures due to concurrency
+        assert len(failed) <= num_threads * 0.2  # Allow some failures due to concurrency
 
     def test_transaction_performance(
         self,
@@ -396,9 +387,7 @@ class TestDatabaseConnectionPerformance:
             # Update all records
             for evidence in evidence_items:
                 evidence.status = "reviewed"
-                evidence.compliance_score_impact = 80.0 + (
-                    evidence_items.index(evidence) % 20,
-                )
+                evidence.compliance_score_impact = 80.0 + (evidence_items.index(evidence) % 20,)
 
             # Perform aggregation within transaction
             count = (
@@ -680,24 +669,30 @@ class TestDatabaseConcurrencyPerformance:
             # Multiple read operations
             operations = [
                 # Count query
-                lambda: db_session.query(EvidenceItem)
-                .filter(EvidenceItem.user_id == sample_user.id)
-                .count(),
+                lambda: (
+                    db_session.query(EvidenceItem)
+                    .filter(EvidenceItem.user_id == sample_user.id)
+                    .count()
+                ),
                 # List query
-                lambda: db_session.query(EvidenceItem)
-                .filter(
-                    EvidenceItem.user_id == sample_user.id,
-                    EvidenceItem.status == "collected",
-                )
-                .limit(10)
-                .all(),
+                lambda: (
+                    db_session.query(EvidenceItem)
+                    .filter(
+                        EvidenceItem.user_id == sample_user.id,
+                        EvidenceItem.status == "collected",
+                    )
+                    .limit(10)
+                    .all()
+                ),
                 # Aggregation query
-                lambda: db_session.query(
-                    func.count(EvidenceItem.id),
-                    func.avg(EvidenceItem.compliance_score_impact),
-                )
-                .filter(EvidenceItem.user_id == sample_user.id)
-                .first(),
+                lambda: (
+                    db_session.query(
+                        func.count(EvidenceItem.id),
+                        func.avg(EvidenceItem.compliance_score_impact),
+                    )
+                    .filter(EvidenceItem.user_id == sample_user.id)
+                    .first()
+                ),
             ]
 
             results = []
@@ -713,16 +708,13 @@ class TestDatabaseConcurrencyPerformance:
                 "thread_id": thread_id,
                 "total_time": total_time,
                 "operation_count": len(results),
-                "avg_operation_time": sum(r["time"] for r in results) / len(results)
+                "avg_operation_time": sum(r["time"] for r in results) / len(results),
             }
 
         # Run concurrent read operations
         num_threads = 15
         with ThreadPoolExecutor(max_workers=num_threads) as executor:
-            futures = [
-                executor.submit(concurrent_read_operation, i)
-                for i in range(num_threads)
-            ]
+            futures = [executor.submit(concurrent_read_operation, i) for i in range(num_threads)]
             results = [future.result() for future in as_completed(futures)]
 
         # Analyze results
@@ -804,10 +796,7 @@ class TestDatabaseConcurrencyPerformance:
         # Run concurrent write operations
         num_threads = 10
         with ThreadPoolExecutor(max_workers=num_threads) as executor:
-            futures = [
-                executor.submit(concurrent_write_operation, i)
-                for i in range(num_threads)
-            ]
+            futures = [executor.submit(concurrent_write_operation, i) for i in range(num_threads)]
             results = [future.result() for future in as_completed(futures)]
 
         # Analyze results
@@ -815,9 +804,7 @@ class TestDatabaseConcurrencyPerformance:
         [r for r in results if not r["success"]]
 
         avg_duration = (
-            sum(r["duration"] for r in successful) / len(successful)
-            if successful
-            else 0,
+            sum(r["duration"] for r in successful) / len(successful) if successful else 0,
         )
         max_duration = max(r["duration"] for r in successful) if successful else 0
 
@@ -839,9 +826,7 @@ class TestDatabaseConcurrencyPerformance:
         )
 
         expected_items = sum(r["items_created"] for r in successful)
-        assert (
-            total_created == expected_items
-        )  # All successful items should be in database
+        assert total_created == expected_items  # All successful items should be in database
 
 
 @pytest.mark.performance
@@ -864,9 +849,7 @@ class TestDatabaseResourceUsage:
         # Clean up any existing evidence items for this user to ensure clean test
         from database.evidence_item import EvidenceItem
 
-        db_session.query(EvidenceItem).filter(
-            EvidenceItem.user_id == sample_user.id
-        ).delete()
+        db_session.query(EvidenceItem).filter(EvidenceItem.user_id == sample_user.id).delete()
         db_session.commit()
 
         process = psutil.Process(os.getpid())

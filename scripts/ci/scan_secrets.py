@@ -6,8 +6,6 @@ Heuristics intentionally cover the formats previously leaked in the repository
 files only and fails the run when suspicious tokens are detected.
 """
 
-from __future__ import annotations
-
 import math
 import re
 import subprocess
@@ -23,14 +21,23 @@ RE_PATTERNS: Tuple[Tuple[str, re.Pattern[str]], ...] = (
     ("google-api-key", re.compile(r"AIza[0-9A-Za-z-_]{20,}")),
     ("neon-connection", re.compile(r"npg_[A-Za-z0-9]{8,}")),
     ("jwt", re.compile(r"eyJ[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+")),
-    ("generic-secret", re.compile(r"(?i)(?:secret|api_key|token|password)\s*[:=]\s*['\"][A-Za-z0-9+/=_-]{16,}['\"]")),
-    ("default-password-param", re.compile(
-        r"os\.getenv\([^)]*,\s*['\"](?:password|secret|key|token|credential)[^'\"]*['\"]",
-        re.IGNORECASE
-    )),
-    ("neo4j-default-password", re.compile(
-        r"os\.getenv\(['\"]NEO4J_PASSWORD['\"],\s*['\"][^'\"]+['\"]"
-    )),
+    (
+        "generic-secret",
+        re.compile(
+            r"(?i)(?:secret|api_key|token|password)\s*[:=]\s*['\"][A-Za-z0-9+/=_-]{16,}['\"]"
+        ),
+    ),
+    (
+        "default-password-param",
+        re.compile(
+            r"os\.getenv\([^)]*,\s*['\"](?:password|secret|key|token|credential)[^'\"]*['\"]",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "neo4j-default-password",
+        re.compile(r"os\.getenv\(['\"]NEO4J_PASSWORD['\"],\s*['\"][^'\"]+['\"]"),
+    ),
 )
 
 BINARY_EXTENSIONS = {
@@ -108,9 +115,7 @@ def is_textual(path: Path) -> bool:
 
 
 def tracked_files() -> List[Path]:
-    result = subprocess.run(
-        ["git", "ls-files"], check=True, capture_output=True, text=True
-    )
+    result = subprocess.run(["git", "ls-files"], check=True, capture_output=True, text=True)
     candidates: List[Path] = []
     for line in result.stdout.strip().splitlines():
         if not line:
@@ -149,7 +154,9 @@ def should_ignore_match(match_name: str, token: str, path: Path) -> bool:
         if "tests" in path.parts or "test_" in path.name:
             return True
         # Check if the default value is obviously a placeholder
-        if any(snippet in lowered_value for snippet in ("test", "mock", "dummy", "example", "changeme")):
+        if any(
+            snippet in lowered_value for snippet in ("test", "mock", "dummy", "example", "changeme")
+        ):
             return True
         # Otherwise, this is a real violation
         return False

@@ -18,8 +18,6 @@ Examples:
     python scripts/validate_required_env_vars.py --no-fail
 """
 
-from __future__ import annotations
-
 import argparse
 import os
 import sys
@@ -30,16 +28,13 @@ REQUIRED_ENV_VARS: Dict[str, str] = {
     # Database
     "DATABASE_URL": "PostgreSQL database connection URL",
     "REDIS_URL": "Redis connection URL for caching and sessions",
-
     # Neo4j
     "NEO4J_URI": "Neo4j database URI (e.g., neo4j+s://xxx.databases.neo4j.io)",
     "NEO4J_USERNAME": "Neo4j database username",
     "NEO4J_PASSWORD": "Neo4j database password",
-
     # Authentication
     "JWT_SECRET": "Secret key for JWT token signing",
     "FERNET_KEY": "Encryption key for sensitive data",
-
     # Application
     "SECRET_KEY": "Application secret key",
 }
@@ -68,7 +63,7 @@ DEVELOPMENT_EXEMPTIONS = {
 def check_environment_variable(
     var_name: str,
     description: str,
-) -> Tuple[Literal['valid', 'missing', 'invalid'], str]:
+) -> Tuple[Literal["valid", "missing", "invalid"], str]:
     """Check if an environment variable is set.
 
     Args:
@@ -81,7 +76,7 @@ def check_environment_variable(
     value = os.getenv(var_name)
 
     if not value:
-        return 'missing', f"❌ {var_name} is not set"
+        return "missing", f"❌ {var_name} is not set"
 
     # Check for placeholder values
     placeholder_patterns = [
@@ -97,14 +92,14 @@ def check_environment_variable(
     value_lower = value.lower()
     for pattern in placeholder_patterns:
         if pattern and pattern in value_lower:
-            return 'invalid', f"❌ {var_name} contains placeholder value: {value[:20]}..."
+            return "invalid", f"❌ {var_name} contains placeholder value: {value[:20]}..."
 
     # Warn about insecure default passwords
     insecure_passwords = ["password", "ruleiq123", "admin", "123456"]
     if "password" in var_name.lower() and value.lower() in insecure_passwords:
-        return 'invalid', f"❌ {var_name} uses insecure password (NEVER use default passwords)"
+        return "invalid", f"❌ {var_name} uses insecure password (NEVER use default passwords)"
 
-    return 'valid', f"✅ {var_name} is set"
+    return "valid", f"✅ {var_name} is set"
 
 
 def validate_environment(
@@ -146,9 +141,9 @@ def validate_environment(
             print(f"{message}")
             print(f"   {description}")
 
-        if status == 'valid':
+        if status == "valid":
             present.append(var_name)
-        elif status == 'invalid':
+        elif status == "invalid":
             invalid.append(var_name)
         else:
             missing.append(var_name)

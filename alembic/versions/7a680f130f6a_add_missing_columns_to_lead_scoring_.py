@@ -1,6 +1,5 @@
 """Add missing columns to lead_scoring_events
 
-from __future__ import annotations
 
 Revision ID: 7a680f130f6a
 Revises: 0717d4f5dcba
@@ -24,19 +23,13 @@ def upgrade() -> None:
     # Add missing columns to lead_scoring_events table to match the model
     op.add_column(
         "lead_scoring_events",
-        sa.Column(
-            "event_metadata", postgresql.JSONB(astext_type=sa.Text()), nullable=True
-        ),
+        sa.Column("event_metadata", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
     )
     op.add_column(
         "lead_scoring_events",
-        sa.Column(
-            "session_context", postgresql.JSONB(astext_type=sa.Text()), nullable=True
-        ),
+        sa.Column("session_context", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
     )
-    op.add_column(
-        "lead_scoring_events", sa.Column("event_duration", sa.Integer(), nullable=True)
-    )
+    op.add_column("lead_scoring_events", sa.Column("event_duration", sa.Integer(), nullable=True))
     op.add_column(
         "lead_scoring_events",
         sa.Column("ip_address", sa.String(length=45), nullable=True),

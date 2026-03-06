@@ -25,14 +25,11 @@ from database.redis_client import get_redis_client
 from services.caching.cache_keys import CacheKeyBuilder
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 # Migration constants
-MD5_KEY_PATTERNS = ['api:*', 'compute:*', 'external:*', 'db:*']
+MD5_KEY_PATTERNS = ["api:*", "compute:*", "external:*", "db:*"]
 BATCH_SIZE = 100
 MIGRATION_TTL = 3600  # 1 hour TTL for migrated keys
 
@@ -44,12 +41,12 @@ class CacheHashMigrator:
         self.dry_run = dry_run
         self.redis_client = None
         self.stats = {
-            'scanned': 0,
-            'migrated': 0,
-            'skipped': 0,
-            'errors': 0,
-            'md5_keys': [],
-            'sha256_keys': []
+            "scanned": 0,
+            "migrated": 0,
+            "skipped": 0,
+            "errors": 0,
+            "md5_keys": [],
+            "sha256_keys": [],
         }
 
     async def initialize(self):
@@ -63,7 +60,7 @@ class CacheHashMigrator:
 
     async def close(self):
         """Close Redis connection"""
-        if self.redis_client and hasattr(self.redis_client, 'close'):
+        if self.redis_client and hasattr(self.redis_client, "close"):
             await self.redis_client.close()
 
     def is_md5_key(self, key: str) -> bool:
@@ -71,17 +68,19 @@ class CacheHashMigrator:
         # MD5 produces 32 character hex strings
         # SHA-256 produces 64 character hex strings (but we truncate)
 
-        parts = key.split(':')
+        parts = key.split(":")
         if len(parts) < 2:
             return False
 
         # Check if the hash part looks like MD5 (32 chars)
         hash_part = parts[-1]
-        return bool(len(hash_part) == 32 and all(c in '0123456789abcdef' for c in hash_part.lower()))
+        return bool(
+            len(hash_part) == 32 and all(c in "0123456789abcdef" for c in hash_part.lower())
+        )
 
     def generate_sha256_key(self, md5_key: str, key_data: Optional[Dict] = None) -> Optional[str]:
         """Generate corresponding SHA-256 key for an MD5 key"""
-        parts = md5_key.split(':')
+        parts = md5_key.split(":")
         if len(parts) < 2:
             return None
 
@@ -91,16 +90,15 @@ class CacheHashMigrator:
         # This is simplified - in production you'd need the original data
         if key_data:
             # Use provided key data
-            if prefix == 'api':
+            if prefix == "api":
                 cache_key = CacheKeyBuilder.build_api_key(
-                    key_data.get('method', 'GET'),
-                    key_data.get('endpoint', ''),
-                    key_data.get('params', {})
+                    key_data.get("method", "GET"),
+                    key_data.get("endpoint", ""),
+                    key_data.get("params", {}),
                 )
-            elif prefix == 'compute':
+            elif prefix == "compute":
                 cache_key = CacheKeyBuilder.build_computation_key(
-                    key_data.get('operation', ''),
-                    key_data.get('params', {})
+                    key_data.get("operation", ""), key_data.get("params", {})
                 )
             else:
                 # Generic SHA-256 conversion
@@ -129,7 +127,7 @@ class CacheHashMigrator:
                     break
         except Exception as e:
             logger.error(f"Error scanning keys with pattern {pattern}: {e}")
-            self.stats['errors'] += 1
+            self.stats["errors"] += 1
 
         return keys
 
@@ -159,7 +157,7 @@ class CacheHashMigrator:
 
         except Exception as e:
             logger.error(f"Error migrating key {old_key}: {e}")
-            self.stats['errors'] += 1
+            self.stats["errors"] += 1
             return False
 
     async def analyze_keys(self) -> Dict[str, List[str]]:
@@ -169,7 +167,7 @@ class CacheHashMigrator:
 
         for pattern in MD5_KEY_PATTERNS:
             keys = await self.scan_keys(pattern)
-            self.stats['scanned'] += len(keys)
+            self.stats["scanned"] += len(keys)
 
             for key in keys:
                 if self.is_md5_key(key):
@@ -177,13 +175,10 @@ class CacheHashMigrator:
                 else:
                     sha256_keys.append(key)
 
-        self.stats['md5_keys'] = md5_keys
-        self.stats['sha256_keys'] = sha256_keys
+        self.stats["md5_keys"] = md5_keys
+        self.stats["sha256_keys"] = sha256_keys
 
-        return {
-            'md5': md5_keys,
-            'sha256': sha256_keys
-        }
+        return {"md5": md5_keys, "sha256": sha256_keys}
 
     async def migrate_all(self) -> None:
         """Migrate all MD5 keys to SHA-256"""
@@ -192,9 +187,11 @@ class CacheHashMigrator:
         # Analyze existing keys
         key_analysis = await self.analyze_keys()
 
-        logger.info(f"Found {len(key_analysis['md5'])} MD5 keys and {len(key_analysis['sha256'])} SHA-256 keys")
+        logger.info(
+            f"Found {len(key_analysis['md5'])} MD5 keys and {len(key_analysis['sha256'])} SHA-256 keys"
+        )
 
-        if not key_analysis['md5']:
+        if not key_analysis["md5"]:
             logger.info("No MD5 keys found, migration complete!")
             return
 
@@ -205,17 +202,17 @@ class CacheHashMigrator:
             "Keys will be handled by dual-read in the application."
         )
 
-        for md5_key in key_analysis['md5']:
+        for md5_key in key_analysis["md5"]:
             # In production, you'd reconstruct the original data
             # For now, we just mark them for manual review
             logger.info(f"MD5 key found: {md5_key} - will be handled by dual-read")
-            self.stats['skipped'] += 1
+            self.stats["skipped"] += 1
 
     def print_stats(self) -> None:
         """Print migration statistics"""
-        print("\n" + "="*50)
+        print("\n" + "=" * 50)
         print("Cache Key Migration Statistics")
-        print("="*50)
+        print("=" * 50)
         print(f"Keys scanned:  {self.stats['scanned']}")
         print(f"Keys migrated: {self.stats['migrated']}")
         print(f"Keys skipped:  {self.stats['skipped']}")
@@ -223,35 +220,29 @@ class CacheHashMigrator:
         print(f"MD5 keys:      {len(self.stats['md5_keys'])}")
         print(f"SHA-256 keys:  {len(self.stats['sha256_keys'])}")
 
-        if self.stats['md5_keys'] and len(self.stats['md5_keys']) <= 10:
+        if self.stats["md5_keys"] and len(self.stats["md5_keys"]) <= 10:
             print("\nMD5 keys found:")
-            for key in self.stats['md5_keys']:
+            for key in self.stats["md5_keys"]:
                 print(f"  - {key}")
-        elif self.stats['md5_keys']:
+        elif self.stats["md5_keys"]:
             print(f"\nFound {len(self.stats['md5_keys'])} MD5 keys (showing first 10):")
-            for key in self.stats['md5_keys'][:10]:
+            for key in self.stats["md5_keys"][:10]:
                 print(f"  - {key}")
 
-        print("="*50)
+        print("=" * 50)
 
 
 async def main():
     """Main migration entry point"""
-    parser = argparse.ArgumentParser(description='Migrate cache keys from MD5 to SHA-256')
+    parser = argparse.ArgumentParser(description="Migrate cache keys from MD5 to SHA-256")
     parser.add_argument(
-        '--dry-run',
-        action='store_true',
-        help='Run in dry-run mode (no changes made)'
+        "--dry-run", action="store_true", help="Run in dry-run mode (no changes made)"
     )
     parser.add_argument(
-        '--migrate-all',
-        action='store_true',
-        help='Migrate all MD5 keys to SHA-256'
+        "--migrate-all", action="store_true", help="Migrate all MD5 keys to SHA-256"
     )
     parser.add_argument(
-        '--analyze-only',
-        action='store_true',
-        help='Only analyze keys without migration'
+        "--analyze-only", action="store_true", help="Only analyze keys without migration"
     )
 
     args = parser.parse_args()

@@ -20,7 +20,11 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.post("/compliance-gap-analysis", summary="Analyze compliance gaps", dependencies=[Depends(validate_request)])
+@router.post(
+    "/compliance-gap-analysis",
+    summary="Analyze compliance gaps",
+    dependencies=[Depends(validate_request)],
+)
 async def compliance_gap_analysis(
     framework: str,
     current_user: User = Depends(get_current_active_user),
@@ -67,7 +71,11 @@ async def compliance_gap_analysis(
     }
 
 
-@router.get("/smart-compliance-guidance", summary="Get smart compliance guidance", dependencies=[Depends(validate_request)])
+@router.get(
+    "/smart-compliance-guidance",
+    summary="Get smart compliance guidance",
+    dependencies=[Depends(validate_request)],
+)
 async def get_smart_compliance_guidance_endpoint(
     framework: str = Query(..., description="Framework to get guidance for"),
     current_user: User = Depends(get_current_active_user),

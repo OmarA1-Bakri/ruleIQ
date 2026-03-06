@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 Test suite for Phase 4: Complete Celery task migration to LangGraph
 Tests all 16 migrated tasks and the unified orchestrator
@@ -54,9 +53,7 @@ class TestComplianceTaskMigration:
         assert result["task_status"] == "completed"
         assert result["task_result"]["task"] == "update_all_compliance_scores"
         assert "scores_updated" in result["task_result"]
-        assert (
-            len(result["task_result"]["scores_updated"]) == 4
-        )  # GDPR, ISO27001, SOC2, HIPAA
+        assert len(result["task_result"]["scores_updated"]) == 4  # GDPR, ISO27001, SOC2, HIPAA
 
     async def test_check_compliance_alerts(self):
         """Test check_compliance_alerts migration"""
@@ -395,7 +392,8 @@ class TestUnifiedOrchestrator:
         graph = CeleryMigrationGraph()
 
         result = await graph.execute_task(
-            task_type="update_compliance_scores", params={},
+            task_type="update_compliance_scores",
+            params={},
         )
 
         assert result["task"] == "update_all_compliance_scores"

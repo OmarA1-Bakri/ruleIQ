@@ -52,7 +52,9 @@ async def setup_database():
 
     # Run Alembic migrations
     result = subprocess.run(
-        ["alembic", "upgrade", "head"], capture_output=True, text=True,
+        ["alembic", "upgrade", "head"],
+        capture_output=True,
+        text=True,
     )
 
     if result.returncode == 0:

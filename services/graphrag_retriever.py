@@ -374,7 +374,8 @@ Always return a ContextPack containing:
                     patterns[domain]["jurisdictions"].add(reg.get("jurisdiction"))
                     patterns[domain]["regulations"].append(reg)
                     patterns[domain]["total_requirements"] += reg.get(
-                        "requirement_count", 0,
+                        "requirement_count",
+                        0,
                     )
 
                 nodes.append(
@@ -395,7 +396,7 @@ Always return a ContextPack containing:
                 if patterns
                 else [],
             ),
-            "domains": list(patterns.keys())
+            "domains": list(patterns.keys()),
         }
 
         return {
@@ -559,9 +560,7 @@ Always return a ContextPack containing:
             logger.error(f"Failed to generate embedding: {e}")
             return [0.0] * 1536  # Return zero vector as fallback
 
-    async def validate_coverage(
-        self, jurisdictions: List[str] = None
-    ) -> Dict[str, Any]:
+    async def validate_coverage(self, jurisdictions: List[str] = None) -> Dict[str, Any]:
         """
         Validate coverage of regulations across jurisdictions
         """

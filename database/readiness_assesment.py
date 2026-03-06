@@ -22,10 +22,14 @@ class ReadinessAssessment(Base):
     # Replace 'users.id' etc. with actual table.column names if different.
     user_id = Column(PG_UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     business_profile_id = Column(
-        PG_UUID(as_uuid=True), ForeignKey("business_profiles.id"), nullable=False,
+        PG_UUID(as_uuid=True),
+        ForeignKey("business_profiles.id"),
+        nullable=False,
     )
     framework_id = Column(
-        PG_UUID(as_uuid=True), ForeignKey("compliance_frameworks.id"), nullable=False,
+        PG_UUID(as_uuid=True),
+        ForeignKey("compliance_frameworks.id"),
+        nullable=False,
     )
 
     # Assessment metadata
@@ -48,9 +52,7 @@ class ReadinessAssessment(Base):
     # Gap analysis
     identified_gaps = Column(PG_JSONB, default=list)  # Gaps with details and priority
     remediation_plan = Column(PG_JSONB, default=list)  # Prioritized remediation actions
-    quick_wins = Column(
-        PG_JSONB, default=list
-    )  # Easy improvements (stored as list of strings)
+    quick_wins = Column(PG_JSONB, default=list)  # Easy improvements (stored as list of strings)
 
     # Timeline projections
     estimated_readiness_date = Column(DateTime, nullable=True)

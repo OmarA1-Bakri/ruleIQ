@@ -3,6 +3,7 @@
 Production startup script for RuleIQ
 Uses the working simple_start app with health endpoints
 """
+
 import os
 import sys
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeoutError
@@ -12,6 +13,7 @@ from sqlalchemy import text
 # Add project root to Python path
 project_root = Path(__file__).parent
 sys.path.insert(0, str(project_root))
+
 
 def create_production_app():
     """Create production FastAPI app with all necessary endpoints"""
@@ -34,9 +36,7 @@ def create_production_app():
         try:
             import redis
         except ImportError as exc:
-            raise RuntimeError(
-                "Redis health check failed: redis package is not installed"
-            ) from exc
+            raise RuntimeError("Redis health check failed: redis package is not installed") from exc
         try:
             client = redis.from_url(redis_url, socket_connect_timeout=1, socket_timeout=1)
             client.ping()
@@ -44,9 +44,7 @@ def create_production_app():
             raise RuntimeError(f"Redis health check failed: {exc}") from exc
 
     app = FastAPI(
-        title="RuleIQ Production API",
-        version="1.0.0",
-        description="AI-powered compliance platform"
+        title="RuleIQ Production API", version="1.0.0", description="AI-powered compliance platform"
     )
 
     # Add middleware — CORS origins from env or restrictive default
@@ -132,22 +130,18 @@ def create_production_app():
             "status": "operational",
             "service": "ruleiq-api",
             "version": "1.0.0",
-            "environment": os.getenv("ENVIRONMENT", "production")
+            "environment": os.getenv("ENVIRONMENT", "production"),
         }
 
     return app
+
 
 # Create the app for uvicorn
 app = create_production_app()
 
 if __name__ == "__main__":
     import uvicorn
+
     port = int(os.getenv("PORT", 8080))
     print(f"🚀 Starting RuleIQ Production API on port {port}")
-    uvicorn.run(
-        "production_start:app",
-        host="0.0.0.0",
-        port=port,
-        workers=1,
-        log_level="info"
-    )
+    uvicorn.run("production_start:app", host="0.0.0.0", port=port, workers=1, log_level="info")

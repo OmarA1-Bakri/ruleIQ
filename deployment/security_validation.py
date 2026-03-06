@@ -19,9 +19,17 @@ class SecurityValidator:
 
     def log(self, message: str, level: str = "info"):
         symbols = {"info": "ℹ️", "success": "✅", "warning": "⚠️", "error": "❌", "security": "🔒"}
-        colors = {"info": "\033[94m", "success": "\033[92m", "warning": "\033[93m",
-                 "error": "\033[91m", "security": "\033[95m", "reset": "\033[0m"}
-        print(f"{colors.get(level, colors['info'])}{symbols.get(level, 'ℹ️')} {message}{colors['reset']}")
+        colors = {
+            "info": "\033[94m",
+            "success": "\033[92m",
+            "warning": "\033[93m",
+            "error": "\033[91m",
+            "security": "\033[95m",
+            "reset": "\033[0m",
+        }
+        print(
+            f"{colors.get(level, colors['info'])}{symbols.get(level, 'ℹ️')} {message}{colors['reset']}"
+        )
 
     def run_bandit_scan(self) -> bool:
         """Run Bandit security analysis."""
@@ -29,8 +37,7 @@ class SecurityValidator:
 
         try:
             result = subprocess.run(
-                ["bandit", "-r", "api/", "services/", "-f", "json"],
-                capture_output=True, text=True
+                ["bandit", "-r", "api/", "services/", "-f", "json"], capture_output=True, text=True
             )
 
             if result.stdout:
@@ -61,10 +68,7 @@ class SecurityValidator:
         self.log("Checking dependency vulnerabilities...", "security")
 
         try:
-            result = subprocess.run(
-                ["safety", "check", "--json"],
-                capture_output=True, text=True
-            )
+            result = subprocess.run(["safety", "check", "--json"], capture_output=True, text=True)
 
             if result.stdout:
                 vulnerabilities = json.loads(result.stdout)
@@ -87,14 +91,13 @@ class SecurityValidator:
             ("password.*=.*['\"].*['\"]", "Hardcoded password"),
             ("api_key.*=.*['\"].*['\"]", "Hardcoded API key"),
             ("secret.*=.*['\"].*['\"]", "Hardcoded secret"),
-            ("token.*=.*['\"].*['\"]", "Hardcoded token")
+            ("token.*=.*['\"].*['\"]", "Hardcoded token"),
         ]
 
         found_secrets = False
         for pattern, description in patterns:
             result = subprocess.run(
-                ["grep", "-r", "--include=*.py", "-E", pattern, "."],
-                capture_output=True, text=True
+                ["grep", "-r", "--include=*.py", "-E", pattern, "."], capture_output=True, text=True
             )
 
             if result.stdout:
@@ -113,7 +116,7 @@ class SecurityValidator:
             "X-Content-Type-Options",
             "X-Frame-Options",
             "Content-Security-Policy",
-            "Strict-Transport-Security"
+            "Strict-Transport-Security",
         ]
 
         # Check if security middleware is configured
@@ -134,6 +137,7 @@ class SecurityValidator:
 
         # Check JWT configuration
         import os
+
         if not os.getenv("JWT_SECRET"):
             self.vulnerabilities.append("JWT_SECRET not configured")
             return False
@@ -159,6 +163,7 @@ class SecurityValidator:
 
         # Check if CORS is properly configured
         import os
+
         frontend_url = os.getenv("FRONTEND_URL")
         if frontend_url:
             self.log(f"CORS origin configured: {frontend_url}", "success")
@@ -185,8 +190,7 @@ class SecurityValidator:
 
         # Check for Pydantic usage
         result = subprocess.run(
-            ["grep", "-r", "--include=*.py", "from pydantic", "."],
-            capture_output=True, text=True
+            ["grep", "-r", "--include=*.py", "from pydantic", "."], capture_output=True, text=True
         )
 
         if result.stdout:
@@ -203,11 +207,14 @@ class SecurityValidator:
         # Check for raw SQL queries
         result = subprocess.run(
             ["grep", "-r", "--include=*.py", "-E", "(execute|executemany).*f['\"]|%s", "."],
-            capture_output=True, text=True
+            capture_output=True,
+            text=True,
         )
 
         if result.stdout:
-            risky_lines = [l for l in result.stdout.split("\n") if l and "sqlalchemy" not in l.lower()]
+            risky_lines = [
+                l for l in result.stdout.split("\n") if l and "sqlalchemy" not in l.lower()
+            ]
             if risky_lines:
                 self.warnings.append("Potential SQL injection risks found")
 
@@ -220,7 +227,9 @@ class SecurityValidator:
         if Path("frontend").exists():
             result = subprocess.run(
                 ["pnpm", "audit", "--audit-level=high"],
-                capture_output=True, text=True, cwd="frontend"
+                capture_output=True,
+                text=True,
+                cwd="frontend",
             )
 
             if "found 0 vulnerabilities" in result.stdout:
@@ -246,7 +255,7 @@ class SecurityValidator:
             (self.check_rate_limiting, "Rate Limiting"),
             (self.check_input_validation, "Input Validation"),
             (self.check_sql_injection_protection, "SQL Injection"),
-            (self.run_frontend_audit, "Frontend Audit")
+            (self.run_frontend_audit, "Frontend Audit"),
         ]
 
         for func, name in checks:

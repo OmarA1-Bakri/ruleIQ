@@ -115,7 +115,9 @@ class TestCircuitBreakerStates:
     async def test_circuit_breaker_closes_after_successful_calls(self):
         """Test circuit breaker closes after successful calls in half-open state"""
         config = CircuitBreakerConfig(
-            failure_threshold=1, recovery_timeout=0.1, success_threshold=2,
+            failure_threshold=1,
+            recovery_timeout=0.1,
+            success_threshold=2,
         )
         breaker = CircuitBreaker("test_service", config)
 
@@ -240,7 +242,8 @@ class TestCircuitBreakerExceptionHandling:
     async def test_circuit_breaker_handles_expected_exceptions(self):
         """Test circuit breaker counts expected exceptions as failures"""
         config = CircuitBreakerConfig(
-            failure_threshold=2, expected_exception=(ConnectionError, TimeoutError),
+            failure_threshold=2,
+            expected_exception=(ConnectionError, TimeoutError),
         )
         breaker = CircuitBreaker("test_service", config)
 
@@ -265,7 +268,8 @@ class TestCircuitBreakerExceptionHandling:
     async def test_circuit_breaker_ignores_unexpected_exceptions(self):
         """Test circuit breaker doesn't count unexpected exceptions as failures"""
         config = CircuitBreakerConfig(
-            failure_threshold=1, expected_exception=(ConnectionError,),
+            failure_threshold=1,
+            expected_exception=(ConnectionError,),
         )
         breaker = CircuitBreaker("test_service", config)
 
@@ -364,7 +368,9 @@ class TestCircuitBreakerMetrics:
         recovery_time = 45.5
 
         exception = CircuitBreakerOpenException(
-            service_name, failure_count, recovery_time,
+            service_name,
+            failure_count,
+            recovery_time,
         )
 
         assert service_name in str(exception)
@@ -389,7 +395,9 @@ class TestCircuitBreakerMetrics:
     async def test_circuit_breaker_success_tracking(self):
         """Test circuit breaker tracks successful calls correctly"""
         config = CircuitBreakerConfig(
-            failure_threshold=1, recovery_timeout=0.1, success_threshold=2,
+            failure_threshold=1,
+            recovery_timeout=0.1,
+            success_threshold=2,
         )
         breaker = CircuitBreaker("test_service", config)
 

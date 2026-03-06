@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 # Constants
 DEFAULT_LIMIT = 100
@@ -12,6 +11,7 @@ This module provides system instructions that replace traditional system prompts
 leveraging Google Gemini's system instruction capability for better performance
 and consistency across AI interactions.
 """
+
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Dict, Optional
@@ -19,30 +19,33 @@ from typing import Any, Dict, Optional
 
 class InstructionType(Enum):
     """Types of instruction templates available"""
-    ASSESSMENT = 'assessment'
-    EVIDENCE = 'evidence'
-    POLICY = 'policy'
-    CHAT = 'chat'
-    ANALYSIS = 'analysis'
-    RECOMMENDATIONS = 'recommendations'
-    GENERAL = 'general'
+
+    ASSESSMENT = "assessment"
+    EVIDENCE = "evidence"
+    POLICY = "policy"
+    CHAT = "chat"
+    ANALYSIS = "analysis"
+    RECOMMENDATIONS = "recommendations"
+    GENERAL = "general"
 
 
 class FrameworkType(Enum):
     """Supported compliance frameworks"""
-    GDPR = 'gdpr'
-    ISO27001 = 'iso27001'
-    SOC2 = 'soc2'
-    HIPAA = 'hipaa'
-    PCI_DSS = 'pci_dss'
-    CYBER_ESSENTIALS = 'cyber_essentials'
-    NIST = 'nist'
-    GENERIC = 'generic'
+
+    GDPR = "gdpr"
+    ISO27001 = "iso27001"
+    SOC2 = "soc2"
+    HIPAA = "hipaa"
+    PCI_DSS = "pci_dss"
+    CYBER_ESSENTIALS = "cyber_essentials"
+    NIST = "nist"
+    GENERIC = "generic"
 
 
 @dataclass
 class InstructionContext:
     """Context for building dynamic instructions"""
+
     instruction_type: InstructionType
     framework: Optional[FrameworkType] = None
     business_profile: Optional[Dict[str, Any]] = None
@@ -54,15 +57,15 @@ class InstructionContext:
 class SystemInstructionTemplates:
     """Manages system instruction templates for different AI tasks"""
 
-    def __init__(self) ->None:
+    def __init__(self) -> None:
         self.base_instructions = self._initialize_base_instructions()
         self.framework_specifics = self._initialize_framework_specifics()
         self.persona_adaptations = self._initialize_persona_adaptations()
 
-    def _initialize_base_instructions(self) ->Dict[InstructionType, str]:
+    def _initialize_base_instructions(self) -> Dict[InstructionType, str]:
         """Initialize base system instructions for each instruction type"""
-        return {InstructionType.ASSESSMENT:
-            """
+        return {
+            InstructionType.ASSESSMENT: """
 You are ComplianceGPT, an expert AI compliance assistant specializing in UK regulations and international compliance frameworks.  # noqa: E501
 
 Core Competencies:
@@ -94,9 +97,8 @@ Communication Style:
 - Clear, jargon-free language suitable for non-compliance experts
 - Structured responses with clear sections and priorities
 - Actionable guidance with specific next steps
-"""
-            , InstructionType.EVIDENCE:
-            """
+""",
+            InstructionType.EVIDENCE: """
 You are ComplianceGPT, an expert compliance evidence analyst with deep knowledge of UK and international compliance frameworks.  # noqa: E501
 
 Evidence Analysis Expertise:
@@ -125,9 +127,8 @@ Quality Standards:
 - Evidence mapping must reference specific regulatory requirements
 - Collection processes must be scalable and sustainable
 - Quality criteria must be measurable and objective
-"""
-            , InstructionType.POLICY:
-            """
+""",
+            InstructionType.POLICY: """
 You are ComplianceGPT, an expert compliance policy writer with extensive experience in UK regulatory frameworks and international standards.  # noqa: E501
 
 Policy Development Expertise:
@@ -157,9 +158,8 @@ Policy Quality Criteria:
 - Clear role definitions and accountability measures
 - Comprehensive coverage of regulatory requirements
 - Professional language suitable for business documentation
-"""
-            , InstructionType.CHAT:
-            """
+""",
+            InstructionType.CHAT: """
 You are ComplianceGPT, a friendly and knowledgeable AI compliance assistant helping UK businesses navigate complex regulatory landscapes.  # noqa: E501
 
 Conversational Expertise:
@@ -188,9 +188,8 @@ Communication Standards:
 - Structured responses with logical flow and clear priorities
 - Empathetic understanding of compliance complexity and business pressures
 - Professional guidance with practical implementation focus
-"""
-            , InstructionType.ANALYSIS:
-            """
+""",
+            InstructionType.ANALYSIS: """
 You are ComplianceGPT, an expert compliance analyst with advanced skills in gap analysis, risk assessment, and compliance maturity evaluation.  # noqa: E501
 
 Analytical Expertise:
@@ -219,9 +218,8 @@ Quality Requirements:
 - Risk assessments must follow established methodologies
 - Recommendations must be prioritized by impact and feasibility
 - All analysis must consider business context and constraints
-"""
-            , InstructionType.RECOMMENDATIONS:
-            """
+""",
+            InstructionType.RECOMMENDATIONS: """
 You are ComplianceGPT, an expert compliance implementation consultant specializing in practical, risk-based recommendation development.  # noqa: E501
 
 Recommendation Expertise:
@@ -250,9 +248,8 @@ Implementation Focus:
 - Implementation guidance must consider organizational maturity
 - Resource requirements must be realistic and justified
 - Success metrics must be measurable and relevant
-"""
-            , InstructionType.GENERAL:
-            """
+""",
+            InstructionType.GENERAL: """
 You are ComplianceGPT, a comprehensive AI compliance assistant with expertise across UK and international regulatory frameworks.  # noqa: E501
 
 General Assistance Capabilities:
@@ -281,14 +278,14 @@ Response Quality:
 - Practical and implementable within business constraints
 - Clear and accessible to non-compliance experts
 - Comprehensive yet focused on user needs
-"""
-            }
+""",
+        }
 
-    def _initialize_framework_specifics(self) ->Dict[FrameworkType, Dict[
-        str, str]]:
+    def _initialize_framework_specifics(self) -> Dict[FrameworkType, Dict[str, str]]:
         """Initialize framework-specific instruction additions"""
-        return {FrameworkType.GDPR: {'expertise':
-            """
+        return {
+            FrameworkType.GDPR: {
+                "expertise": """
 GDPR Specialization:
 - Comprehensive knowledge of GDPR Articles 1-99 and their practical implementation
 - Expert understanding of data protection principles and lawful basis requirements
@@ -296,17 +293,17 @@ GDPR Specialization:
 - Understanding of Data Protection Impact Assessments (DPIA) and privacy by design
 - Knowledge of cross-border data transfer mechanisms and adequacy decisions
 - Expertise in data breach notification requirements and procedures
-"""
-            , 'requirements':
-            """
+""",
+                "requirements": """
 - Always reference specific GDPR articles and recitals when applicable
 - Consider data protection principles in all recommendations
 - Address individual rights and organizational obligations explicitly
 - Include privacy impact considerations in all guidance
 - Reference ICO guidance and UK GDPR variations where relevant
-"""
-            }, FrameworkType.ISO27001: {'expertise':
-            """
+""",
+            },
+            FrameworkType.ISO27001: {
+                "expertise": """
 ISO 27001 Specialization:
 - Complete understanding of ISO 27001:2022 structure and requirements
 - Expert knowledge of Annex A controls and their implementation
@@ -314,17 +311,17 @@ ISO 27001 Specialization:
 - Knowledge of risk management methodologies and control selection
 - Expertise in documentation requirements and audit preparation
 - Understanding of continual improvement and management review processes
-"""
-            , 'requirements':
-            """
+""",
+                "requirements": """
 - Reference specific ISO 27001 clauses and Annex A controls
 - Consider ISMS context and organizational risk appetite
 - Address documentation and record-keeping requirements
 - Include risk management and control selection guidance
 - Reference audit and certification requirements where relevant
-"""
-            }, FrameworkType.SOC2: {'expertise':
-            """
+""",
+            },
+            FrameworkType.SOC2: {
+                "expertise": """
 SOC 2 Specialization:
 - Comprehensive knowledge of SOC 2 Trust Service Criteria
 - Understanding of Type I and Type II examination requirements
@@ -332,17 +329,17 @@ SOC 2 Specialization:
 - Understanding of control design and operating effectiveness
 - Knowledge of service auditor requirements and examination procedures
 - Expertise in control documentation and evidence requirements
-"""
-            , 'requirements':
-            """
+""",
+                "requirements": """
 - Reference specific Trust Service Criteria and points of focus
 - Consider control design and operating effectiveness
 - Address evidence requirements and documentation standards
 - Include examination timeline and auditor interaction guidance
 - Reference AICPA standards and requirements where applicable
-"""
-            }, FrameworkType.CYBER_ESSENTIALS: {'expertise':
-            """
+""",
+            },
+            FrameworkType.CYBER_ESSENTIALS: {
+                "expertise": """
 Cyber Essentials Specialization:
 - Complete understanding of the five Cyber Essentials controls
 - Knowledge of Basic and Plus certification requirements
@@ -350,21 +347,21 @@ Cyber Essentials Specialization:
 - Expertise in vulnerability assessment and penetration testing requirements
 - Knowledge of NCSC guidance and certification processes
 - Understanding of scope definition and boundary setting
-"""
-            , 'requirements':
-            """
+""",
+                "requirements": """
 - Reference specific Cyber Essentials controls and requirements
 - Consider certification level (Basic vs Plus) requirements
 - Address technical implementation and evidence collection
 - Include NCSC guidance and best practice references
 - Consider scope and boundary definition requirements
-"""
-            }}
+""",
+            },
+        }
 
-    def _initialize_persona_adaptations(self) ->Dict[str, str]:
+    def _initialize_persona_adaptations(self) -> Dict[str, str]:
         """Initialize persona-specific instruction adaptations"""
-        return {'alex':
-            """
+        return {
+            "alex": """
 Persona Adaptation for Alex (Analytical):
 Alex is data-driven and values customization, control, and detailed analysis. Adapt your responses to:
 - Provide detailed metrics, scores, and quantitative analysis
@@ -373,9 +370,8 @@ Alex is data-driven and values customization, control, and detailed analysis. Ad
 - Present information in structured, analytical formats
 - Include comparative analysis and benchmarking data
 - Provide detailed technical implementation guidance
-"""
-            , 'ben':
-            """
+""",
+            "ben": """
 Persona Adaptation for Ben (Cautious):
 Ben is risk-averse and needs guidance, reassurance, and step-by-step support. Adapt your responses to:
 - Use step-by-step wizards and guided processes
@@ -384,9 +380,8 @@ Ben is risk-averse and needs guidance, reassurance, and step-by-step support. Ad
 - Offer auto-save features and progress preservation
 - Present clear progress indicators and completion status
 - Provide reassuring language and risk mitigation guidance
-"""
-            , 'catherine':
-            """
+""",
+            "catherine": """
 Persona Adaptation for Catherine (Principled):
 Catherine is ethics-focused and values transparency, audit trails, and compliance documentation. Adapt your responses to:  # noqa: E501
 - Emphasize audit trails and version history
@@ -395,10 +390,10 @@ Catherine is ethics-focused and values transparency, audit trails, and complianc
 - Provide transparent reasoning and decision explanations
 - Include ethical considerations and compliance implications
 - Offer comprehensive documentation and record-keeping guidance
-"""
-            }
+""",
+        }
 
-    def build_system_instruction(self, context: InstructionContext) ->str:
+    def build_system_instruction(self, context: InstructionContext) -> str:
         """
         Build a complete system instruction based on context
 
@@ -411,41 +406,36 @@ Catherine is ethics-focused and values transparency, audit trails, and complianc
         instruction_parts = [self.base_instructions[context.instruction_type]]
         if context.framework and context.framework in self.framework_specifics:
             framework_info = self.framework_specifics[context.framework]
-            instruction_parts.append(framework_info.get('expertise', ''))
-            instruction_parts.append(framework_info.get('requirements', ''))
-        if context.user_persona and context.user_persona.lower(
-            ) in self.persona_adaptations:
-            instruction_parts.append(self.persona_adaptations[context.
-                user_persona.lower()])
+            instruction_parts.append(framework_info.get("expertise", ""))
+            instruction_parts.append(framework_info.get("requirements", ""))
+        if context.user_persona and context.user_persona.lower() in self.persona_adaptations:
+            instruction_parts.append(self.persona_adaptations[context.user_persona.lower()])
         if context.business_profile:
-            business_context = self._build_business_context_instruction(context
-                .business_profile)
+            business_context = self._build_business_context_instruction(context.business_profile)
             instruction_parts.append(business_context)
         if context.task_complexity:
-            complexity_guidance = self._build_complexity_guidance(context.
-                task_complexity)
+            complexity_guidance = self._build_complexity_guidance(context.task_complexity)
             instruction_parts.append(complexity_guidance)
         if context.additional_context:
             additional_guidance = self._build_additional_context_instruction(
-                context.additional_context)
+                context.additional_context
+            )
             instruction_parts.append(additional_guidance)
-        return '\n\n'.join(part.strip() for part in instruction_parts if
-            part.strip())
+        return "\n\n".join(part.strip() for part in instruction_parts if part.strip())
 
-    def _build_business_context_instruction(self, business_profile: Dict[
-        str, Any]) ->str:
+    def _build_business_context_instruction(self, business_profile: Dict[str, Any]) -> str:
         """Build business context instruction from business profile"""
-        industry = business_profile.get('industry', 'Unknown')
-        employee_count = business_profile.get('employee_count', 0)
-        company_name = business_profile.get('company_name', 'the organization')
+        industry = business_profile.get("industry", "Unknown")
+        employee_count = business_profile.get("employee_count", 0)
+        company_name = business_profile.get("company_name", "the organization")
         if employee_count >= MAX_ITEMS:
-            org_size = 'large enterprise'
+            org_size = "large enterprise"
         elif employee_count >= DEFAULT_LIMIT:
-            org_size = 'medium business'
+            org_size = "medium business"
         elif employee_count >= 10:
-            org_size = 'small business'
+            org_size = "small business"
         else:
-            org_size = 'micro business'
+            org_size = "micro business"
         return f"""
 Business Context Integration:
 You are specifically assisting {company_name}, a {org_size} in the {industry} industry with {employee_count} employees.
@@ -458,43 +448,40 @@ Tailor your responses to consider:
 - Realistic timelines considering organizational capacity and resources
 """
 
-    def _build_complexity_guidance(self, task_complexity: str) ->str:
+    def _build_complexity_guidance(self, task_complexity: str) -> str:
         """Build task complexity guidance"""
-        complexity_map = {'simple':
-            """
+        complexity_map = {
+            "simple": """
 Task Complexity: Simple
 Focus on:
 - Clear, concise responses with immediate actionable guidance
 - Basic implementation approaches with minimal complexity
 - Quick wins and immediate value delivery
 - Straightforward explanations without deep technical detail
-"""
-            , 'medium':
-            """
+""",
+            "medium": """
 Task Complexity: Medium
 Focus on:
 - Balanced depth with practical implementation guidance
 - Moderate detail level with clear prioritization
 - Phased approach to implementation with clear milestones
 - Reasonable complexity that builds organizational capability
-"""
-            , 'complex':
-            """
+""",
+            "complex": """
 Task Complexity: Complex
 Focus on:
 - Comprehensive analysis with detailed implementation guidance
 - Deep technical and regulatory detail with expert-level insights
 - Multi-phase implementation with detailed planning requirements
 - Advanced considerations including integration and optimization
-"""
-            }
-        return complexity_map.get(task_complexity, '')
+""",
+        }
+        return complexity_map.get(task_complexity, "")
 
-    def _build_additional_context_instruction(self, additional_context:
-        Dict[str, Any]) ->str:
+    def _build_additional_context_instruction(self, additional_context: Dict[str, Any]) -> str:
         """Build additional context instruction from provided context"""
         context_parts = []
-        if additional_context.get('streaming_mode'):
+        if additional_context.get("streaming_mode"):
             context_parts.append(
                 """
 Streaming Mode Considerations:
@@ -503,8 +490,8 @@ Streaming Mode Considerations:
 - Begin with executive summary before detailed analysis
 - Use clear section headers and structured formatting
 """
-                )
-        if additional_context.get('function_calling'):
+            )
+        if additional_context.get("function_calling"):
             context_parts.append(
                 """
 Function Calling Context:
@@ -513,8 +500,8 @@ Function Calling Context:
 - Include confidence scores and metadata where appropriate
 - Structure responses to support automated processing
 """
-                )
-        if additional_context.get('caching_enabled'):
+            )
+        if additional_context.get("caching_enabled"):
             context_parts.append(
                 """
 Caching Optimization:
@@ -523,13 +510,18 @@ Caching Optimization:
 - Include version information for cache invalidation
 - Optimize for reusability across similar business contexts
 """
-                )
-        return '\n\n'.join(context_parts) if context_parts else ''
+            )
+        return "\n\n".join(context_parts) if context_parts else ""
 
-    def get_instruction_for_task(self, instruction_type: InstructionType,
-        framework: Optional[FrameworkType]=None, business_profile: Optional
-        [Dict[str, Any]]=None, user_persona: Optional[str]=None,
-        task_complexity: str='medium', **kwargs) ->str:
+    def get_instruction_for_task(
+        self,
+        instruction_type: InstructionType,
+        framework: Optional[FrameworkType] = None,
+        business_profile: Optional[Dict[str, Any]] = None,
+        user_persona: Optional[str] = None,
+        task_complexity: str = "medium",
+        **kwargs,
+    ) -> str:
         """
         Convenience method to get instruction for a specific task
 
@@ -544,40 +536,69 @@ Caching Optimization:
         Returns:
             Complete system instruction string
         """
-        context = InstructionContext(instruction_type=instruction_type,
-            framework=framework, business_profile=business_profile,
-            user_persona=user_persona, task_complexity=task_complexity,
-            additional_context=kwargs)
+        context = InstructionContext(
+            instruction_type=instruction_type,
+            framework=framework,
+            business_profile=business_profile,
+            user_persona=user_persona,
+            task_complexity=task_complexity,
+            additional_context=kwargs,
+        )
         return self.build_system_instruction(context)
 
-    def get_assessment_instruction(self, framework: FrameworkType,
-        business_profile: Dict[str, Any], user_persona: Optional[str]=None,
-        **kwargs) ->str:
+    def get_assessment_instruction(
+        self,
+        framework: FrameworkType,
+        business_profile: Dict[str, Any],
+        user_persona: Optional[str] = None,
+        **kwargs,
+    ) -> str:
         """Get assessment-specific instruction"""
-        return self.get_instruction_for_task(InstructionType.ASSESSMENT,
-            framework=framework, business_profile=business_profile,
-            user_persona=user_persona, **kwargs)
+        return self.get_instruction_for_task(
+            InstructionType.ASSESSMENT,
+            framework=framework,
+            business_profile=business_profile,
+            user_persona=user_persona,
+            **kwargs,
+        )
 
-    def get_evidence_instruction(self, framework: FrameworkType,
-        business_profile: Dict[str, Any], **kwargs) ->str:
+    def get_evidence_instruction(
+        self, framework: FrameworkType, business_profile: Dict[str, Any], **kwargs
+    ) -> str:
         """Get evidence-specific instruction"""
-        return self.get_instruction_for_task(InstructionType.EVIDENCE,
-            framework=framework, business_profile=business_profile, **kwargs)
+        return self.get_instruction_for_task(
+            InstructionType.EVIDENCE,
+            framework=framework,
+            business_profile=business_profile,
+            **kwargs,
+        )
 
-    def get_chat_instruction(self, business_profile: Optional[Dict[str, Any
-        ]]=None, user_persona: Optional[str]=None, **kwargs) ->str:
+    def get_chat_instruction(
+        self,
+        business_profile: Optional[Dict[str, Any]] = None,
+        user_persona: Optional[str] = None,
+        **kwargs,
+    ) -> str:
         """Get chat-specific instruction"""
-        return self.get_instruction_for_task(InstructionType.CHAT,
-            business_profile=business_profile, user_persona=user_persona,
-            **kwargs)
+        return self.get_instruction_for_task(
+            InstructionType.CHAT,
+            business_profile=business_profile,
+            user_persona=user_persona,
+            **kwargs,
+        )
 
 
 system_instructions = SystemInstructionTemplates()
 
 
-def get_system_instruction(instruction_type: str, framework: Optional[str]=
-    None, business_profile: Optional[Dict[str, Any]]=None, user_persona:
-    Optional[str]=None, task_complexity: str='medium', **kwargs) ->str:
+def get_system_instruction(
+    instruction_type: str,
+    framework: Optional[str] = None,
+    business_profile: Optional[Dict[str, Any]] = None,
+    user_persona: Optional[str] = None,
+    task_complexity: str = "medium",
+    **kwargs,
+) -> str:
     """
     Convenience function to get system instruction
 
@@ -594,13 +615,20 @@ def get_system_instruction(instruction_type: str, framework: Optional[str]=
     """
     try:
         instruction_enum = InstructionType(instruction_type.lower())
-        framework_enum = FrameworkType(framework.lower()
-            ) if framework else None
-        return system_instructions.get_instruction_for_task(instruction_enum,
-            framework=framework_enum, business_profile=business_profile,
-            user_persona=user_persona, task_complexity=task_complexity, **
-            kwargs)
+        framework_enum = FrameworkType(framework.lower()) if framework else None
+        return system_instructions.get_instruction_for_task(
+            instruction_enum,
+            framework=framework_enum,
+            business_profile=business_profile,
+            user_persona=user_persona,
+            task_complexity=task_complexity,
+            **kwargs,
+        )
     except ValueError:
-        return system_instructions.get_instruction_for_task(InstructionType
-            .GENERAL, business_profile=business_profile, user_persona=
-            user_persona, task_complexity=task_complexity, **kwargs)
+        return system_instructions.get_instruction_for_task(
+            InstructionType.GENERAL,
+            business_profile=business_profile,
+            user_persona=user_persona,
+            task_complexity=task_complexity,
+            **kwargs,
+        )

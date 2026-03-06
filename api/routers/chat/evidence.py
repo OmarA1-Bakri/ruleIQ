@@ -31,7 +31,11 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.post("/evidence-recommendations", response_model=List[EvidenceRecommendationResponse], dependencies=[Depends(validate_request)])
+@router.post(
+    "/evidence-recommendations",
+    response_model=List[EvidenceRecommendationResponse],
+    dependencies=[Depends(validate_request)],
+)
 async def get_evidence_recommendations(
     request: EvidenceRecommendationRequest,
     db: AsyncSession = Depends(get_async_db),
@@ -63,7 +67,11 @@ async def get_evidence_recommendations(
         raise HTTPException(status_code=500, detail="Failed to get recommendations")
 
 
-@router.post("/compliance-analysis", response_model=ComplianceAnalysisResponse, dependencies=[Depends(validate_request)])
+@router.post(
+    "/compliance-analysis",
+    response_model=ComplianceAnalysisResponse,
+    dependencies=[Depends(validate_request)],
+)
 async def analyze_compliance_gap(
     request: ComplianceAnalysisRequest,
     db: AsyncSession = Depends(get_async_db),
@@ -156,7 +164,9 @@ async def generate_evidence_collection_workflow(
     try:
         # Sanitize query parameters
         framework = SecurityValidator.validate_no_dangerous_content(framework, "framework")
-        workflow_type = SecurityValidator.validate_no_dangerous_content(workflow_type, "workflow_type")
+        workflow_type = SecurityValidator.validate_no_dangerous_content(
+            workflow_type, "workflow_type"
+        )
         if control_id:
             control_id = SecurityValidator.validate_no_dangerous_content(control_id, "control_id")
 
@@ -184,7 +194,8 @@ async def generate_evidence_collection_workflow(
     except Exception as e:
         logger.error(f"Error generating evidence collection workflow: {e}")
         raise HTTPException(
-            status_code=500, detail="Failed to generate evidence collection workflow",
+            status_code=500,
+            detail="Failed to generate evidence collection workflow",
         )
 
 
@@ -212,7 +223,9 @@ async def generate_customized_policy(
         policy_type = SecurityValidator.validate_no_dangerous_content(policy_type, "policy_type")
         tone = SecurityValidator.validate_no_dangerous_content(tone, "tone")
         detail_level = SecurityValidator.validate_no_dangerous_content(detail_level, "detail_level")
-        geographic_scope = SecurityValidator.validate_no_dangerous_content(geographic_scope, "geographic_scope")
+        geographic_scope = SecurityValidator.validate_no_dangerous_content(
+            geographic_scope, "geographic_scope"
+        )
 
         business_profile = (
             db.query(BusinessProfile)
@@ -266,7 +279,9 @@ async def get_smart_compliance_guidance(
     try:
         # Sanitize path and query parameters
         framework = SecurityValidator.validate_no_dangerous_content(framework, "framework")
-        guidance_type = SecurityValidator.validate_no_dangerous_content(guidance_type, "guidance_type")
+        guidance_type = SecurityValidator.validate_no_dangerous_content(
+            guidance_type, "guidance_type"
+        )
 
         # Use async query for business profile
         stmt = select(BusinessProfile).where(BusinessProfile.user_id == str(str(current_user.id)))
@@ -288,7 +303,8 @@ async def get_smart_compliance_guidance(
 
         # Get gap analysis
         gap_analysis = await assistant.analyze_evidence_gap(
-            business_profile_id=business_profile.id, framework=framework,
+            business_profile_id=business_profile.id,
+            framework=framework,
         )
 
         # Combine into smart guidance
@@ -298,7 +314,8 @@ async def get_smart_compliance_guidance(
             "current_status": {
                 "completion_percentage": gap_analysis.get("completion_percentage", 0),
                 "maturity_level": recommendations.get("business_context", {}).get(
-                    "maturity_level", "Basic",
+                    "maturity_level",
+                    "Basic",
                 ),
                 "critical_gaps_count": len(gap_analysis.get("critical_gaps", [])),
             },
@@ -492,7 +509,9 @@ async def get_next_priority_tasks(
         raise HTTPException(status_code=500, detail="Failed to get next priority tasks")
 
 
-@router.post("/smart-evidence/update-task/{plan_id}/{task_id}", dependencies=[Depends(validate_request)])
+@router.post(
+    "/smart-evidence/update-task/{plan_id}/{task_id}", dependencies=[Depends(validate_request)]
+)
 async def update_evidence_task_status(
     plan_id: str,
     task_id: str,
@@ -517,7 +536,10 @@ async def update_evidence_task_status(
 
         collector = await get_smart_evidence_collector()
         success = await collector.update_task_status(
-            plan_id, task_id, task_status, completion_notes,
+            plan_id,
+            task_id,
+            task_status,
+            completion_notes,
         )
 
         if not success:

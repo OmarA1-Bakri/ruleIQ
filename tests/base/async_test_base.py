@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 Base classes for async tests with proper event loop management.
 """
@@ -98,15 +97,15 @@ class APITestBase(AsyncTestBase):
 
     def assert_response_success(self, response, expected_status: int = 200):
         """Assert response is successful."""
-        assert (
-            response.status_code == expected_status,
-        ), f"Expected {expected_status}, got {response.status_code}: {response.text}"
+        assert (response.status_code == expected_status,), (
+            f"Expected {expected_status}, got {response.status_code}: {response.text}"
+        )
 
     def assert_response_error(self, response, expected_status: int = 400):
         """Assert response is an error."""
-        assert (
-            response.status_code == expected_status,
-        ), f"Expected {expected_status}, got {response.status_code}: {response.text}"
+        assert (response.status_code == expected_status,), (
+            f"Expected {expected_status}, got {response.status_code}: {response.text}"
+        )
 
 
 class IntegrationTestBase(DatabaseTestBase, APITestBase):

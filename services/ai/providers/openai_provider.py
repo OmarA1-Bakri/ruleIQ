@@ -41,6 +41,7 @@ class OpenAIProvider(AIProvider):
         if self._client is None:
             try:
                 import openai
+
                 self._client = openai.OpenAI(api_key=self._api_key)
             except ImportError:
                 raise ProviderUnavailableError(
@@ -88,14 +89,10 @@ class OpenAIProvider(AIProvider):
                         **kwargs,
                     )
                 )
-                response = await asyncio.wait_for(
-                    generation_task, timeout=config.timeout
-                )
+                response = await asyncio.wait_for(generation_task, timeout=config.timeout)
             except asyncio.TimeoutError:
                 logger.warning(f"OpenAI generation timed out after {config.timeout}s")
-                raise ProviderTimeoutError(
-                    f"OpenAI request timed out after {config.timeout}s"
-                )
+                raise ProviderTimeoutError(f"OpenAI request timed out after {config.timeout}s")
 
             end_time = datetime.now(timezone.utc)
             response_time = (end_time - start_time).total_seconds()
@@ -134,10 +131,12 @@ class OpenAIProvider(AIProvider):
                                 "raw": tc.function.arguments,
                                 "parse_error": str(exc),
                             }
-                    function_calls.append({
-                        "name": tc.function.name,
-                        "args": parsed_args,
-                    })
+                    function_calls.append(
+                        {
+                            "name": tc.function.name,
+                            "args": parsed_args,
+                        }
+                    )
 
             provider_response = ProviderResponse(
                 text=response_text,
@@ -148,17 +147,16 @@ class OpenAIProvider(AIProvider):
                 metadata={
                     "response_time_ms": int(response_time * 1000),
                     "prompt_tokens": getattr(response.usage, "prompt_tokens", 0)
-                    if response.usage else 0,
+                    if response.usage
+                    else 0,
                     "completion_tokens": getattr(response.usage, "completion_tokens", 0)
-                    if response.usage else 0,
+                    if response.usage
+                    else 0,
                 },
                 cached=False,
             )
 
-            logger.info(
-                f"OpenAI response generated in {response_time:.2f}s "
-                f"({tokens_used} tokens)"
-            )
+            logger.info(f"OpenAI response generated in {response_time:.2f}s ({tokens_used} tokens)")
             return provider_response
 
         except (ProviderTimeoutError, ProviderUnavailableError, ProviderQuotaError):

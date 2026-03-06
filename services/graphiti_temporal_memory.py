@@ -278,9 +278,7 @@ class GraphitiTemporalMemory:
                 timeline.append(
                     {
                         "node_id": node_data["node_id"],
-                        "regulation_id": json.loads(node_data["content"])[
-                            "regulation_id",
-                        ],
+                        "regulation_id": json.loads(node_data["content"])["regulation_id",],
                         "description": json.loads(node_data["content"])["description"],
                         "jurisdiction": node_data["jurisdiction"],
                         "change_type": node_data["change_type"],
@@ -342,7 +340,9 @@ class GraphitiTemporalMemory:
 
         # Get changes in window
         timeline = await self.get_regulatory_timeline(
-            jurisdiction=jurisdiction, start_date=start_date, end_date=datetime.now(),
+            jurisdiction=jurisdiction,
+            start_date=start_date,
+            end_date=datetime.now(),
         )
 
         # Group by change type
@@ -359,17 +359,14 @@ class GraphitiTemporalMemory:
             },
             "total_changes": len(timeline),
             "by_type": {
-                change_type: len(changes)
-                for change_type, changes in changes_by_type.items()
+                change_type: len(changes) for change_type, changes in changes_by_type.items()
             },
             "recent_changes": timeline[:10] if timeline else [],
         }
 
         return stats
 
-    async def detect_temporal_patterns(
-        self, lookback_days: int = 90
-    ) -> List[Dict[str, Any]]:
+    async def detect_temporal_patterns(self, lookback_days: int = 90) -> List[Dict[str, Any]]:
         """Detect patterns in regulatory changes over time"""
 
         start_date = datetime.now() - timedelta(days=lookback_days)
@@ -383,8 +380,7 @@ class GraphitiTemporalMemory:
                 [
                     c
                     for c in timeline
-                    if datetime.fromisoformat(c["valid_from"])
-                    > datetime.now() - timedelta(days=30)
+                    if datetime.fromisoformat(c["valid_from"]) > datetime.now() - timedelta(days=30)
                 ],
             )
             older_rate = len(
@@ -459,9 +455,7 @@ class GraphitiTemporalMemory:
             ),
             confidence=data.get("confidence", 1.0),
             source_ids=data.get("source_ids", []),
-            change_type=(
-                ChangeType(data["change_type"]) if data.get("change_type") else None,
-            ),
+            change_type=(ChangeType(data["change_type"]) if data.get("change_type") else None,),
             jurisdiction=data.get("jurisdiction"),
             metadata=(
                 json.loads(data["metadata"])
@@ -549,13 +543,12 @@ class TemporalMemoryIntegration:
 
         # Get upcoming deadlines
         timeline = await self.memory.get_regulatory_timeline(
-            start_date=datetime.now(), end_date=future_date,
+            start_date=datetime.now(),
+            end_date=future_date,
         )
 
         upcoming_deadlines = [
-            change
-            for change in timeline
-            if change.get("metadata", {}).get("effective_date")
+            change for change in timeline if change.get("metadata", {}).get("effective_date")
         ]
 
         return {

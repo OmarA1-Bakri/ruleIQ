@@ -3,6 +3,7 @@ Agent Manager Service - Factory and state management for agents.
 
 Handles agent creation, configuration, and state persistence.
 """
+
 from typing import Dict, List, Optional, Any, Type
 from uuid import UUID, uuid4
 from datetime import datetime
@@ -54,7 +55,7 @@ class AgentManager:
         name: str,
         persona_type: str,
         capabilities: Dict[str, Any],
-        config: Optional[Dict[str, Any]] = None
+        config: Optional[Dict[str, Any]] = None,
     ) -> Agent:
         """Create a new agent with factory."""
         try:
@@ -65,7 +66,7 @@ class AgentManager:
                 persona_type=persona_type,
                 capabilities=capabilities,
                 config=config or {},
-                is_active=True
+                is_active=True,
             )
 
             self.db.add(agent)
@@ -73,10 +74,7 @@ class AgentManager:
             # Create agent instance if type is registered
             try:
                 agent_instance = AgentFactory.create_agent(
-                    persona_type,
-                    agent_id=agent.agent_id,
-                    name=name,
-                    config=config
+                    persona_type, agent_id=agent.agent_id, name=name, config=config
                 )
                 self.loaded_agents[agent.agent_id] = agent_instance
             except ValueError:
@@ -96,9 +94,7 @@ class AgentManager:
     def load_agent_config(self, agent_id: UUID) -> Dict[str, Any]:
         """Load agent configuration from database."""
         try:
-            agent = self.db.query(Agent).filter(
-                Agent.agent_id == agent_id
-            ).first()
+            agent = self.db.query(Agent).filter(Agent.agent_id == agent_id).first()
 
             if not agent:
                 raise ValueError(f"Agent {agent_id} not found")
@@ -109,24 +105,18 @@ class AgentManager:
                 "persona_type": agent.persona_type,
                 "capabilities": agent.capabilities,
                 "config": agent.config,
-                "is_active": agent.is_active
+                "is_active": agent.is_active,
             }
 
         except SQLAlchemyError as e:
             logger.error(f"Failed to load agent config: {e}")
             raise
 
-    def save_agent_state(
-        self,
-        agent_id: UUID,
-        state_data: Dict[str, Any]
-    ) -> bool:
+    def save_agent_state(self, agent_id: UUID, state_data: Dict[str, Any]) -> bool:
         """Persist agent state to database and disk."""
         try:
             # Check if state exists
-            agent_state = self.db.query(AgentState).filter(
-                AgentState.agent_id == agent_id
-            ).first()
+            agent_state = self.db.query(AgentState).filter(AgentState.agent_id == agent_id).first()
 
             if agent_state:
                 # Update existing state
@@ -136,16 +126,13 @@ class AgentManager:
             else:
                 # Create new state
                 agent_state = AgentState(
-                    state_id=uuid4(),
-                    agent_id=agent_id,
-                    state_data=state_data,
-                    version=1
+                    state_id=uuid4(), agent_id=agent_id, state_data=state_data, version=1
                 )
                 self.db.add(agent_state)
 
             # Also save to disk for backup
             state_file = self.state_dir / f"{agent_id}.json"
-            with open(state_file, 'w') as f:
+            with open(state_file, "w") as f:
                 json.dump(state_data, f, default=str)
 
             self.db.commit()
@@ -161,9 +148,12 @@ class AgentManager:
         """Load agent state from database or disk."""
         try:
             # Try database first
-            agent_state = self.db.query(AgentState).filter(
-                AgentState.agent_id == agent_id
-            ).order_by(AgentState.version.desc()).first()
+            agent_state = (
+                self.db.query(AgentState)
+                .filter(AgentState.agent_id == agent_id)
+                .order_by(AgentState.version.desc())
+                .first()
+            )
 
             if agent_state:
                 logger.info(f"Loaded state for agent {agent_id} from database")
@@ -172,7 +162,7 @@ class AgentManager:
             # Fallback to disk
             state_file = self.state_dir / f"{agent_id}.json"
             if state_file.exists():
-                with open(state_file, 'r') as f:
+                with open(state_file, "r") as f:
                     state_data = json.load(f)
                     logger.info(f"Loaded state for agent {agent_id} from disk")
                     return state_data
@@ -184,16 +174,10 @@ class AgentManager:
             logger.error(f"Failed to load agent state: {e}")
             return None
 
-    def update_agent_config(
-        self,
-        agent_id: UUID,
-        config_updates: Dict[str, Any]
-    ) -> bool:
+    def update_agent_config(self, agent_id: UUID, config_updates: Dict[str, Any]) -> bool:
         """Update agent configuration."""
         try:
-            agent = self.db.query(Agent).filter(
-                Agent.agent_id == agent_id
-            ).first()
+            agent = self.db.query(Agent).filter(Agent.agent_id == agent_id).first()
 
             if not agent:
                 logger.warning(f"Agent {agent_id} not found")
@@ -215,9 +199,7 @@ class AgentManager:
             return False
 
     def list_agents(
-        self,
-        persona_type: Optional[str] = None,
-        is_active: Optional[bool] = None
+        self, persona_type: Optional[str] = None, is_active: Optional[bool] = None
     ) -> List[Agent]:
         """List agents with optional filters."""
         try:
@@ -238,9 +220,7 @@ class AgentManager:
     def get_agent_by_id(self, agent_id: UUID) -> Optional[Agent]:
         """Get agent by ID."""
         try:
-            return self.db.query(Agent).filter(
-                Agent.agent_id == agent_id
-            ).first()
+            return self.db.query(Agent).filter(Agent.agent_id == agent_id).first()
 
         except SQLAlchemyError as e:
             logger.error(f"Failed to get agent: {e}")
@@ -251,9 +231,7 @@ class AgentManager:
         try:
             cutoff_date = datetime.utcnow() - timedelta(days=days_to_keep)
 
-            old_states = self.db.query(AgentState).filter(
-                AgentState.updated_at < cutoff_date
-            ).all()
+            old_states = self.db.query(AgentState).filter(AgentState.updated_at < cutoff_date).all()
 
             for state in old_states:
                 self.db.delete(state)
@@ -274,9 +252,7 @@ class AgentManager:
         """Get overall agent statistics."""
         try:
             total_agents = self.db.query(Agent).count()
-            active_agents = self.db.query(Agent).filter(
-                Agent.is_active
-            ).count()
+            active_agents = self.db.query(Agent).filter(Agent.is_active).count()
 
             # Count by persona type
             persona_counts = {}
@@ -290,7 +266,7 @@ class AgentManager:
                 "active_agents": active_agents,
                 "inactive_agents": total_agents - active_agents,
                 "agents_by_type": persona_counts,
-                "loaded_agents": len(self.loaded_agents)
+                "loaded_agents": len(self.loaded_agents),
             }
 
         except SQLAlchemyError as e:

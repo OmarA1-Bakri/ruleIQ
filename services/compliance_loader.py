@@ -87,7 +87,9 @@ class UKComplianceLoader:
                 logger.info(f"Loaded framework: {framework.name}")
 
             except Exception as e:
-                error_msg = f"Failed to load framework {framework_data.get('name', 'unknown')}: {str(e)}"
+                error_msg = (
+                    f"Failed to load framework {framework_data.get('name', 'unknown')}: {str(e)}"
+                )
                 self.errors.append(error_msg)
                 logger.error(error_msg)
 
@@ -217,7 +219,7 @@ class UKComplianceLoader:
 class GeographicValidator:
     """Validator for geographic scope of frameworks"""
 
-#     UK_REGIONS = {"UK", "England", "Scotland", "Wales", "Northern Ireland"}  # Unused variable
+    #     UK_REGIONS = {"UK", "England", "Scotland", "Wales", "Northern Ireland"}  # Unused variable
 
     def validate_uk_scope(self, geographic_scope: List[str]) -> bool:
         """

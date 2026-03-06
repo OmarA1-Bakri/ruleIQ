@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 Development Configuration
 Settings specific to development environment
@@ -66,13 +65,16 @@ class DevelopmentConfig(BaseConfig):
         # Set development defaults if not provided
         defaults = {
             "SECRET_KEY": kwargs.get(
-                "SECRET_KEY", "dev-secret-key-change-in-production",
+                "SECRET_KEY",
+                "dev-secret-key-change-in-production",
             ),
             "JWT_SECRET_KEY": kwargs.get(
-                "JWT_SECRET_KEY", "dev-jwt-secret-key-change-in-production",
+                "JWT_SECRET_KEY",
+                "dev-jwt-secret-key-change-in-production",
             ),
             "DATABASE_URL": kwargs.get(
-                "DATABASE_URL", "postgresql://localhost/ruleiq_dev",
+                "DATABASE_URL",
+                "postgresql://localhost/ruleiq_dev",
             ),
             "REDIS_URL": kwargs.get("REDIS_URL", "redis://localhost:6379/0"),
             "NEO4J_URI": kwargs.get("NEO4J_URI", "neo4j+s://12e71bc4.databases.neo4j.io"),

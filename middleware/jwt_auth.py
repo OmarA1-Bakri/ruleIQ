@@ -18,13 +18,10 @@ import logging
 import re
 
 from config.settings import settings
-from api.dependencies.auth import (
-    is_token_blacklisted,
-    SECRET_KEY,
-    ALGORITHM
-)
+from api.dependencies.auth import is_token_blacklisted, SECRET_KEY, ALGORITHM
 
 logger = logging.getLogger(__name__)
+
 
 class JWTAuthMiddleware:
     """
@@ -40,62 +37,62 @@ class JWTAuthMiddleware:
 
     # Define public paths that don't require authentication
     PUBLIC_PATH_PATTERNS = [
-        r'^/docs.*',
-        r'^/redoc.*',
-        r'^/openapi\.json$',
-        r'^/health$',
-        r'^/api/v1/health.*',
-        r'^/$',  # Root endpoint
-        r'^/api/v1/auth/login$',
-        r'^/api/v1/auth/register$',
-        r'^/api/v1/auth/token$',
-        r'^/api/v1/auth/refresh$',
-        r'^/api/v1/auth/forgot-password$',
-        r'^/api/v1/auth/reset-password$',
-        r'^/api/v1/auth/google.*',  # Google OAuth
-        r'^/api/v1/freemium.*',  # Freemium endpoints
-        r'^/api/test-utils.*',  # Test utilities (dev only)
+        r"^/docs.*",
+        r"^/redoc.*",
+        r"^/openapi\.json$",
+        r"^/health$",
+        r"^/api/v1/health.*",
+        r"^/$",  # Root endpoint
+        r"^/api/v1/auth/login$",
+        r"^/api/v1/auth/register$",
+        r"^/api/v1/auth/token$",
+        r"^/api/v1/auth/refresh$",
+        r"^/api/v1/auth/forgot-password$",
+        r"^/api/v1/auth/reset-password$",
+        r"^/api/v1/auth/google.*",  # Google OAuth
+        r"^/api/v1/freemium.*",  # Freemium endpoints
+        r"^/api/test-utils.*",  # Test utilities (dev only)
     ]
 
     # Critical routes requiring strict authentication (20% coverage target)
     CRITICAL_PROTECTED_ROUTES = [
         # User management endpoints
-        r'^/api/v1/users.*',
+        r"^/api/v1/users.*",
         # Admin endpoints
-        r'^/api/v1/api/admin.*',
-        r'^/api/v1/admin.*',
+        r"^/api/v1/api/admin.*",
+        r"^/api/v1/admin.*",
         # Data export endpoints
-        r'^/api/v1/reports/export.*',
-        r'^/api/v1/evidence/export.*',
-        r'^/api/v1/audit-export.*',
+        r"^/api/v1/reports/export.*",
+        r"^/api/v1/evidence/export.*",
+        r"^/api/v1/audit-export.*",
         # Settings and configuration
-        r'^/api/v1/settings.*',
-        r'^/api/v1/business-profiles.*',
+        r"^/api/v1/settings.*",
+        r"^/api/v1/business-profiles.*",
         # Payment and billing
-        r'^/api/v1/payments.*',
+        r"^/api/v1/payments.*",
         # API key management
-        r'^/api/v1/api-keys.*',
+        r"^/api/v1/api-keys.*",
         # Webhook management
-        r'^/api/v1/webhooks.*',
+        r"^/api/v1/webhooks.*",
         # Secrets vault
-        r'^/api/v1/secrets.*',
+        r"^/api/v1/secrets.*",
         # Compliance and assessments (write operations)
-        r'^/api/v1/assessments.*',
-        r'^/api/v1/compliance.*',
-        r'^/api/v1/policies.*',
+        r"^/api/v1/assessments.*",
+        r"^/api/v1/compliance.*",
+        r"^/api/v1/policies.*",
         # AI endpoints (cost-sensitive)
-        r'^/api/v1/ai/.*',
-        r'^/api/v1/iq-agent.*',
-        r'^/api/v1/agentic-rag.*',
+        r"^/api/v1/ai/.*",
+        r"^/api/v1/iq-agent.*",
+        r"^/api/v1/agentic-rag.*",
         # Integration management
-        r'^/api/v1/integrations.*',
+        r"^/api/v1/integrations.*",
         # Dashboard data
-        r'^/api/dashboard$',
-        r'^/api/v1/dashboard.*',
+        r"^/api/dashboard$",
+        r"^/api/v1/dashboard.*",
         # Monitoring and security
-        r'^/api/v1/monitoring.*',
-        r'^/api/v1/security.*',
-        r'^/api/v1/performance.*',
+        r"^/api/v1/monitoring.*",
+        r"^/api/v1/security.*",
+        r"^/api/v1/performance.*",
     ]
 
     def __init__(
@@ -104,7 +101,7 @@ class JWTAuthMiddleware:
         enable_rate_limiting: bool = True,
         enable_audit_logging: bool = True,
         custom_public_paths: Optional[List[str]] = None,
-        custom_protected_paths: Optional[List[str]] = None
+        custom_protected_paths: Optional[List[str]] = None,
     ) -> None:
         """
         Initialize JWT middleware with configuration options.
@@ -121,21 +118,17 @@ class JWTAuthMiddleware:
         self.enable_audit_logging = enable_audit_logging
 
         # Compile regex patterns for efficiency
-        self.public_patterns = [
-            re.compile(pattern) for pattern in self.PUBLIC_PATH_PATTERNS
-        ]
+        self.public_patterns = [re.compile(pattern) for pattern in self.PUBLIC_PATH_PATTERNS]
         if custom_public_paths:
-            self.public_patterns.extend([
-                re.compile(pattern) for pattern in custom_public_paths
-            ])
+            self.public_patterns.extend([re.compile(pattern) for pattern in custom_public_paths])
 
         self.protected_patterns = [
             re.compile(pattern) for pattern in self.CRITICAL_PROTECTED_ROUTES
         ]
         if custom_protected_paths:
-            self.protected_patterns.extend([
-                re.compile(pattern) for pattern in custom_protected_paths
-            ])
+            self.protected_patterns.extend(
+                [re.compile(pattern) for pattern in custom_protected_paths]
+            )
 
         # Rate limiting storage (in production, use Redis)
         self.auth_attempts: Dict[str, List[float]] = {}
@@ -168,7 +161,8 @@ class JWTAuthMiddleware:
         # Clean up old attempts
         if identifier in self.auth_attempts:
             self.auth_attempts[identifier] = [
-                t for t in self.auth_attempts[identifier]
+                t
+                for t in self.auth_attempts[identifier]
                 if current_time - t < self.rate_limit_window
             ]
 
@@ -204,12 +198,12 @@ class JWTAuthMiddleware:
             payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
 
             # Validate token type
-            if payload.get('type') != 'access':
+            if payload.get("type") != "access":
                 logger.warning(f"Invalid token type: {payload.get('type')}")
                 return None
 
             # Check expiration
-            exp = payload.get('exp')
+            exp = payload.get("exp")
             if exp:
                 exp_datetime = datetime.fromtimestamp(exp, tz=timezone.utc)
                 current_time = datetime.now(timezone.utc)
@@ -241,22 +235,22 @@ class JWTAuthMiddleware:
         event_type: str,
         success: bool,
         user_id: Optional[str] = None,
-        details: Optional[Dict[str, Any]] = None
+        details: Optional[Dict[str, Any]] = None,
     ):
         """Log authentication events for audit purposes."""
         if not self.enable_audit_logging:
             return
 
         log_entry = {
-            'timestamp': datetime.now(timezone.utc).isoformat(),
-            'event_type': event_type,
-            'success': success,
-            'path': request.url.path,
-            'method': request.method,
-            'client_ip': request.client.host if request.client else None,
-            'user_agent': request.headers.get('User-Agent'),
-            'user_id': user_id,
-            'details': details or {}
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "event_type": event_type,
+            "success": success,
+            "path": request.url.path,
+            "method": request.method,
+            "client_ip": request.client.host if request.client else None,
+            "user_agent": request.headers.get("User-Agent"),
+            "user_id": user_id,
+            "details": details or {},
         }
 
         if success:
@@ -285,78 +279,74 @@ class JWTAuthMiddleware:
         is_critical = self.is_critical_path(path)
 
         # Extract token from Authorization header
-        auth_header = request.headers.get('Authorization')
-        if not auth_header or not auth_header.startswith('Bearer '):
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
             if is_critical or self.enable_strict_mode:
                 await self.log_auth_event(
-                    request, 'MISSING_TOKEN', False,
-                    details={'reason': 'No Authorization header'}
+                    request, "MISSING_TOKEN", False, details={"reason": "No Authorization header"}
                 )
                 return JSONResponse(
                     status_code=status.HTTP_401_UNAUTHORIZED,
-                    content={'detail': 'Authentication required'},
-                    headers={'WWW-Authenticate': 'Bearer'}
+                    content={"detail": "Authentication required"},
+                    headers={"WWW-Authenticate": "Bearer"},
                 )
             # Allow non-critical routes without auth if not in strict mode
             return await call_next(request)
 
         # Extract and validate token
-        token = auth_header.replace('Bearer ', '').strip()
+        token = auth_header.replace("Bearer ", "").strip()
 
         # Check rate limiting for authentication endpoints
-        if path.startswith('/api/v1/auth/'):
-            client_ip = request.client.host if request.client else 'unknown'
+        if path.startswith("/api/v1/auth/"):
+            client_ip = request.client.host if request.client else "unknown"
             if self.check_rate_limit(client_ip):
                 await self.log_auth_event(
-                    request, 'RATE_LIMIT_EXCEEDED', False,
-                    details={'client_ip': client_ip}
+                    request, "RATE_LIMIT_EXCEEDED", False, details={"client_ip": client_ip}
                 )
                 return JSONResponse(
                     status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                    content={'detail': 'Too many authentication attempts. Please try again later.'}
+                    content={"detail": "Too many authentication attempts. Please try again later."},
                 )
 
         # Validate token
         payload = await self.validate_jwt_token(token)
         if not payload:
             await self.log_auth_event(
-                request, 'INVALID_TOKEN', False,
-                details={'reason': 'Token validation failed'}
+                request, "INVALID_TOKEN", False, details={"reason": "Token validation failed"}
             )
             return JSONResponse(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                content={'detail': 'Invalid or expired token'},
-                headers={'WWW-Authenticate': 'Bearer'}
+                content={"detail": "Invalid or expired token"},
+                headers={"WWW-Authenticate": "Bearer"},
             )
 
         # Store user information in request state
-        request.state.user_id = payload.get('sub')
+        request.state.user_id = payload.get("sub")
         request.state.token_payload = payload
         request.state.is_authenticated = True
 
         # Log successful authentication
         await self.log_auth_event(
-            request, 'AUTHENTICATION_SUCCESS', True,
-            user_id=request.state.user_id
+            request, "AUTHENTICATION_SUCCESS", True, user_id=request.state.user_id
         )
 
         # Process request
         response = await call_next(request)
 
         # Add security headers to response
-        response.headers['X-Content-Type-Options'] = 'nosniff'
-        response.headers['X-Frame-Options'] = 'DENY'
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
 
         # Add token expiry warning header if applicable
-        exp = payload.get('exp')
+        exp = payload.get("exp")
         if exp:
             exp_datetime = datetime.fromtimestamp(exp, tz=timezone.utc)
             current_time = datetime.now(timezone.utc)
             time_until_expiry = (exp_datetime - current_time).total_seconds()
 
             if time_until_expiry < 300:  # Less than 5 minutes
-                response.headers['X-Token-Expires-In'] = str(int(time_until_expiry))
-                response.headers['X-Token-Refresh-Recommended'] = 'true'
+                response.headers["X-Token-Expires-In"] = str(int(time_until_expiry))
+                response.headers["X-Token-Refresh-Recommended"] = "true"
 
         return response
 

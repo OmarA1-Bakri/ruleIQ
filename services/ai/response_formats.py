@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 Structured Output Format Definitions for Google Gemini API
 

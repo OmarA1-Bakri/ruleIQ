@@ -2,6 +2,7 @@
 Enhanced Rate Limiting Middleware with Token Bucket Algorithm
 Implements burst allowance, IP/user-based limiting, and hot-reload configuration
 """
+
 import time
 import asyncio
 from typing import Optional, Dict, Any
@@ -20,10 +21,7 @@ class TokenBucket:
     """Token bucket algorithm for rate limiting with burst support"""
 
     def __init__(
-        self,
-        capacity: int,
-        refill_rate: float,
-        initial_tokens: Optional[int] = None
+        self, capacity: int, refill_rate: float, initial_tokens: Optional[int] = None
     ) -> None:
         self.capacity = capacity
         self.refill_rate = refill_rate  # tokens per second
@@ -54,7 +52,7 @@ class TokenBucket:
             "capacity": self.capacity,
             "refill_rate": self.refill_rate,
             "tokens": self.tokens,
-            "last_refill": self.last_refill
+            "last_refill": self.last_refill,
         }
 
     @classmethod
@@ -63,7 +61,7 @@ class TokenBucket:
         bucket = cls(
             capacity=data["capacity"],
             refill_rate=data["refill_rate"],
-            initial_tokens=data["tokens"]
+            initial_tokens=data["tokens"],
         )
         bucket.last_refill = data["last_refill"]
         return bucket
@@ -149,10 +147,7 @@ class EnhancedRateLimiter(BaseHTTPMiddleware):
 
         # Apply rate limiting
         rate_limit_result = await self._check_rate_limit(
-            request=request,
-            ip_address=ip_address,
-            user_id=user_id,
-            limit_config=limit_config
+            request=request, ip_address=ip_address, user_id=user_id, limit_config=limit_config
         )
 
         if not rate_limit_result["allowed"]:
@@ -161,7 +156,7 @@ class EnhancedRateLimiter(BaseHTTPMiddleware):
             raise HTTPException(
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
                 detail="Rate limit exceeded",
-                headers=headers
+                headers=headers,
             )
 
         # Process request
@@ -180,7 +175,7 @@ class EnhancedRateLimiter(BaseHTTPMiddleware):
         request: Request,
         ip_address: str,
         user_id: Optional[str],
-        limit_config: Dict[str, int]
+        limit_config: Dict[str, int],
     ) -> Dict[str, Any]:
         """Check if request is within rate limits"""
 
@@ -191,7 +186,7 @@ class EnhancedRateLimiter(BaseHTTPMiddleware):
             ip_result = await self._check_bucket(
                 key=f"rate:ip:{ip_address}:{request.url.path}",
                 limit=limit_config["limit"],
-                burst=limit_config["burst"]
+                burst=limit_config["burst"],
             )
             results.append(ip_result)
 
@@ -200,7 +195,7 @@ class EnhancedRateLimiter(BaseHTTPMiddleware):
             user_result = await self._check_bucket(
                 key=f"rate:user:{user_id}:{request.url.path}",
                 limit=limit_config["limit"],
-                burst=limit_config["burst"]
+                burst=limit_config["burst"],
             )
             results.append(user_result)
 
@@ -209,7 +204,7 @@ class EnhancedRateLimiter(BaseHTTPMiddleware):
             ip_result = await self._check_bucket(
                 key=f"rate:ip:{ip_address}:{request.url.path}",
                 limit=limit_config["limit"],
-                burst=limit_config["burst"]
+                burst=limit_config["burst"],
             )
             results.append(ip_result)
 
@@ -226,12 +221,7 @@ class EnhancedRateLimiter(BaseHTTPMiddleware):
 
         return result
 
-    async def _check_bucket(
-        self,
-        key: str,
-        limit: int,
-        burst: int
-    ) -> Dict[str, Any]:
+    async def _check_bucket(self, key: str, limit: int, burst: int) -> Dict[str, Any]:
         """Check token bucket for rate limiting"""
 
         # Calculate bucket parameters
@@ -259,7 +249,7 @@ class EnhancedRateLimiter(BaseHTTPMiddleware):
                     "limit": limit,
                     "burst": burst,
                     "remaining": int(bucket.tokens),
-                    "reset": int(time.time() + (capacity - bucket.tokens) / refill_rate)
+                    "reset": int(time.time() + (capacity - bucket.tokens) / refill_rate),
                 }
 
             except Exception as e:
@@ -277,7 +267,7 @@ class EnhancedRateLimiter(BaseHTTPMiddleware):
             "limit": limit,
             "burst": burst,
             "remaining": int(bucket.tokens),
-            "reset": int(time.time() + (capacity - bucket.tokens) / refill_rate)
+            "reset": int(time.time() + (capacity - bucket.tokens) / refill_rate),
         }
 
     async def _get_redis_bucket(self, key: str) -> Optional[Dict[str, Any]]:
@@ -299,11 +289,7 @@ class EnhancedRateLimiter(BaseHTTPMiddleware):
             return
 
         # Set with TTL of 1 hour (buckets reset if not used)
-        await self.redis_breaker.set(
-            key,
-            json.dumps(bucket_data),
-            ex=3600
-        )
+        await self.redis_breaker.set(key, json.dumps(bucket_data), ex=3600)
 
     def _get_endpoint_limit(self, path: str) -> Dict[str, int]:
         """Get rate limit configuration for endpoint"""
@@ -320,10 +306,7 @@ class EnhancedRateLimiter(BaseHTTPMiddleware):
                     return config
 
         # Return default limits
-        return {
-            "limit": self.default_rate_limit,
-            "burst": self.default_burst_size
-        }
+        return {"limit": self.default_rate_limit, "burst": self.default_burst_size}
 
     def _get_client_ip(self, request: Request) -> str:
         """Get client IP address from request"""

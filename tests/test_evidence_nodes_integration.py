@@ -1,7 +1,5 @@
 """Integration tests for evidence_nodes module."""
 
-from __future__ import annotations
-
 import asyncio
 from datetime import datetime, timedelta, timezone
 from typing import Any, AsyncGenerator, Dict
@@ -78,7 +76,8 @@ class TestEvidenceCollectionNodeIntegration:
         mock_detector = Mock()
 
         node = EvidenceCollectionNode(
-            processor=mock_processor, duplicate_detector=mock_detector,
+            processor=mock_processor,
+            duplicate_detector=mock_detector,
         )
 
         assert node.processor == mock_processor

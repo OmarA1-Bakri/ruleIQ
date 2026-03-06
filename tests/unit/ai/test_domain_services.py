@@ -29,10 +29,10 @@ def mock_response_parser():
     """Mock response parser."""
     parser = Mock()
     parser.parse_assessment_help.return_value = {
-        'guidance': 'Test guidance',
-        'confidence_score': 0.9
+        "guidance": "Test guidance",
+        "confidence_score": 0.9,
     }
-    parser.parse_json.return_value = {'key': 'value'}
+    parser.parse_json.return_value = {"key": "value"}
     return parser
 
 
@@ -41,14 +41,11 @@ def mock_fallback_generator():
     """Mock fallback generator."""
     generator = Mock()
     generator.get_assessment_help.return_value = {
-        'guidance': 'Fallback guidance',
-        'confidence_score': 0.5,
-        'is_fallback': True
+        "guidance": "Fallback guidance",
+        "confidence_score": 0.5,
+        "is_fallback": True,
     }
-    generator.get_workflow.return_value = {
-        'workflow_id': 'test',
-        'phases': []
-    }
+    generator.get_workflow.return_value = {"workflow_id": "test", "phases": []}
     return generator
 
 
@@ -57,15 +54,13 @@ def mock_context_manager():
     """Mock context manager."""
     manager = AsyncMock()
     manager.get_business_context.return_value = {
-        'company_name': 'Test Corp',
-        'industry': 'Technology',
-        'employee_count': 50
+        "company_name": "Test Corp",
+        "industry": "Technology",
+        "employee_count": 50,
     }
     manager.get_conversation_context.return_value = {
-        'business_profile': {
-            'company_name': 'Test Corp'
-        },
-        'recent_evidence': []
+        "business_profile": {"company_name": "Test Corp"},
+        "recent_evidence": [],
     }
     return manager
 
@@ -89,7 +84,7 @@ class TestAssessmentService:
         mock_response_parser,
         mock_fallback_generator,
         mock_context_manager,
-        mock_prompt_templates
+        mock_prompt_templates,
     ):
         """Create assessment service with mocks."""
         return AssessmentService(
@@ -99,35 +94,31 @@ class TestAssessmentService:
             mock_context_manager,
             mock_prompt_templates,
             None,  # ai_cache
-            None   # analytics_monitor
+            None,  # analytics_monitor
         )
 
     async def test_get_help(self, assessment_service):
         """Test getting assessment help."""
         help_response = await assessment_service.get_help(
-            question_id='Q1',
-            question_text='What is GDPR?',
-            framework_id='GDPR',
+            question_id="Q1",
+            question_text="What is GDPR?",
+            framework_id="GDPR",
             business_profile_id=uuid4(),
-            section_id='S1'
+            section_id="S1",
         )
 
-        assert 'guidance' in help_response
+        assert "guidance" in help_response
         assert isinstance(help_response, dict)
 
     async def test_get_help_with_cache(self, assessment_service):
         """Test cached help retrieval."""
         mock_cache = AsyncMock()
-        mock_cache.get_cached_response.return_value = {
-            'response': {'guidance': 'Cached guidance'}
-        }
+        mock_cache.get_cached_response.return_value = {"response": {"guidance": "Cached guidance"}}
         assessment_service.ai_cache = mock_cache
 
-        help_response = await assessment_service.get_help(
-            'Q1', 'Test', 'GDPR', uuid4()
-        )
+        help_response = await assessment_service.get_help("Q1", "Test", "GDPR", uuid4())
 
-        assert help_response['guidance'] == 'Cached guidance'
+        assert help_response["guidance"] == "Cached guidance"
 
     async def test_get_help_timeout_fallback(self, assessment_service, mock_fallback_generator):
         """Test fallback on timeout."""
@@ -135,39 +126,29 @@ class TestAssessmentService:
             side_effect=TimeoutError()
         )
 
-        help_response = await assessment_service.get_help(
-            'Q1', 'Test', 'GDPR', uuid4()
-        )
+        help_response = await assessment_service.get_help("Q1", "Test", "GDPR", uuid4())
 
-        assert help_response['is_fallback'] is True
+        assert help_response["is_fallback"] is True
 
     async def test_generate_followup(self, assessment_service):
         """Test generating follow-up questions."""
         followup = await assessment_service.generate_followup(
-            current_answers={'Q1': 'Yes'},
-            framework_id='GDPR',
-            business_profile_id=uuid4()
+            current_answers={"Q1": "Yes"}, framework_id="GDPR", business_profile_id=uuid4()
         )
 
         assert isinstance(followup, dict)
 
     async def test_analyze_results(self, assessment_service):
         """Test analyzing assessment results."""
-        results = {'Q1': 'Yes', 'Q2': 'No'}
-        analysis = await assessment_service.analyze_results(
-            results,
-            'GDPR',
-            uuid4()
-        )
+        results = {"Q1": "Yes", "Q2": "No"}
+        analysis = await assessment_service.analyze_results(results, "GDPR", uuid4())
 
         assert isinstance(analysis, dict)
 
     async def test_get_recommendations(self, assessment_service):
         """Test getting recommendations."""
         recommendations = await assessment_service.get_recommendations(
-            assessment_results={'Q1': 'Yes'},
-            framework_id='GDPR',
-            business_profile_id=uuid4()
+            assessment_results={"Q1": "Yes"}, framework_id="GDPR", business_profile_id=uuid4()
         )
 
         assert isinstance(recommendations, dict)
@@ -183,14 +164,14 @@ class TestPolicyService:
         mock_response_generator,
         mock_response_parser,
         mock_fallback_generator,
-        mock_context_manager
+        mock_context_manager,
     ):
         """Create policy service with mocks."""
         return PolicyService(
             mock_response_generator,
             mock_response_parser,
             mock_fallback_generator,
-            mock_context_manager
+            mock_context_manager,
         )
 
     async def test_generate_policy(self, policy_service):
@@ -199,10 +180,7 @@ class TestPolicyService:
         user.id = uuid4()
 
         policy = await policy_service.generate_policy(
-            user=user,
-            business_profile_id=uuid4(),
-            framework='GDPR',
-            policy_type='Data Protection'
+            user=user, business_profile_id=uuid4(), framework="GDPR", policy_type="Data Protection"
         )
 
         assert isinstance(policy, dict)
@@ -215,9 +193,9 @@ class TestPolicyService:
         policy = await policy_service.generate_policy(
             user=user,
             business_profile_id=uuid4(),
-            framework='ISO27001',
-            policy_type='Access Control',
-            customization_options={'tone': 'formal'}
+            framework="ISO27001",
+            policy_type="Access Control",
+            customization_options={"tone": "formal"},
         )
 
         assert isinstance(policy, dict)
@@ -233,14 +211,14 @@ class TestWorkflowService:
         mock_response_generator,
         mock_response_parser,
         mock_fallback_generator,
-        mock_context_manager
+        mock_context_manager,
     ):
         """Create workflow service with mocks."""
         return WorkflowService(
             mock_response_generator,
             mock_response_parser,
             mock_fallback_generator,
-            mock_context_manager
+            mock_context_manager,
         )
 
     async def test_generate_workflow(self, workflow_service):
@@ -249,23 +227,17 @@ class TestWorkflowService:
         user.id = uuid4()
 
         workflow = await workflow_service.generate_workflow(
-            user=user,
-            business_profile_id=uuid4(),
-            framework='ISO27001',
-            control_id='A.9.1'
+            user=user, business_profile_id=uuid4(), framework="ISO27001", control_id="A.9.1"
         )
 
         assert isinstance(workflow, dict)
-        assert 'workflow_id' in workflow or 'phases' in workflow
+        assert "workflow_id" in workflow or "phases" in workflow
 
     async def test_generate_workflow_comprehensive(self, workflow_service):
         """Test comprehensive workflow generation."""
         user = Mock()
         workflow = await workflow_service.generate_workflow(
-            user=user,
-            business_profile_id=uuid4(),
-            framework='GDPR',
-            workflow_type='comprehensive'
+            user=user, business_profile_id=uuid4(), framework="GDPR", workflow_type="comprehensive"
         )
 
         assert isinstance(workflow, dict)
@@ -281,14 +253,14 @@ class TestEvidenceService:
         mock_response_generator,
         mock_response_parser,
         mock_fallback_generator,
-        mock_context_manager
+        mock_context_manager,
     ):
         """Create evidence service with mocks."""
         return EvidenceService(
             mock_response_generator,
             mock_response_parser,
             mock_fallback_generator,
-            mock_context_manager
+            mock_context_manager,
         )
 
     async def test_get_recommendations(self, evidence_service):
@@ -297,9 +269,7 @@ class TestEvidenceService:
         user.id = uuid4()
 
         recommendations = await evidence_service.get_recommendations(
-            user=user,
-            business_profile_id=uuid4(),
-            framework='GDPR'
+            user=user, business_profile_id=uuid4(), framework="GDPR"
         )
 
         assert isinstance(recommendations, dict)
@@ -308,10 +278,7 @@ class TestEvidenceService:
         """Test evidence recommendations for specific control."""
         user = Mock()
         recommendations = await evidence_service.get_recommendations(
-            user=user,
-            business_profile_id=uuid4(),
-            framework='ISO27001',
-            control_id='A.9.1'
+            user=user, business_profile_id=uuid4(), framework="ISO27001", control_id="A.9.1"
         )
 
         assert isinstance(recommendations, dict)
@@ -322,22 +289,14 @@ class TestComplianceAnalysisService:
     """Test compliance analysis service."""
 
     @pytest.fixture
-    def compliance_service(
-        self,
-        mock_response_generator,
-        mock_context_manager
-    ):
+    def compliance_service(self, mock_response_generator, mock_context_manager):
         """Create compliance analysis service with mocks."""
-        return ComplianceAnalysisService(
-            mock_response_generator,
-            mock_context_manager
-        )
+        return ComplianceAnalysisService(mock_response_generator, mock_context_manager)
 
     async def test_analyze_evidence_gap(self, compliance_service):
         """Test evidence gap analysis."""
         analysis = await compliance_service.analyze_evidence_gap(
-            business_profile_id=uuid4(),
-            framework='GDPR'
+            business_profile_id=uuid4(), framework="GDPR"
         )
 
         assert isinstance(analysis, dict)
@@ -345,21 +304,18 @@ class TestComplianceAnalysisService:
     async def test_validate_accuracy(self, compliance_service):
         """Test accuracy validation."""
         validation = compliance_service.validate_accuracy(
-            response='GDPR requires data minimization',
-            framework='GDPR'
+            response="GDPR requires data minimization", framework="GDPR"
         )
 
         assert isinstance(validation, dict)
-        assert 'is_accurate' in validation or 'accuracy_score' in validation
+        assert "is_accurate" in validation or "accuracy_score" in validation
 
     async def test_detect_hallucination(self, compliance_service):
         """Test hallucination detection."""
-        detection = compliance_service.detect_hallucination(
-            response='GDPR Article 999 requires...'
-        )
+        detection = compliance_service.detect_hallucination(response="GDPR Article 999 requires...")
 
         assert isinstance(detection, dict)
-        assert 'likely_hallucination' in detection or 'confidence' in detection
+        assert "likely_hallucination" in detection or "confidence" in detection
 
 
 @pytest.mark.integration
@@ -378,7 +334,7 @@ class TestDomainServicesIntegration:
         mock_response_parser,
         mock_fallback_generator,
         mock_context_manager,
-        mock_prompt_templates
+        mock_prompt_templates,
     ):
         """Test all services can be instantiated."""
         assessment = AssessmentService(
@@ -386,30 +342,27 @@ class TestDomainServicesIntegration:
             mock_response_parser,
             mock_fallback_generator,
             mock_context_manager,
-            mock_prompt_templates
+            mock_prompt_templates,
         )
         policy = PolicyService(
             mock_response_generator,
             mock_response_parser,
             mock_fallback_generator,
-            mock_context_manager
+            mock_context_manager,
         )
         workflow = WorkflowService(
             mock_response_generator,
             mock_response_parser,
             mock_fallback_generator,
-            mock_context_manager
+            mock_context_manager,
         )
         evidence = EvidenceService(
             mock_response_generator,
             mock_response_parser,
             mock_fallback_generator,
-            mock_context_manager
+            mock_context_manager,
         )
-        compliance = ComplianceAnalysisService(
-            mock_response_generator,
-            mock_context_manager
-        )
+        compliance = ComplianceAnalysisService(mock_response_generator, mock_context_manager)
 
         assert assessment is not None
         assert policy is not None

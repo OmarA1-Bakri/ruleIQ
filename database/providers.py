@@ -4,6 +4,7 @@ Database provider interface and implementations.
 This module provides the core database provider abstractions and concrete
 implementations for PostgreSQL and Neo4j databases with dependency injection support.
 """
+
 import asyncio
 import logging
 import os
@@ -24,6 +25,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class ConnectionHealth:
     """Represents the health status of a database connection."""
+
     status: str  # "healthy", "unhealthy", "degraded"
     details: Dict[str, Any]
     timestamp: Optional[float] = None
@@ -40,7 +42,7 @@ class DatabaseError(Exception):
         self,
         message: str,
         details: Optional[Dict[str, Any]] = None,
-        cause: Optional[Exception] = None
+        cause: Optional[Exception] = None,
     ) -> None:
         super().__init__(message)
         self.details = details or {}
@@ -89,9 +91,7 @@ class DatabaseConfig:
         elif provider_type == "neo4j":
             return Neo4jProvider()
         else:
-            raise ValueError(
-                "Unsupported provider type: %s" % provider_type
-            )
+            raise ValueError("Unsupported provider type: %s" % provider_type)
 
 
 class PostgreSQLProvider(DatabaseProvider):
@@ -126,7 +126,7 @@ class PostgreSQLProvider(DatabaseProvider):
                 class_=AsyncSession,
                 expire_on_commit=False,
                 autocommit=False,
-                autoflush=False
+                autoflush=False,
             )
 
             self._initialized = True
@@ -134,9 +134,7 @@ class PostgreSQLProvider(DatabaseProvider):
             return True
 
         except (ImportError, ConnectionError, ValueError):
-            logger.exception(
-                "Failed to initialize PostgreSQL provider"
-            )
+            logger.exception("Failed to initialize PostgreSQL provider")
             return False
 
     async def close(self) -> None:
@@ -151,10 +149,7 @@ class PostgreSQLProvider(DatabaseProvider):
     async def health_check(self) -> ConnectionHealth:
         """Check PostgreSQL connection health."""
         if not self._initialized:
-            return ConnectionHealth(
-                status="unhealthy",
-                details={"error": "Not initialized"}
-            )
+            return ConnectionHealth(status="unhealthy", details={"error": "Not initialized"})
 
         start_time = time.time()
         try:
@@ -167,36 +162,28 @@ class PostgreSQLProvider(DatabaseProvider):
                 if row and row.health_check == 1:
                     # Check connection pool stats
                     pool_details = {}
-                    if hasattr(self.engine, 'pool'):
+                    if hasattr(self.engine, "pool"):
                         pool = self.engine.pool
                         pool_details = {
-                            "pool_size": getattr(pool, 'size', lambda: 0)(),
-                            "checked_in": getattr(pool, 'checkedin', lambda: 0)(),
-                            "checked_out": getattr(pool, 'checkedout', lambda: 0)(),
-                            "overflow": getattr(pool, 'overflow', lambda: 0)(),
+                            "pool_size": getattr(pool, "size", lambda: 0)(),
+                            "checked_in": getattr(pool, "checkedin", lambda: 0)(),
+                            "checked_out": getattr(pool, "checkedout", lambda: 0)(),
+                            "overflow": getattr(pool, "overflow", lambda: 0)(),
                         }
 
                     return ConnectionHealth(
                         status="healthy",
-                        details={
-                            "response_time": response_time,
-                            "pool_stats": pool_details
-                        }
+                        details={"response_time": response_time, "pool_stats": pool_details},
                     )
                 else:
                     return ConnectionHealth(
-                        status="unhealthy",
-                        details={"error": "Health check query failed"}
+                        status="unhealthy", details={"error": "Health check query failed"}
                     )
 
         except (ConnectionError, TimeoutError, ValueError) as e:
             response_time = time.time() - start_time
             return ConnectionHealth(
-                status="unhealthy",
-                details={
-                    "error": str(e),
-                    "response_time": response_time
-                }
+                status="unhealthy", details={"error": str(e), "response_time": response_time}
             )
 
     async def execute_query(
@@ -215,13 +202,9 @@ class PostgreSQLProvider(DatabaseProvider):
                 return [dict(row._mapping) for row in rows]
 
         except (ConnectionError, TimeoutError, ValueError) as e:
-            logger.exception(
-                "PostgreSQL query execution failed: %s", e
-            )
+            logger.exception("PostgreSQL query execution failed: %s", e)
             raise DatabaseError(
-                "Query execution failed: %s" % e,
-                {"query": query, "params": params},
-                e
+                "Query execution failed: %s" % e, {"query": query, "params": params}, e
             )
 
     async def execute_transaction(self, queries: List[Dict[str, Any]]) -> bool:
@@ -241,14 +224,8 @@ class PostgreSQLProvider(DatabaseProvider):
                 return True
 
         except (ConnectionError, TimeoutError, ValueError) as e:
-            logger.exception(
-                "PostgreSQL transaction failed: %s", e
-            )
-            raise DatabaseError(
-                "Transaction failed: %s" % e,
-                {"queries": queries},
-                e
-            )
+            logger.exception("PostgreSQL transaction failed: %s", e)
+            raise DatabaseError("Transaction failed: %s" % e, {"queries": queries}, e)
 
 
 class Neo4jProvider(DatabaseProvider):
@@ -258,7 +235,7 @@ class Neo4jProvider(DatabaseProvider):
         self.driver = None
         self._initialized = False
         self._executor = None
-        self._database = os.getenv('NEO4J_DATABASE', 'neo4j')
+        self._database = os.getenv("NEO4J_DATABASE", "neo4j")
 
     async def initialize(self) -> bool:
         """Initialize Neo4j connection."""
@@ -267,9 +244,9 @@ class Neo4jProvider(DatabaseProvider):
                 return True
 
             # Get Neo4j configuration from environment
-            uri = os.getenv('NEO4J_URI')
-            username = os.getenv('NEO4J_USERNAME')
-            password = os.getenv('NEO4J_PASSWORD')
+            uri = os.getenv("NEO4J_URI")
+            username = os.getenv("NEO4J_USERNAME")
+            password = os.getenv("NEO4J_PASSWORD")
 
             if not uri or not username or not password:
                 raise ValueError(
@@ -283,11 +260,12 @@ class Neo4jProvider(DatabaseProvider):
                 auth=(username, password),
                 max_connection_lifetime=3600,
                 max_connection_pool_size=50,
-                connection_acquisition_timeout=60
+                connection_acquisition_timeout=60,
             )
 
             # Create thread pool executor for async operations
             import concurrent.futures
+
             self._executor = concurrent.futures.ThreadPoolExecutor(max_workers=10)
 
             # Test connection
@@ -299,9 +277,7 @@ class Neo4jProvider(DatabaseProvider):
             return True
 
         except (ImportError, ConnectionError, neo4j.exceptions.Neo4jError):
-            logger.exception(
-                "Failed to initialize Neo4j provider"
-            )
+            logger.exception("Failed to initialize Neo4j provider")
             return False
 
     async def _test_connection(self) -> bool:
@@ -310,6 +286,7 @@ class Neo4jProvider(DatabaseProvider):
             return False
 
         try:
+
             def _test():
                 with self.driver.session(database=self._database) as session:
                     result = session.run("RETURN 1 as test")
@@ -338,43 +315,31 @@ class Neo4jProvider(DatabaseProvider):
     async def health_check(self) -> ConnectionHealth:
         """Check Neo4j connection health."""
         if not self._initialized:
-            return ConnectionHealth(
-                status="unhealthy",
-                details={"error": "Not initialized"}
-            )
+            return ConnectionHealth(status="unhealthy", details={"error": "Not initialized"})
 
         start_time = time.time()
         try:
+
             def _health_check():
                 with self.driver.session(database=self._database) as session:
                     result = session.run("RETURN 1 as health_check")
                     record = result.single()
                     return record and record["health_check"] == 1
 
-            success = await asyncio.get_event_loop().run_in_executor(
-                self._executor, _health_check
-            )
+            success = await asyncio.get_event_loop().run_in_executor(self._executor, _health_check)
             response_time = time.time() - start_time
 
             if success:
-                return ConnectionHealth(
-                    status="healthy",
-                    details={"response_time": response_time}
-                )
+                return ConnectionHealth(status="healthy", details={"response_time": response_time})
             else:
                 return ConnectionHealth(
-                    status="unhealthy",
-                    details={"error": "Health check query failed"}
+                    status="unhealthy", details={"error": "Health check query failed"}
                 )
 
         except (ConnectionError, TimeoutError, ValueError) as e:
             response_time = time.time() - start_time
             return ConnectionHealth(
-                status="unhealthy",
-                details={
-                    "error": str(e),
-                    "response_time": response_time
-                }
+                status="unhealthy", details={"error": str(e), "response_time": response_time}
             )
 
     async def execute_query(
@@ -385,23 +350,18 @@ class Neo4jProvider(DatabaseProvider):
             raise DatabaseError("Neo4j provider not initialized")
 
         try:
+
             def _execute():
                 with self.driver.session(database=self._database) as session:
                     result = session.run(query, params or {})
                     return [record.data() for record in result]
 
-            return await asyncio.get_event_loop().run_in_executor(
-                self._executor, _execute
-            )
+            return await asyncio.get_event_loop().run_in_executor(self._executor, _execute)
 
         except (neo4j.exceptions.Neo4jError, ConnectionError) as e:
-            logger.exception(
-                "Neo4j query execution failed: %s", e
-            )
+            logger.exception("Neo4j query execution failed: %s", e)
             raise DatabaseError(
-                "Query execution failed: %s" % e,
-                {"query": query, "params": params},
-                e
+                "Query execution failed: %s" % e, {"query": query, "params": params}, e
             )
 
     async def execute_transaction(self, queries: List[Dict[str, Any]]) -> bool:
@@ -410,6 +370,7 @@ class Neo4jProvider(DatabaseProvider):
             raise DatabaseError("Neo4j provider not initialized")
 
         try:
+
             def _execute_transaction():
                 with self.driver.session(database=self._database) as session:
                     with session.begin_transaction() as tx:
@@ -425,14 +386,8 @@ class Neo4jProvider(DatabaseProvider):
             )
 
         except (neo4j.exceptions.Neo4jError, ConnectionError) as e:
-            logger.exception(
-                "Neo4j transaction failed: %s", e
-            )
-            raise DatabaseError(
-                "Transaction failed: %s" % e,
-                {"queries": queries},
-                e
-            )
+            logger.exception("Neo4j transaction failed: %s", e)
+            raise DatabaseError("Transaction failed: %s" % e, {"queries": queries}, e)
 
 
 # Global provider instances for backward compatibility

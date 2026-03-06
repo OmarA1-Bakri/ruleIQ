@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 Input validation utilities for secure API operations.
 Prevents injection attacks and unauthorized field modifications.
@@ -509,7 +508,8 @@ class WhitelistValidator:
                 )
             elif field_type == FieldType.DICT:
                 return FieldValidator.validate_dict(
-                    value, max_keys=field_def.get("max_keys", 50),
+                    value,
+                    max_keys=field_def.get("max_keys", 50),
                 )
             else:
                 raise ValidationError(f"Unsupported field type: {field_type}")

@@ -15,18 +15,19 @@ from enum import Enum
 
 # Security Constants - SHA-256 hash lengths for different use cases
 COMPRESSED_KEY_HASH_LENGTH = 16  # For compressed cache keys
-API_PARAM_HASH_LENGTH = 8        # For API parameter hashing
-DB_PARAM_HASH_LENGTH = 8         # For database parameter hashing
-COMPUTE_PARAM_HASH_LENGTH = 12   # For computation parameter hashing
-EXTERNAL_PARAM_HASH_LENGTH = 8   # For external API parameter hashing
+API_PARAM_HASH_LENGTH = 8  # For API parameter hashing
+DB_PARAM_HASH_LENGTH = 8  # For database parameter hashing
+COMPUTE_PARAM_HASH_LENGTH = 12  # For computation parameter hashing
+EXTERNAL_PARAM_HASH_LENGTH = 8  # For external API parameter hashing
 
 # Configuration Constants
-MAX_CACHE_KEY_LENGTH = 250       # Maximum key length before compression
-CACHE_KEY_PREFIX_MAX_LENGTH = 50 # Maximum prefix length for truncation
+MAX_CACHE_KEY_LENGTH = 250  # Maximum key length before compression
+CACHE_KEY_PREFIX_MAX_LENGTH = 50  # Maximum prefix length for truncation
 
 
 class CacheNamespace(str, Enum):
     """Standard cache namespaces for different data types"""
+
     USER = "user"
     SESSION = "session"
     BUSINESS = "business"
@@ -84,7 +85,9 @@ class CacheKeyBuilder:
         return f"{cls.PREFIX_CACHE}:{':'.join(clean_parts)}"
 
     @classmethod
-    def build_namespaced_key(cls, namespace: Union[str, CacheNamespace], *parts: Union[str, int]) -> str:
+    def build_namespaced_key(
+        cls, namespace: Union[str, CacheNamespace], *parts: Union[str, int]
+    ) -> str:
         """
         Build a namespaced cache key.
 
@@ -130,10 +133,10 @@ class CacheKeyBuilder:
 
         # Create hash of the full key using SHA-256 for security
         # Truncate to maintain consistent key length
-        key_hash = hashlib.sha256(key.encode('utf-8')).hexdigest()[:COMPRESSED_KEY_HASH_LENGTH]
+        key_hash = hashlib.sha256(key.encode("utf-8")).hexdigest()[:COMPRESSED_KEY_HASH_LENGTH]
 
         # Keep first part for readability
-        parts = key.split(':')
+        parts = key.split(":")
         if len(parts) >= 2:
             prefix = f"{parts[0]}:{parts[1]}"
         else:
@@ -172,7 +175,9 @@ class CacheKeyBuilder:
         return cls.build_namespaced_key(CacheNamespace.COMPLIANCE, compliance_id, *parts)
 
     @classmethod
-    def build_api_key(cls, method: str, endpoint: str, params: Optional[Dict[str, Any]] = None) -> str:
+    def build_api_key(
+        cls, method: str, endpoint: str, params: Optional[Dict[str, Any]] = None
+    ) -> str:
         """
         Build API response cache key.
 
@@ -196,7 +201,9 @@ class CacheKeyBuilder:
         return cls.build_namespaced_key(CacheNamespace.API, *key_parts)
 
     @classmethod
-    def build_db_query_key(cls, table: str, query_hash: str, params: Optional[Dict[str, Any]] = None) -> str:
+    def build_db_query_key(
+        cls, table: str, query_hash: str, params: Optional[Dict[str, Any]] = None
+    ) -> str:
         """
         Build database query cache key.
 
@@ -238,7 +245,9 @@ class CacheKeyBuilder:
         return cls.build_namespaced_key(CacheNamespace.COMPUTE, operation, param_hash)
 
     @classmethod
-    def build_external_api_key(cls, service: str, endpoint: str, params: Optional[Dict[str, Any]] = None) -> str:
+    def build_external_api_key(
+        cls, service: str, endpoint: str, params: Optional[Dict[str, Any]] = None
+    ) -> str:
         """
         Build external API cache key.
 
@@ -292,32 +301,40 @@ class CacheKeyBuilder:
         related_keys = []
 
         if entity_type == "user":
-            related_keys.extend([
-                cls.build_user_key(entity_id_str),
-                cls.build_user_key(entity_id_str, "profile"),
-                cls.build_user_key(entity_id_str, "settings"),
-                cls.build_user_key(entity_id_str, "sessions"),
-                cls.build_user_key(entity_id_str, "permissions"),
-            ])
+            related_keys.extend(
+                [
+                    cls.build_user_key(entity_id_str),
+                    cls.build_user_key(entity_id_str, "profile"),
+                    cls.build_user_key(entity_id_str, "settings"),
+                    cls.build_user_key(entity_id_str, "sessions"),
+                    cls.build_user_key(entity_id_str, "permissions"),
+                ]
+            )
         elif entity_type == "business":
-            related_keys.extend([
-                cls.build_business_key(entity_id_str),
-                cls.build_business_key(entity_id_str, "profile"),
-                cls.build_business_key(entity_id_str, "assessments"),
-                cls.build_business_key(entity_id_str, "compliance"),
-            ])
+            related_keys.extend(
+                [
+                    cls.build_business_key(entity_id_str),
+                    cls.build_business_key(entity_id_str, "profile"),
+                    cls.build_business_key(entity_id_str, "assessments"),
+                    cls.build_business_key(entity_id_str, "compliance"),
+                ]
+            )
         elif entity_type == "evidence":
-            related_keys.extend([
-                cls.build_evidence_key(entity_id_str),
-                cls.build_evidence_key(entity_id_str, "content"),
-                cls.build_evidence_key(entity_id_str, "metadata"),
-            ])
+            related_keys.extend(
+                [
+                    cls.build_evidence_key(entity_id_str),
+                    cls.build_evidence_key(entity_id_str, "content"),
+                    cls.build_evidence_key(entity_id_str, "metadata"),
+                ]
+            )
         elif entity_type == "assessment":
-            related_keys.extend([
-                cls.build_assessment_key(entity_id_str),
-                cls.build_assessment_key(entity_id_str, "results"),
-                cls.build_assessment_key(entity_id_str, "progress"),
-            ])
+            related_keys.extend(
+                [
+                    cls.build_assessment_key(entity_id_str),
+                    cls.build_assessment_key(entity_id_str, "results"),
+                    cls.build_assessment_key(entity_id_str, "progress"),
+                ]
+            )
 
         return related_keys
 
@@ -345,7 +362,7 @@ class CacheKeyBuilder:
             "parts": parts[2:] if len(parts) > 2 else [],
             "is_versioned": False,
             "version": None,
-            "is_compressed": key.startswith(cls.PREFIX_COMPRESSED + ":")
+            "is_compressed": key.startswith(cls.PREFIX_COMPRESSED + ":"),
         }
 
         # Check for versioning

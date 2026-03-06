@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 Advanced memory management with Graphiti vector database integration.
 Handles conversation history, entity extraction, and contextual memory retrieval.
@@ -288,9 +287,7 @@ class MemoryManager:
 
             # Maintain cache size
             if len(self.short_term_cache[session_key]) > 20:
-                self.short_term_cache[session_key] = self.short_term_cache[session_key][
-                    -20:
-                ]
+                self.short_term_cache[session_key] = self.short_term_cache[session_key][-20:]
 
             logger.info(f"Stored conversation turn: {len(memories)} memories created")
             return memories
@@ -361,9 +358,7 @@ class MemoryManager:
                     memory = self._create_memory_from_search_result(result, company_id)
                     if memory:
                         # Add similarity score
-                        memory.metadata["similarity_score"] = getattr(
-                            result, "score", 0.0
-                        )
+                        memory.metadata["similarity_score"] = getattr(result, "score", 0.0)
                         memory.update_access()
                         relevant_memories.append(memory)
 
@@ -381,9 +376,7 @@ class MemoryManager:
                             relevant_memories.insert(0, memory)
 
             # Sort by relevance and limit results
-            relevant_memories.sort(
-                key=lambda m: self._calculate_relevance_score(m), reverse=True
-            )
+            relevant_memories.sort(key=lambda m: self._calculate_relevance_score(m), reverse=True)
             result = relevant_memories[:max_results]
 
             logger.info(f"Retrieved {len(result)} relevant memories for query")
@@ -412,9 +405,7 @@ class MemoryManager:
                     "company_id": str(company_id),
                     "user_id": str(user_id) if user_id else None,
                     "start_time": summary.start_time.isoformat(),
-                    "end_time": (
-                        summary.end_time.isoformat() if summary.end_time else None
-                    ),
+                    "end_time": (summary.end_time.isoformat() if summary.end_time else None),
                     "key_topics": summary.key_topics,
                     "main_outcomes": summary.main_outcomes,
                     "action_items": summary.action_items,
@@ -532,9 +523,7 @@ class MemoryManager:
                         context["recent_topics"].extend(getattr(result, "keywords", []))
 
                     if hasattr(result, "entities"):
-                        context["entities_of_interest"].extend(
-                            getattr(result, "entities", [])
-                        )
+                        context["entities_of_interest"].extend(getattr(result, "entities", []))
 
                 except Exception as e:
                     logger.warning(f"Failed to process context result: {e}")
@@ -542,13 +531,9 @@ class MemoryManager:
 
             # Deduplicate and limit
             context["recent_topics"] = list(set(context["recent_topics"]))[:10]
-            context["entities_of_interest"] = list(
-                set(context["entities_of_interest"])
-            )[:15]
+            context["entities_of_interest"] = list(set(context["entities_of_interest"]))[:15]
 
-            logger.info(
-                f"Loaded user context: {len(search_results)} memories processed"
-            )
+            logger.info(f"Loaded user context: {len(search_results)} memories processed")
             return context
 
         except Exception as e:
@@ -577,10 +562,7 @@ class MemoryManager:
 
             for session_key, memories in self.short_term_cache.items():
                 # Remove sessions older than 24 hours
-                if (
-                    memories
-                    and (current_time - memories[-1].created_at).total_seconds() > 86400
-                ):
+                if memories and (current_time - memories[-1].created_at).total_seconds() > 86400:
                     sessions_to_remove.append(session_key)
 
             for session_key in sessions_to_remove:
@@ -611,9 +593,7 @@ class MemoryManager:
         try:
             if self.graphiti and self._initialized:
                 # Test Graphiti connection by performing a simple search
-                test_results = await self.graphiti.search(
-                    query="test connection", limit=1
-                )
+                test_results = await self.graphiti.search(query="test connection", limit=1)
                 health["graphiti_connected"] = True
                 health["test_search_results"] = len(test_results)
 
@@ -651,9 +631,7 @@ class MemoryManager:
             return MemoryEntry(
                 id=metadata.get("id", str(uuid4())),
                 content=str(content),
-                memory_type=MemoryType(
-                    metadata.get("memory_type", MemoryType.EPISODIC.value)
-                ),
+                memory_type=MemoryType(metadata.get("memory_type", MemoryType.EPISODIC.value)),
                 importance=MemoryImportance(
                     metadata.get("importance", MemoryImportance.MEDIUM.value)
                 ),
@@ -696,10 +674,7 @@ class MemoryManager:
         access_score = min(0.2, memory.access_count * 0.01)
 
         return (
-            base_score * 0.6
-            + recency_score * 0.2
-            + importance_score * 0.15
-            + access_score * 0.05
+            base_score * 0.6 + recency_score * 0.2 + importance_score * 0.15 + access_score * 0.05
         )
 
     def _format_session_summary(self, summary: ConversationSummary) -> str:

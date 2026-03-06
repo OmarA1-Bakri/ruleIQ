@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 """Dataset versioning utilities for Golden Dataset system."""
 
-from __future__ import annotations
-
 import json
 import re
 from datetime import datetime

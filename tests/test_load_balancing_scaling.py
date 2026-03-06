@@ -74,7 +74,9 @@ class MockLoadBalancer:
 
     async def check_rate_limit(self, client_id: str, endpoint: str) -> Tuple[bool, Dict[str, Any]]:
         """Check rate limit"""
-        limits = self.rate_limits.get(client_id, {}).get(endpoint, {"allowed": True, "remaining": 100})
+        limits = self.rate_limits.get(client_id, {}).get(
+            endpoint, {"allowed": True, "remaining": 100}
+        )
         return limits["allowed"], limits
 
 
@@ -103,12 +105,14 @@ class MockKubernetesClient:
         self.services[spec["name"]] = spec
         return True
 
-    async def update_hpa(self, name: str, min_replicas: int, max_replicas: int, target_cpu: int) -> bool:
+    async def update_hpa(
+        self, name: str, min_replicas: int, max_replicas: int, target_cpu: int
+    ) -> bool:
         """Update horizontal pod autoscaler"""
         self.hpa[name] = {
             "min_replicas": min_replicas,
             "max_replicas": max_replicas,
-            "target_cpu": target_cpu
+            "target_cpu": target_cpu,
         }
         return True
 
@@ -125,7 +129,9 @@ class MockDatabasePool:
     async def get_connection(self, read_only: bool = False) -> Optional[Dict[str, Any]]:
         """Get database connection"""
         if read_only and self.read_replicas:
-            healthy_replicas = [r for r in self.read_replicas if self.health_status.get(r["id"], False)]
+            healthy_replicas = [
+                r for r in self.read_replicas if self.health_status.get(r["id"], False)
+            ]
             return healthy_replicas[0] if healthy_replicas else None
         elif not read_only and self.master and self.health_status.get(self.master["id"], False):
             return self.master
@@ -160,7 +166,7 @@ class TestLoadBalancerConfiguration:
             "host": "10.0.0.1",
             "port": 8080,
             "weight": 100,
-            "health_check": "/health"
+            "health_check": "/health",
         }
 
         success = await mock_lb.add_backend(backend)
@@ -263,7 +269,7 @@ class TestSSLTLSTermination:
             "key": "/path/to/key.pem",
             "protocols": ["TLSv1.2", "TLSv1.3"],
             "ciphers": ["ECDHE-RSA-AES128-GCM-SHA256"],
-            "hsts": {"enabled": True, "max_age": 31536000}
+            "hsts": {"enabled": True, "max_age": 31536000},
         }
 
     def test_ssl_configuration_validation(self, mock_ssl_config):
@@ -299,7 +305,7 @@ class TestDistributedRateLimiting:
         lb.rate_limits = {
             "client-1": {
                 "/api/users": {"allowed": True, "remaining": 95, "reset": 1234567890},
-                "/api/admin": {"allowed": False, "remaining": 0, "reset": 1234567890}
+                "/api/admin": {"allowed": False, "remaining": 0, "reset": 1234567890},
             }
         }
         return lb
@@ -376,7 +382,9 @@ class TestHorizontalScalingInfrastructure:
         """Test horizontal pod autoscaling configuration"""
         hpa_name = "api-server-hpa"
 
-        success = await mock_k8s.update_hpa(hpa_name, min_replicas=2, max_replicas=10, target_cpu=70)
+        success = await mock_k8s.update_hpa(
+            hpa_name, min_replicas=2, max_replicas=10, target_cpu=70
+        )
         assert success is True
 
         hpa_config = mock_k8s.hpa.get(hpa_name)
@@ -392,7 +400,7 @@ class TestHorizontalScalingInfrastructure:
             "name": "api-service",
             "type": "LoadBalancer",
             "ports": [{"port": 80, "targetPort": 8080}],
-            "selector": {"app": "api-server"}
+            "selector": {"app": "api-server"},
         }
 
         success = await mock_k8s.create_service(service_spec)
@@ -413,13 +421,9 @@ class TestDatabaseConnectionScaling:
         pool.master = {"id": "master-1", "host": "db-master", "port": 5432}
         pool.read_replicas = [
             {"id": "replica-1", "host": "db-replica-1", "port": 5432},
-            {"id": "replica-2", "host": "db-replica-2", "port": 5432}
+            {"id": "replica-2", "host": "db-replica-2", "port": 5432},
         ]
-        pool.health_status = {
-            "master-1": True,
-            "replica-1": True,
-            "replica-2": True
-        }
+        pool.health_status = {"master-1": True, "replica-1": True, "replica-2": True}
         return pool
 
     @pytest.mark.asyncio
@@ -468,7 +472,7 @@ class TestAPIGatewayFeatures:
             "middleware": [],
             "authentication": {},
             "rate_limiting": {},
-            "caching": {}
+            "caching": {},
         }
 
     def test_request_routing(self, mock_api_gateway):
@@ -476,7 +480,7 @@ class TestAPIGatewayFeatures:
         routes = [
             {"path": "/api/v1/users", "method": "GET", "backend": "user-service"},
             {"path": "/api/v1/users", "method": "POST", "backend": "user-service"},
-            {"path": "/api/v1/admin", "method": "GET", "backend": "admin-service"}
+            {"path": "/api/v1/admin", "method": "GET", "backend": "admin-service"},
         ]
 
         mock_api_gateway["routes"] = routes
@@ -485,14 +489,16 @@ class TestAPIGatewayFeatures:
         assert len(mock_api_gateway["routes"]) == 3
 
         # GET /api/v1/users should route to user-service
-        get_users_route = next(r for r in routes if r["path"] == "/api/v1/users" and r["method"] == "GET")
+        get_users_route = next(
+            r for r in routes if r["path"] == "/api/v1/users" and r["method"] == "GET"
+        )
         assert get_users_route["backend"] == "user-service"
 
     def test_api_versioning_support(self, mock_api_gateway):
         """Test API versioning support"""
         versioned_routes = [
             {"path": "/api/v1/users", "version": "v1", "backend": "user-service-v1"},
-            {"path": "/api/v2/users", "version": "v2", "backend": "user-service-v2"}
+            {"path": "/api/v2/users", "version": "v2", "backend": "user-service-v2"},
         ]
 
         mock_api_gateway["routes"] = versioned_routes
@@ -508,7 +514,7 @@ class TestAPIGatewayFeatures:
             "enabled": True,
             "jwt_secret": "test-secret",
             "algorithms": ["HS256"],
-            "required_claims": ["sub", "exp"]
+            "required_claims": ["sub", "exp"],
         }
 
         mock_api_gateway["authentication"] = auth_config
@@ -522,7 +528,7 @@ class TestAPIGatewayFeatures:
         transformations = [
             {"type": "header_add", "name": "X-API-Version", "value": "v1"},
             {"type": "header_remove", "name": "X-Debug"},
-            {"type": "path_rewrite", "from": "/api/v1/", "to": "/"}
+            {"type": "path_rewrite", "from": "/api/v1/", "to": "/"},
         ]
 
         mock_api_gateway["middleware"] = transformations
@@ -545,7 +551,7 @@ class TestServiceMeshIntegration:
             "circuit_breakers": {},
             "retries": {},
             "timeouts": {},
-            "tracing": {}
+            "tracing": {},
         }
 
     def test_circuit_breaker_configuration(self, mock_service_mesh):
@@ -555,14 +561,14 @@ class TestServiceMeshIntegration:
                 "max_requests": 100,
                 "interval": 60,
                 "timeout": 30,
-                "failure_ratio": 0.5
+                "failure_ratio": 0.5,
             },
             "payment-service": {
                 "max_requests": 50,
                 "interval": 30,
                 "timeout": 15,
-                "failure_ratio": 0.3
-            }
+                "failure_ratio": 0.3,
+            },
         }
 
         mock_service_mesh["circuit_breakers"] = circuit_breakers
@@ -577,7 +583,7 @@ class TestServiceMeshIntegration:
             "enabled": True,
             "sampler": {"type": "probabilistic", "rate": 0.1},
             "exporter": {"type": "jaeger", "endpoint": "jaeger-collector:14268"},
-            "tags": {"service": "api-gateway"}
+            "tags": {"service": "api-gateway"},
         }
 
         mock_service_mesh["tracing"] = tracing_config
@@ -592,13 +598,13 @@ class TestServiceMeshIntegration:
             "api-gateway": {
                 "protocol": "http",
                 "endpoints": ["/api/*"],
-                "dependencies": ["user-service", "auth-service"]
+                "dependencies": ["user-service", "auth-service"],
             },
             "user-service": {
                 "protocol": "grpc",
                 "endpoints": ["/proto.UserService/*"],
-                "dependencies": ["database"]
-            }
+                "dependencies": ["database"],
+            },
         }
 
         mock_service_mesh["services"] = services
@@ -617,12 +623,7 @@ class TestMonitoringAndAlerting:
     @pytest.fixture
     def mock_monitoring(self):
         """Create mock monitoring system"""
-        return {
-            "metrics": {},
-            "alerts": {},
-            "dashboards": {},
-            "thresholds": {}
-        }
+        return {"metrics": {}, "alerts": {}, "dashboards": {}, "thresholds": {}}
 
     def test_load_balancer_metrics(self, mock_monitoring):
         """Test load balancer metrics collection"""
@@ -630,7 +631,7 @@ class TestMonitoringAndAlerting:
             "request_rate": {"value": 1250, "unit": "req/s"},
             "response_time": {"p50": 45, "p95": 120, "p99": 250, "unit": "ms"},
             "error_rate": {"value": 0.02, "unit": "percentage"},
-            "active_connections": {"value": 450}
+            "active_connections": {"value": 450},
         }
 
         mock_monitoring["metrics"]["load_balancer"] = lb_metrics
@@ -647,15 +648,15 @@ class TestMonitoringAndAlerting:
                 "condition": "cpu_usage > 80%",
                 "severity": "warning",
                 "action": "scale_up",
-                "cooldown": 300
+                "cooldown": 300,
             },
             {
                 "name": "low_memory",
                 "condition": "memory_usage > 90%",
                 "severity": "critical",
                 "action": "scale_up_urgent",
-                "cooldown": 60
-            }
+                "cooldown": 60,
+            },
         ]
 
         mock_monitoring["alerts"]["scaling"] = scaling_alerts
@@ -672,9 +673,9 @@ class TestMonitoringAndAlerting:
                     {"metric": "cpu_usage", "type": "gauge"},
                     {"metric": "memory_usage", "type": "line"},
                     {"metric": "request_rate", "type": "bar"},
-                    {"metric": "response_time", "type": "heatmap"}
+                    {"metric": "response_time", "type": "heatmap"},
                 ],
-                "refresh_interval": 30
+                "refresh_interval": 30,
             }
         }
 
@@ -691,19 +692,14 @@ class TestDisasterRecovery:
     @pytest.fixture
     def mock_dr_system(self):
         """Create mock disaster recovery system"""
-        return {
-            "regions": {},
-            "backups": {},
-            "failover": {},
-            "traffic_shifting": {}
-        }
+        return {"regions": {}, "backups": {}, "failover": {}, "traffic_shifting": {}}
 
     def test_multi_zone_deployment(self, mock_dr_system):
         """Test multi-zone deployment configuration"""
         zones = {
             "us-east-1a": {"active": True, "capacity": 100},
             "us-east-1b": {"active": True, "capacity": 100},
-            "us-east-1c": {"active": False, "capacity": 0}  # Standby
+            "us-east-1c": {"active": False, "capacity": 0},  # Standby
         }
 
         mock_dr_system["regions"]["zones"] = zones
@@ -716,15 +712,8 @@ class TestDisasterRecovery:
     def test_traffic_shifting(self, mock_dr_system):
         """Test traffic shifting capabilities"""
         traffic_config = {
-            "canary_deployment": {
-                "enabled": True,
-                "percentage": 10,
-                "target_version": "v2.1.0"
-            },
-            "blue_green": {
-                "enabled": False,
-                "active_environment": "blue"
-            }
+            "canary_deployment": {"enabled": True, "percentage": 10, "target_version": "v2.1.0"},
+            "blue_green": {"enabled": False, "active_environment": "blue"},
         }
 
         mock_dr_system["traffic_shifting"] = traffic_config
@@ -736,18 +725,8 @@ class TestDisasterRecovery:
     def test_backup_load_balancers(self, mock_dr_system):
         """Test backup load balancer configuration"""
         backup_lbs = [
-            {
-                "id": "lb-backup-1",
-                "region": "us-west-2",
-                "status": "standby",
-                "capacity": 50
-            },
-            {
-                "id": "lb-backup-2",
-                "region": "eu-west-1",
-                "status": "standby",
-                "capacity": 50
-            }
+            {"id": "lb-backup-1", "region": "us-west-2", "status": "standby", "capacity": 50},
+            {"id": "lb-backup-2", "region": "eu-west-1", "status": "standby", "capacity": 50},
         ]
 
         mock_dr_system["backups"]["load_balancers"] = backup_lbs
@@ -762,11 +741,7 @@ class TestChaosEngineering:
     @pytest.fixture
     def mock_chaos_engine(self):
         """Create mock chaos engineering system"""
-        return {
-            "experiments": {},
-            "failures": {},
-            "monitoring": {}
-        }
+        return {"experiments": {}, "failures": {}, "monitoring": {}}
 
     def test_failure_injection(self, mock_chaos_engine):
         """Test failure injection capabilities"""
@@ -776,22 +751,22 @@ class TestChaosEngineering:
                 "type": "network",
                 "target": "user-service",
                 "duration": 300,
-                "impact": "medium"
+                "impact": "medium",
             },
             {
                 "name": "pod_kill",
                 "type": "kubernetes",
                 "target": "random_pod",
                 "duration": 60,
-                "impact": "high"
+                "impact": "high",
             },
             {
                 "name": "database_failure",
                 "type": "database",
                 "target": "master_node",
                 "duration": 120,
-                "impact": "critical"
-            }
+                "impact": "critical",
+            },
         ]
 
         mock_chaos_engine["experiments"] = experiments
@@ -808,7 +783,7 @@ class TestChaosEngineering:
             "service_discovery": {"status": "passed", "recovery_time": 30},
             "load_balancing": {"status": "passed", "recovery_time": 15},
             "data_consistency": {"status": "warning", "recovery_time": 120},
-            "circuit_breakers": {"status": "passed", "recovery_time": 5}
+            "circuit_breakers": {"status": "passed", "recovery_time": 5},
         }
 
         mock_chaos_engine["monitoring"]["resilience"] = validation_checks
@@ -827,16 +802,13 @@ class TestPerformanceBenchmarks:
         lb = MockLoadBalancer()
         # Add multiple backends
         for i in range(10):
-            await lb.add_backend({
-                "id": f"backend-{i}",
-                "host": f"10.0.0.{i}",
-                "port": 8080
-            })
+            await lb.add_backend({"id": f"backend-{i}", "host": f"10.0.0.{i}", "port": 8080})
         return lb
 
     @pytest.mark.asyncio
     async def test_load_balancer_throughput(self, mock_load_balancer, benchmark):
         """Benchmark load balancer request throughput"""
+
         async def benchmark_requests():
             tasks = []
             for i in range(1000):
@@ -866,6 +838,7 @@ class TestPerformanceBenchmarks:
     @pytest.mark.asyncio
     async def test_rate_limiting_performance(self, mock_load_balancer, benchmark):
         """Benchmark rate limiting checks"""
+
         async def benchmark_rate_limits():
             tasks = []
             for i in range(1000):
@@ -888,20 +861,26 @@ class TestIntegrationLoadBalancing:
         routing_config = {
             "rules": [
                 {"path": "/api/users", "method": "GET", "backend": "user-service"},
-                {"path": "/api/orders", "method": "POST", "backend": "order-service"}
+                {"path": "/api/orders", "method": "POST", "backend": "order-service"},
             ]
         }
 
         # Simulate request routing
         test_requests = [
             {"path": "/api/users", "method": "GET", "expected_backend": "user-service"},
-            {"path": "/api/orders", "method": "POST", "expected_backend": "order-service"}
+            {"path": "/api/orders", "method": "POST", "expected_backend": "order-service"},
         ]
 
         for req in test_requests:
             # Find matching rule
-            rule = next((r for r in routing_config["rules"]
-                        if r["path"] == req["path"] and r["method"] == req["method"]), None)
+            rule = next(
+                (
+                    r
+                    for r in routing_config["rules"]
+                    if r["path"] == req["path"] and r["method"] == req["method"]
+                ),
+                None,
+            )
             assert rule is not None
             assert rule["backend"] == req["expected_backend"]
 
@@ -911,7 +890,7 @@ class TestIntegrationLoadBalancing:
         # Mock service registry
         services = {
             "healthy-service": {"status": "healthy", "instances": 3},
-            "unhealthy-service": {"status": "unhealthy", "instances": 0}
+            "unhealthy-service": {"status": "unhealthy", "instances": 0},
         }
 
         # Health checks should update service registry
@@ -922,11 +901,7 @@ class TestIntegrationLoadBalancing:
     async def test_scaling_integration(self):
         """Test scaling integration with monitoring"""
         # Mock scaling scenario
-        metrics = {
-            "cpu_usage": 85,
-            "memory_usage": 78,
-            "request_rate": 1500
-        }
+        metrics = {"cpu_usage": 85, "memory_usage": 78, "request_rate": 1500}
 
         # Should trigger scaling when thresholds exceeded
         cpu_threshold = 80
@@ -934,9 +909,9 @@ class TestIntegrationLoadBalancing:
         request_threshold = 1000
 
         should_scale = (
-            metrics["cpu_usage"] > cpu_threshold or
-            metrics["memory_usage"] > memory_threshold or
-            metrics["request_rate"] > request_threshold
+            metrics["cpu_usage"] > cpu_threshold
+            or metrics["memory_usage"] > memory_threshold
+            or metrics["request_rate"] > request_threshold
         )
 
         assert should_scale is True
@@ -948,21 +923,9 @@ class TestConfigurationManagement:
     def test_environment_specific_configs(self):
         """Test environment-specific scaling configurations"""
         configs = {
-            "development": {
-                "min_replicas": 1,
-                "max_replicas": 3,
-                "target_cpu": 70
-            },
-            "staging": {
-                "min_replicas": 2,
-                "max_replicas": 5,
-                "target_cpu": 75
-            },
-            "production": {
-                "min_replicas": 5,
-                "max_replicas": 20,
-                "target_cpu": 80
-            }
+            "development": {"min_replicas": 1, "max_replicas": 3, "target_cpu": 70},
+            "staging": {"min_replicas": 2, "max_replicas": 5, "target_cpu": 75},
+            "production": {"min_replicas": 5, "max_replicas": 20, "target_cpu": 80},
         }
 
         # Production should have higher scaling limits
@@ -980,7 +943,7 @@ class TestConfigurationManagement:
         config_manager = {
             "rate_limits": {"api": 1000},
             "timeouts": {"database": 30},
-            "retries": {"external_api": 3}
+            "retries": {"external_api": 3},
         }
 
         # Should support runtime updates

@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 Alembic environment configuration
 """

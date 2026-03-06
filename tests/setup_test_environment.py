@@ -46,7 +46,9 @@ class TestEnvironmentSetup:
 
         # Check if we need to use Docker for PostgreSQL
         if not self.check_postgresql_running(self.test_db_port):
-            print(f"📦 PostgreSQL not running on port {self.test_db_port}, starting Docker container...")
+            print(
+                f"📦 PostgreSQL not running on port {self.test_db_port}, starting Docker container..."
+            )
             self.start_postgres_docker()
             time.sleep(5)  # Wait for container to be ready
 
@@ -102,14 +104,22 @@ class TestEnvironmentSetup:
             print(f"✅ Started existing container '{container_name}'")
         else:
             # Create new container
-            subprocess.run([
-                "docker", "run", "-d",
-                "--name", container_name,
-                "-e", f"POSTGRES_PASSWORD={self.test_db_password}",
-                "-e", f"POSTGRES_USER={self.test_db_user}",
-                "-p", f"{self.test_db_port}:5432",
-                "postgres:15-alpine"
-            ])
+            subprocess.run(
+                [
+                    "docker",
+                    "run",
+                    "-d",
+                    "--name",
+                    container_name,
+                    "-e",
+                    f"POSTGRES_PASSWORD={self.test_db_password}",
+                    "-e",
+                    f"POSTGRES_USER={self.test_db_user}",
+                    "-p",
+                    f"{self.test_db_port}:5432",
+                    "postgres:15-alpine",
+                ]
+            )
             print(f"✅ Created and started new container '{container_name}'")
 
     def setup_test_redis(self):
@@ -118,7 +128,7 @@ class TestEnvironmentSetup:
 
         try:
             # Check if Redis is already running
-            r = redis.Redis(host='localhost', port=self.test_redis_port, db=0)
+            r = redis.Redis(host="localhost", port=self.test_redis_port, db=0)
             r.ping()
             print(f"✅ Redis already running on port {self.test_redis_port}")
         except ValueError:
@@ -140,12 +150,18 @@ class TestEnvironmentSetup:
             subprocess.run(["docker", "start", container_name])
             print(f"✅ Started existing container '{container_name}'")
         else:
-            subprocess.run([
-                "docker", "run", "-d",
-                "--name", container_name,
-                "-p", f"{self.test_redis_port}:6379",
-                "redis:7-alpine"
-            ])
+            subprocess.run(
+                [
+                    "docker",
+                    "run",
+                    "-d",
+                    "--name",
+                    container_name,
+                    "-p",
+                    f"{self.test_redis_port}:6379",
+                    "redis:7-alpine",
+                ]
+            )
             print(f"✅ Created and started new container '{container_name}'")
 
     def apply_migrations(self):
@@ -236,22 +252,25 @@ NEO4J_PASSWORD=test-password
         os.environ["REDIS_URL"] = f"redis://localhost:{self.test_redis_port}/0"
 
         # Run pytest with coverage
-        result = subprocess.run([
-            "pytest",
-            "--cov=api",
-            "--cov=services", 
-            "--cov=database",
-            "--cov=utils",
-            "--cov=core",
-            "--cov=config",
-            "--cov-report=xml",
-            "--cov-report=html",
-            "--cov-report=term-missing",
-            "--tb=short",
-            "-v",
-            "tests/unit",  # Start with unit tests
-            "--maxfail=5"
-        ], cwd=self.project_root)
+        result = subprocess.run(
+            [
+                "pytest",
+                "--cov=api",
+                "--cov=services",
+                "--cov=database",
+                "--cov=utils",
+                "--cov=core",
+                "--cov=config",
+                "--cov-report=xml",
+                "--cov-report=html",
+                "--cov-report=term-missing",
+                "--tb=short",
+                "-v",
+                "tests/unit",  # Start with unit tests
+                "--maxfail=5",
+            ],
+            cwd=self.project_root,
+        )
 
         if result.returncode == 0:
             print("✅ Tests passed with coverage generated")

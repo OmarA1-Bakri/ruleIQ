@@ -53,7 +53,11 @@ async def get_iq_agent_for_chat(db: AsyncSession) -> IQComplianceAgent:
     return _iq_agent
 
 
-@router.post("/iq-chat/{conversation_id}/messages", response_model=MessageResponse, dependencies=[Depends(validate_request)])
+@router.post(
+    "/iq-chat/{conversation_id}/messages",
+    response_model=MessageResponse,
+    dependencies=[Depends(validate_request)],
+)
 async def send_iq_message(
     conversation_id: UUID,
     request: SendMessageRequest,
@@ -121,10 +125,12 @@ async def send_iq_message(
                     "timestamp": datetime.now(timezone.utc).isoformat(),
                     "iq_agent": True,
                     "graph_nodes_traversed": result.get("graph_context", {}).get(
-                        "nodes_traversed", 0,
+                        "nodes_traversed",
+                        0,
                     ),
                     "graph_relationships": result.get("graph_context", {}).get(
-                        "relationships_explored", 0,
+                        "relationships_explored",
+                        0,
                     ),
                     "evidence_found": len(result.get("evidence", [])),
                     "artifacts_generated": len(result.get("artifacts", [])),

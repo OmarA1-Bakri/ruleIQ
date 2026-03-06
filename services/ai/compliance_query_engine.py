@@ -87,9 +87,7 @@ class ComplianceQueryEngine:
 
             # Calculate adjusted risk based on enforcement
             base_risk = reg.get("risk_metadata", {}).get("base_risk_score", 5)
-            enforcement_adjustment = min(
-                len(enforcements) * 0.5, 3
-            )  # Max 3 point adjustment
+            enforcement_adjustment = min(len(enforcements) * 0.5, 3)  # Max 3 point adjustment
 
             return {
                 "base_risk_score": base_risk,
@@ -99,9 +97,7 @@ class ComplianceQueryEngine:
                 ),
                 "max_penalty": reg.get("risk_metadata", {}).get("max_penalty"),
                 "enforcement_count": len(enforcements),
-                "total_penalties": sum(
-                    e.get("penalty_amount", 0) for e in enforcements
-                ),
+                "total_penalties": sum(e.get("penalty_amount", 0) for e in enforcements),
             }
 
     async def get_suggested_controls(self, regulation_id: str) -> List[str]:
@@ -149,9 +145,7 @@ class ComplianceQueryEngine:
             record = await result.single()
             return dict(record) if record else {}
 
-    async def get_regulation_dependencies(
-        self, regulation_id: str
-    ) -> List[Dict[str, Any]]:
+    async def get_regulation_dependencies(self, regulation_id: str) -> List[Dict[str, Any]]:
         """
         Get regulations that this regulation depends on.
 
@@ -173,9 +167,7 @@ class ComplianceQueryEngine:
                 dependencies.append(dict(record["dep"]))
             return dependencies
 
-    async def find_equivalent_regulations(
-        self, regulation_id: str
-    ) -> List[Dict[str, Any]]:
+    async def find_equivalent_regulations(self, regulation_id: str) -> List[Dict[str, Any]]:
         """
         Find regulations equivalent to the given one.
 
@@ -197,9 +189,7 @@ class ComplianceQueryEngine:
                 equivalents.append(dict(record["eq"]))
             return equivalents
 
-    async def find_conflicting_regulations(
-        self, regulation_id: str
-    ) -> List[Dict[str, Any]]:
+    async def find_conflicting_regulations(self, regulation_id: str) -> List[Dict[str, Any]]:
         """
         Find regulations that conflict with the given one.
 

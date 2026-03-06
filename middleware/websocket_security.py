@@ -56,8 +56,7 @@ class WebSocketRateLimiter:
 
         # Clean old timestamps
         self.message_counts[client_ip] = [
-            ts for ts in self.message_counts[client_ip]
-            if ts > minute_ago
+            ts for ts in self.message_counts[client_ip] if ts > minute_ago
         ]
 
         # Check rate limit
@@ -89,21 +88,25 @@ class WebSocketOriginValidator:
 
         if settings.is_production:
             # Production origins
-            allowed.update([
-                "https://ruleiq.com",
-                "https://www.ruleiq.com",
-                "https://app.ruleiq.com",
-                "https://api.ruleiq.com"
-            ])
+            allowed.update(
+                [
+                    "https://ruleiq.com",
+                    "https://www.ruleiq.com",
+                    "https://app.ruleiq.com",
+                    "https://api.ruleiq.com",
+                ]
+            )
         else:
             # Development origins
-            allowed.update([
-                "http://localhost:3000",
-                "http://localhost:3001",
-                "http://localhost:8000",
-                "http://127.0.0.1:3000",
-                "http://127.0.0.1:8000"
-            ])
+            allowed.update(
+                [
+                    "http://localhost:3000",
+                    "http://localhost:3001",
+                    "http://localhost:8000",
+                    "http://127.0.0.1:3000",
+                    "http://127.0.0.1:8000",
+                ]
+            )
 
         # Add any custom origins from environment
         custom_origins = settings.cors_origins
@@ -147,11 +150,7 @@ class WebSocketSecurityMiddleware:
         self.rate_limiter = WebSocketRateLimiter()
         self.origin_validator = WebSocketOriginValidator()
 
-    async def validate_connection(
-        self,
-        websocket: WebSocket,
-        connection_id: str
-    ) -> bool:
+    async def validate_connection(self, websocket: WebSocket, connection_id: str) -> bool:
         """
         Validate WebSocket connection before accepting.
 
@@ -180,11 +179,7 @@ class WebSocketSecurityMiddleware:
         logger.info(f"WebSocket connection validated: {connection_id} from {client_ip}")
         return True
 
-    async def validate_message(
-        self,
-        websocket: WebSocket,
-        connection_id: str
-    ) -> bool:
+    async def validate_message(self, websocket: WebSocket, connection_id: str) -> bool:
         """
         Validate incoming WebSocket message rate.
 
@@ -200,11 +195,13 @@ class WebSocketSecurityMiddleware:
         # Check message rate
         if not self.rate_limiter.check_message_rate(client_ip):
             # Send rate limit warning
-            await websocket.send_json({
-                "type": "error",
-                "message": "Rate limit exceeded. Please slow down.",
-                "code": "RATE_LIMIT_EXCEEDED"
-            })
+            await websocket.send_json(
+                {
+                    "type": "error",
+                    "message": "Rate limit exceeded. Please slow down.",
+                    "code": "RATE_LIMIT_EXCEEDED",
+                }
+            )
             return False
 
         return True

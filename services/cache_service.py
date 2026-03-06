@@ -1,16 +1,17 @@
 """
-from __future__ import annotations
 
 Cache Service for ruleIQ
 
 Provides a unified caching interface using Vercel KV or Redis with fallback to in-memory cache.
 Supports TTL, automatic serialization/deserialization, and proper error handling.
 """
+
 import json
 import logging
 from typing import Any, Optional, Dict, Union
 from datetime import timedelta
 from services.kv_adapter import get_cache, CacheAdapter
+
 logger = logging.getLogger(__name__)
 
 
@@ -39,20 +40,19 @@ class CacheService:
             try:
                 self._cache_adapter = await get_cache()
                 # Test connection
-                await self._cache_adapter.set('_test', '1', expire=1)
+                await self._cache_adapter.set("_test", "1", expire=1)
                 self._cache_available = True
-                logger.info('Cache service connected')
+                logger.info("Cache service connected")
             except Exception as e:
                 logger.warning(
-                    'Cache unavailable, using in-memory cache fallback: %s' % e,
-                    )
+                    "Cache unavailable, using in-memory cache fallback: %s" % e,
+                )
                 self._cache_available = False
                 self._cache_adapter = None
                 return None
         return self._cache_adapter
 
-    async def set(self, key: str, value: Any, ttl: Optional[Union[int,
-        timedelta]]=None) ->bool:
+    async def set(self, key: str, value: Any, ttl: Optional[Union[int, timedelta]] = None) -> bool:
         """
         Set a value in cache with optional TTL
 
@@ -67,8 +67,7 @@ class CacheService:
         try:
             if isinstance(ttl, timedelta):
                 ttl = int(ttl.total_seconds())
-            serialized_value = json.dumps(value) if not isinstance(value, str
-                ) else value
+            serialized_value = json.dumps(value) if not isinstance(value, str) else value
             cache_adapter = await self._get_cache_adapter()
             if cache_adapter:
                 if ttl:
@@ -77,8 +76,11 @@ class CacheService:
                     await cache_adapter.set(key, serialized_value)
                 return True
             import time
-            cache_entry = {'value': serialized_value, 'expires_at': time.
-                time() + ttl if ttl else None}
+
+            cache_entry = {
+                "value": serialized_value,
+                "expires_at": time.time() + ttl if ttl else None,
+            }
             if len(self._memory_cache) >= self._max_memory_items:
                 oldest_keys = list(self._memory_cache.keys())[:100]
                 for old_key in oldest_keys:
@@ -86,10 +88,10 @@ class CacheService:
             self._memory_cache[key] = cache_entry
             return True
         except Exception as e:
-            logger.error('Failed to set cache key %s: %s' % (key, e))
+            logger.error("Failed to set cache key %s: %s" % (key, e))
             return False
 
-    async def get(self, key: str) ->Optional[Any]:
+    async def get(self, key: str) -> Optional[Any]:
         """
         Get a value from cache
 
@@ -110,23 +112,23 @@ class CacheService:
                         return value
                 return None
             import time
+
             cache_entry = self._memory_cache.get(key)
             if not cache_entry:
                 return None
-            if cache_entry['expires_at'] and time.time() > cache_entry[
-                'expires_at']:
+            if cache_entry["expires_at"] and time.time() > cache_entry["expires_at"]:
                 del self._memory_cache[key]
                 return None
-            value = cache_entry['value']
+            value = cache_entry["value"]
             try:
                 return json.loads(value)
             except json.JSONDecodeError:
                 return value
         except Exception as e:
-            logger.error('Failed to get cache key %s: %s' % (key, e))
+            logger.error("Failed to get cache key %s: %s" % (key, e))
             return None
 
-    async def delete(self, key: str) ->bool:
+    async def delete(self, key: str) -> bool:
         """
         Delete a key from cache
 
@@ -147,10 +149,10 @@ class CacheService:
                 success = True
             return success
         except Exception as e:
-            logger.error('Failed to delete cache key %s: %s' % (key, e))
+            logger.error("Failed to delete cache key %s: %s" % (key, e))
             return False
 
-    async def exists(self, key: str) ->bool:
+    async def exists(self, key: str) -> bool:
         """
         Check if a key exists in cache
 
@@ -165,19 +167,19 @@ class CacheService:
             if cache_adapter:
                 return await cache_adapter.exists(key) > 0
             import time
+
             cache_entry = self._memory_cache.get(key)
             if not cache_entry:
                 return False
-            if cache_entry['expires_at'] and time.time() > cache_entry[
-                'expires_at']:
+            if cache_entry["expires_at"] and time.time() > cache_entry["expires_at"]:
                 del self._memory_cache[key]
                 return False
             return True
         except Exception as e:
-            logger.error('Failed to check cache key %s: %s' % (key, e))
+            logger.error("Failed to check cache key %s: %s" % (key, e))
             return False
 
-    async def clear(self, pattern: Optional[str]=None) ->bool:
+    async def clear(self, pattern: Optional[str] = None) -> bool:
         """
         Clear cache entries matching pattern
 
@@ -198,19 +200,19 @@ class CacheService:
                 else:
                     await cache_adapter.flushdb()
             if pattern:
-                keys_to_delete = [key for key in self._memory_cache if
-                    pattern.replace('*', '') in key]
+                keys_to_delete = [
+                    key for key in self._memory_cache if pattern.replace("*", "") in key
+                ]
                 for key in keys_to_delete:
                     del self._memory_cache[key]
             else:
                 self._memory_cache.clear()
             return True
         except Exception as e:
-            logger.error('Failed to clear cache with pattern %s: %s' % (
-                pattern, e))
+            logger.error("Failed to clear cache with pattern %s: %s" % (pattern, e))
             return False
 
-    async def health_check(self) ->Dict[str, Any]:
+    async def health_check(self) -> Dict[str, Any]:
         """
         Get cache service health status
 
@@ -218,21 +220,26 @@ class CacheService:
             Dict with health information
         """
         try:
-            redis_status = 'unavailable'
+            redis_status = "unavailable"
             cache_adapter = await self._get_cache_adapter()
             if cache_adapter:
                 await cache_adapter.ping()
-                redis_status = 'connected'
-            return {'redis_status': redis_status, 'memory_cache_entries':
-                len(self._memory_cache), 'max_memory_entries': self.
-                _max_memory_items, 'fallback_active': self._redis_available is
-                False}
+                redis_status = "connected"
+            return {
+                "redis_status": redis_status,
+                "memory_cache_entries": len(self._memory_cache),
+                "max_memory_entries": self._max_memory_items,
+                "fallback_active": self._redis_available is False,
+            }
         except Exception as e:
-            logger.error('Failed to get cache health status: %s' % e)
-            return {'redis_status': 'error', 'memory_cache_entries': len(
-                self._memory_cache), 'error': str(e)}
+            logger.error("Failed to get cache health status: %s" % e)
+            return {
+                "redis_status": "error",
+                "memory_cache_entries": len(self._memory_cache),
+                "error": str(e),
+            }
 
-    async def cleanup_expired(self) ->int:
+    async def cleanup_expired(self) -> int:
         """
         Clean up expired entries from memory cache
 
@@ -241,26 +248,26 @@ class CacheService:
         """
         try:
             import time
+
             current_time = time.time()
             expired_keys = []
             for key, entry in self._memory_cache.items():
-                if entry['expires_at'] and current_time > entry['expires_at']:
+                if entry["expires_at"] and current_time > entry["expires_at"]:
                     expired_keys.append(key)
             for key in expired_keys:
                 del self._memory_cache[key]
             if expired_keys:
-                logger.debug('Cleaned up %s expired cache entries' % len(
-                    expired_keys))
+                logger.debug("Cleaned up %s expired cache entries" % len(expired_keys))
             return len(expired_keys)
         except Exception as e:
-            logger.error('Failed to cleanup expired cache entries: %s' % e)
+            logger.error("Failed to cleanup expired cache entries: %s" % e)
             return 0
 
 
 _cache_service = None
 
 
-async def get_cache_service() ->CacheService:
+async def get_cache_service() -> CacheService:
     """Get or create the cache service instance"""
     global _cache_service
     if _cache_service is None:
@@ -268,19 +275,19 @@ async def get_cache_service() ->CacheService:
     return _cache_service
 
 
-async def cache_get(key: str) ->Optional[Any]:
+async def cache_get(key: str) -> Optional[Any]:
     """Helper function to get from cache"""
     service = await get_cache_service()
     return await service.get(key)
 
 
-async def cache_set(key: str, value: Any, ttl: Optional[int]=None) ->bool:
+async def cache_set(key: str, value: Any, ttl: Optional[int] = None) -> bool:
     """Helper function to set cache"""
     service = await get_cache_service()
     return await service.set(key, value, ttl)
 
 
-async def cache_delete(key: str) ->bool:
+async def cache_delete(key: str) -> bool:
     """Helper function to delete from cache"""
     service = await get_cache_service()
     return await service.delete(key)

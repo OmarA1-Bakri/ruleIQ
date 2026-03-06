@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 Mock services for testing compliance and reporting nodes.
 Provides mock implementations of external dependencies.
@@ -214,9 +213,7 @@ class MockRegulatoryAPI:
         """Get obligations for a regulation."""
         return self.regulations.get(regulation, {}).get("obligations", [])
 
-    async def check_compliance(
-        self, company_id: str, regulation: str
-    ) -> Dict[str, Any]:
+    async def check_compliance(self, company_id: str, regulation: str) -> Dict[str, Any]:
         """Mock compliance check."""
         obligations = await self.get_obligations(regulation)
 
@@ -228,9 +225,7 @@ class MockRegulatoryAPI:
             "regulation": regulation,
             "total_obligations": len(obligations),
             "satisfied_obligations": satisfied,
-            "compliance_score": (
-                (satisfied / len(obligations) * 100) if obligations else 100,
-            ),
+            "compliance_score": ((satisfied / len(obligations) * 100) if obligations else 100,),
             "timestamp": datetime.now().isoformat(),
         }
 
@@ -254,9 +249,9 @@ class MockRAGService:
                 "metadata": {
                     "source": "SOX Compliance",
                     "category": "retention",
-                    "relevance_score": 0.88
+                    "relevance_score": 0.88,
                 },
-            }
+            },
         ]
 
     async def search(self, query: str, limit: int = 5) -> List[Dict[str, Any]]:

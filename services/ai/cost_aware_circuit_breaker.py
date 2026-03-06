@@ -44,7 +44,10 @@ class CostAwareCircuitBreakerConfig(CircuitBreakerConfig):
         **kwargs,
     ) -> None:
         super().__init__(
-            failure_threshold, recovery_timeout, success_threshold, time_window,
+            failure_threshold,
+            recovery_timeout,
+            success_threshold,
+            time_window,
         )
         self.cost_threshold_per_minute = cost_threshold_per_minute
         self.budget_enforcement = budget_enforcement
@@ -130,7 +133,9 @@ class CostAwareCircuitBreaker(AICircuitBreaker):
         # Check budget constraints if enabled
         if self.cost_config.budget_enforcement:
             await self._check_budget_constraints(
-                model_name, input_tokens, output_tokens,
+                model_name,
+                input_tokens,
+                output_tokens,
             )
 
         # Execute operation with timing
@@ -183,9 +188,7 @@ class CostAwareCircuitBreaker(AICircuitBreaker):
                 error,
                 {
                     "operation": (
-                        operation.__name__
-                        if hasattr(operation, "__name__")
-                        else str(operation),
+                        operation.__name__ if hasattr(operation, "__name__") else str(operation),
                     ),
                     "service_name": service_name,
                     "cost_incurred": True,
@@ -203,7 +206,8 @@ class CostAwareCircuitBreaker(AICircuitBreaker):
         model_config = self.cost_tracker.model_configs.get(model_name)
         if model_config:
             estimated_cost = model_config.calculate_total_cost(
-                input_tokens, output_tokens,
+                input_tokens,
+                output_tokens,
             )
 
             # Check daily budget
@@ -266,7 +270,9 @@ class CostAwareCircuitBreaker(AICircuitBreaker):
 
             # Track cost history for spike detection
             await self._update_cost_history(
-                model_name, service_name, input_tokens + output_tokens,
+                model_name,
+                service_name,
+                input_tokens + output_tokens,
             )
 
         except Exception as e:
@@ -334,9 +340,7 @@ class CostAwareCircuitBreaker(AICircuitBreaker):
             # Keep only recent history (last hour)
             cutoff_time = datetime.now() - timedelta(hours=1)
             self._cost_history[key] = [
-                entry
-                for entry in self._cost_history[key]
-                if entry["timestamp"] > cutoff_time
+                entry for entry in self._cost_history[key] if entry["timestamp"] > cutoff_time
             ]
 
     async def check_cost_spike(self, model_name: str, service_name: str) -> bool:
@@ -395,14 +399,10 @@ class CostAwareCircuitBreaker(AICircuitBreaker):
             # Calculate efficiency metrics
             if trends:
                 recent_costs = [float(trend["cost"]) for trend in trends[-3:]]
-                avg_recent_cost = (
-                    sum(recent_costs) / len(recent_costs) if recent_costs else 0,
-                )
+                avg_recent_cost = (sum(recent_costs) / len(recent_costs) if recent_costs else 0,)
 
                 total_requests = sum(trend["requests"] for trend in trends[-3:])
-                cost_per_request = (
-                    avg_recent_cost / total_requests if total_requests > 0 else 0,
-                )
+                cost_per_request = (avg_recent_cost / total_requests if total_requests > 0 else 0,)
 
                 return {
                     "average_daily_cost": avg_recent_cost,
@@ -453,9 +453,7 @@ class CostAwareCircuitBreaker(AICircuitBreaker):
         """
 
         # Filter models by circuit breaker availability
-        available_models = [
-            model for model in available_models if self.is_model_available(model)
-        ]
+        available_models = [model for model in available_models if self.is_model_available(model)]
 
         if not available_models:
             raise AIServiceException(
@@ -496,9 +494,7 @@ class CostAwareCircuitBreaker(AICircuitBreaker):
 
         # Return recommended model if available, otherwise first available
         return (
-            recommended_model
-            if recommended_model in available_models
-            else available_models[0],
+            recommended_model if recommended_model in available_models else available_models[0],
         )
 
 

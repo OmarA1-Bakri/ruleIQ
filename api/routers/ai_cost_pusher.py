@@ -23,12 +23,14 @@ router = APIRouter(prefix="/api/realtime", tags=["realtime"])
 
 class PusherAuthRequest(BaseModel):
     """Request model for Pusher channel authentication."""
+
     socket_id: str = Field(..., description="Pusher socket ID")
     channel_name: str = Field(..., description="Channel to authenticate")
 
 
 class PusherTriggerRequest(BaseModel):
     """Request model for triggering Pusher events."""
+
     channel: str = Field(..., description="Channel name")
     event: str = Field(..., description="Event name")
     data: Dict[str, Any] = Field(..., description="Event data")
@@ -45,10 +47,7 @@ class RealtimeCostService:
         self._background_tasks = []
 
     async def authenticate_channel(
-        self,
-        socket_id: str,
-        channel_name: str,
-        user: UserModel
+        self, socket_id: str, channel_name: str, user: UserModel
     ) -> Dict[str, Any]:
         """
         Authenticate user for private/presence channels.
@@ -71,33 +70,26 @@ class RealtimeCostService:
                 raise HTTPException(status_code=403, detail="Access denied to budget alerts")
 
             # Generate auth token
-            auth = self.pusher_client.authenticate(
-                channel=channel_name,
-                socket_id=socket_id
-            )
+            auth = self.pusher_client.authenticate(channel=channel_name, socket_id=socket_id)
             return auth
 
         elif channel_name.startswith("presence-"):
             # Presence channel - include user data
             user_data = {
                 "user_id": str(user.id),
-                "user_info": {
-                    "name": user.name,
-                    "email": user.email,
-                    "role": user.role
-                }
+                "user_info": {"name": user.name, "email": user.email, "role": user.role},
             }
 
             auth = self.pusher_client.authenticate(
-                channel=channel_name,
-                socket_id=socket_id,
-                custom_data=user_data
+                channel=channel_name, socket_id=socket_id, custom_data=user_data
             )
             return auth
 
         else:
             # Public channel - no auth needed
-            raise HTTPException(status_code=400, detail="Public channels don't require authentication")
+            raise HTTPException(
+                status_code=400, detail="Public channels don't require authentication"
+            )
 
     async def send_initial_data(self, user_id: str) -> None:
         """Send initial cost data to user's private channel."""
@@ -121,63 +113,57 @@ class RealtimeCostService:
                         "service_breakdown": {
                             k: {
                                 "cost": str(v["cost"]) if isinstance(v, dict) else str(v),
-                                "requests": v.get("requests", 0) if isinstance(v, dict) else 0
+                                "requests": v.get("requests", 0) if isinstance(v, dict) else 0,
                             }
                             for k, v in daily_summary.get("service_breakdown", {}).items()
-                        }
+                        },
                     },
                     "cost_trends": [
                         {
                             "date": trend["date"],
                             "cost": str(trend["cost"]),
-                            "requests": trend["requests"]
+                            "requests": trend["requests"],
                         }
                         for trend in trends
                     ],
                     "budget_status": {
-                        "daily_limit": str(budget_config.get("daily_limit")) if budget_config.get("daily_limit") else None,
-                        "monthly_limit": str(budget_config.get("monthly_limit")) if budget_config.get("monthly_limit") else None
-                    }
-                }
+                        "daily_limit": str(budget_config.get("daily_limit"))
+                        if budget_config.get("daily_limit")
+                        else None,
+                        "monthly_limit": str(budget_config.get("monthly_limit"))
+                        if budget_config.get("monthly_limit")
+                        else None,
+                    },
+                },
             }
 
             # Send to user's private channel
             user_channel = f"private-user-{user_id}"
             self.pusher_client.trigger(
-                channel=user_channel,
-                event="initial-data",
-                data=initial_data
+                channel=user_channel, event="initial-data", data=initial_data
             )
 
         except Exception as e:
             logger.error(f"Failed to send initial data to user {user_id}: {str(e)}")
 
     async def broadcast_cost_update(
-        self,
-        cost_data: Dict[str, Any],
-        channel: str = Channels.COST_DASHBOARD
+        self, cost_data: Dict[str, Any], channel: str = Channels.COST_DASHBOARD
     ) -> None:
         """Broadcast cost update to specified channel."""
         try:
             message = {
                 "type": "cost_update",
                 "timestamp": datetime.now().isoformat(),
-                "data": cost_data
+                "data": cost_data,
             }
 
-            self.pusher_client.trigger(
-                channel=channel,
-                event=Events.COST_UPDATE,
-                data=message
-            )
+            self.pusher_client.trigger(channel=channel, event=Events.COST_UPDATE, data=message)
 
         except Exception as e:
             logger.error(f"Failed to broadcast cost update: {str(e)}")
 
     async def send_budget_alert(
-        self,
-        alert_data: Dict[str, Any],
-        user_id: Optional[str] = None
+        self, alert_data: Dict[str, Any], user_id: Optional[str] = None
     ) -> None:
         """Send budget alert to specific user or broadcast."""
         try:
@@ -185,7 +171,7 @@ class RealtimeCostService:
                 "type": "budget_alert",
                 "timestamp": datetime.now().isoformat(),
                 "severity": alert_data.get("severity", "info"),
-                "data": alert_data
+                "data": alert_data,
             }
 
             if user_id:
@@ -195,11 +181,7 @@ class RealtimeCostService:
                 # Broadcast to alerts channel
                 channel = Channels.BUDGET_ALERTS
 
-            self.pusher_client.trigger(
-                channel=channel,
-                event=Events.BUDGET_ALERT,
-                data=message
-            )
+            self.pusher_client.trigger(channel=channel, event=Events.BUDGET_ALERT, data=message)
 
         except Exception as e:
             logger.error(f"Failed to send budget alert: {str(e)}")
@@ -222,8 +204,7 @@ realtime_service = RealtimeCostService()
 
 @router.post("/pusher/auth")
 async def pusher_auth(
-    request: PusherAuthRequest,
-    current_user: UserModel = Depends(get_current_user)
+    request: PusherAuthRequest, current_user: UserModel = Depends(get_current_user)
 ) -> JSONResponse:
     """
     Authenticate Pusher channel subscription.
@@ -233,9 +214,7 @@ async def pusher_auth(
     """
     try:
         auth_response = await realtime_service.authenticate_channel(
-            socket_id=request.socket_id,
-            channel_name=request.channel_name,
-            user=current_user
+            socket_id=request.socket_id, channel_name=request.channel_name, user=current_user
         )
 
         return JSONResponse(content=auth_response)
@@ -249,8 +228,7 @@ async def pusher_auth(
 
 @router.post("/pusher/trigger")
 async def trigger_event(
-    request: PusherTriggerRequest,
-    current_user: UserModel = Depends(get_current_user)
+    request: PusherTriggerRequest, current_user: UserModel = Depends(get_current_user)
 ) -> JSONResponse:
     """
     Trigger a Pusher event from the server.
@@ -268,7 +246,7 @@ async def trigger_event(
             channel=request.channel,
             event=request.event,
             data=request.data,
-            socket_id=request.socket_id
+            socket_id=request.socket_id,
         )
 
         return JSONResponse(content={"success": success})
@@ -281,9 +259,7 @@ async def trigger_event(
 
 
 @router.post("/connect")
-async def connect(
-    current_user: UserModel = Depends(get_current_user)
-) -> JSONResponse:
+async def connect(current_user: UserModel = Depends(get_current_user)) -> JSONResponse:
     """
     Initialize connection and send initial data.
 
@@ -294,15 +270,17 @@ async def connect(
         await realtime_service.send_initial_data(str(current_user.id))
 
         # Return connection info
-        return JSONResponse(content={
-            "success": True,
-            "user_channel": f"private-user-{current_user.id}",
-            "available_channels": [
-                Channels.COST_DASHBOARD,
-                Channels.BUDGET_ALERTS,
-                Channels.SERVICE_MONITORING
-            ]
-        })
+        return JSONResponse(
+            content={
+                "success": True,
+                "user_channel": f"private-user-{current_user.id}",
+                "available_channels": [
+                    Channels.COST_DASHBOARD,
+                    Channels.BUDGET_ALERTS,
+                    Channels.SERVICE_MONITORING,
+                ],
+            }
+        )
 
     except Exception as e:
         logger.error(f"Connection initialization failed: {str(e)}")
@@ -310,18 +288,14 @@ async def connect(
 
 
 @router.get("/stats")
-async def get_connection_stats(
-    current_user: UserModel = Depends(get_current_user)
-) -> JSONResponse:
+async def get_connection_stats(current_user: UserModel = Depends(get_current_user)) -> JSONResponse:
     """Get real-time connection statistics."""
     if not current_user.is_admin:
         raise HTTPException(status_code=403, detail="Admin access required")
 
     try:
         # Get channel info from Pusher
-        stats = {
-            "channels": {}
-        }
+        stats = {"channels": {}}
 
         for channel in [Channels.COST_DASHBOARD, Channels.BUDGET_ALERTS]:
             info = realtime_service.pusher_client.get_channel_info(channel)
@@ -346,7 +320,7 @@ async def scheduled_cost_update():
             cost_data={
                 "total_cost": str(daily_summary["total_cost"]),
                 "total_requests": daily_summary["total_requests"],
-                "period": "daily"
+                "period": "daily",
             }
         )
 
@@ -361,9 +335,7 @@ async def scheduled_budget_check():
         budget_status = await realtime_service.cost_manager.check_budget_status()
 
         if budget_status.get("alert_needed"):
-            await realtime_service.send_budget_alert(
-                alert_data=budget_status
-            )
+            await realtime_service.send_budget_alert(alert_data=budget_status)
 
     except Exception as e:
         logger.error(f"Scheduled budget check failed: {str(e)}")

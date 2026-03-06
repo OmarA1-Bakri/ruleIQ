@@ -92,7 +92,8 @@ class TestNodeExecutionTracker:
     def test_node_execution_timeout(self):
         """Test handling node execution timeout."""
         node_id = self.tracker.start_node_execution(
-            node_name="slow_node", timeout_seconds=1,
+            node_name="slow_node",
+            timeout_seconds=1,
         )
 
         # Simulate timeout
@@ -114,7 +115,8 @@ class TestNodeExecutionTracker:
         # Start multiple nodes
         for i in range(5):
             node_id = self.tracker.start_node_execution(
-                node_name=f"node_{i}", workflow_id="concurrent_test",
+                node_name=f"node_{i}",
+                workflow_id="concurrent_test",
             )
             node_ids.append(node_id)
 
@@ -142,12 +144,16 @@ class TestNodeExecutionTracker:
 
         # Fail first attempt
         self.tracker.fail_node_execution(
-            original_id, "NetworkError", "Connection failed",
+            original_id,
+            "NetworkError",
+            "Connection failed",
         )
 
         # Start retry
         retry_id = self.tracker.start_node_retry(
-            original_node_id=original_id, retry_attempt=1, retry_reason="NetworkError",
+            original_node_id=original_id,
+            retry_attempt=1,
+            retry_reason="NetworkError",
         )
 
         assert retry_id != original_id
@@ -188,7 +194,9 @@ class TestWorkflowMetricsTracker:
 
         # Complete workflow
         metrics = self.tracker.complete_workflow(
-            workflow_id=workflow_id, status="completed", output={"result": "success"},
+            workflow_id=workflow_id,
+            status="completed",
+            output={"result": "success"},
         )
 
         assert metrics["status"] == "completed"
@@ -236,7 +244,8 @@ class TestWorkflowMetricsTracker:
 
         # Cancel workflow
         metrics = self.tracker.cancel_workflow(
-            workflow_id=workflow_id, cancellation_reason="User requested cancellation",
+            workflow_id=workflow_id,
+            cancellation_reason="User requested cancellation",
         )
 
         assert metrics["status"] == "cancelled"
@@ -290,7 +299,8 @@ class TestWorkflowMetricsTracker:
 
         # Calculate throughput
         throughput = self.tracker.calculate_throughput(
-            workflow_type="throughput_test", time_window_seconds=60,
+            workflow_type="throughput_test",
+            time_window_seconds=60,
         )
 
         assert throughput["workflows_per_second"] > 0
@@ -472,7 +482,8 @@ class TestCheckpointMetrics:
 
         # Complete save
         save_metrics = self.metrics.complete_checkpoint_save(
-            checkpoint_id=checkpoint_id, success=True,
+            checkpoint_id=checkpoint_id,
+            success=True,
         )
 
         assert save_metrics["success"]
@@ -484,7 +495,9 @@ class TestCheckpointMetrics:
         """Test metrics for checkpoint load operations."""
         # Record checkpoint load
         load_id = self.metrics.record_checkpoint_load(
-            workflow_id="wf-123", checkpoint_id="ckpt-456", storage_backend="postgres",
+            workflow_id="wf-123",
+            checkpoint_id="ckpt-456",
+            storage_backend="postgres",
         )
 
         # Simulate load duration
@@ -492,7 +505,9 @@ class TestCheckpointMetrics:
 
         # Complete load
         load_metrics = self.metrics.complete_checkpoint_load(
-            load_id=load_id, success=True, checkpoint_size_bytes=1024 * 10,
+            load_id=load_id,
+            success=True,
+            checkpoint_size_bytes=1024 * 10,
         )
 
         assert load_metrics["success"]
@@ -516,7 +531,9 @@ class TestCheckpointMetrics:
         # Record failed load
         load_id = self.metrics.record_checkpoint_load("wf-fail", "ckpt-bad", "redis")
         load_metrics = self.metrics.complete_checkpoint_load(
-            load_id=load_id, success=False, error_type="CorruptedCheckpoint",
+            load_id=load_id,
+            success=False,
+            error_type="CorruptedCheckpoint",
         )
 
         assert not load_metrics["success"]
@@ -543,13 +560,8 @@ class TestCheckpointMetrics:
         storage_stats = self.metrics.get_storage_stats()
 
         assert storage_stats["total_checkpoints"] == 10
-        assert storage_stats["total_size_bytes"] == sum(
-            1024 * (i + 1) for i in range(10)
-        )
-        assert (
-            storage_stats["average_size_bytes"]
-            == storage_stats["total_size_bytes"] / 10
-        )
+        assert storage_stats["total_size_bytes"] == sum(1024 * (i + 1) for i in range(10))
+        assert storage_stats["average_size_bytes"] == storage_stats["total_size_bytes"] / 10
         assert storage_stats["largest_checkpoint_bytes"] == 1024 * 10
         assert storage_stats["smallest_checkpoint_bytes"] == 1024
 
@@ -614,7 +626,8 @@ class TestMemoryUsageTracker:
         # Simulate memory growth
         for i in range(10):
             self.tracker.record_memory_usage(
-                component=component, bytes_used=1024 * (i + 1)  # Growing usage,
+                component=component,
+                bytes_used=1024 * (i + 1),  # Growing usage,
             )
             time.sleep(0.01)
 
@@ -631,7 +644,8 @@ class TestMemoryUsageTracker:
         # Simulate potential leak (continuous growth)
         for i in range(20):
             self.tracker.record_memory_usage(
-                component="leaky_component", bytes_used=1024 * 1024 * i  # Linear growth,
+                component="leaky_component",
+                bytes_used=1024 * 1024 * i,  # Linear growth,
             )
 
         # Check for leaks
@@ -648,12 +662,14 @@ class TestMemoryUsageTracker:
 
         # Check if within limits
         assert self.tracker.check_memory_limit(
-            "limited_component", current_bytes=512 * 1024,
+            "limited_component",
+            current_bytes=512 * 1024,
         )
 
         # Check if exceeds limits
         assert not self.tracker.check_memory_limit(
-            "limited_component", current_bytes=2 * 1024 * 1024,
+            "limited_component",
+            current_bytes=2 * 1024 * 1024,
         )
 
         # Get limit violations
@@ -662,7 +678,8 @@ class TestMemoryUsageTracker:
 
         # Record violation
         self.tracker.record_memory_usage(
-            component="limited_component", bytes_used=2 * 1024 * 1024,
+            component="limited_component",
+            bytes_used=2 * 1024 * 1024,
         )
 
         violations = self.tracker.get_limit_violations()
@@ -720,7 +737,8 @@ class TestErrorMetricsCollector:
 
             # Record successful operation
             self.collector.record_success(
-                component="processor", timestamp=start_time + timedelta(seconds=i),
+                component="processor",
+                timestamp=start_time + timedelta(seconds=i),
             )
 
         # Calculate error rate
@@ -752,7 +770,8 @@ class TestErrorMetricsCollector:
         """Test tracking error recovery success."""
         # Record error and recovery attempts
         error_id = self.collector.record_error(
-            error_type="RecoverableError", component="resilient_component",
+            error_type="RecoverableError",
+            component="resilient_component",
         )
 
         # Record recovery attempts
@@ -790,7 +809,9 @@ class TestPerformanceAnalyzer:
 
         for node, duration in node_times.items():
             self.analyzer.record_node_performance(
-                workflow_id=workflow_id, node_name=node, duration_ms=duration,
+                workflow_id=workflow_id,
+                node_name=node,
+                duration_ms=duration,
             )
 
         # Detect bottlenecks
@@ -823,7 +844,9 @@ class TestPerformanceAnalyzer:
 
         # Detect regression
         regression = self.analyzer.detect_regression(
-            node_name=node_name, baseline_window_minutes=60, threshold_percentage=50,
+            node_name=node_name,
+            baseline_window_minutes=60,
+            threshold_percentage=50,
         )
 
         assert regression["regression_detected"]
@@ -871,7 +894,8 @@ class TestPerformanceAnalyzer:
 
         # Analyze trend
         trend = self.analyzer.analyze_performance_trend(
-            node_name=node_name, time_window_hours=24,
+            node_name=node_name,
+            time_window_hours=24,
         )
 
         assert trend["trend_direction"] == "improving"

@@ -2,6 +2,7 @@
 Security Enhancements Test Suite
 Tests for all critical and high-priority security fixes
 """
+
 import pytest
 import asyncio
 import time
@@ -56,10 +57,7 @@ class TestCORSConfiguration:
             return {"status": "ok"}
 
         # Add enhanced CORS middleware
-        cors_middleware = EnhancedCORSMiddleware(
-            app,
-            environment=SecurityEnvironment.PRODUCTION
-        )
+        cors_middleware = EnhancedCORSMiddleware(app, environment=SecurityEnvironment.PRODUCTION)
 
         # Create test request
         request = Mock(spec=Request)
@@ -80,10 +78,7 @@ class TestCORSConfiguration:
     def test_cors_preflight_validation(self):
         """Test CORS preflight request validation"""
         app = FastAPI()
-        cors_middleware = EnhancedCORSMiddleware(
-            app,
-            environment=SecurityEnvironment.PRODUCTION
-        )
+        cors_middleware = EnhancedCORSMiddleware(app, environment=SecurityEnvironment.PRODUCTION)
 
         # Test allowed origin
         assert cors_middleware._is_origin_allowed("https://app.ruleiq.com")
@@ -99,9 +94,7 @@ class TestRedisCircuitBreaker:
     async def test_circuit_breaker_states(self):
         """Test circuit breaker state transitions"""
         breaker = RedisCircuitBreaker(
-            failure_strategy=RedisFailureStrategy.DEGRADED,
-            failure_threshold=3,
-            recovery_timeout=1
+            failure_strategy=RedisFailureStrategy.DEGRADED, failure_threshold=3, recovery_timeout=1
         )
 
         # Initial state should be closed
@@ -126,33 +119,28 @@ class TestRedisCircuitBreaker:
 
         # Test FAIL_OPEN strategy
         breaker_open = RedisCircuitBreaker(
-            failure_strategy=RedisFailureStrategy.FAIL_OPEN,
-            failure_threshold=1
+            failure_strategy=RedisFailureStrategy.FAIL_OPEN, failure_threshold=1
         )
         breaker_open._trip_circuit()
         assert breaker_open._should_allow_request()  # Should allow even when open
 
         # Test FAIL_CLOSED strategy
         breaker_closed = RedisCircuitBreaker(
-            failure_strategy=RedisFailureStrategy.FAIL_CLOSED,
-            failure_threshold=1
+            failure_strategy=RedisFailureStrategy.FAIL_CLOSED, failure_threshold=1
         )
         breaker_closed._trip_circuit()
         assert not breaker_closed._should_allow_request()  # Should deny when open
 
         # Test DEGRADED strategy
         breaker_degraded = RedisCircuitBreaker(
-            failure_strategy=RedisFailureStrategy.DEGRADED,
-            failure_threshold=1
+            failure_strategy=RedisFailureStrategy.DEGRADED, failure_threshold=1
         )
         breaker_degraded._trip_circuit()
         assert breaker_degraded._should_allow_request()  # Should allow with local cache
 
     def test_local_cache_fallback(self):
         """Test local cache for degraded mode"""
-        breaker = RedisCircuitBreaker(
-            failure_strategy=RedisFailureStrategy.DEGRADED
-        )
+        breaker = RedisCircuitBreaker(failure_strategy=RedisFailureStrategy.DEGRADED)
 
         # Test local cache operations
         breaker.local_cache.set("test_key", "test_value")
@@ -184,16 +172,12 @@ class TestJWTEnhancements:
 
         # Create access token
         access_token = jwt_middleware.create_access_token(
-            user_id="123",
-            email="test@example.com",
-            role="user"
+            user_id="123", email="test@example.com", role="user"
         )
 
         # Decode and verify token structure
         payload = jwt.decode(
-            access_token,
-            jwt_middleware.secret_key,
-            algorithms=[jwt_middleware.algorithm]
+            access_token, jwt_middleware.secret_key, algorithms=[jwt_middleware.algorithm]
         )
 
         assert payload["sub"] == "123"
@@ -210,16 +194,12 @@ class TestJWTEnhancements:
 
         # Create refresh token with family ID
         refresh_token = jwt_middleware.create_refresh_token(
-            user_id="123",
-            email="test@example.com",
-            family_id="family_123"
+            user_id="123", email="test@example.com", family_id="family_123"
         )
 
         # Decode and verify family ID
         payload = jwt.decode(
-            refresh_token,
-            jwt_middleware.secret_key,
-            algorithms=[jwt_middleware.algorithm]
+            refresh_token, jwt_middleware.secret_key, algorithms=[jwt_middleware.algorithm]
         )
 
         assert payload["family_id"] == "family_123"
@@ -234,9 +214,7 @@ class TestJWTEnhancements:
 
         # Test setting cookies
         jwt_middleware.set_auth_cookies(
-            response,
-            access_token="test_access",
-            refresh_token="test_refresh"
+            response, access_token="test_access", refresh_token="test_refresh"
         )
 
         # Verify cookies are set with correct attributes
@@ -271,7 +249,7 @@ class TestRateLimiting:
 
     def test_burst_allowance(self):
         """Test burst allowance mechanism"""
-        bucket = TokenBucket(capacity=120, refill_rate=100/60)  # 100/min + 20 burst
+        bucket = TokenBucket(capacity=120, refill_rate=100 / 60)  # 100/min + 20 burst
 
         # Can burst up to capacity
         assert bucket.consume(120)
@@ -310,7 +288,7 @@ class TestRateLimiting:
             "limit": 100,
             "burst": 20,
             "remaining": 95,
-            "reset": int(time.time()) + 60
+            "reset": int(time.time()) + 60,
         }
 
         headers = rate_limiter._create_rate_limit_headers(result)
@@ -381,10 +359,7 @@ class TestIntegration:
         # Test request with proper headers
         response = client.get(
             "/api/v1/test",
-            headers={
-                "Origin": "https://app.ruleiq.com",
-                "Authorization": "Bearer test_token"
-            }
+            headers={"Origin": "https://app.ruleiq.com", "Authorization": "Bearer test_token"},
         )
 
         # Verify security headers are present

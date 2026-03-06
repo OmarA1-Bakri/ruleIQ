@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 import logging
 
 
@@ -125,9 +124,7 @@ class TestEnhancedAuthentication:
 
         # Test weak password rejection
         for pwd in weak_passwords:
-            assert not validate_password(
-                pwd
-            ), f"Weak password '{pwd}' should be rejected"
+            assert not validate_password(pwd), f"Weak password '{pwd}' should be rejected"
 
         # Test strong password acceptance
         for pwd in strong_passwords:
@@ -216,9 +213,7 @@ class TestEnhancedAuthentication:
                 self._clean_expired_sessions(user_id)
 
                 # Check concurrent session limit
-                user_sessions = [
-                    s for s in self.sessions.values() if s["user_id"] == user_id
-                ]
+                user_sessions = [s for s in self.sessions.values() if s["user_id"] == user_id]
                 if len(user_sessions) >= self.max_concurrent:
                     # Remove oldest session
                     oldest = min(user_sessions, key=lambda s: s["created_at"])
@@ -259,8 +254,7 @@ class TestEnhancedAuthentication:
                 expired = []
                 for sid, session in self.sessions.items():
                     if session["user_id"] == user_id and (
-                        datetime.now(timezone.utc) - session["last_activity"]
-                        > self.session_timeout
+                        datetime.now(timezone.utc) - session["last_activity"] > self.session_timeout
                     ):
                         expired.append(sid)
                 for sid in expired:
@@ -409,9 +403,7 @@ class TestAuthorizationPolicies:
         assert rbac.has_permission(user1, "write:anything")  # Admin can do anything
         assert rbac.has_permission(user2, "write:assessments")  # Manager specific
         assert rbac.has_permission(user2, "read:public")  # Inherited from viewer
-        assert not rbac.has_permission(
-            user2, "delete:users"
-        )  # Manager can't delete users
+        assert not rbac.has_permission(user2, "delete:users")  # Manager can't delete users
 
     @pytest.mark.asyncio
     async def test_resource_level_permissions(self):
@@ -518,9 +510,7 @@ class TestDataEncryption:
                     if field in decrypted:
                         try:
                             encrypted_value = decrypted[field].encode()
-                            decrypted[field] = self.cipher.decrypt(
-                                encrypted_value
-                            ).decode()
+                            decrypted[field] = self.cipher.decrypt(encrypted_value).decode()
                         except (KeyError, IndexError):
                             pass  # Field might not be encrypted
 
@@ -529,9 +519,7 @@ class TestDataEncryption:
                     for field in ["phone", "address"]:
                         if field in decrypted["personal_data"]:
                             try:
-                                encrypted_value = decrypted["personal_data"][
-                                    field
-                                ].encode()
+                                encrypted_value = decrypted["personal_data"][field].encode()
                                 decrypted["personal_data"][field] = self.cipher.decrypt(
                                     encrypted_value
                                 ).decode()
@@ -746,7 +734,10 @@ class TestAuditLogging:
 
         # Test permission changes
         perm_event = logger.log_permission_change(
-            user_id="user456", admin_id="admin001", old_role="user", new_role="manager",
+            user_id="user456",
+            admin_id="admin001",
+            old_role="user",
+            new_role="manager",
         )
         assert perm_event["action"] == "PERMISSION_CHANGE"
         assert perm_event["metadata"]["old_role"] == "user"
@@ -877,10 +868,7 @@ class TestSecurityHeaders:
                     result["Access-Control-Max-Age"] = "86400"
 
                 # Add cache headers for static content
-                if any(
-                    request_path.endswith(ext)
-                    for ext in [".js", ".css", ".png", ".jpg"]
-                ):
+                if any(request_path.endswith(ext) for ext in [".js", ".css", ".png", ".jpg"]):
                     result["Cache-Control"] = "public, max-age=31536000, immutable"
 
                 return result
@@ -891,9 +879,7 @@ class TestSecurityHeaders:
 
         for expected_header in security_headers_expected:
             assert expected_header in headers
-            assert (
-                headers[expected_header] == security_headers_expected[expected_header],
-            )
+            assert (headers[expected_header] == security_headers_expected[expected_header],)
 
         # Test header validation
         test_response = {
@@ -980,7 +966,10 @@ class TestVulnerabilityPrevention:
                         return False
 
                 # Check for suspicious characters in combination
-                return not (("'" in user_input or '"' in user_input) and any(keyword in input_upper for keyword in ["OR", "AND", "SELECT", "DROP"]))
+                return not (
+                    ("'" in user_input or '"' in user_input)
+                    and any(keyword in input_upper for keyword in ["OR", "AND", "SELECT", "DROP"])
+                )
 
             def sanitize_input(self, user_input: str) -> str:
                 """Sanitize user input for safe SQL usage"""
@@ -1002,7 +991,10 @@ class TestVulnerabilityPrevention:
                 ]
                 for keyword in dangerous_keywords:
                     sanitized = re.sub(
-                        rf"\b{keyword}\b", "", sanitized, flags=re.IGNORECASE,
+                        rf"\b{keyword}\b",
+                        "",
+                        sanitized,
+                        flags=re.IGNORECASE,
                     )
 
                 # Escape special characters
@@ -1041,16 +1033,16 @@ class TestVulnerabilityPrevention:
 
         # Test input validation
         for payload in malicious_inputs:
-            assert not sanitizer.is_safe_input(
-                payload
-            ), f"Malicious input '{payload}' should be detected"
+            assert not sanitizer.is_safe_input(payload), (
+                f"Malicious input '{payload}' should be detected"
+            )
 
         # Test safe inputs
         safe_inputs = ["john.doe@example.com", "user123", "Product Name", "12345"]
         for safe_input in safe_inputs:
-            assert sanitizer.is_safe_input(
-                safe_input
-            ), f"Safe input '{safe_input}' should be allowed"
+            assert sanitizer.is_safe_input(safe_input), (
+                f"Safe input '{safe_input}' should be allowed"
+            )
 
         # Test sanitization
         dangerous = "admin'; DROP TABLE users; --"
@@ -1064,11 +1056,10 @@ class TestVulnerabilityPrevention:
         params = ["admin", "password123"]
 
         query_template, query_params = sanitizer.build_parameterized_query(
-            query, params,
+            query,
+            params,
         )
-        assert (
-            query_template == "SELECT * FROM users WHERE username = ? AND password = ?",
-        )
+        assert (query_template == "SELECT * FROM users WHERE username = ? AND password = ?",)
         assert query_params == params
 
         # Test parameter count validation

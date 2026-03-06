@@ -1,6 +1,7 @@
 """
 Comprehensive integration test suite for RuleIQ.
 """
+
 import pytest
 import asyncio
 from typing import Dict, Any
@@ -25,7 +26,7 @@ class TestEndToEndWorkflow:
         return {
             "email": f"test_{datetime.now().timestamp()}@example.com",
             "password": "TestSecure123!@#",
-            "full_name": "Test User"
+            "full_name": "Test User",
         }
 
     @pytest.mark.asyncio
@@ -34,10 +35,7 @@ class TestEndToEndWorkflow:
         client = TestClient(app)
 
         # 1. User Registration
-        registration_response = client.post(
-            "/api/v1/auth/register",
-            json=test_user
-        )
+        registration_response = client.post("/api/v1/auth/register", json=test_user)
         assert registration_response.status_code in [200, 201, 422]
 
         if registration_response.status_code in [200, 201]:
@@ -46,10 +44,7 @@ class TestEndToEndWorkflow:
             # 2. User Login
             login_response = client.post(
                 "/api/v1/auth/token",
-                data={
-                    "username": test_user["email"],
-                    "password": test_user["password"]
-                }
+                data={"username": test_user["email"], "password": test_user["password"]},
             )
             assert login_response.status_code == 200
             token = login_response.json()["access_token"]
@@ -62,20 +57,15 @@ class TestEndToEndWorkflow:
                     "company_name": "Test Company",
                     "industry": "Technology",
                     "size": "small",
-                    "location": "UK"
+                    "location": "UK",
                 },
-                headers=headers
+                headers=headers,
             )
             assert profile_response.status_code in [200, 201]
 
             # 4. Start Assessment
             assessment_response = client.post(
-                "/api/v1/assessments",
-                json={
-                    "framework": "gdpr",
-                    "type": "quick"
-                },
-                headers=headers
+                "/api/v1/assessments", json={"framework": "gdpr", "type": "quick"}, headers=headers
             )
             assert assessment_response.status_code in [200, 201]
 
@@ -86,14 +76,13 @@ class TestEndToEndWorkflow:
                 complete_response = client.post(
                     f"/api/v1/assessments/{assessment_id}/complete",
                     json={"responses": {}},
-                    headers=headers
+                    headers=headers,
                 )
                 assert complete_response.status_code in [200, 201, 404]
 
                 # 6. Get Results
                 results_response = client.get(
-                    f"/api/v1/assessments/{assessment_id}/results",
-                    headers=headers
+                    f"/api/v1/assessments/{assessment_id}/results", headers=headers
                 )
                 assert results_response.status_code in [200, 404]
 
@@ -110,10 +99,11 @@ class TestDatabaseIntegration:
                 async with session.begin():
                     # Perform operations
                     from database.user import User
+
                     test_user = User(
                         email="transaction_test@example.com",
                         hashed_password="test",
-                        full_name="Transaction Test"
+                        full_name="Transaction Test",
                     )
                     session.add(test_user)
 
@@ -125,6 +115,7 @@ class TestDatabaseIntegration:
 
             # Verify user was not created
             from sqlalchemy import select
+
             result = await session.execute(
                 select(User).where(User.email == "transaction_test@example.com")
             )
@@ -134,9 +125,11 @@ class TestDatabaseIntegration:
     @pytest.mark.asyncio
     async def test_concurrent_database_access(self):
         """Test concurrent database access with connection pooling."""
+
         async def db_operation(index: int):
             async for session in get_async_db():
                 from sqlalchemy import text
+
                 result = await session.execute(text(f"SELECT {index}"))
                 return result.scalar()
 
@@ -160,11 +153,7 @@ class TestAIIntegration:
         # Mock assessment data
         assessment_data = {
             "framework": "gdpr",
-            "company_info": {
-                "name": "Test Corp",
-                "industry": "Technology",
-                "size": "medium"
-            }
+            "company_info": {"name": "Test Corp", "industry": "Technology", "size": "medium"},
         }
 
         # Test assessment generation (mocked)
@@ -200,11 +189,7 @@ class TestSecurityIntegration:
             assert not valid
 
         # Test strong passwords
-        strong_passwords = [
-            "SecurePass123!@#",
-            "MyStr0ng&P@ssw0rd",
-            "C0mpl3x!Pass#2024"
-        ]
+        strong_passwords = ["SecurePass123!@#", "MyStr0ng&P@ssw0rd", "C0mpl3x!Pass#2024"]
         for pwd in strong_passwords:
             valid, msg = validate_password(pwd)
             assert valid
@@ -215,8 +200,7 @@ class TestSecurityIntegration:
 
         # Login to get token
         login_response = client.post(
-            "/api/v1/auth/token",
-            data={"username": "test@example.com", "password": "TestPass123!"}
+            "/api/v1/auth/token", data={"username": "test@example.com", "password": "TestPass123!"}
         )
 
         if login_response.status_code == 200:
@@ -224,16 +208,10 @@ class TestSecurityIntegration:
             headers = {"Authorization": f"Bearer {token}"}
 
             # Logout (blacklist token)
-            logout_response = client.post(
-                "/api/v1/auth/logout",
-                headers=headers
-            )
+            logout_response = client.post("/api/v1/auth/logout", headers=headers)
 
             # Try to use blacklisted token
-            response = client.get(
-                "/api/v1/users/me",
-                headers=headers
-            )
+            response = client.get("/api/v1/users/me", headers=headers)
             # Should be unauthorized if blacklisting works
             assert response.status_code in [401, 200]  # Depends on implementation
 
@@ -268,7 +246,7 @@ class TestMonitoringIntegration:
 
             # Test active connections query
             try:
-                result = await session.execute(text(queries['active_connections']))
+                result = await session.execute(text(queries["active_connections"]))
                 count = result.scalar()
                 assert count >= 0
             except Exception:
@@ -286,11 +264,7 @@ class TestPerformanceIntegration:
         client = TestClient(app)
         import time
 
-        endpoints = [
-            "/api/v1/health",
-            "/api/v1/frameworks",
-            "/api/v1/compliance/overview"
-        ]
+        endpoints = ["/api/v1/health", "/api/v1/frameworks", "/api/v1/compliance/overview"]
 
         for endpoint in endpoints:
             start = time.time()

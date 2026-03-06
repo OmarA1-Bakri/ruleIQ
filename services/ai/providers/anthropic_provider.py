@@ -40,6 +40,7 @@ class AnthropicProvider(AIProvider):
         if self._client is None:
             try:
                 import anthropic
+
                 self._client = anthropic.Anthropic(api_key=self._api_key)
             except ImportError:
                 raise ProviderUnavailableError(
@@ -79,14 +80,10 @@ class AnthropicProvider(AIProvider):
                         **kwargs,
                     )
                 )
-                response = await asyncio.wait_for(
-                    generation_task, timeout=config.timeout
-                )
+                response = await asyncio.wait_for(generation_task, timeout=config.timeout)
             except asyncio.TimeoutError:
                 logger.warning(f"Anthropic generation timed out after {config.timeout}s")
-                raise ProviderTimeoutError(
-                    f"Anthropic request timed out after {config.timeout}s"
-                )
+                raise ProviderTimeoutError(f"Anthropic request timed out after {config.timeout}s")
 
             end_time = datetime.now(timezone.utc)
             response_time = (end_time - start_time).total_seconds()
@@ -94,18 +91,14 @@ class AnthropicProvider(AIProvider):
             # Extract response text
             response_text = ""
             if hasattr(response, "content") and response.content:
-                text_blocks = [
-                    block.text for block in response.content
-                    if hasattr(block, "text")
-                ]
+                text_blocks = [block.text for block in response.content if hasattr(block, "text")]
                 response_text = "".join(text_blocks)
 
             # Extract token usage
             tokens_used = 0
             if hasattr(response, "usage"):
-                tokens_used = (
-                    getattr(response.usage, "input_tokens", 0)
-                    + getattr(response.usage, "output_tokens", 0)
+                tokens_used = getattr(response.usage, "input_tokens", 0) + getattr(
+                    response.usage, "output_tokens", 0
                 )
 
             # Extract finish reason
@@ -120,16 +113,17 @@ class AnthropicProvider(AIProvider):
                 metadata={
                     "response_time_ms": int(response_time * 1000),
                     "input_tokens": getattr(response.usage, "input_tokens", 0)
-                    if hasattr(response, "usage") else 0,
+                    if hasattr(response, "usage")
+                    else 0,
                     "output_tokens": getattr(response.usage, "output_tokens", 0)
-                    if hasattr(response, "usage") else 0,
+                    if hasattr(response, "usage")
+                    else 0,
                 },
                 cached=False,
             )
 
             logger.info(
-                f"Anthropic response generated in {response_time:.2f}s "
-                f"({tokens_used} tokens)"
+                f"Anthropic response generated in {response_time:.2f}s ({tokens_used} tokens)"
             )
             return provider_response
 

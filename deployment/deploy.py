@@ -52,27 +52,16 @@ class DeploymentOrchestrator:
     def get_default_config(self) -> dict:
         """Get default deployment configuration."""
         return {
-            "deployment": {
-                "name": "ruleIQ",
-                "version": "1.0.0",
-                "environment": self.environment
-            },
+            "deployment": {"name": "ruleIQ", "version": "1.0.0", "environment": self.environment},
             "application": {
-                "backend": {
-                    "port": 8000,
-                    "workers": 4,
-                    "timeout": 30
-                },
-                "frontend": {
-                    "build_command": "pnpm build",
-                    "output_directory": ".next"
-                }
+                "backend": {"port": 8000, "workers": 4, "timeout": 30},
+                "frontend": {"build_command": "pnpm build", "output_directory": ".next"},
             },
             "strategies": {
                 "default": "blue_green",
                 "rollback_timeout": 300,
-                "health_check_retries": 3
-            }
+                "health_check_retries": 3,
+            },
         }
 
     def log(self, message: str, level: str = "info"):
@@ -90,7 +79,7 @@ class DeploymentOrchestrator:
             "success": "\033[92m",
             "warning": "\033[93m",
             "error": "\033[91m",
-            "reset": "\033[0m"
+            "reset": "\033[0m",
         }
 
         # Console output with color
@@ -114,13 +103,7 @@ class DeploymentOrchestrator:
         """
         self.log(f"Executing: {description}")
         try:
-            result = subprocess.run(
-                command,
-                shell=True,
-                capture_output=True,
-                text=True,
-                cwd=cwd
-            )
+            result = subprocess.run(command, shell=True, capture_output=True, text=True, cwd=cwd)
 
             if result.returncode == 0:
                 self.log(f"✅ {description} completed successfully", "success")
@@ -188,7 +171,7 @@ class DeploymentOrchestrator:
         test_targets = [
             ("make test-groups-parallel", "Parallel test groups"),
             ("make test-integration-comprehensive", "Integration tests"),
-            ("make validate-fastapi", "FastAPI validation")
+            ("make validate-fastapi", "FastAPI validation"),
         ]
 
         for command, description in test_targets:
@@ -206,12 +189,14 @@ class DeploymentOrchestrator:
         self.log("=" * 60)
 
         if Path("deployment/security_validation.py").exists():
-            return self.run_python_module("deployment/security_validation.py", "Security validation")
+            return self.run_python_module(
+                "deployment/security_validation.py", "Security validation"
+            )
 
         # Fallback to basic security checks
         security_checks = [
             ("ruff check --select S", "Security linting"),
-            ("python -m bandit -r api/ services/", "Bandit security scan")
+            ("python -m bandit -r api/ services/", "Bandit security scan"),
         ]
 
         for command, description in security_checks:
@@ -227,7 +212,9 @@ class DeploymentOrchestrator:
         self.log("=" * 60)
 
         if Path("deployment/performance_testing.py").exists():
-            return self.run_python_module("deployment/performance_testing.py", "Performance testing")
+            return self.run_python_module(
+                "deployment/performance_testing.py", "Performance testing"
+            )
 
         self.log("Performance testing script not found, skipping", "warning")
         return True
@@ -243,7 +230,7 @@ class DeploymentOrchestrator:
             return self.run_python_module(
                 "deployment/docker_manager.py",
                 "Docker deployment",
-                ["--action=deploy", f"--env={self.environment}"]
+                ["--action=deploy", f"--env={self.environment}"],
             )
 
         # Fallback to Docker Compose
@@ -264,14 +251,14 @@ class DeploymentOrchestrator:
             return self.run_python_module(
                 "deployment/frontend_deploy.py",
                 "Frontend deployment",
-                [f"--env={self.environment}"]
+                [f"--env={self.environment}"],
             )
 
         # Fallback to basic frontend build
         frontend_commands = [
             ("cd frontend && pnpm install", "Install frontend dependencies"),
             ("cd frontend && pnpm build", "Build frontend"),
-            ("cd frontend && pnpm run deploy", "Deploy frontend")
+            ("cd frontend && pnpm run deploy", "Deploy frontend"),
         ]
 
         for command, description in frontend_commands:
@@ -304,7 +291,7 @@ class DeploymentOrchestrator:
         # Fallback to basic health checks
         health_checks = [
             ("python validate_endpoints.py", "Endpoint validation"),
-            ("python database_health_check.py", "Database health check")
+            ("python database_health_check.py", "Database health check"),
         ]
 
         return all(self.run_command(command, description) for command, description in health_checks)
@@ -319,7 +306,7 @@ class DeploymentOrchestrator:
             self.run_python_module(
                 "deployment/rollback_manager.py",
                 "Rollback execution",
-                [f"--deployment-id={self.deployment_id}"]
+                [f"--deployment-id={self.deployment_id}"],
             )
         else:
             self.log("Rollback manager not found, manual rollback required", "error")
@@ -334,7 +321,7 @@ class DeploymentOrchestrator:
             "status": "success" if all(self.results.values()) else "failed",
             "duration": f"{elapsed_time:.2f} seconds",
             "timestamp": datetime.now().isoformat(),
-            "results": self.results
+            "results": self.results,
         }
 
         # Save report to JSON
@@ -451,28 +438,21 @@ def main():
         "-e",
         choices=["staging", "production"],
         default="staging",
-        help="Target deployment environment"
+        help="Target deployment environment",
     )
     parser.add_argument(
         "--config",
         "-c",
         default="deployment/config.yaml",
-        help="Path to deployment configuration file"
+        help="Path to deployment configuration file",
     )
     parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="Perform dry run without actual deployment"
+        "--dry-run", action="store_true", help="Perform dry run without actual deployment"
     )
     parser.add_argument(
-        "--skip-tests",
-        action="store_true",
-        help="Skip test execution (not recommended)"
+        "--skip-tests", action="store_true", help="Skip test execution (not recommended)"
     )
-    parser.add_argument(
-        "--rollback",
-        help="Rollback to a specific deployment ID"
-    )
+    parser.add_argument("--rollback", help="Rollback to a specific deployment ID")
 
     args = parser.parse_args()
 
@@ -483,7 +463,7 @@ def main():
         orchestrator.run_python_module(
             "deployment/rollback_manager.py",
             "Rollback execution",
-            [f"--deployment-id={args.rollback}"]
+            [f"--deployment-id={args.rollback}"],
         )
         return
 

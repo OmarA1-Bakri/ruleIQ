@@ -6,7 +6,6 @@ Create Date: 2025-07-17 12:00:00.000000
 
 """
 
-from __future__ import annotations
 import logging
 import contextlib
 from alembic import op
@@ -701,9 +700,7 @@ def downgrade() -> None:
     for table_name, constraints in constraint_tables:
         for constraint_name in constraints:
             try:
-                op.execute(
-                    f"ALTER TABLE {table_name} DROP CONSTRAINT {constraint_name}"
-                )
+                op.execute(f"ALTER TABLE {table_name} DROP CONSTRAINT {constraint_name}")
             except Exception:
                 pass  # Constraint may not exist
 

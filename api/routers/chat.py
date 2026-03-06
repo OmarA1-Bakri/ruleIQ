@@ -21,4 +21,4 @@ Original monolith: 1,606 lines → Refactored into 6 focused modules
 from api.routers.chat import router
 
 # Re-export any commonly used symbols for full backward compatibility
-__all__ = ['router']
+__all__ = ["router"]

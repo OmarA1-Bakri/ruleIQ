@@ -75,11 +75,11 @@ class ComplianceAssistant:
 
         # Preserve content type map
         self.content_type_map = {
-            'assessment_help': ContentType.ASSESSMENT_GUIDANCE,
-            'evidence_recommendations': ContentType.EVIDENCE_CLASSIFICATION,
-            'policy_generation': ContentType.POLICY_GENERATION,
-            'compliance_analysis': ContentType.COMPLIANCE_ANALYSIS,
-            'general': ContentType.GENERAL_QUESTION
+            "assessment_help": ContentType.ASSESSMENT_GUIDANCE,
+            "evidence_recommendations": ContentType.EVIDENCE_CLASSIFICATION,
+            "policy_generation": ContentType.POLICY_GENERATION,
+            "compliance_analysis": ContentType.COMPLIANCE_ANALYSIS,
+            "general": ContentType.GENERAL_QUESTION,
         }
 
         # Preserve safety settings
@@ -91,16 +91,13 @@ class ComplianceAssistant:
         }
 
         # Initialize new architecture components
-        self.provider_factory = ProviderFactory(
-            self.instruction_manager,
-            self.circuit_breaker
-        )
+        self.provider_factory = ProviderFactory(self.instruction_manager, self.circuit_breaker)
 
         self.response_generator = ResponseGenerator(
             self.provider_factory,
             self.safety_manager,
             tool_executor,
-            None  # analytics_monitor initialized lazily
+            None,  # analytics_monitor initialized lazily
         )
 
         self.response_parser = ResponseParser()
@@ -114,26 +111,25 @@ class ComplianceAssistant:
             self.context_manager,
             self.prompt_templates,
             None,  # ai_cache initialized lazily
-            None   # analytics_monitor initialized lazily
+            None,  # analytics_monitor initialized lazily
         )
 
         self.policy_service = PolicyService(
             self.response_generator,
             self.response_parser,
             self.fallback_generator,
-            self.context_manager
+            self.context_manager,
         )
 
         self.workflow_service = WorkflowService(
             self.response_generator,
             self.response_parser,
             self.fallback_generator,
-            self.context_manager
+            self.context_manager,
         )
 
         self.compliance_service = ComplianceAnalysisService(
-            self.response_generator,
-            self.context_manager
+            self.response_generator, self.context_manager
         )
 
         self.evidence_service = EvidenceService(
@@ -142,7 +138,7 @@ class ComplianceAssistant:
             self.fallback_generator,
             self.context_manager,
             self.workflow_service,  # For maturity analysis
-            self.compliance_service  # For gap analysis
+            self.compliance_service,  # For gap analysis
         )
 
         logger.info("ComplianceAssistant façade initialized with new architecture")
@@ -158,16 +154,11 @@ class ComplianceAssistant:
         framework_id: str,
         business_profile_id: UUID,
         section_id: Optional[str] = None,
-        user_context: Optional[Dict] = None
+        user_context: Optional[Dict] = None,
     ) -> Dict[str, Any]:
         """Get contextual help for an assessment question."""
         return await self.assessment_service.get_help(
-            question_id,
-            question_text,
-            framework_id,
-            business_profile_id,
-            section_id,
-            user_context
+            question_id, question_text, framework_id, business_profile_id, section_id, user_context
         )
 
     async def generate_assessment_followup(
@@ -175,27 +166,19 @@ class ComplianceAssistant:
         current_answers: Dict[str, Any],
         framework_id: str,
         business_profile_id: UUID,
-        assessment_context: Optional[Dict] = None
+        assessment_context: Optional[Dict] = None,
     ) -> Dict[str, Any]:
         """Generate follow-up questions based on current answers."""
         return await self.assessment_service.generate_followup(
-            current_answers,
-            framework_id,
-            business_profile_id,
-            assessment_context
+            current_answers, framework_id, business_profile_id, assessment_context
         )
 
     async def analyze_assessment_results(
-        self,
-        assessment_results: Dict[str, Any],
-        framework_id: str,
-        business_profile_id: UUID
+        self, assessment_results: Dict[str, Any], framework_id: str, business_profile_id: UUID
     ) -> Dict[str, Any]:
         """Analyze assessment results."""
         return await self.assessment_service.analyze_results(
-            assessment_results,
-            framework_id,
-            business_profile_id
+            assessment_results, framework_id, business_profile_id
         )
 
     async def get_assessment_recommendations(
@@ -203,14 +186,11 @@ class ComplianceAssistant:
         assessment_results: Dict[str, Any],
         framework_id: str,
         business_profile_id: UUID,
-        customization_options: Optional[Dict] = None
+        customization_options: Optional[Dict] = None,
     ) -> Dict[str, Any]:
         """Get personalized assessment recommendations."""
         return await self.assessment_service.get_recommendations(
-            assessment_results,
-            framework_id,
-            business_profile_id,
-            customization_options
+            assessment_results, framework_id, business_profile_id, customization_options
         )
 
     # ============================================================================
@@ -223,15 +203,11 @@ class ComplianceAssistant:
         business_profile_id: UUID,
         framework: str,
         policy_type: str,
-        customization_options: Optional[Dict] = None
+        customization_options: Optional[Dict] = None,
     ) -> Dict[str, Any]:
         """Generate a customized compliance policy."""
         return await self.policy_service.generate_policy(
-            user,
-            business_profile_id,
-            framework,
-            policy_type,
-            customization_options
+            user, business_profile_id, framework, policy_type, customization_options
         )
 
     # ============================================================================
@@ -244,15 +220,11 @@ class ComplianceAssistant:
         business_profile_id: UUID,
         framework: str,
         control_id: Optional[str] = None,
-        workflow_type: str = 'comprehensive'
+        workflow_type: str = "comprehensive",
     ) -> Dict[str, Any]:
         """Generate an evidence collection workflow."""
         return await self.workflow_service.generate_workflow(
-            user,
-            business_profile_id,
-            framework,
-            control_id,
-            workflow_type
+            user, business_profile_id, framework, control_id, workflow_type
         )
 
     # ============================================================================
@@ -264,14 +236,11 @@ class ComplianceAssistant:
         user: User,
         business_profile_id: UUID,
         framework: str,
-        control_id: Optional[str] = None
+        control_id: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
         """Get evidence collection recommendations."""
         return await self.evidence_service.get_recommendations(
-            user,
-            business_profile_id,
-            framework,
-            control_id
+            user, business_profile_id, framework, control_id
         )
 
     async def get_context_aware_recommendations(
@@ -279,14 +248,11 @@ class ComplianceAssistant:
         user: User,
         business_profile_id: UUID,
         framework: str,
-        context_type: str = 'comprehensive'
+        context_type: str = "comprehensive",
     ) -> Dict[str, Any]:
         """Get enhanced context-aware evidence recommendations."""
         return await self.evidence_service.get_context_aware_recommendations(
-            user,
-            business_profile_id,
-            framework,
-            context_type
+            user, business_profile_id, framework, context_type
         )
 
     # ============================================================================
@@ -294,15 +260,10 @@ class ComplianceAssistant:
     # ============================================================================
 
     async def analyze_evidence_gap(
-        self,
-        business_profile_id: UUID,
-        framework: str
+        self, business_profile_id: UUID, framework: str
     ) -> Dict[str, Any]:
         """Analyze evidence gaps for a framework."""
-        return await self.compliance_service.analyze_evidence_gap(
-            business_profile_id,
-            framework
-        )
+        return await self.compliance_service.analyze_evidence_gap(business_profile_id, framework)
 
     # ============================================================================
     # Legacy Methods (preserved for backward compatibility)
@@ -313,7 +274,7 @@ class ComplianceAssistant:
         task_type: str,
         context: Optional[Dict[str, Any]] = None,
         tools: Optional[List[Dict[str, Any]]] = None,
-        cached_content: Optional[Any] = None
+        cached_content: Optional[Any] = None,
     ) -> Tuple[Any, str]:
         """
         Get the most appropriate model for the given task type.
@@ -322,16 +283,11 @@ class ComplianceAssistant:
         Preserved for backward compatibility with tests that may mock this method.
         """
         return self.provider_factory.get_provider_for_task(
-            task_type,
-            context,
-            tools,
-            cached_content
+            task_type, context, tools, cached_content
         )
 
     async def _generate_gemini_response(
-        self,
-        prompt: str,
-        context: Optional[Dict[str, Any]] = None
+        self, prompt: str, context: Optional[Dict[str, Any]] = None
     ) -> str:
         """
         Generate a response using Gemini.
@@ -342,8 +298,8 @@ class ComplianceAssistant:
         return await self.response_generator.generate_simple(
             system_prompt="You are a compliance expert.",
             user_prompt=prompt,
-            task_type='general',
-            context=context
+            task_type="general",
+            context=context,
         )
 
     def _validate_accuracy(self, response: str, framework: str) -> Dict[str, Any]:
@@ -366,6 +322,7 @@ class ComplianceAssistant:
         """Initialize and return the cached content manager."""
         if self.cached_content_manager is None:
             from .cached_content import get_cached_content_manager
+
             self.cached_content_manager = await get_cached_content_manager()
         return self.cached_content_manager
 
@@ -373,7 +330,7 @@ class ComplianceAssistant:
         self,
         framework_id: str,
         business_profile: Dict[str, Any],
-        assessment_context: Optional[Dict] = None
+        assessment_context: Optional[Dict] = None,
     ):
         """Get or create cached content for assessment."""
         # Placeholder - would delegate to cached content manager

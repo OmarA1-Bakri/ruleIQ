@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 Real implementation of compliance nodes that connects to actual services.
 This replaces the mocked version with actual database operations.
@@ -127,9 +126,7 @@ async def batch_compliance_update_node(
                         "risk_level": result.get("risk_level", "Unknown"),
                     }
                     alerts.append(alert)
-                    logger.warning(
-                        f"Compliance alert for profile {profile.id}: Score is {score}"
-                    )
+                    logger.warning(f"Compliance alert for profile {profile.id}: Score is {score}")
 
                 if "error" in result:
                     errors.append(result)
@@ -209,9 +206,7 @@ async def single_compliance_check_node(
         async for db in get_async_db():
             # Get the business profile for this company
             profile_res = await db.execute(
-                select(BusinessProfileModel).where(
-                    BusinessProfileModel.company_id == company_id
-                )
+                select(BusinessProfileModel).where(BusinessProfileModel.company_id == company_id)
             )
             profile = profile_res.scalars().first()
 
@@ -242,9 +237,7 @@ async def single_compliance_check_node(
             else:
                 state["compliance_data"] = {
                     "check_results": result,
-                    "regulation": state.get("metadata", {}).get(
-                        "regulation", "Unknown"
-                    ),
+                    "regulation": state.get("metadata", {}).get("regulation", "Unknown"),
                     "timestamp": datetime.now(timezone.utc).isoformat(),
                 }
 

@@ -40,9 +40,7 @@ class TestStandardizedRAG:
     def standard_rag(self, company_id):
         """Create a StandardizedRAG instance for testing."""
         # Mock OpenAI embeddings to avoid API calls
-        with patch(
-            "langgraph_agent.agents.rag_standard.OpenAIEmbeddings"
-        ) as mock_embeddings:
+        with patch("langgraph_agent.agents.rag_standard.OpenAIEmbeddings") as mock_embeddings:
             mock_embeddings.return_value.embed_query = Mock(
                 return_value=[0.1] * 1536  # Mock embedding,
             )
@@ -89,7 +87,7 @@ class TestStandardizedRAG:
         # Add test documents first
         documents = [
             "GDPR requires explicit consent for data processing.",
-            "ISO 27001 mandates information security management."
+            "ISO 27001 mandates information security management.",
         ]
 
         await standard_rag.add_documents(documents)
@@ -158,9 +156,7 @@ class TestRAGAdapter:
     def rag_adapter(self, company_id):
         """Create a RAGAdapter instance for testing."""
         # Mock the StandardizedRAG to avoid actual initialization
-        with patch(
-            "langgraph_agent.agents.rag_adapter.StandardizedRAG"
-        ) as mock_standard:
+        with patch("langgraph_agent.agents.rag_adapter.StandardizedRAG") as mock_standard:
             mock_instance = AsyncMock()
             mock_standard.return_value = mock_instance
 
@@ -332,8 +328,7 @@ class TestPerformanceImprovement:
             assert "from langchain.vectorstores import FAISS" in content
             assert "from langchain.retrievers import MultiQueryRetriever" in content
             assert (
-                "from langchain.text_splitter import RecursiveCharacterTextSplitter"
-                in content,
+                "from langchain.text_splitter import RecursiveCharacterTextSplitter" in content,
             )
 
     def test_simplified_interface(self):

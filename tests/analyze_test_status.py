@@ -12,7 +12,7 @@ os.environ["ENVIRONMENT"] = "testing"
 
 test_dirs = [
     "tests/unit/test_credential_encryption.py",
-    "tests/unit/test_integration_service.py", 
+    "tests/unit/test_integration_service.py",
     "tests/models",
     "tests/ai",
     "tests/database",
@@ -47,43 +47,43 @@ for test_dir in test_dirs:
         output = result.stdout + result.stderr
 
         # Parse results
-        for line in output.split('\n'):
-            if 'passed' in line:
+        for line in output.split("\n"):
+            if "passed" in line:
                 parts = line.split()
                 for i, part in enumerate(parts):
-                    if 'passed' in part and i > 0:
+                    if "passed" in part and i > 0:
                         try:
-                            passed = int(parts[i-1])
+                            passed = int(parts[i - 1])
                             total_passed += passed
                             print(f"  ✅ Passed: {passed}")
                         except (ValueError, KeyError, IndexError):
                             pass
-            if 'failed' in line:
+            if "failed" in line:
                 parts = line.split()
                 for i, part in enumerate(parts):
-                    if 'failed' in part and i > 0:
+                    if "failed" in part and i > 0:
                         try:
-                            failed = int(parts[i-1])
+                            failed = int(parts[i - 1])
                             total_failed += failed
                             print(f"  ❌ Failed: {failed}")
                         except (ValueError, KeyError, IndexError):
                             pass
-            if 'skipped' in line:
+            if "skipped" in line:
                 parts = line.split()
                 for i, part in enumerate(parts):
-                    if 'skipped' in part and i > 0:
+                    if "skipped" in part and i > 0:
                         try:
-                            skipped = int(parts[i-1])
+                            skipped = int(parts[i - 1])
                             total_skipped += skipped
                             print(f"  ⏭️  Skipped: {skipped}")
                         except (ValueError, KeyError, IndexError):
                             pass
-            if 'error' in line.lower() and 'ERROR' in line and ' error' in line:
+            if "error" in line.lower() and "ERROR" in line and " error" in line:
                 parts = line.split()
                 for i, part in enumerate(parts):
-                    if 'error' in part.lower() and i > 0:
+                    if "error" in part.lower() and i > 0:
                         try:
-                            errors = int(parts[i-1])
+                            errors = int(parts[i - 1])
                             total_errors += errors
                             print(f"  🔥 Errors: {errors}")
                             break
@@ -122,8 +122,8 @@ result = subprocess.run(
 )
 
 # Extract coverage percentage
-for line in result.stdout.split('\n'):
-    if 'TOTAL' in line:
+for line in result.stdout.split("\n"):
+    if "TOTAL" in line:
         print(f"\n{line}")
         parts = line.split()
         if len(parts) >= 4:

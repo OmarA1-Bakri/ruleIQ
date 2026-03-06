@@ -99,12 +99,8 @@ class TestIQComplianceAgent:
 
         # Test the actual structure returned by the simplified implementation
         assert result["status"] == "success"
-        assert (
-            result["summary"]["compliance_score"] == 0.7
-        )  # Fixed value in implementation
-        assert (
-            result["summary"]["risk_posture"] == "MEDIUM"
-        )  # Fixed value in implementation
+        assert result["summary"]["compliance_score"] == 0.7  # Fixed value in implementation
+        assert result["summary"]["risk_posture"] == "MEDIUM"  # Fixed value in implementation
         assert len(result["summary"]["top_gaps"]) >= 0
         assert len(result["summary"]["immediate_actions"]) > 0
         assert "artifacts" in result
@@ -339,9 +335,7 @@ class TestIQComplianceAgent:
             assert gap_pattern["domain"] == "Data Protection"
             assert gap_pattern["gap_count"] == 4
 
-    async def test_remember_node_memory_consolidation(
-        self, iq_agent, mock_memory_manager
-    ):
+    async def test_remember_node_memory_consolidation(self, iq_agent, mock_memory_manager):
         """Test REMEMBER node - memory storage and consolidation"""
         iq_agent.memory_manager = mock_memory_manager
 
@@ -361,9 +355,7 @@ class TestIQComplianceAgent:
         # Mock memory retrieval
         mock_memory_result = Mock()
         mock_memory_result.retrieved_memories = [Mock(id="mem_1"), Mock(id="mem_2")]
-        mock_memory_manager.retrieve_contextual_memories.return_value = (
-            mock_memory_result,
-        )
+        mock_memory_manager.retrieve_contextual_memories.return_value = (mock_memory_result,)
 
         result_state = await iq_agent._remember_node(state)
 

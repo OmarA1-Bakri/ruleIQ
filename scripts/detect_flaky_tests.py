@@ -20,6 +20,7 @@ from typing import Dict, List, Optional
 @dataclass
 class TestResult:
     """Represents a single test execution result."""
+
     name: str
     status: str  # passed, failed, skipped
     duration: float
@@ -30,6 +31,7 @@ class TestResult:
 @dataclass
 class FlakyTestReport:
     """Aggregated flaky test statistics."""
+
     test_name: str
     total_runs: int
     passed_count: int
@@ -208,9 +210,7 @@ class FlakyTestDetector:
                 continue  # Not flaky
 
             # Collect unique error messages
-            error_messages = list(
-                set(r.error_message for r in results if r.error_message)
-            )
+            error_messages = list(set(r.error_message for r in results if r.error_message))
 
             flaky_tests.append(
                 FlakyTestReport(
@@ -228,9 +228,7 @@ class FlakyTestDetector:
 
         # Sort by severity and failure rate
         severity_order = {"always_fails": 0, "intermittent": 1, "rare": 2}
-        flaky_tests.sort(
-            key=lambda x: (severity_order.get(x.severity, 3), -x.failure_rate)
-        )
+        flaky_tests.sort(key=lambda x: (severity_order.get(x.severity, 3), -x.failure_rate))
 
         return flaky_tests
 
@@ -243,7 +241,7 @@ class FlakyTestDetector:
 **Generated**: {timestamp}
 **Total Runs**: {self.runs}
 **Test Type**: {self.test_type}
-**Markers**: {', '.join(self.markers) if self.markers else 'All'}
+**Markers**: {", ".join(self.markers) if self.markers else "All"}
 
 ---
 
@@ -251,9 +249,9 @@ class FlakyTestDetector:
 
 - **Total Tests Analyzed**: {len(self.results)}
 - **Flaky Tests Found**: {len(flaky_tests)}
-- **Always Failing**: {sum(1 for t in flaky_tests if t.severity == 'always_fails')}
-- **Intermittent (≥50% failure)**: {sum(1 for t in flaky_tests if t.severity == 'intermittent')}
-- **Rare (<50% failure)**: {sum(1 for t in flaky_tests if t.severity == 'rare')}
+- **Always Failing**: {sum(1 for t in flaky_tests if t.severity == "always_fails")}
+- **Intermittent (≥50% failure)**: {sum(1 for t in flaky_tests if t.severity == "intermittent")}
+- **Rare (<50% failure)**: {sum(1 for t in flaky_tests if t.severity == "rare")}
 
 ---
 

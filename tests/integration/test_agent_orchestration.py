@@ -75,24 +75,15 @@ class TestAgentOrchestrationIntegration:
         agent = await orchestrator.create_agent(
             name="IntegrationTestAgent",
             persona_type="developer",
-            capabilities={
-                "code_generation": True,
-                "testing": True,
-                "review": True
-            },
-            config={
-                "max_tokens": 2000,
-                "temperature": 0.7
-            }
+            capabilities={"code_generation": True, "testing": True, "review": True},
+            config={"max_tokens": 2000, "temperature": 0.7},
         )
 
         assert agent is not None
         assert agent.agent_id is not None
 
         # Verify agent is in database
-        db_agent = test_db.query(Agent).filter(
-            Agent.agent_id == agent.agent_id
-        ).first()
+        db_agent = test_db.query(Agent).filter(Agent.agent_id == agent.agent_id).first()
         assert db_agent is not None
         assert db_agent.name == "IntegrationTestAgent"
 
@@ -109,8 +100,8 @@ class TestAgentOrchestrationIntegration:
             initial_context={
                 "task": "Generate unit tests",
                 "language": "Python",
-                "framework": "pytest"
-            }
+                "framework": "pytest",
+            },
         )
 
         assert session is not None
@@ -118,9 +109,11 @@ class TestAgentOrchestrationIntegration:
         assert session.trust_level == 0  # L0_OBSERVED by default
 
         # Verify session is in database
-        db_session = test_db.query(AgentSession).filter(
-            AgentSession.session_id == session.session_id
-        ).first()
+        db_session = (
+            test_db.query(AgentSession)
+            .filter(AgentSession.session_id == session.session_id)
+            .first()
+        )
         assert db_session is not None
         assert db_session.context["task"] == "Generate unit tests"
 
@@ -131,14 +124,12 @@ class TestAgentOrchestrationIntegration:
             decision_type="code_generation",
             input_context={
                 "request": "Generate test for add function",
-                "function_signature": "def add(a, b): return a + b"
+                "function_signature": "def add(a, b): return a + b",
             },
             decision_rationale="Simple unit test for basic arithmetic function",
-            action_taken={
-                "generated_code": "def test_add():\n    assert add(2, 3) == 5"
-            },
+            action_taken={"generated_code": "def test_add():\n    assert add(2, 3) == 5"},
             confidence_score=0.95,
-            execution_time_ms=150
+            execution_time_ms=150,
         )
 
         test_db.add(decision)
@@ -150,10 +141,7 @@ class TestAgentOrchestrationIntegration:
             session_id=session.session_id,
             metric_type="accuracy",
             metric_value=95.0,
-            measurement_context={
-                "decision_id": str(decision.decision_id),
-                "test_passed": True
-            }
+            measurement_context={"decision_id": str(decision.decision_id), "test_passed": True},
         )
 
         test_db.add(trust_metric)
@@ -174,21 +162,17 @@ class TestAgentOrchestrationIntegration:
         """Test coordination between multiple agents."""
         # Create multiple agents with different personas
         developer_agent = await orchestrator.create_agent(
-            name="DevAgent",
-            persona_type="developer",
-            capabilities={"code_generation": True}
+            name="DevAgent", persona_type="developer", capabilities={"code_generation": True}
         )
 
         qa_agent = await orchestrator.create_agent(
-            name="QAAgent",
-            persona_type="qa",
-            capabilities={"testing": True, "review": True}
+            name="QAAgent", persona_type="qa", capabilities={"testing": True, "review": True}
         )
 
         architect_agent = await orchestrator.create_agent(
             name="ArchitectAgent",
             persona_type="architect",
-            capabilities={"design": True, "review": True}
+            capabilities={"design": True, "review": True},
         )
 
         # Activate all agents
@@ -200,21 +184,15 @@ class TestAgentOrchestrationIntegration:
         user_id = str(uuid4())
 
         dev_session = await orchestrator.create_session(
-            developer_agent.agent_id,
-            user_id=user_id,
-            initial_context={"task": "implement_feature"}
+            developer_agent.agent_id, user_id=user_id, initial_context={"task": "implement_feature"}
         )
 
         qa_session = await orchestrator.create_session(
-            qa_agent.agent_id,
-            user_id=user_id,
-            initial_context={"task": "test_feature"}
+            qa_agent.agent_id, user_id=user_id, initial_context={"task": "test_feature"}
         )
 
         arch_session = await orchestrator.create_session(
-            architect_agent.agent_id,
-            user_id=user_id,
-            initial_context={"task": "review_design"}
+            architect_agent.agent_id, user_id=user_id, initial_context={"task": "review_design"}
         )
 
         # Verify all sessions are active
@@ -243,7 +221,7 @@ class TestAgentOrchestrationIntegration:
             name="TrustTestAgent",
             persona_type="developer",
             capabilities={},
-            is_active=True
+            is_active=True,
         )
         test_db.add(agent)
 
@@ -253,7 +231,7 @@ class TestAgentOrchestrationIntegration:
             user_id=user_id,
             trust_level=0,  # Start at L0
             context={},
-            started_at=datetime.utcnow()
+            started_at=datetime.utcnow(),
         )
         test_db.add(session)
         test_db.commit()
@@ -265,7 +243,7 @@ class TestAgentOrchestrationIntegration:
                 session_id=session_id,
                 metric_type="accuracy",
                 metric_value=95.0 + i,  # High accuracy
-                measurement_context={"iteration": i}
+                measurement_context={"iteration": i},
             )
             test_db.add(metric)
 
@@ -273,9 +251,7 @@ class TestAgentOrchestrationIntegration:
 
         # Calculate new trust level
         new_trust_level = await trust_manager.calculate_trust_level(
-            agent_id=agent_id,
-            user_id=user_id,
-            session_id=session_id
+            agent_id=agent_id, user_id=user_id, session_id=session_id
         )
 
         # Should progress from L0 due to high accuracy
@@ -286,9 +262,7 @@ class TestAgentOrchestrationIntegration:
         """Test automatic cleanup of expired sessions."""
         # Create an agent
         agent = await orchestrator.create_agent(
-            name="ExpirationTestAgent",
-            persona_type="developer",
-            capabilities={}
+            name="ExpirationTestAgent", persona_type="developer", capabilities={}
         )
 
         await orchestrator.activate_agent(agent.agent_id)
@@ -298,8 +272,7 @@ class TestAgentOrchestrationIntegration:
 
         # Create an old session (should be cleaned up)
         old_session = await orchestrator.create_session(
-            agent_id=agent.agent_id,
-            user_id=str(uuid4())
+            agent_id=agent.agent_id, user_id=str(uuid4())
         )
         # Manually set the started_at to make it old
         old_session.started_at = datetime.utcnow() - timedelta(hours=2)
@@ -308,8 +281,7 @@ class TestAgentOrchestrationIntegration:
 
         # Create a recent session (should not be cleaned up)
         recent_session = await orchestrator.create_session(
-            agent_id=agent.agent_id,
-            user_id=str(uuid4())
+            agent_id=agent.agent_id, user_id=str(uuid4())
         )
         sessions.append(recent_session)
 
@@ -328,20 +300,17 @@ class TestAgentOrchestrationIntegration:
             name="StatePersistenceAgent",
             persona_type="developer",
             capabilities={"persistent": True},
-            config={"version": "1.0"}
+            config={"version": "1.0"},
         )
 
         # Save agent state
         state_data = {
             "memory": {"last_task": "test_implementation"},
             "preferences": {"language": "Python"},
-            "statistics": {"tasks_completed": 5}
+            "statistics": {"tasks_completed": 5},
         }
 
-        save_result = agent_manager.save_agent_state(
-            agent_id=agent.agent_id,
-            state_data=state_data
-        )
+        save_result = agent_manager.save_agent_state(agent_id=agent.agent_id, state_data=state_data)
         assert save_result is True
 
         # Load agent state
@@ -356,9 +325,7 @@ class TestAgentOrchestrationIntegration:
         """Test creating multiple sessions concurrently."""
         # Create and activate an agent
         agent = await orchestrator.create_agent(
-            name="ConcurrentTestAgent",
-            persona_type="developer",
-            capabilities={}
+            name="ConcurrentTestAgent", persona_type="developer", capabilities={}
         )
         await orchestrator.activate_agent(agent.agent_id)
 
@@ -367,7 +334,7 @@ class TestAgentOrchestrationIntegration:
             return await orchestrator.create_session(
                 agent_id=agent.agent_id,
                 user_id=str(uuid4()),
-                initial_context={"session_index": index}
+                initial_context={"session_index": index},
             )
 
         # Create 10 sessions concurrently
@@ -387,13 +354,11 @@ class TestAgentOrchestrationIntegration:
         """Test error handling and recovery mechanisms."""
         # Create an agent
         agent = await orchestrator.create_agent(
-            name="ErrorTestAgent",
-            persona_type="developer",
-            capabilities={}
+            name="ErrorTestAgent", persona_type="developer", capabilities={}
         )
 
         # Simulate database error during activation
-        with patch.object(test_db, 'commit', side_effect=Exception("DB Error")):
+        with patch.object(test_db, "commit", side_effect=Exception("DB Error")):
             result = await orchestrator.activate_agent(agent.agent_id)
             assert result is False
 
@@ -410,9 +375,7 @@ class TestAgentOrchestrationIntegration:
         """Test calculation of agent performance metrics."""
         # Create and activate an agent
         agent = await orchestrator.create_agent(
-            name="MetricsTestAgent",
-            persona_type="developer",
-            capabilities={}
+            name="MetricsTestAgent", persona_type="developer", capabilities={}
         )
         await orchestrator.activate_agent(agent.agent_id)
 
@@ -420,8 +383,7 @@ class TestAgentOrchestrationIntegration:
         sessions = []
         for i in range(5):
             session = await orchestrator.create_session(
-                agent_id=agent.agent_id,
-                user_id=str(uuid4())
+                agent_id=agent.agent_id, user_id=str(uuid4())
             )
             sessions.append(session)
 

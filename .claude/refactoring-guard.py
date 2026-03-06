@@ -11,6 +11,7 @@ from datetime import datetime
 import json
 import argparse
 
+
 class RefactoringGuard:
     """Guard against destructive refactoring operations."""
 
@@ -22,9 +23,7 @@ class RefactoringGuard:
         """Check if a Python file has valid syntax."""
         try:
             result = subprocess.run(
-                ['python3', '-m', 'py_compile', filepath],
-                capture_output=True,
-                text=True
+                ["python3", "-m", "py_compile", filepath], capture_output=True, text=True
             )
             return result.returncode == 0
         except Exception as e:
@@ -33,10 +32,10 @@ class RefactoringGuard:
 
     def create_backup(self, filepath):
         """Create a timestamped backup of a file."""
-        timestamp = datetime.now().strftime('%Y%m%d-%H%M%S')
+        timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
         backup_path = f"{filepath}.backup-{timestamp}"
         try:
-            subprocess.run(['cp', filepath, backup_path], check=True)
+            subprocess.run(["cp", filepath, backup_path], check=True)
             print(f"✅ Backup created: {backup_path}")
             return backup_path
         except subprocess.CalledProcessError as e:
@@ -47,10 +46,7 @@ class RefactoringGuard:
         """Test if the application starts without syntax errors."""
         try:
             result = subprocess.run(
-                ['python3', '-c', 'import main'],
-                capture_output=True,
-                text=True,
-                timeout=5
+                ["python3", "-c", "import main"], capture_output=True, text=True, timeout=5
             )
             return result.returncode == 0
         except subprocess.TimeoutExpired:
@@ -71,8 +67,17 @@ class RefactoringGuard:
 
         # Check for dangerous operations
         dangerous_keywords = [
-            'fix all', 'fix-all', 'bulk', 'mass', 'entire', 'codebase',
-            'all files', 'every', 'automatic', 'clean', 'cleanup'
+            "fix all",
+            "fix-all",
+            "bulk",
+            "mass",
+            "entire",
+            "codebase",
+            "all files",
+            "every",
+            "automatic",
+            "clean",
+            "cleanup",
         ]
 
         desc_lower = changes_description.lower()
@@ -81,7 +86,7 @@ class RefactoringGuard:
                 approval_reasons.append(f"Dangerous operation detected: '{keyword}'")
 
         # Check for structural changes
-        structural_keywords = ['move', 'rename', 'refactor', 'restructure', 'migrate']
+        structural_keywords = ["move", "rename", "refactor", "restructure", "migrate"]
         for keyword in structural_keywords:
             if keyword in desc_lower:
                 approval_reasons.append(f"Structural change detected: '{keyword}'")
@@ -97,26 +102,28 @@ class RefactoringGuard:
 
     def log_change(self, file, change_type, result):
         """Log a refactoring change."""
-        self.changes_log.append({
-            'timestamp': datetime.now().isoformat(),
-            'file': file,
-            'change_type': change_type,
-            'result': result
-        })
+        self.changes_log.append(
+            {
+                "timestamp": datetime.now().isoformat(),
+                "file": file,
+                "change_type": change_type,
+                "result": result,
+            }
+        )
 
     def save_log(self):
         """Save the refactoring log."""
-        log_file = '.claude/refactoring-log.json'
+        log_file = ".claude/refactoring-log.json"
         try:
             if os.path.exists(log_file):
-                with open(log_file, 'r') as f:
+                with open(log_file, "r") as f:
                     existing_log = json.load(f)
             else:
                 existing_log = []
 
             existing_log.extend(self.changes_log)
 
-            with open(log_file, 'w') as f:
+            with open(log_file, "w") as f:
                 json.dump(existing_log, f, indent=2)
 
             print(f"✅ Changes logged to {log_file}")
@@ -125,26 +132,26 @@ class RefactoringGuard:
 
     def request_approval(self, files, changes_description):
         """Request user approval for changes."""
-        print("\n" + "="*50)
+        print("\n" + "=" * 50)
         print("REFACTORING APPROVAL REQUEST")
-        print("="*50)
+        print("=" * 50)
         print(f"\nFiles to modify ({len(files)}):")
         for f in files[:10]:  # Show first 10
             print(f"  - {f}")
         if len(files) > 10:
-            print(f"  ... and {len(files)-10} more files")
+            print(f"  ... and {len(files) - 10} more files")
 
         print("\nChanges description:")
         print(f"  {changes_description}")
 
-        print("\n" + "="*50)
+        print("\n" + "=" * 50)
 
         if not sys.stdin.isatty():
             return False
 
         try:
             response = input("Approve? [y/N]: ").strip().lower()
-            return response == 'y'
+            return response == "y"
         except (EOFError, KeyboardInterrupt):
             return False
 
@@ -184,22 +191,17 @@ class RefactoringGuard:
 
         return True
 
+
 def main():
     """Main entry point for the refactoring guard."""
     guard = RefactoringGuard()
-    parser = argparse.ArgumentParser(
-        description="Refactoring guard for safe multi-file changes"
-    )
-    parser.add_argument(
-        "files",
-        nargs='*',
-        help="File paths to be modified"
-    )
+    parser = argparse.ArgumentParser(description="Refactoring guard for safe multi-file changes")
+    parser.add_argument("files", nargs="*", help="File paths to be modified")
     parser.add_argument(
         "-d",
         "--description",
         default="Refactoring operation",
-        help="Description of proposed refactoring changes"
+        help="Description of proposed refactoring changes",
     )
     args = parser.parse_args()
 
@@ -218,6 +220,7 @@ def main():
         print("  - Creating backups before changes")
         print("  - Testing application state")
         print("  - Logging all refactoring operations")
+
 
 if __name__ == "__main__":
     main()

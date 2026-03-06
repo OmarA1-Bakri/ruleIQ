@@ -4,17 +4,14 @@ FastAPI dependency injection for database providers.
 This module provides FastAPI dependency injection functions and container
 management for database providers with proper lifespan management.
 """
+
 import logging
 from contextlib import asynccontextmanager
 from typing import Dict, Any, Optional
 from fastapi import Request, HTTPException
 from fastapi.responses import JSONResponse
 
-from database.providers import (
-    DatabaseProvider,
-    PostgreSQLProvider,
-    Neo4jProvider
-)
+from database.providers import DatabaseProvider, PostgreSQLProvider, Neo4jProvider
 from database.health import DatabaseHealthMonitor
 
 logger = logging.getLogger(__name__)
@@ -58,7 +55,7 @@ class DatabaseContainer:
             "status": health_metrics.status.value,
             "response_time": health_metrics.response_time,
             "timestamp": health_metrics.timestamp,
-            "details": health_metrics.details
+            "details": health_metrics.details,
         }
 
     async def get_all_health_statuses(self) -> Dict[str, Any]:
@@ -68,7 +65,7 @@ class DatabaseContainer:
             try:
                 health_metrics = await monitor.check_health()
                 # Support both HealthMetrics objects and dict returns
-                if hasattr(health_metrics, 'to_dict'):
+                if hasattr(health_metrics, "to_dict"):
                     # It's a HealthMetrics object
                     statuses[name] = health_metrics.to_dict()
                 elif isinstance(health_metrics, dict):
@@ -77,10 +74,10 @@ class DatabaseContainer:
                 else:
                     # Fallback: try to extract attributes
                     statuses[name] = {
-                        "status": getattr(health_metrics, 'status', 'unknown'),
-                        "response_time": getattr(health_metrics, 'response_time', 0),
-                        "timestamp": getattr(health_metrics, 'timestamp', None),
-                        "details": getattr(health_metrics, 'details', {})
+                        "status": getattr(health_metrics, "status", "unknown"),
+                        "response_time": getattr(health_metrics, "response_time", 0),
+                        "timestamp": getattr(health_metrics, "timestamp", None),
+                        "details": getattr(health_metrics, "details", {}),
                     }
             except Exception as e:
                 logger.error(f"Error checking health for {name}: {e}")
@@ -88,7 +85,7 @@ class DatabaseContainer:
                     "status": "unhealthy",
                     "error": str(e),
                     "timestamp": None,
-                    "details": {}
+                    "details": {},
                 }
         return statuses
 
@@ -119,6 +116,7 @@ class DependencyConfig:
 
         # Register PostgreSQL health monitor
         from database.health import PostgreSQLHealthMonitor
+
         postgres_health = PostgreSQLHealthMonitor(postgres_provider)
         await self.container.register_health_monitor("postgres", postgres_health)
 
@@ -128,6 +126,7 @@ class DependencyConfig:
 
         # Register Neo4j health monitor
         from database.health import Neo4jHealthMonitor
+
         neo4j_health = Neo4jHealthMonitor(neo4j_provider)
         await self.container.register_health_monitor("neo4j", neo4j_health)
 
@@ -172,6 +171,7 @@ async def close_global_container() -> None:
 
 # FastAPI dependency functions
 
+
 async def get_database_provider(provider_name: str, request: Request) -> DatabaseProvider:
     """
     FastAPI dependency to get a database provider by name.
@@ -192,8 +192,7 @@ async def get_database_provider(provider_name: str, request: Request) -> Databas
     except Exception as e:
         logger.error(f"Database provider '{provider_name}' unavailable: {e}")
         raise HTTPException(
-            status_code=503,
-            detail=f"Database service '{provider_name}' unavailable"
+            status_code=503, detail=f"Database service '{provider_name}' unavailable"
         )
 
 
@@ -245,10 +244,13 @@ async def get_database_health(service: str, request: Request) -> Dict[str, Any]:
         return await container.get_health_status(service)
     except Exception as e:
         logger.error(f"Health check failed for service '{service}': {e}")
-        raise HTTPException(status_code=503, detail=f"Health check unavailable for service '{service}'")
+        raise HTTPException(
+            status_code=503, detail=f"Health check unavailable for service '{service}'"
+        )
 
 
 # Lifespan management
+
 
 @asynccontextmanager
 async def lifespan(app=None):
@@ -277,6 +279,7 @@ async def lifespan(app=None):
 
 
 # Health check endpoints
+
 
 async def health_check_endpoint(service: Optional[str] = None) -> JSONResponse:
     """
@@ -312,14 +315,14 @@ async def health_check_endpoint(service: Optional[str] = None) -> JSONResponse:
                         "status": "unhealthy",
                         "error": str(e),
                         "timestamp": None,
-                        "details": {}
+                        "details": {},
                     }
                     overall_status = "unhealthy"
 
             response = {
                 "overall_status": overall_status,
                 "services": all_health,
-                "timestamp": None  # Could add current timestamp
+                "timestamp": None,  # Could add current timestamp
             }
 
             status_code = 200 if overall_status == "healthy" else 503
@@ -332,13 +335,14 @@ async def health_check_endpoint(service: Optional[str] = None) -> JSONResponse:
                 "overall_status": "unhealthy",
                 "error": str(e),
                 "services": {},
-                "timestamp": None
+                "timestamp": None,
             },
-            status_code=503
+            status_code=503,
         )
 
 
 # Utility functions for testing
+
 
 async def reset_container() -> None:
     """Reset the global container (for testing)."""

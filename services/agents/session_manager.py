@@ -3,6 +3,7 @@ Session Manager Service - Manages agent sessions and context.
 
 Handles session lifecycle, context persistence, and timeout management.
 """
+
 from typing import Dict, List, Optional, Any
 from uuid import UUID, uuid4
 from datetime import datetime, timedelta
@@ -21,6 +22,7 @@ logger = logging.getLogger(__name__)
 
 class SessionStatus(Enum):
     """Session status states."""
+
     ACTIVE = "active"
     PAUSED = "paused"
     EXPIRED = "expired"
@@ -32,10 +34,7 @@ class SessionManager:
     """Manages agent session lifecycle and context."""
 
     def __init__(
-        self,
-        db_session: Session,
-        max_session_duration: int = 3600,
-        max_context_size: int = 100000
+        self, db_session: Session, max_session_duration: int = 3600, max_context_size: int = 100000
     ) -> None:
         """Initialize session manager."""
         self.db = db_session
@@ -49,7 +48,7 @@ class SessionManager:
         agent_id: UUID,
         user_id: Optional[str] = None,
         initial_context: Optional[Dict[str, Any]] = None,
-        trust_level: TrustLevel = TrustLevel.L0_OBSERVED
+        trust_level: TrustLevel = TrustLevel.L0_OBSERVED,
     ) -> AgentSession:
         """Create a new agent session."""
         try:
@@ -59,11 +58,8 @@ class SessionManager:
                 user_id=user_id,
                 started_at=datetime.utcnow(),
                 context=initial_context or {},
-                session_metadata={
-                    "created_by": "session_manager",
-                    "version": "1.0"
-                },
-                trust_level=trust_level
+                session_metadata={"created_by": "session_manager", "version": "1.0"},
+                trust_level=trust_level,
             )
 
             self.db.add(session)
@@ -73,7 +69,7 @@ class SessionManager:
                 context_id=uuid4(),
                 session_id=session.session_id,
                 context_data=initial_context or {},
-                sequence_number=0
+                sequence_number=0,
             )
             self.db.add(context)
 
@@ -85,9 +81,7 @@ class SessionManager:
 
             # Start cleanup task if not running
             if not self._cleanup_task:
-                self._cleanup_task = asyncio.create_task(
-                    self._periodic_cleanup()
-                )
+                self._cleanup_task = asyncio.create_task(self._periodic_cleanup())
 
             return session
 
@@ -97,16 +91,13 @@ class SessionManager:
             raise
 
     async def update_context(
-        self,
-        session_id: UUID,
-        context_updates: Dict[str, Any],
-        merge: bool = True
+        self, session_id: UUID, context_updates: Dict[str, Any], merge: bool = True
     ) -> bool:
         """Update session context."""
         try:
-            session = self.db.query(AgentSession).filter(
-                AgentSession.session_id == session_id
-            ).first()
+            session = (
+                self.db.query(AgentSession).filter(AgentSession.session_id == session_id).first()
+            )
 
             if not session:
                 logger.warning(f"Session {session_id} not found")
@@ -119,9 +110,12 @@ class SessionManager:
                 return False
 
             # Get latest context
-            latest_context = self.db.query(SessionContext).filter(
-                SessionContext.session_id == session_id
-            ).order_by(SessionContext.sequence_number.desc()).first()
+            latest_context = (
+                self.db.query(SessionContext)
+                .filter(SessionContext.session_id == session_id)
+                .order_by(SessionContext.sequence_number.desc())
+                .first()
+            )
 
             if merge and latest_context:
                 # Merge with existing context
@@ -136,7 +130,7 @@ class SessionManager:
                 context_id=uuid4(),
                 session_id=session_id,
                 context_data=new_context_data,
-                sequence_number=(latest_context.sequence_number + 1) if latest_context else 0
+                sequence_number=(latest_context.sequence_number + 1) if latest_context else 0,
             )
             self.db.add(new_context)
 
@@ -154,31 +148,36 @@ class SessionManager:
             return False
 
     async def get_context(
-        self,
-        session_id: UUID,
-        sequence_number: Optional[int] = None
+        self, session_id: UUID, sequence_number: Optional[int] = None
     ) -> Optional[Dict[str, Any]]:
         """Get session context."""
         try:
             if sequence_number is not None:
                 # Get specific context version
-                context = self.db.query(SessionContext).filter(
-                    SessionContext.session_id == session_id,
-                    SessionContext.sequence_number == sequence_number
-                ).first()
+                context = (
+                    self.db.query(SessionContext)
+                    .filter(
+                        SessionContext.session_id == session_id,
+                        SessionContext.sequence_number == sequence_number,
+                    )
+                    .first()
+                )
             else:
                 # Get latest context
-                context = self.db.query(SessionContext).filter(
-                    SessionContext.session_id == session_id
-                ).order_by(SessionContext.sequence_number.desc()).first()
+                context = (
+                    self.db.query(SessionContext)
+                    .filter(SessionContext.session_id == session_id)
+                    .order_by(SessionContext.sequence_number.desc())
+                    .first()
+                )
 
             if context:
                 return context.context_data
 
             # Fallback to session context
-            session = self.db.query(AgentSession).filter(
-                AgentSession.session_id == session_id
-            ).first()
+            session = (
+                self.db.query(AgentSession).filter(AgentSession.session_id == session_id).first()
+            )
 
             return session.context if session else None
 
@@ -186,10 +185,7 @@ class SessionManager:
             logger.error(f"Failed to get context: {e}")
             return None
 
-    async def serialize_context(
-        self,
-        session_id: UUID
-    ) -> Optional[str]:
+    async def serialize_context(self, session_id: UUID) -> Optional[str]:
         """Serialize session context to JSON."""
         context = await self.get_context(session_id)
         if context:
@@ -200,11 +196,7 @@ class SessionManager:
                 return None
         return None
 
-    async def deserialize_context(
-        self,
-        session_id: UUID,
-        context_str: str
-    ) -> bool:
+    async def deserialize_context(self, session_id: UUID, context_str: str) -> bool:
         """Deserialize and update session context from JSON."""
         try:
             context_data = json.loads(context_str)
@@ -230,16 +222,12 @@ class SessionManager:
                 return True
         return False
 
-    async def end_session(
-        self,
-        session_id: UUID,
-        reason: str = "normal"
-    ) -> bool:
+    async def end_session(self, session_id: UUID, reason: str = "normal") -> bool:
         """End an active session."""
         try:
-            session = self.db.query(AgentSession).filter(
-                AgentSession.session_id == session_id
-            ).first()
+            session = (
+                self.db.query(AgentSession).filter(AgentSession.session_id == session_id).first()
+            )
 
             if not session:
                 logger.warning(f"Session {session_id} not found")
@@ -265,9 +253,9 @@ class SessionManager:
     async def check_session_timeout(self, session_id: UUID) -> bool:
         """Check if session has timed out."""
         try:
-            session = self.db.query(AgentSession).filter(
-                AgentSession.session_id == session_id
-            ).first()
+            session = (
+                self.db.query(AgentSession).filter(AgentSession.session_id == session_id).first()
+            )
 
             if not session:
                 return True
@@ -282,16 +270,12 @@ class SessionManager:
             logger.error(f"Failed to check session timeout: {e}")
             return True
 
-    async def extend_session(
-        self,
-        session_id: UUID,
-        extension_minutes: int = 30
-    ) -> bool:
+    async def extend_session(self, session_id: UUID, extension_minutes: int = 30) -> bool:
         """Extend session timeout."""
         try:
-            session = self.db.query(AgentSession).filter(
-                AgentSession.session_id == session_id
-            ).first()
+            session = (
+                self.db.query(AgentSession).filter(AgentSession.session_id == session_id).first()
+            )
 
             if not session or session.ended_at:
                 return False
@@ -310,15 +294,15 @@ class SessionManager:
             logger.error(f"Failed to extend session: {e}")
             return False
 
-    async def get_session_history(
-        self,
-        session_id: UUID
-    ) -> List[SessionContext]:
+    async def get_session_history(self, session_id: UUID) -> List[SessionContext]:
         """Get full context history for a session."""
         try:
-            contexts = self.db.query(SessionContext).filter(
-                SessionContext.session_id == session_id
-            ).order_by(SessionContext.sequence_number.asc()).all()
+            contexts = (
+                self.db.query(SessionContext)
+                .filter(SessionContext.session_id == session_id)
+                .order_by(SessionContext.sequence_number.asc())
+                .all()
+            )
 
             return contexts
 
@@ -326,32 +310,34 @@ class SessionManager:
             logger.error(f"Failed to get session history: {e}")
             return []
 
-    async def recover_context(
-        self,
-        session_id: UUID,
-        sequence_number: int
-    ) -> bool:
+    async def recover_context(self, session_id: UUID, sequence_number: int) -> bool:
         """Recover context from a specific point."""
         try:
-            context = self.db.query(SessionContext).filter(
-                SessionContext.session_id == session_id,
-                SessionContext.sequence_number == sequence_number
-            ).first()
+            context = (
+                self.db.query(SessionContext)
+                .filter(
+                    SessionContext.session_id == session_id,
+                    SessionContext.sequence_number == sequence_number,
+                )
+                .first()
+            )
 
             if not context:
                 logger.warning(f"Context not found at sequence {sequence_number}")
                 return False
 
-            session = self.db.query(AgentSession).filter(
-                AgentSession.session_id == session_id
-            ).first()
+            session = (
+                self.db.query(AgentSession).filter(AgentSession.session_id == session_id).first()
+            )
 
             if session:
                 session.context = context.context_data
                 session.updated_at = datetime.utcnow()
                 self.db.commit()
 
-                logger.info(f"Recovered context for session {session_id} to sequence {sequence_number}")
+                logger.info(
+                    f"Recovered context for session {session_id} to sequence {sequence_number}"
+                )
                 return True
 
             return False
@@ -381,15 +367,10 @@ class SessionManager:
             except Exception as e:
                 logger.error(f"Error in periodic cleanup: {e}")
 
-    async def get_active_sessions(
-        self,
-        agent_id: Optional[UUID] = None
-    ) -> List[AgentSession]:
+    async def get_active_sessions(self, agent_id: Optional[UUID] = None) -> List[AgentSession]:
         """Get all active sessions."""
         try:
-            query = self.db.query(AgentSession).filter(
-                AgentSession.ended_at is None
-            )
+            query = self.db.query(AgentSession).filter(AgentSession.ended_at is None)
 
             if agent_id:
                 query = query.filter(AgentSession.agent_id == agent_id)

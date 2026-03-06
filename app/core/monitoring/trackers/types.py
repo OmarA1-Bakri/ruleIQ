@@ -9,27 +9,30 @@ from typing import Any, Dict, List, Optional
 
 class NodeStatus(Enum):
     """Status of node execution."""
-    STARTED = 'started'
-    SUCCESS = 'success'
-    FAILED = 'failed'
-    TIMEOUT = 'timeout'
-    SKIPPED = 'skipped'
-    RETRYING = 'retrying'
-    CANCELLED = 'cancelled'
+
+    STARTED = "started"
+    SUCCESS = "success"
+    FAILED = "failed"
+    TIMEOUT = "timeout"
+    SKIPPED = "skipped"
+    RETRYING = "retrying"
+    CANCELLED = "cancelled"
 
 
 class WorkflowStatus(Enum):
     """Status of workflow execution."""
-    STARTED = 'started'
-    COMPLETED = 'completed'
-    FAILED = 'failed'
-    CANCELLED = 'cancelled'
-    TIMEOUT = 'timeout'
+
+    STARTED = "started"
+    COMPLETED = "completed"
+    FAILED = "failed"
+    CANCELLED = "cancelled"
+    TIMEOUT = "timeout"
 
 
 @dataclass
 class NodeExecution:
     """Data class for node execution details."""
+
     node_name: str
     start_time: float
     end_time: Optional[float] = None
@@ -43,6 +46,7 @@ class NodeExecution:
 @dataclass
 class WorkflowExecution:
     """Data class for workflow execution details."""
+
     workflow_id: str
     workflow_type: str
     start_time: float

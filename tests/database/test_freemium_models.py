@@ -116,7 +116,9 @@ class TestFreemiumAssessmentSession:
 
         # Act
         session = FreemiumAssessmentSession(
-            lead_id=lead.id, assessment_type="technology_compliance", status="started",
+            lead_id=lead.id,
+            assessment_type="technology_compliance",
+            status="started",
         )
         db_session.add(session)
         db_session.commit()
@@ -139,7 +141,8 @@ class TestFreemiumAssessmentSession:
         db_session.commit()
 
         session = FreemiumAssessmentSession(
-            lead_id=lead.id, assessment_type="healthcare_compliance",
+            lead_id=lead.id,
+            assessment_type="healthcare_compliance",
         )
 
         # Act
@@ -329,17 +332,20 @@ class TestFreemiumModelRelationships:
         """Test one-to-many relationship between leads and assessment sessions."""
         # Arrange
         lead = AssessmentLead(
-            email="relations.test@example.com", marketing_consent=True,
+            email="relations.test@example.com",
+            marketing_consent=True,
         )
         db_session.add(lead)
         db_session.commit()
 
         # Act - Create multiple sessions for same lead
         session1 = FreemiumAssessmentSession(
-            lead_id=lead.id, assessment_type="tech_compliance",
+            lead_id=lead.id,
+            assessment_type="tech_compliance",
         )
         session2 = FreemiumAssessmentSession(
-            lead_id=lead.id, assessment_type="finance_compliance",
+            lead_id=lead.id,
+            assessment_type="finance_compliance",
         )
 
         db_session.add_all([session1, session2])
@@ -358,7 +364,8 @@ class TestFreemiumModelRelationships:
         db_session.commit()
 
         session = FreemiumAssessmentSession(
-            lead_id=lead.id, assessment_type="education_compliance",
+            lead_id=lead.id,
+            assessment_type="education_compliance",
         )
         event = LeadScoringEvent(
             lead_id=lead.id,

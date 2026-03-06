@@ -42,19 +42,14 @@ class PreDeploymentChecker:
             message: Message to log
             level: Log level (info, success, warning, error)
         """
-        symbols = {
-            "info": "ℹ️",
-            "success": "✅",
-            "warning": "⚠️",
-            "error": "❌"
-        }
+        symbols = {"info": "ℹ️", "success": "✅", "warning": "⚠️", "error": "❌"}
 
         colors = {
             "info": "\033[94m",
             "success": "\033[92m",
             "warning": "\033[93m",
             "error": "\033[91m",
-            "reset": "\033[0m"
+            "reset": "\033[0m",
         }
 
         symbol = symbols.get(level, "ℹ️")
@@ -72,7 +67,7 @@ class PreDeploymentChecker:
             "API_KEY",
             "OPENAI_API_KEY",
             "FRONTEND_URL",
-            "BACKEND_URL"
+            "BACKEND_URL",
         ]
 
         optional_vars = [
@@ -80,7 +75,7 @@ class PreDeploymentChecker:
             "AWS_ACCESS_KEY_ID",
             "AWS_SECRET_ACCESS_KEY",
             "SMTP_HOST",
-            "SMTP_PORT"
+            "SMTP_PORT",
         ]
 
         missing_required = []
@@ -106,13 +101,18 @@ class PreDeploymentChecker:
                     if "=" in line and not line.startswith("#"):
                         var_name = line.split("=")[0].strip()
                         if var_name and not os.getenv(var_name):
-                            if var_name not in missing_required and var_name not in missing_optional:
-                                self.warnings.append(f"Variable '{var_name}' from .env.example is not set")
+                            if (
+                                var_name not in missing_required
+                                and var_name not in missing_optional
+                            ):
+                                self.warnings.append(
+                                    f"Variable '{var_name}' from .env.example is not set"
+                                )
 
         self.results["environment_variables"] = {
             "status": len(missing_required) == 0,
             "missing_required": missing_required,
-            "missing_optional": missing_optional
+            "missing_optional": missing_optional,
         }
 
         if missing_required:
@@ -178,9 +178,9 @@ class PreDeploymentChecker:
 
             self.results["database"] = {
                 "status": True,
-                "version": version.split(',')[0],
+                "version": version.split(",")[0],
                 "table_count": table_count,
-                "migrations_initialized": has_migrations
+                "migrations_initialized": has_migrations,
             }
 
             self.log("Database connectivity verified", "success")
@@ -228,7 +228,7 @@ class PreDeploymentChecker:
             self.results["redis"] = {
                 "status": True,
                 "version": redis_version,
-                "memory_usage": used_memory
+                "memory_usage": used_memory,
             }
 
             self.log("Redis connectivity verified", "success")
@@ -256,18 +256,10 @@ class PreDeploymentChecker:
             "requirements.txt",
             "docker-compose.yml",
             "frontend/package.json",
-            "frontend/next.config.js"
+            "frontend/next.config.js",
         ]
 
-        required_dirs = [
-            "api",
-            "frontend",
-            "database",
-            "services",
-            "models",
-            "tests",
-            "deployment"
-        ]
+        required_dirs = ["api", "frontend", "database", "services", "models", "tests", "deployment"]
 
         missing_files = []
         missing_dirs = []
@@ -285,7 +277,7 @@ class PreDeploymentChecker:
         self.results["file_structure"] = {
             "status": len(missing_files) == 0 and len(missing_dirs) == 0,
             "missing_files": missing_files,
-            "missing_dirs": missing_dirs
+            "missing_dirs": missing_dirs,
         }
 
         if missing_files or missing_dirs:
@@ -301,11 +293,7 @@ class PreDeploymentChecker:
 
         try:
             # Check Docker daemon
-            result = subprocess.run(
-                ["docker", "version"],
-                capture_output=True,
-                text=True
-            )
+            result = subprocess.run(["docker", "version"], capture_output=True, text=True)
 
             if result.returncode != 0:
                 self.errors.append("Docker daemon not running")
@@ -313,11 +301,7 @@ class PreDeploymentChecker:
                 return False
 
             # Check Docker Compose
-            result = subprocess.run(
-                ["docker-compose", "--version"],
-                capture_output=True,
-                text=True
-            )
+            result = subprocess.run(["docker-compose", "--version"], capture_output=True, text=True)
 
             if result.returncode != 0:
                 self.errors.append("Docker Compose not installed")
@@ -331,10 +315,12 @@ class PreDeploymentChecker:
                     result = subprocess.run(
                         ["docker-compose", "-f", compose_file, "config"],
                         capture_output=True,
-                        text=True
+                        text=True,
                     )
                     if result.returncode != 0:
-                        self.warnings.append(f"Docker Compose file {compose_file} validation failed")
+                        self.warnings.append(
+                            f"Docker Compose file {compose_file} validation failed"
+                        )
 
             # Check Dockerfile existence
             dockerfiles = ["Dockerfile", "frontend/Dockerfile"]
@@ -366,11 +352,7 @@ class PreDeploymentChecker:
 
         # Check Python dependencies
         if Path("requirements.txt").exists():
-            result = subprocess.run(
-                ["pip", "check"],
-                capture_output=True,
-                text=True
-            )
+            result = subprocess.run(["pip", "check"], capture_output=True, text=True)
             if result.returncode != 0:
                 self.warnings.append("Python dependency conflicts detected")
                 issues.append("Python dependency conflicts")
@@ -381,16 +363,13 @@ class PreDeploymentChecker:
                 ["pnpm", "audit", "--audit-level=high"],
                 capture_output=True,
                 text=True,
-                cwd="frontend"
+                cwd="frontend",
             )
             if result.returncode != 0 and "vulnerabilities" in result.stdout:
                 self.warnings.append("Frontend dependency vulnerabilities detected")
                 issues.append("Frontend vulnerabilities")
 
-        self.results["dependencies"] = {
-            "status": len(issues) == 0,
-            "issues": issues
-        }
+        self.results["dependencies"] = {"status": len(issues) == 0, "issues": issues}
 
         if issues:
             self.log("Dependency issues found (non-critical)", "warning")
@@ -407,9 +386,7 @@ class PreDeploymentChecker:
             # Run the validate_endpoints.py script if it exists
             if Path("validate_endpoints.py").exists():
                 result = subprocess.run(
-                    ["python", "validate_endpoints.py"],
-                    capture_output=True,
-                    text=True
+                    ["python", "validate_endpoints.py"], capture_output=True, text=True
                 )
 
                 if result.returncode == 0:
@@ -420,7 +397,7 @@ class PreDeploymentChecker:
                     self.warnings.append("API endpoint validation had issues")
                     self.results["api_endpoints"] = {
                         "status": False,
-                        "error": result.stderr[:500] if result.stderr else "Validation failed"
+                        "error": result.stderr[:500] if result.stderr else "Validation failed",
                     }
                     return True  # Non-critical
 
@@ -429,7 +406,7 @@ class PreDeploymentChecker:
                 result = subprocess.run(
                     ["python", "-c", "from api.main import app; print('API imports OK')"],
                     capture_output=True,
-                    text=True
+                    text=True,
                 )
 
                 if result.returncode == 0:
@@ -456,7 +433,7 @@ class PreDeploymentChecker:
             "jwt_secret": bool(os.getenv("JWT_SECRET")),
             "cors_configured": bool(os.getenv("FRONTEND_URL")),
             "ssl_configured": self.environment == "production",
-            "api_key_set": bool(os.getenv("API_KEY"))
+            "api_key_set": bool(os.getenv("API_KEY")),
         }
 
         # Check for sensitive data in code
@@ -467,7 +444,7 @@ class PreDeploymentChecker:
             result = subprocess.run(
                 ["grep", "-r", "--include=*.py", pattern, "api/", "services/"],
                 capture_output=True,
-                text=True
+                text=True,
             )
             if result.returncode == 0:
                 lines = result.stdout.strip().split("\n")
@@ -476,12 +453,14 @@ class PreDeploymentChecker:
                         sensitive_files.append(line.split(":")[0])
 
         if sensitive_files:
-            self.warnings.append(f"Potential hardcoded secrets found in: {', '.join(set(sensitive_files))}")
+            self.warnings.append(
+                f"Potential hardcoded secrets found in: {', '.join(set(sensitive_files))}"
+            )
 
         self.results["security"] = {
             "status": all(security_checks.values()),
             "checks": security_checks,
-            "sensitive_files": list(set(sensitive_files))
+            "sensitive_files": list(set(sensitive_files)),
         }
 
         if not all(security_checks.values()):
@@ -503,7 +482,7 @@ class PreDeploymentChecker:
             "results": self.results,
             "errors": self.errors,
             "warnings": self.warnings,
-            "recommendations": self.get_recommendations()
+            "recommendations": self.get_recommendations(),
         }
 
         return report
@@ -552,7 +531,7 @@ class PreDeploymentChecker:
             self.check_docker_configuration,
             self.check_dependencies,
             self.check_api_endpoints,
-            self.check_security_configuration
+            self.check_security_configuration,
         ]
 
         for check in checks:
@@ -605,7 +584,7 @@ def main():
         "--env",
         choices=["staging", "production"],
         default="staging",
-        help="Target deployment environment"
+        help="Target deployment environment",
     )
 
     args = parser.parse_args()

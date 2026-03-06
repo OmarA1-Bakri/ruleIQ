@@ -24,6 +24,7 @@ from tests.fixtures.external_services import *
 
 # ==================== Database Transaction Management ====================
 
+
 @pytest.fixture(scope="function")
 def integration_db_session(test_db_engine) -> Generator[Session, None, None]:
     """
@@ -67,26 +68,20 @@ async def async_integration_db_session() -> AsyncGenerator[AsyncSession, None]:
     db_url = manager.get_test_db_url()
 
     # Convert to async URL
-    if '+asyncpg' not in db_url:
-        if '+psycopg2' in db_url:
-            db_url = db_url.replace('+psycopg2', '+asyncpg')
-        elif 'postgresql://' in db_url and '+' not in db_url:
-            db_url = db_url.replace('postgresql://', 'postgresql+asyncpg://')
+    if "+asyncpg" not in db_url:
+        if "+psycopg2" in db_url:
+            db_url = db_url.replace("+psycopg2", "+asyncpg")
+        elif "postgresql://" in db_url and "+" not in db_url:
+            db_url = db_url.replace("postgresql://", "postgresql+asyncpg://")
 
     # Create async engine
     async_engine = create_async_engine(
-        db_url,
-        echo=False,
-        pool_size=10,
-        max_overflow=20,
-        pool_pre_ping=True
+        db_url, echo=False, pool_size=10, max_overflow=20, pool_pre_ping=True
     )
 
     # Create session factory
     async_session_factory = async_sessionmaker(
-        bind=async_engine,
-        class_=AsyncSession,
-        expire_on_commit=False
+        bind=async_engine, class_=AsyncSession, expire_on_commit=False
     )
 
     async with async_engine.begin() as conn:
@@ -101,6 +96,7 @@ async def async_integration_db_session() -> AsyncGenerator[AsyncSession, None]:
 
 # ==================== External Service Mocks ====================
 
+
 @pytest.fixture
 def mock_all_external_services():
     """
@@ -109,82 +105,74 @@ def mock_all_external_services():
     mocks = {}
 
     # Mock Stripe
-    with patch('stripe.Customer') as mock_customer:
-        mock_customer.create.return_value = MagicMock(
-            id="cus_test123",
-            email="test@example.com"
-        )
+    with patch("stripe.Customer") as mock_customer:
+        mock_customer.create.return_value = MagicMock(id="cus_test123", email="test@example.com")
         mock_customer.retrieve.return_value = MagicMock(
-            id="cus_test123",
-            subscriptions=MagicMock(data=[])
+            id="cus_test123", subscriptions=MagicMock(data=[])
         )
-        mocks['stripe_customer'] = mock_customer
+        mocks["stripe_customer"] = mock_customer
 
     # Mock SendGrid
-    with patch('sendgrid.SendGridAPIClient') as mock_sendgrid:
+    with patch("sendgrid.SendGridAPIClient") as mock_sendgrid:
         mock_sg_instance = MagicMock()
         mock_sg_instance.send.return_value = MagicMock(
-            status_code=202,
-            body="",
-            headers={"X-Message-Id": "test-msg-id"}
+            status_code=202, body="", headers={"X-Message-Id": "test-msg-id"}
         )
         mock_sendgrid.return_value = mock_sg_instance
-        mocks['sendgrid'] = mock_sendgrid
+        mocks["sendgrid"] = mock_sendgrid
 
     # Mock AWS S3
-    with patch('boto3.client') as mock_boto:
+    with patch("boto3.client") as mock_boto:
         s3_mock = MagicMock()
-        s3_mock.put_object.return_value = {'ETag': '"test-etag"'}
+        s3_mock.put_object.return_value = {"ETag": '"test-etag"'}
         s3_mock.get_object.return_value = {
-            'Body': MagicMock(read=lambda: b'test content'),
-            'ContentType': 'application/pdf'
+            "Body": MagicMock(read=lambda: b"test content"),
+            "ContentType": "application/pdf",
         }
         s3_mock.generate_presigned_url.return_value = "https://s3.test.url"
 
         def boto_client_factory(service_name, **kwargs):
-            if service_name == 's3':
+            if service_name == "s3":
                 return s3_mock
             return MagicMock()
 
         mock_boto.side_effect = boto_client_factory
-        mocks['boto'] = mock_boto
-        mocks['s3'] = s3_mock
+        mocks["boto"] = mock_boto
+        mocks["s3"] = s3_mock
 
     # Mock OpenAI
-    with patch('openai.OpenAI') as mock_openai_class:
+    with patch("openai.OpenAI") as mock_openai_class:
         mock_openai = MagicMock()
         mock_openai.chat.completions.create.return_value = MagicMock(
-            choices=[MagicMock(
-                message=MagicMock(content="Test AI response"),
-                finish_reason="stop"
-            )],
-            usage=MagicMock(total_tokens=100)
+            choices=[
+                MagicMock(message=MagicMock(content="Test AI response"), finish_reason="stop")
+            ],
+            usage=MagicMock(total_tokens=100),
         )
         mock_openai_class.return_value = mock_openai
-        mocks['openai'] = mock_openai
+        mocks["openai"] = mock_openai
 
     # Mock Redis with fakeredis
     fake_redis = fakeredis.FakeRedis(decode_responses=True)
-    with patch('redis.Redis', return_value=fake_redis):
-        mocks['redis'] = fake_redis
+    with patch("redis.Redis", return_value=fake_redis):
+        mocks["redis"] = fake_redis
 
     # Mock Celery tasks
-    with patch('celery.Task.delay') as mock_delay:
+    with patch("celery.Task.delay") as mock_delay:
         mock_delay.return_value = MagicMock(
-            id='test-task-id',
-            state='SUCCESS',
-            result={'status': 'completed'}
+            id="test-task-id", state="SUCCESS", result={"status": "completed"}
         )
-        mocks['celery'] = mock_delay
+        mocks["celery"] = mock_delay
 
     yield mocks
 
     # Cleanup
-    if 'redis' in mocks:
-        mocks['redis'].flushall()
+    if "redis" in mocks:
+        mocks["redis"].flushall()
 
 
 # ==================== API Testing Fixtures ====================
+
 
 @pytest.fixture
 def integration_client(integration_db_session, mock_all_external_services):
@@ -238,6 +226,7 @@ async def async_integration_client(async_integration_db_session, mock_all_extern
 
 # ==================== Authentication Fixtures ====================
 
+
 @pytest.fixture
 def integration_auth_headers(integration_db_session):
     """
@@ -252,7 +241,7 @@ def integration_auth_headers(integration_db_session):
         full_name="Integration Test User",
         hashed_password=get_password_hash("TestPassword123!"),
         is_active=True,
-        is_verified=True
+        is_verified=True,
     )
     integration_db_session.add(user)
     integration_db_session.commit()
@@ -263,7 +252,7 @@ def integration_auth_headers(integration_db_session):
     return {
         "Authorization": f"Bearer {token}",
         "Content-Type": "application/json",
-        "X-Request-ID": "integration-test"
+        "X-Request-ID": "integration-test",
     }
 
 
@@ -282,7 +271,7 @@ def integration_admin_headers(integration_db_session):
         hashed_password=get_password_hash("AdminPassword123!"),
         is_active=True,
         is_verified=True,
-        is_admin=True
+        is_admin=True,
     )
     integration_db_session.add(admin)
     integration_db_session.commit()
@@ -293,17 +282,19 @@ def integration_admin_headers(integration_db_session):
     return {
         "Authorization": f"Bearer {token}",
         "Content-Type": "application/json",
-        "X-Request-ID": "admin-integration-test"
+        "X-Request-ID": "admin-integration-test",
     }
 
 
 # ==================== Performance Testing Fixtures ====================
+
 
 @pytest.fixture
 def performance_monitor():
     """
     Monitor performance metrics during integration tests.
     """
+
     class PerformanceMonitor:
         def __init__(self):
             self.metrics = {}
@@ -312,35 +303,33 @@ def performance_monitor():
 
         def start(self, operation: str):
             """Start timing an operation."""
-            self.metrics[operation] = {'start': time.time()}
+            self.metrics[operation] = {"start": time.time()}
 
         def end(self, operation: str):
             """End timing an operation."""
             if operation in self.metrics:
-                self.metrics[operation]['end'] = time.time()
-                self.metrics[operation]['duration'] = (
-                    self.metrics[operation]['end'] - 
-                    self.metrics[operation]['start']
+                self.metrics[operation]["end"] = time.time()
+                self.metrics[operation]["duration"] = (
+                    self.metrics[operation]["end"] - self.metrics[operation]["start"]
                 )
 
         def get_duration(self, operation: str) -> float:
             """Get duration of an operation in seconds."""
-            return self.metrics.get(operation, {}).get('duration', 0)
+            return self.metrics.get(operation, {}).get("duration", 0)
 
         def assert_performance(self, operation: str, max_duration: float):
             """Assert that an operation completed within the specified time."""
             duration = self.get_duration(operation)
             assert duration <= max_duration, (
-                f"Operation '{operation}' took {duration:.2f}s, "
-                f"expected <= {max_duration}s"
+                f"Operation '{operation}' took {duration:.2f}s, expected <= {max_duration}s"
             )
 
         def get_report(self) -> dict:
             """Get a performance report."""
             return {
                 op: {
-                    'duration': data.get('duration', 0),
-                    'status': 'completed' if 'duration' in data else 'incomplete'
+                    "duration": data.get("duration", 0),
+                    "status": "completed" if "duration" in data else "incomplete",
                 }
                 for op, data in self.metrics.items()
             }
@@ -349,6 +338,7 @@ def performance_monitor():
 
 
 # ==================== Data Fixtures ====================
+
 
 @pytest.fixture
 def sample_integration_data(integration_db_session):
@@ -367,7 +357,7 @@ def sample_integration_data(integration_db_session):
             full_name=f"Test User {i}",
             hashed_password=get_password_hash(f"Password{i}123!"),
             is_active=True,
-            is_verified=True
+            is_verified=True,
         )
         integration_db_session.add(user)
         users.append(user)
@@ -383,7 +373,7 @@ def sample_integration_data(integration_db_session):
             industry="Technology",
             size="Medium",
             employee_count="100-500",
-            location="United States"
+            location="United States",
         )
         integration_db_session.add(profile)
         profiles.append(profile)
@@ -395,7 +385,7 @@ def sample_integration_data(integration_db_session):
     framework_data = [
         ("GDPR", "General Data Protection Regulation"),
         ("SOC 2", "Service Organization Control 2"),
-        ("ISO 27001", "Information Security Management")
+        ("ISO 27001", "Information Security Management"),
     ]
 
     for name, description in framework_data:
@@ -403,10 +393,12 @@ def sample_integration_data(integration_db_session):
             name=name,
             description=description,
             version="latest",
-            requirements=json.dumps([
-                {"id": f"{name}-1", "title": f"{name} Requirement 1"},
-                {"id": f"{name}-2", "title": f"{name} Requirement 2"}
-            ])
+            requirements=json.dumps(
+                [
+                    {"id": f"{name}-1", "title": f"{name} Requirement 1"},
+                    {"id": f"{name}-2", "title": f"{name} Requirement 2"},
+                ]
+            ),
         )
         integration_db_session.add(framework)
         frameworks.append(framework)
@@ -420,7 +412,7 @@ def sample_integration_data(integration_db_session):
             user_id=user.id,
             framework_id=framework.id,
             status="in_progress",
-            responses=json.dumps({})
+            responses=json.dumps({}),
         )
         integration_db_session.add(assessment)
         assessments.append(assessment)
@@ -428,14 +420,15 @@ def sample_integration_data(integration_db_session):
     integration_db_session.commit()
 
     return {
-        'users': users,
-        'profiles': profiles,
-        'frameworks': frameworks,
-        'assessments': assessments
+        "users": users,
+        "profiles": profiles,
+        "frameworks": frameworks,
+        "assessments": assessments,
     }
 
 
 # ==================== Parallel Execution Support ====================
+
 
 @pytest.fixture(scope="session")
 def worker_id(request):
@@ -443,7 +436,7 @@ def worker_id(request):
     Get the worker ID for parallel test execution.
     Returns 'master' for non-parallel execution.
     """
-    return getattr(request.config, 'workerinput', {}).get('workerid', 'master')
+    return getattr(request.config, "workerinput", {}).get("workerid", "master")
 
 
 @pytest.fixture
@@ -492,33 +485,24 @@ def isolated_test_db(worker_id):
 
 # ==================== Test Markers ====================
 
+
 def pytest_configure(config):
     """Register integration test markers."""
+    config.addinivalue_line("markers", "integration: mark test as integration test")
+    config.addinivalue_line("markers", "slow_integration: mark test as slow integration test")
     config.addinivalue_line(
-        "markers", 
-        "integration: mark test as integration test"
+        "markers", "requires_external: mark test as requiring external service mocks"
     )
-    config.addinivalue_line(
-        "markers", 
-        "slow_integration: mark test as slow integration test"
-    )
-    config.addinivalue_line(
-        "markers", 
-        "requires_external: mark test as requiring external service mocks"
-    )
-    config.addinivalue_line(
-        "markers", 
-        "transaction: mark test as requiring database transaction"
-    )
+    config.addinivalue_line("markers", "transaction: mark test as requiring database transaction")
 
 
 # ==================== Test Utilities ====================
 
+
 def assert_api_success(response, expected_status: int = 200):
     """Assert API response is successful."""
     assert response.status_code == expected_status, (
-        f"Expected status {expected_status}, got {response.status_code}. "
-        f"Response: {response.text}"
+        f"Expected status {expected_status}, got {response.status_code}. Response: {response.text}"
     )
     return response.json() if response.text else None
 
@@ -527,8 +511,7 @@ def assert_database_changes(session: Session, model, expected_count: int):
     """Assert expected number of records in database."""
     actual_count = session.query(model).count()
     assert actual_count == expected_count, (
-        f"Expected {expected_count} {model.__name__} records, "
-        f"found {actual_count}"
+        f"Expected {expected_count} {model.__name__} records, found {actual_count}"
     )
 
 

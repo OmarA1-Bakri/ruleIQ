@@ -15,13 +15,13 @@ logger = logging.getLogger(__name__)
 
 # Task-to-tool mapping
 TASK_TOOL_MAPPING = {
-    'gap_analysis': ['extract_compliance_gaps'],
-    'recommendations': ['generate_compliance_recommendations'],
-    'regulation_lookup': ['lookup_industry_regulations', 'check_compliance_requirements'],
-    'assessment': ['extract_compliance_gaps', 'generate_compliance_recommendations'],
-    'analysis': ['extract_compliance_gaps', 'lookup_industry_regulations'],
-    'help': ['lookup_industry_regulations', 'check_compliance_requirements'],
-    'guidance': ['check_compliance_requirements']
+    "gap_analysis": ["extract_compliance_gaps"],
+    "recommendations": ["generate_compliance_recommendations"],
+    "regulation_lookup": ["lookup_industry_regulations", "check_compliance_requirements"],
+    "assessment": ["extract_compliance_gaps", "generate_compliance_recommendations"],
+    "analysis": ["extract_compliance_gaps", "lookup_industry_regulations"],
+    "help": ["lookup_industry_regulations", "check_compliance_requirements"],
+    "guidance": ["check_compliance_requirements"],
 }
 
 
@@ -33,7 +33,7 @@ class ResponseGenerator:
         provider_factory: ProviderFactory,
         safety_manager: Optional[Any] = None,
         tool_executor: Optional[Any] = None,
-        analytics_monitor: Optional[Any] = None
+        analytics_monitor: Optional[Any] = None,
     ) -> None:
         """
         Initialize the response generator.
@@ -54,7 +54,7 @@ class ResponseGenerator:
         prompt: str,
         task_type: str,
         tool_names: Optional[List[str]] = None,
-        context: Optional[Dict] = None
+        context: Optional[Dict] = None,
     ) -> Dict[str, Any]:
         """
         Generate AI response with tool integration.
@@ -75,7 +75,7 @@ class ResponseGenerator:
         model, instruction_id = self.provider_factory.get_provider_for_task(
             task_type=task_type,
             context=context,
-            tools=[tool['schema'] for tool in tools] if tools else None
+            tools=[tool["schema"] for tool in tools] if tools else None,
         )
 
         try:
@@ -83,8 +83,7 @@ class ResponseGenerator:
             # Note: This uses the model directly for now
             # In a full implementation, this would use the provider abstraction
             response = await model.generate_content_async(
-                prompt,
-                tools=[tool['schema'] for tool in tools] if tools else None
+                prompt, tools=[tool["schema"] for tool in tools] if tools else None
             )
 
             # Extract text and function calls
@@ -94,45 +93,37 @@ class ResponseGenerator:
             # Execute function calls if present
             function_results = {}
             if function_calls and self.tool_executor:
-                function_results = await self.handle_function_calls(
-                    function_calls,
-                    context
-                )
+                function_results = await self.handle_function_calls(function_calls, context)
 
             # Record analytics
             if self.analytics_monitor:
                 await self.analytics_monitor.record_response_generation(
                     task_type=task_type,
                     instruction_id=instruction_id,
-                    had_function_calls=len(function_calls) > 0
+                    had_function_calls=len(function_calls) > 0,
                 )
 
             return {
-                'text': response_text,
-                'function_calls': function_calls,
-                'function_results': function_results,
-                'metadata': {
-                    'task_type': task_type,
-                    'instruction_id': instruction_id,
-                    'tools_used': len(function_calls)
-                }
+                "text": response_text,
+                "function_calls": function_calls,
+                "function_results": function_results,
+                "metadata": {
+                    "task_type": task_type,
+                    "instruction_id": instruction_id,
+                    "tools_used": len(function_calls),
+                },
             }
 
         except Exception as e:
             logger.error(f"Response generation failed: {e}", exc_info=True)
-            return {
-                'text': '',
-                'function_calls': [],
-                'function_results': {},
-                'error': str(e)
-            }
+            return {"text": "", "function_calls": [], "function_results": {}, "error": str(e)}
 
     async def generate_simple(
         self,
         system_prompt: str,
         user_prompt: str,
-        task_type: str = 'general',
-        context: Optional[Dict] = None
+        task_type: str = "general",
+        context: Optional[Dict] = None,
     ) -> str:
         """
         Generate a simple response without tools.
@@ -150,10 +141,7 @@ class ResponseGenerator:
         full_prompt = f"{system_prompt}\n\n{user_prompt}"
 
         # Get provider
-        model, _ = self.provider_factory.get_provider_for_task(
-            task_type=task_type,
-            context=context
-        )
+        model, _ = self.provider_factory.get_provider_for_task(task_type=task_type, context=context)
 
         try:
             # Generate response
@@ -174,9 +162,7 @@ class ResponseGenerator:
             return ""
 
     async def handle_function_calls(
-        self,
-        function_calls: List[Dict],
-        context: Optional[Dict] = None
+        self, function_calls: List[Dict], context: Optional[Dict] = None
     ) -> Dict[str, Any]:
         """
         Execute function calls and collect results.
@@ -191,31 +177,26 @@ class ResponseGenerator:
         results = {}
 
         for fc in function_calls:
-            function_name = fc.get('name')
-            function_args = fc.get('args', {})
+            function_name = fc.get("name")
+            function_args = fc.get("args", {})
 
             try:
                 # Execute tool
                 if self.tool_executor:
-                    result = await self.tool_executor.execute_tool(
-                        function_name,
-                        function_args
-                    )
+                    result = await self.tool_executor.execute_tool(function_name, function_args)
                     results[function_name] = result
                 else:
                     logger.warning(f"No tool executor available for {function_name}")
-                    results[function_name] = {'error': 'Tool executor not available'}
+                    results[function_name] = {"error": "Tool executor not available"}
 
             except Exception as e:
                 logger.error(f"Tool execution failed for {function_name}: {e}")
-                results[function_name] = {'error': str(e)}
+                results[function_name] = {"error": str(e)}
 
         return results
 
     def _get_tools_for_task(
-        self,
-        task_type: str,
-        tool_names: Optional[List[str]] = None
+        self, task_type: str, tool_names: Optional[List[str]] = None
     ) -> List[Dict[str, Any]]:
         """
         Get tool schemas for a task type.
@@ -241,32 +222,34 @@ class ResponseGenerator:
     def _extract_text(self, response) -> str:
         """Extract text from response."""
         try:
-            if hasattr(response, 'text'):
+            if hasattr(response, "text"):
                 return response.text
-            elif hasattr(response, 'candidates') and response.candidates:
+            elif hasattr(response, "candidates") and response.candidates:
                 candidate = response.candidates[0]
-                if hasattr(candidate, 'content') and hasattr(candidate.content, 'parts'):
+                if hasattr(candidate, "content") and hasattr(candidate.content, "parts"):
                     parts = candidate.content.parts
-                    return ''.join(part.text for part in parts if hasattr(part, 'text'))
-            return ''
+                    return "".join(part.text for part in parts if hasattr(part, "text"))
+            return ""
         except Exception as e:
             logger.error(f"Failed to extract text: {e}")
-            return ''
+            return ""
 
     def _extract_function_calls(self, response) -> List[Dict]:
         """Extract function calls from response."""
         function_calls = []
         try:
-            if hasattr(response, 'candidates') and response.candidates:
+            if hasattr(response, "candidates") and response.candidates:
                 candidate = response.candidates[0]
-                if hasattr(candidate, 'content') and hasattr(candidate.content, 'parts'):
+                if hasattr(candidate, "content") and hasattr(candidate.content, "parts"):
                     for part in candidate.content.parts:
-                        if hasattr(part, 'function_call'):
+                        if hasattr(part, "function_call"):
                             fc = part.function_call
-                            function_calls.append({
-                                'name': fc.name,
-                                'args': dict(fc.args) if hasattr(fc, 'args') else {}
-                            })
+                            function_calls.append(
+                                {
+                                    "name": fc.name,
+                                    "args": dict(fc.args) if hasattr(fc, "args") else {},
+                                }
+                            )
         except Exception as e:
             logger.error(f"Failed to extract function calls: {e}")
 

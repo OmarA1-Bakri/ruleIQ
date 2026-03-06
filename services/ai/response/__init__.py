@@ -9,9 +9,4 @@ from .parser import ResponseParser
 from .formatter import ResponseFormatter
 from .fallback import FallbackGenerator
 
-__all__ = [
-    'ResponseGenerator',
-    'ResponseParser',
-    'ResponseFormatter',
-    'FallbackGenerator'
-]
+__all__ = ["ResponseGenerator", "ResponseParser", "ResponseFormatter", "FallbackGenerator"]

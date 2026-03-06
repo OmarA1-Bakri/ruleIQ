@@ -1,6 +1,5 @@
 """Test suite for Human-in-the-Loop Feedback System.
 
-from __future__ import annotations
 
 This test suite covers:
 1. Feedback collection APIs
@@ -154,11 +153,11 @@ class TestFeedbackCollectionAPIs:
 
             # Validate rating value
             if feedback.feedback_type == "rating" and (
-                not isinstance(feedback.value, (int, float))
-                or not 1 <= feedback.value <= 5
+                not isinstance(feedback.value, (int, float)) or not 1 <= feedback.value <= 5
             ):
                 raise HTTPException(
-                    status_code=400, detail="Rating must be between 1 and 5",
+                    status_code=400,
+                    detail="Rating must be between 1 and 5",
                 )
 
             # Store feedback
@@ -458,7 +457,8 @@ class TestFeedbackStorage:
 
         # Submit to LangSmith
         result = feedback_collector.batch_submit_to_langsmith(
-            api_key="test-key", project_name="test-project",
+            api_key="test-key",
+            project_name="test-project",
         )
 
         assert result["status"] == "success"
@@ -533,10 +533,10 @@ class TestFeedbackAggregation:
         for i in range(3):
             feedback_analyzer.add_feedback(
                 FeedbackItem(
-                    run_id=f"run-{i+7:03d}",
+                    run_id=f"run-{i + 7:03d}",
                     feedback_type=FeedbackType.THUMBS_DOWN,
                     value=False,
-                    user_id=f"user-{i+7:03d}",
+                    user_id=f"user-{i + 7:03d}",
                     timestamp=datetime.now(timezone.utc),
                 ),
             )
@@ -591,7 +591,7 @@ class TestFeedbackAggregation:
         for i in range(5):
             feedback_analyzer.add_feedback(
                 FeedbackItem(
-                    run_id=f"run-{i+5:03d}",
+                    run_id=f"run-{i + 5:03d}",
                     feedback_type=FeedbackType.RATING,
                     value=2.0 + i,
                     user_id="user-002",
@@ -701,9 +701,7 @@ class TestFeedbackLoopMetrics:
         # Simulate feedback and response times
         for i in range(10):
             feedback_time = base_time + timedelta(minutes=i * 10)
-            response_time = feedback_time + timedelta(
-                minutes=5 + i
-            )  # Variable response time
+            response_time = feedback_time + timedelta(minutes=5 + i)  # Variable response time
 
             feedback_times.append(feedback_time)
             response_times.append(response_time)
@@ -729,10 +727,7 @@ class TestFeedbackLoopMetrics:
         incorporation_rate = incorporated_feedback / total_feedback
 
         assert incorporation_rate == 0.75
-        assert (
-            total_feedback
-            == incorporated_feedback + ignored_feedback + pending_feedback,
-        )
+        assert (total_feedback == incorporated_feedback + ignored_feedback + pending_feedback,)
 
     def test_model_improvement_metrics(self):
         """Test measuring model improvement after feedback incorporation."""
@@ -750,9 +745,7 @@ class TestFeedbackLoopMetrics:
             "f1_score": 0.86,
         }
 
-        improvements = {
-            key: metrics_after[key] - metrics_before[key] for key in metrics_before
-        }
+        improvements = {key: metrics_after[key] - metrics_before[key] for key in metrics_before}
 
         assert improvements["accuracy"] > 0
         assert improvements["precision"] > 0
@@ -777,9 +770,7 @@ class TestFeedbackLoopMetrics:
         x_mean = sum(x) / n
         y_mean = sum(weekly_ratings) / n
 
-        numerator = sum(
-            (x[i] - x_mean) * (weekly_ratings[i] - y_mean) for i in range(n)
-        )
+        numerator = sum((x[i] - x_mean) * (weekly_ratings[i] - y_mean) for i in range(n))
         denominator = sum((x[i] - x_mean) ** 2 for i in range(n))
 
         slope = numerator / denominator

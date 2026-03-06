@@ -75,11 +75,13 @@ class MockRedisClient:
     async def keys(self, pattern: str) -> List[str]:
         """Mock keys operation"""
         import fnmatch
+
         return [k for k in self.data if fnmatch.fnmatch(k, pattern)]
 
 
 class TestDataModel(BaseModel):
     """Test data model for caching"""
+
     id: str
     name: str
     value: int
@@ -139,7 +141,7 @@ class TestMultiLevelCache:
         from services.caching.cache_manager import CacheManager
 
         # Mock the Redis client
-        with patch('database.redis_client.get_redis_client', return_value=mock_redis):
+        with patch("database.redis_client.get_redis_client", return_value=mock_redis):
             cache = CacheManager(metrics=cache_metrics)
             await cache.initialize()
             yield cache
@@ -266,7 +268,7 @@ class TestCacheInvalidation:
         """Create cache system for invalidation testing"""
         from services.caching.cache_manager import CacheManager
 
-        with patch('database.redis_client.get_redis_client') as mock_get_redis:
+        with patch("database.redis_client.get_redis_client") as mock_get_redis:
             mock_redis = MockRedisClient()
             mock_get_redis.return_value = mock_redis
 
@@ -299,12 +301,7 @@ class TestCacheInvalidation:
     async def test_pattern_based_invalidation(self, cache_system):
         """Test pattern-based cache invalidation"""
         # Set multiple keys with pattern
-        keys = [
-            "user:123:profile",
-            "user:123:settings",
-            "user:456:profile",
-            "post:789:content"
-        ]
+        keys = ["user:123:profile", "user:123:settings", "user:456:profile", "post:789:content"]
 
         for key in keys:
             await cache_system.set(key, {"data": f"value_{key}"}, ttl=300)
@@ -361,7 +358,7 @@ class TestCacheWarming:
         """Create cache system for warming testing"""
         from services.caching.cache_manager import CacheManager
 
-        with patch('database.redis_client.get_redis_client') as mock_get_redis:
+        with patch("database.redis_client.get_redis_client") as mock_get_redis:
             mock_redis = MockRedisClient()
             mock_get_redis.return_value = mock_redis
 
@@ -377,7 +374,7 @@ class TestCacheWarming:
         mock_data = {
             "critical:key1": {"data": "critical1", "priority": 10},
             "critical:key2": {"data": "critical2", "priority": 9},
-            "normal:key3": {"data": "normal3", "priority": 5}
+            "normal:key3": {"data": "normal3", "priority": 5},
         }
 
         # Warm critical data
@@ -398,8 +395,7 @@ class TestCacheWarming:
         # Start background warming
         warming_task = asyncio.create_task(
             cache_system.background_warming(
-                data_source=lambda: {"bg:key1": {"data": "bg1"}},
-                interval=1
+                data_source=lambda: {"bg:key1": {"data": "bg1"}}, interval=1
             )
         )
 
@@ -421,7 +417,7 @@ class TestCacheWarming:
         data_items = [
             {"key": "low:key", "data": "low", "priority": 1},
             {"key": "medium:key", "data": "medium", "priority": 5},
-            {"key": "high:key", "data": "high", "priority": 10}
+            {"key": "high:key", "data": "high", "priority": 10},
         ]
 
         # Warm by priority
@@ -466,7 +462,7 @@ class TestPerformanceMonitoring:
         """Create cache system with metrics"""
         from services.caching.cache_manager import CacheManager
 
-        with patch('database.redis_client.get_redis_client') as mock_get_redis:
+        with patch("database.redis_client.get_redis_client") as mock_get_redis:
             mock_redis = MockRedisClient()
             mock_get_redis.return_value = mock_redis
 
@@ -544,7 +540,7 @@ class TestCacheKeyManagement:
         """Create cache system for key management testing"""
         from services.caching.cache_manager import CacheManager
 
-        with patch('database.redis_client.get_redis_client') as mock_get_redis:
+        with patch("database.redis_client.get_redis_client") as mock_get_redis:
             mock_redis = MockRedisClient()
             mock_get_redis.return_value = mock_redis
 
@@ -596,7 +592,7 @@ class TestCacheKeyManagement:
         keys_data = {
             "bulk:key1": {"data": "value1"},
             "bulk:key2": {"data": "value2"},
-            "bulk:key3": {"data": "value3"}
+            "bulk:key3": {"data": "value3"},
         }
 
         await cache_system.set_bulk(keys_data, ttl=300)
@@ -616,7 +612,7 @@ class TestFallbackMechanisms:
         from services.caching.cache_manager import CacheManager
 
         # Mock Redis failure
-        with patch('database.redis_client.get_redis_client', side_effect=Exception("Redis down")):
+        with patch("database.redis_client.get_redis_client", side_effect=Exception("Redis down")):
             cache = CacheManager()
 
             # Should initialize with fallback
@@ -639,6 +635,7 @@ class TestFallbackMechanisms:
 
         # Start with failure
         call_count = 0
+
         def mock_get_redis():
             nonlocal call_count
             call_count += 1
@@ -646,7 +643,7 @@ class TestFallbackMechanisms:
                 raise Exception("Redis temporarily down")
             return mock_redis
 
-        with patch('database.redis_client.get_redis_client', side_effect=mock_get_redis):
+        with patch("database.redis_client.get_redis_client", side_effect=mock_get_redis):
             cache = CacheManager()
 
             # First initialization fails but falls back
@@ -674,7 +671,10 @@ class TestFallbackMechanisms:
         """Test operations in degraded mode (L1 only)"""
         from services.caching.cache_manager import CacheManager
 
-        with patch('database.redis_client.get_redis_client', side_effect=Exception("Redis permanently down")):
+        with patch(
+            "database.redis_client.get_redis_client",
+            side_effect=Exception("Redis permanently down"),
+        ):
             cache = CacheManager()
             await cache.initialize()
 
@@ -699,7 +699,7 @@ class TestIntegrationDatabaseLayer:
         """Create cache system for database integration testing"""
         from services.caching.cache_manager import CacheManager
 
-        with patch('database.redis_client.get_redis_client') as mock_get_redis:
+        with patch("database.redis_client.get_redis_client") as mock_get_redis:
             mock_redis = MockRedisClient()
             mock_get_redis.return_value = mock_redis
 
@@ -711,6 +711,7 @@ class TestIntegrationDatabaseLayer:
     @pytest.mark.asyncio
     async def test_database_query_result_caching(self, cache_system):
         """Test caching database query results"""
+
         # Mock database query
         async def mock_db_query(query_id: str):
             # Simulate DB load
@@ -720,18 +721,14 @@ class TestIntegrationDatabaseLayer:
         # First call - cache miss, DB query
         start_time = time.time()
         result1 = await cache_system.get_or_set_db_query(
-            "query:users:active",
-            mock_db_query,
-            ttl=300
+            "query:users:active", mock_db_query, ttl=300
         )
         first_call_time = time.time() - start_time
 
         # Second call - cache hit
         start_time = time.time()
         result2 = await cache_system.get_or_set_db_query(
-            "query:users:active",
-            mock_db_query,
-            ttl=300
+            "query:users:active", mock_db_query, ttl=300
         )
         second_call_time = time.time() - start_time
 
@@ -762,7 +759,7 @@ class TestIntegrationAPILayer:
         """Create cache system for API integration testing"""
         from services.caching.cache_manager import CacheManager
 
-        with patch('database.redis_client.get_redis_client') as mock_get_redis:
+        with patch("database.redis_client.get_redis_client") as mock_get_redis:
             mock_redis = MockRedisClient()
             mock_get_redis.return_value = mock_redis
 
@@ -774,6 +771,7 @@ class TestIntegrationAPILayer:
     @pytest.mark.asyncio
     async def test_api_response_caching(self, cache_system):
         """Test caching API responses"""
+
         # Mock API call
         async def mock_api_call(endpoint: str, params: dict):
             await asyncio.sleep(0.02)  # Simulate network delay
@@ -781,16 +779,12 @@ class TestIntegrationAPILayer:
 
         # Cache API response
         response1 = await cache_system.cache_api_response(
-            "GET", "/api/users", {"page": 1},
-            mock_api_call,
-            ttl=300
+            "GET", "/api/users", {"page": 1}, mock_api_call, ttl=300
         )
 
         # Second call should be cached
         response2 = await cache_system.cache_api_response(
-            "GET", "/api/users", {"page": 1},
-            mock_api_call,
-            ttl=300
+            "GET", "/api/users", {"page": 1}, mock_api_call, ttl=300
         )
 
         assert response1 == response2
@@ -818,7 +812,7 @@ class TestIntegrationServiceLayer:
         """Create cache system for service integration testing"""
         from services.caching.cache_manager import CacheManager
 
-        with patch('database.redis_client.get_redis_client') as mock_get_redis:
+        with patch("database.redis_client.get_redis_client") as mock_get_redis:
             mock_redis = MockRedisClient()
             mock_get_redis.return_value = mock_redis
 
@@ -830,6 +824,7 @@ class TestIntegrationServiceLayer:
     @pytest.mark.asyncio
     async def test_service_computation_caching(self, cache_system):
         """Test caching expensive service computations"""
+
         # Mock expensive computation
         async def expensive_calculation(x: int, y: int):
             await asyncio.sleep(0.05)  # Simulate heavy computation
@@ -838,18 +833,14 @@ class TestIntegrationServiceLayer:
         # First call - compute and cache
         start_time = time.time()
         result1 = await cache_system.cache_service_computation(
-            "calc", {"x": 10, "y": 20},
-            expensive_calculation,
-            ttl=300
+            "calc", {"x": 10, "y": 20}, expensive_calculation, ttl=300
         )
         first_call_time = time.time() - start_time
 
         # Second call - cache hit
         start_time = time.time()
         result2 = await cache_system.cache_service_computation(
-            "calc", {"x": 10, "y": 20},
-            expensive_calculation,
-            ttl=300
+            "calc", {"x": 10, "y": 20}, expensive_calculation, ttl=300
         )
         second_call_time = time.time() - start_time
 
@@ -859,6 +850,7 @@ class TestIntegrationServiceLayer:
     @pytest.mark.asyncio
     async def test_external_api_caching(self, cache_system):
         """Test caching external API calls"""
+
         # Mock external API call
         async def external_api_call(service: str, endpoint: str):
             await asyncio.sleep(0.03)  # Simulate network delay
@@ -866,16 +858,15 @@ class TestIntegrationServiceLayer:
 
         # Cache external API response
         response1 = await cache_system.cache_external_api(
-            "stripe", "customers/list",
+            "stripe",
+            "customers/list",
             external_api_call,
-            ttl=600  # External APIs cached longer
+            ttl=600,  # External APIs cached longer
         )
 
         # Second call cached
         response2 = await cache_system.cache_external_api(
-            "stripe", "customers/list",
-            external_api_call,
-            ttl=600
+            "stripe", "customers/list", external_api_call, ttl=600
         )
 
         assert response1 == response2
@@ -891,7 +882,7 @@ class TestConfigurationAndFeatures:
         from services.caching.cache_manager import CacheManager
 
         # Test with caching enabled
-        with patch('database.redis_client.get_redis_client') as mock_get_redis:
+        with patch("database.redis_client.get_redis_client") as mock_get_redis:
             mock_redis = MockRedisClient()
             mock_get_redis.return_value = mock_redis
 
@@ -925,15 +916,15 @@ class TestConfigurationAndFeatures:
         """Test configurable TTL values"""
         from services.caching.cache_manager import CacheManager
 
-        with patch('database.redis_client.get_redis_client') as mock_get_redis:
+        with patch("database.redis_client.get_redis_client") as mock_get_redis:
             mock_redis = MockRedisClient()
             mock_get_redis.return_value = mock_redis
 
             # Custom TTL config
             ttl_config = {
                 "user_profile": 1800,  # 30 minutes
-                "api_response": 300,   # 5 minutes
-                "computation": 3600    # 1 hour
+                "api_response": 300,  # 5 minutes
+                "computation": 3600,  # 1 hour
             }
 
             cache = CacheManager(ttl_config=ttl_config)
@@ -951,15 +942,12 @@ class TestConfigurationAndFeatures:
         """Test memory limits configuration"""
         from services.caching.cache_manager import CacheManager
 
-        with patch('database.redis_client.get_redis_client') as mock_get_redis:
+        with patch("database.redis_client.get_redis_client") as mock_get_redis:
             mock_redis = MockRedisClient()
             mock_get_redis.return_value = mock_redis
 
             # Configure memory limits
-            cache = CacheManager(
-                l1_max_items=100,
-                l1_max_memory_mb=10
-            )
+            cache = CacheManager(l1_max_items=100, l1_max_memory_mb=10)
             await cache.initialize()
 
             # Verify configuration applied
@@ -976,7 +964,7 @@ class TestErrorHandlingAndEdgeCases:
         """Test handling of corrupted cache data"""
         from services.caching.cache_manager import CacheManager
 
-        with patch('database.redis_client.get_redis_client') as mock_get_redis:
+        with patch("database.redis_client.get_redis_client") as mock_get_redis:
             mock_redis = MockRedisClient()
             mock_get_redis.return_value = mock_redis
 
@@ -997,7 +985,7 @@ class TestErrorHandlingAndEdgeCases:
         """Test concurrent cache access"""
         from services.caching.cache_manager import CacheManager
 
-        with patch('database.redis_client.get_redis_client') as mock_get_redis:
+        with patch("database.redis_client.get_redis_client") as mock_get_redis:
             mock_redis = MockRedisClient()
             mock_get_redis.return_value = mock_redis
 
@@ -1025,7 +1013,7 @@ class TestErrorHandlingAndEdgeCases:
         """Test handling of large cache values"""
         from services.caching.cache_manager import CacheManager
 
-        with patch('database.redis_client.get_redis_client') as mock_get_redis:
+        with patch("database.redis_client.get_redis_client") as mock_get_redis:
             mock_redis = MockRedisClient()
             mock_get_redis.return_value = mock_redis
 
@@ -1046,7 +1034,7 @@ class TestErrorHandlingAndEdgeCases:
         """Test prevention of cache stampede (thundering herd)"""
         from services.caching.cache_manager import CacheManager
 
-        with patch('database.redis_client.get_redis_client') as mock_get_redis:
+        with patch("database.redis_client.get_redis_client") as mock_get_redis:
             mock_redis = MockRedisClient()
             mock_get_redis.return_value = mock_redis
 
@@ -1056,9 +1044,7 @@ class TestErrorHandlingAndEdgeCases:
             # Simulate multiple requests for same missing key
             async def stampede_request():
                 return await cache.get_or_compute(
-                    "stampede:key",
-                    lambda: {"computed": True},
-                    ttl=300
+                    "stampede:key", lambda: {"computed": True}, ttl=300
                 )
 
             # All concurrent requests should get same result
@@ -1080,7 +1066,7 @@ class TestPerformanceBenchmarks:
         """Create cache system for benchmarking"""
         from services.caching.cache_manager import CacheManager
 
-        with patch('database.redis_client.get_redis_client') as mock_get_redis:
+        with patch("database.redis_client.get_redis_client") as mock_get_redis:
             mock_redis = MockRedisClient()
             mock_get_redis.return_value = mock_redis
 

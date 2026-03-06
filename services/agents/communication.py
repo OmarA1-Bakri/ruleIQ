@@ -3,6 +3,7 @@ Agent Communication Service - Handles inter-agent messaging and protocols.
 
 Implements message routing, validation, and async communication.
 """
+
 from typing import Dict, List, Optional, Any, Callable
 from uuid import UUID, uuid4
 from datetime import datetime
@@ -17,6 +18,7 @@ logger = logging.getLogger(__name__)
 
 class MessageType(Enum):
     """Types of messages agents can exchange."""
+
     REQUEST = "request"
     RESPONSE = "response"
     NOTIFICATION = "notification"
@@ -28,6 +30,7 @@ class MessageType(Enum):
 
 class MessagePriority(Enum):
     """Message priority levels."""
+
     LOW = 1
     NORMAL = 2
     HIGH = 3
@@ -37,6 +40,7 @@ class MessagePriority(Enum):
 @dataclass
 class Message:
     """Represents a message between agents."""
+
     message_id: UUID = field(default_factory=uuid4)
     from_agent: UUID = None
     to_agent: Optional[UUID] = None  # None for broadcasts
@@ -63,11 +67,7 @@ class CommunicationProtocol:
         self.agent_channels: Dict[UUID, asyncio.Queue] = {}
         self.acknowledgments: Dict[UUID, asyncio.Event] = {}
 
-    async def send_message(
-        self,
-        message: Message,
-        wait_for_ack: bool = False
-    ) -> Optional[UUID]:
+    async def send_message(self, message: Message, wait_for_ack: bool = False) -> Optional[UUID]:
         """Send a message to an agent or broadcast."""
         try:
             # Validate message
@@ -94,14 +94,15 @@ class CommunicationProtocol:
                 for agent_id, channel in self.agent_channels.items():
                     if agent_id != message.from_agent:
                         await channel.put(message)
-                logger.info(f"Broadcast message {message.message_id} from agent {message.from_agent}")
+                logger.info(
+                    f"Broadcast message {message.message_id} from agent {message.from_agent}"
+                )
 
             # Wait for acknowledgment if required
             if wait_for_ack:
                 try:
                     await asyncio.wait_for(
-                        self.acknowledgments[message.message_id].wait(),
-                        timeout=self.timeout
+                        self.acknowledgments[message.message_id].wait(), timeout=self.timeout
                     )
                     logger.info(f"Message {message.message_id} acknowledged")
                 except asyncio.TimeoutError:
@@ -115,9 +116,7 @@ class CommunicationProtocol:
             return None
 
     async def receive_message(
-        self,
-        agent_id: UUID,
-        timeout: Optional[float] = None
+        self, agent_id: UUID, timeout: Optional[float] = None
     ) -> Optional[Message]:
         """Receive a message for an agent."""
         try:
@@ -159,19 +158,12 @@ class CommunicationProtocol:
             del self.acknowledgments[message_id]
             logger.info(f"Acknowledged message {message_id}")
 
-    def register_handler(
-        self,
-        message_type: MessageType,
-        handler: Callable
-    ):
+    def register_handler(self, message_type: MessageType, handler: Callable):
         """Register a handler for a message type."""
         self.message_handlers[message_type].append(handler)
         logger.info(f"Registered handler for {message_type}")
 
-    async def process_message(
-        self,
-        message: Message
-    ) -> Optional[Message]:
+    async def process_message(self, message: Message) -> Optional[Message]:
         """Process a message using registered handlers."""
         handlers = self.message_handlers.get(message.message_type, [])
 
@@ -213,7 +205,7 @@ class CommunicationProtocol:
         from_agent: UUID,
         to_agent: UUID,
         request_payload: Dict[str, Any],
-        timeout: float = 30.0
+        timeout: float = 30.0,
     ) -> Optional[Dict[str, Any]]:
         """Send a request and wait for response."""
         # Create request message
@@ -222,7 +214,7 @@ class CommunicationProtocol:
             to_agent=to_agent,
             message_type=MessageType.REQUEST,
             payload=request_payload,
-            requires_ack=True
+            requires_ack=True,
         )
 
         # Send request
@@ -253,7 +245,7 @@ class CommunicationProtocol:
         self,
         from_agent: UUID,
         notification: Dict[str, Any],
-        priority: MessagePriority = MessagePriority.NORMAL
+        priority: MessagePriority = MessagePriority.NORMAL,
     ) -> bool:
         """Broadcast a notification to all agents."""
         message = Message(
@@ -262,17 +254,14 @@ class CommunicationProtocol:
             message_type=MessageType.BROADCAST,
             priority=priority,
             payload=notification,
-            requires_ack=False
+            requires_ack=False,
         )
 
         result = await self.send_message(message)
         return result is not None
 
     async def handoff_session(
-        self,
-        from_agent: UUID,
-        to_agent: UUID,
-        session_data: Dict[str, Any]
+        self, from_agent: UUID, to_agent: UUID, session_data: Dict[str, Any]
     ) -> bool:
         """Hand off a session from one agent to another."""
         handoff_message = Message(
@@ -283,9 +272,9 @@ class CommunicationProtocol:
             payload={
                 "session_data": session_data,
                 "handoff_time": datetime.utcnow().isoformat(),
-                "reason": session_data.get("handoff_reason", "")
+                "reason": session_data.get("handoff_reason", ""),
             },
-            requires_ack=True
+            requires_ack=True,
         )
 
         result = await self.send_message(handoff_message, wait_for_ack=True)
@@ -312,9 +301,7 @@ class CommunicationProtocol:
             logger.info(f"Closed channel for agent {agent_id}")
 
     async def sync_agents(
-        self,
-        agent_ids: List[UUID],
-        sync_data: Dict[str, Any]
+        self, agent_ids: List[UUID], sync_data: Dict[str, Any]
     ) -> Dict[UUID, bool]:
         """Synchronize data across multiple agents."""
         results = {}
@@ -324,7 +311,7 @@ class CommunicationProtocol:
             message_type=MessageType.SYNC,
             priority=MessagePriority.HIGH,
             payload=sync_data,
-            requires_ack=True
+            requires_ack=True,
         )
 
         for agent_id in agent_ids:
@@ -340,17 +327,10 @@ class CommunicationProtocol:
     def get_pending_messages(self, agent_id: Optional[UUID] = None) -> List[Message]:
         """Get pending messages for an agent or all agents."""
         if agent_id:
-            return [
-                msg for msg in self.pending_messages.values()
-                if msg.to_agent == agent_id
-            ]
+            return [msg for msg in self.pending_messages.values() if msg.to_agent == agent_id]
         return list(self.pending_messages.values())
 
-    async def retry_message(
-        self,
-        message_id: UUID,
-        max_retries: Optional[int] = None
-    ) -> bool:
+    async def retry_message(self, message_id: UUID, max_retries: Optional[int] = None) -> bool:
         """Retry sending a failed message."""
         if message_id not in self.pending_messages:
             logger.warning(f"Message {message_id} not found in pending")
@@ -366,7 +346,7 @@ class CommunicationProtocol:
             if result:
                 return True
 
-            await asyncio.sleep(2 ** attempt)  # Exponential backoff
+            await asyncio.sleep(2**attempt)  # Exponential backoff
 
         logger.error(f"Failed to retry message {message_id} after {retries} attempts")
         return False

@@ -76,9 +76,7 @@ class Permission(Base):
     display_name = Column(String(150), nullable=False)
     description = Column(Text, nullable=True)
     category = Column(String(50), nullable=False)  # Group related permissions
-    resource_type = Column(
-        String(50), nullable=True
-    )  # What resource type this applies to
+    resource_type = Column(String(50), nullable=True)  # What resource type this applies to
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
@@ -120,7 +118,9 @@ class RolePermission(Base):
     id = Column(PG_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     role_id = Column(PG_UUID(as_uuid=True), ForeignKey("roles.id"), nullable=False)
     permission_id = Column(
-        PG_UUID(as_uuid=True), ForeignKey("permissions.id"), nullable=False,
+        PG_UUID(as_uuid=True),
+        ForeignKey("permissions.id"),
+        nullable=False,
     )
     granted_at = Column(DateTime, default=datetime.utcnow)
     granted_by = Column(PG_UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
@@ -131,9 +131,7 @@ class RolePermission(Base):
     granted_by_user = relationship("User")
 
     # Ensure one permission assignment per role-permission combination
-    __table_args__ = (
-        UniqueConstraint("role_id", "permission_id", name="uq_role_permission"),
-    )
+    __table_args__ = (UniqueConstraint("role_id", "permission_id", name="uq_role_permission"),)
 
 
 class FrameworkAccess(Base):
@@ -147,7 +145,9 @@ class FrameworkAccess(Base):
     id = Column(PG_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     role_id = Column(PG_UUID(as_uuid=True), ForeignKey("roles.id"), nullable=False)
     framework_id = Column(
-        PG_UUID(as_uuid=True), ForeignKey("compliance_frameworks.id"), nullable=False,
+        PG_UUID(as_uuid=True),
+        ForeignKey("compliance_frameworks.id"),
+        nullable=False,
     )
     access_level = Column(
         Enum("read", "write", "admin", name="access_level_enum"),
@@ -164,9 +164,7 @@ class FrameworkAccess(Base):
     granted_by_user = relationship("User")
 
     # Ensure one access level per role-framework combination
-    __table_args__ = (
-        UniqueConstraint("role_id", "framework_id", name="uq_role_framework_access"),
-    )
+    __table_args__ = (UniqueConstraint("role_id", "framework_id", name="uq_role_framework_access"),)
 
 
 class UserSession(Base):
@@ -203,14 +201,12 @@ class AuditLog(Base):
     id = Column(PG_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(PG_UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
     session_id = Column(
-        PG_UUID(as_uuid=True), ForeignKey("user_sessions.id"), nullable=True,
+        PG_UUID(as_uuid=True),
+        ForeignKey("user_sessions.id"),
+        nullable=True,
     )
-    action = Column(
-        String(100), nullable=False
-    )  # login, role_granted, permission_denied, etc.
-    resource_type = Column(
-        String(50), nullable=True
-    )  # user, role, framework, assessment
+    action = Column(String(100), nullable=False)  # login, role_granted, permission_denied, etc.
+    resource_type = Column(String(50), nullable=True)  # user, role, framework, assessment
     resource_id = Column(String(100), nullable=True)  # ID of affected resource
     details = Column(Text, nullable=True)  # JSON string with additional context
     ip_address = Column(String(45), nullable=True)
@@ -237,7 +233,9 @@ class DataAccess(Base):
     id = Column(PG_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(PG_UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     business_profile_id = Column(
-        PG_UUID(as_uuid=True), ForeignKey("business_profiles.id"), nullable=True,
+        PG_UUID(as_uuid=True),
+        ForeignKey("business_profiles.id"),
+        nullable=True,
     )
     access_type = Column(
         Enum("own_data", "organization_data", "all_data", name="data_access_enum"),
@@ -256,6 +254,8 @@ class DataAccess(Base):
     # Ensure one data access level per user-business profile combination
     __table_args__ = (
         UniqueConstraint(
-            "user_id", "business_profile_id", name="uq_user_business_data_access",
+            "user_id",
+            "business_profile_id",
+            name="uq_user_business_data_access",
         ),
     )

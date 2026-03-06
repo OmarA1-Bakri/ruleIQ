@@ -3,6 +3,7 @@ Decision Tracker Service - Records and validates agent decisions.
 
 Tracks decision history, feedback, and validation logic.
 """
+
 from typing import Dict, List, Optional, Any, Tuple
 from uuid import UUID, uuid4
 from datetime import datetime, timedelta
@@ -19,6 +20,7 @@ logger = logging.getLogger(__name__)
 
 class DecisionType(Enum):
     """Types of decisions agents can make."""
+
     ACTION = "action"
     SUGGESTION = "suggestion"
     APPROVAL = "approval"
@@ -29,6 +31,7 @@ class DecisionType(Enum):
 
 class DecisionStatus(Enum):
     """Status of a decision."""
+
     PENDING = "pending"
     APPROVED = "approved"
     REJECTED = "rejected"
@@ -40,6 +43,7 @@ class DecisionStatus(Enum):
 @dataclass
 class DecisionMetrics:
     """Metrics for decision quality."""
+
     total_decisions: int = 0
     successful_decisions: int = 0
     failed_decisions: int = 0
@@ -52,11 +56,7 @@ class DecisionMetrics:
 class DecisionTracker:
     """Tracks and validates agent decisions."""
 
-    def __init__(
-        self,
-        db_session: Session,
-        validation_threshold: float = 0.7
-    ) -> None:
+    def __init__(self, db_session: Session, validation_threshold: float = 0.7) -> None:
         """Initialize decision tracker."""
         self.db = db_session
         self.validation_threshold = validation_threshold
@@ -69,7 +69,7 @@ class DecisionTracker:
         decision_type: DecisionType,
         decision_data: Dict[str, Any],
         confidence: float = 0.5,
-        trust_level: TrustLevel = TrustLevel.L0_OBSERVED
+        trust_level: TrustLevel = TrustLevel.L0_OBSERVED,
     ) -> Decision:
         """Record a new agent decision."""
         try:
@@ -82,7 +82,7 @@ class DecisionTracker:
                 confidence=confidence,
                 trust_level_required=trust_level,
                 status=DecisionStatus.PENDING.value,
-                created_at=datetime.utcnow()
+                created_at=datetime.utcnow(),
             )
 
             self.db.add(decision)
@@ -100,17 +100,13 @@ class DecisionTracker:
             raise
 
     def validate_decision(
-        self,
-        decision_id: UUID,
-        validation_rules: Optional[Dict[str, Any]] = None
+        self, decision_id: UUID, validation_rules: Optional[Dict[str, Any]] = None
     ) -> Tuple[bool, List[str]]:
         """Validate a decision against rules."""
         errors = []
 
         try:
-            decision = self.db.query(Decision).filter(
-                Decision.decision_id == decision_id
-            ).first()
+            decision = self.db.query(Decision).filter(Decision.decision_id == decision_id).first()
 
             if not decision:
                 errors.append(f"Decision {decision_id} not found")
@@ -154,15 +150,11 @@ class DecisionTracker:
             return False, errors
 
     def execute_decision(
-        self,
-        decision_id: UUID,
-        execution_result: Optional[Dict[str, Any]] = None
+        self, decision_id: UUID, execution_result: Optional[Dict[str, Any]] = None
     ) -> bool:
         """Mark a decision as executed."""
         try:
-            decision = self.db.query(Decision).filter(
-                Decision.decision_id == decision_id
-            ).first()
+            decision = self.db.query(Decision).filter(Decision.decision_id == decision_id).first()
 
             if not decision:
                 logger.warning(f"Decision {decision_id} not found")
@@ -192,7 +184,7 @@ class DecisionTracker:
         decision_id: UUID,
         feedback_type: str,
         feedback_value: Any,
-        user_id: Optional[str] = None
+        user_id: Optional[str] = None,
     ) -> DecisionFeedback:
         """Record feedback for a decision."""
         try:
@@ -202,15 +194,13 @@ class DecisionTracker:
                 feedback_type=feedback_type,
                 feedback_value=feedback_value,
                 user_id=user_id,
-                created_at=datetime.utcnow()
+                created_at=datetime.utcnow(),
             )
 
             self.db.add(feedback)
 
             # Update decision based on feedback
-            decision = self.db.query(Decision).filter(
-                Decision.decision_id == decision_id
-            ).first()
+            decision = self.db.query(Decision).filter(Decision.decision_id == decision_id).first()
 
             if decision:
                 if feedback_type == "rejection":
@@ -230,19 +220,18 @@ class DecisionTracker:
             raise
 
     def process_feedback(
-        self,
-        agent_id: UUID,
-        time_window: timedelta = timedelta(days=7)
+        self, agent_id: UUID, time_window: timedelta = timedelta(days=7)
     ) -> DecisionMetrics:
         """Process feedback to calculate decision metrics."""
         try:
             cutoff_time = datetime.utcnow() - time_window
 
             # Get recent decisions for agent
-            decisions = self.db.query(Decision).filter(
-                Decision.agent_id == agent_id,
-                Decision.created_at >= cutoff_time
-            ).all()
+            decisions = (
+                self.db.query(Decision)
+                .filter(Decision.agent_id == agent_id, Decision.created_at >= cutoff_time)
+                .all()
+            )
 
             metrics = DecisionMetrics()
             metrics.total_decisions = len(decisions)
@@ -278,9 +267,7 @@ class DecisionTracker:
 
             # Calculate accuracy rate
             if metrics.total_decisions > 0:
-                metrics.accuracy_rate = (
-                    metrics.successful_decisions / metrics.total_decisions
-                )
+                metrics.accuracy_rate = metrics.successful_decisions / metrics.total_decisions
 
             logger.info(f"Processed feedback for agent {agent_id}: {asdict(metrics)}")
             return metrics
@@ -290,10 +277,7 @@ class DecisionTracker:
             return DecisionMetrics()
 
     def get_decision_history(
-        self,
-        agent_id: Optional[UUID] = None,
-        session_id: Optional[UUID] = None,
-        limit: int = 100
+        self, agent_id: Optional[UUID] = None, session_id: Optional[UUID] = None, limit: int = 100
     ) -> List[Decision]:
         """Get decision history with filters."""
         try:
@@ -305,9 +289,7 @@ class DecisionTracker:
             if session_id:
                 query = query.filter(Decision.session_id == session_id)
 
-            decisions = query.order_by(
-                Decision.created_at.desc()
-            ).limit(limit).all()
+            decisions = query.order_by(Decision.created_at.desc()).limit(limit).all()
 
             return decisions
 
@@ -315,15 +297,10 @@ class DecisionTracker:
             logger.error(f"Failed to get decision history: {e}")
             return []
 
-    def get_pending_decisions(
-        self,
-        trust_level: Optional[TrustLevel] = None
-    ) -> List[Decision]:
+    def get_pending_decisions(self, trust_level: Optional[TrustLevel] = None) -> List[Decision]:
         """Get decisions pending approval."""
         try:
-            query = self.db.query(Decision).filter(
-                Decision.status == DecisionStatus.PENDING.value
-            )
+            query = self.db.query(Decision).filter(Decision.status == DecisionStatus.PENDING.value)
 
             if trust_level:
                 query = query.filter(Decision.trust_level_required == trust_level)
@@ -334,24 +311,15 @@ class DecisionTracker:
             logger.error(f"Failed to get pending decisions: {e}")
             return []
 
-    def cancel_decision(
-        self,
-        decision_id: UUID,
-        reason: str = ""
-    ) -> bool:
+    def cancel_decision(self, decision_id: UUID, reason: str = "") -> bool:
         """Cancel a pending decision."""
         try:
-            decision = self.db.query(Decision).filter(
-                Decision.decision_id == decision_id
-            ).first()
+            decision = self.db.query(Decision).filter(Decision.decision_id == decision_id).first()
 
             if not decision:
                 return False
 
-            if decision.status in [
-                DecisionStatus.EXECUTED.value,
-                DecisionStatus.CANCELLED.value
-            ]:
+            if decision.status in [DecisionStatus.EXECUTED.value, DecisionStatus.CANCELLED.value]:
                 logger.warning(f"Cannot cancel decision {decision_id} in status {decision.status}")
                 return False
 
@@ -368,30 +336,29 @@ class DecisionTracker:
             return False
 
     def get_decision_patterns(
-        self,
-        agent_id: UUID,
-        pattern_window: timedelta = timedelta(days=30)
+        self, agent_id: UUID, pattern_window: timedelta = timedelta(days=30)
     ) -> Dict[str, Any]:
         """Analyze decision patterns for an agent."""
         try:
             cutoff_time = datetime.utcnow() - pattern_window
 
-            decisions = self.db.query(Decision).filter(
-                Decision.agent_id == agent_id,
-                Decision.created_at >= cutoff_time
-            ).all()
+            decisions = (
+                self.db.query(Decision)
+                .filter(Decision.agent_id == agent_id, Decision.created_at >= cutoff_time)
+                .all()
+            )
 
             patterns = {
                 "total_decisions": len(decisions),
                 "decision_types": {},
                 "confidence_distribution": {
-                    "high": 0,    # > 0.8
+                    "high": 0,  # > 0.8
                     "medium": 0,  # 0.5 - 0.8
-                    "low": 0      # < 0.5
+                    "low": 0,  # < 0.5
                 },
                 "status_distribution": {},
                 "hourly_distribution": [0] * 24,
-                "trust_level_distribution": {}
+                "trust_level_distribution": {},
             }
 
             for decision in decisions:
@@ -409,7 +376,9 @@ class DecisionTracker:
 
                 # Status distribution
                 status = decision.status
-                patterns["status_distribution"][status] = patterns["status_distribution"].get(status, 0) + 1
+                patterns["status_distribution"][status] = (
+                    patterns["status_distribution"].get(status, 0) + 1
+                )
 
                 # Hourly distribution
                 hour = decision.created_at.hour
@@ -417,7 +386,9 @@ class DecisionTracker:
 
                 # Trust level distribution
                 trust = str(decision.trust_level_required)
-                patterns["trust_level_distribution"][trust] = patterns["trust_level_distribution"].get(trust, 0) + 1
+                patterns["trust_level_distribution"][trust] = (
+                    patterns["trust_level_distribution"].get(trust, 0) + 1
+                )
 
             logger.info(f"Analyzed patterns for agent {agent_id}")
             return patterns

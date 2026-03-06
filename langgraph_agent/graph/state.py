@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 LangGraph state definition for compliance agent.
 Defines TypedDict with messages, route, docs, profile, tool_outputs, errors, meta.

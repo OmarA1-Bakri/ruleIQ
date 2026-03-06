@@ -75,9 +75,7 @@ class HealthCheck:
 class DatabaseHealthCheck(HealthCheck):
     """Database health check."""
 
-    def __init__(
-        self, session_factory: Callable[[], AsyncSession], name: str = "database"
-    ) -> None:
+    def __init__(self, session_factory: Callable[[], AsyncSession], name: str = "database") -> None:
         """Initialize database health check."""
         super().__init__(name, critical=True)
         self.session_factory = session_factory
@@ -324,9 +322,7 @@ class HealthCheckRegistry:
         processed_results = []
         for i, result in enumerate(results):
             if isinstance(result, Exception):
-                logger.error(
-                    f"Health check {self.checks[i].name} raised exception: {str(result)}"
-                )
+                logger.error(f"Health check {self.checks[i].name} raised exception: {str(result)}")
                 processed_results.append(
                     HealthCheckResult(
                         name=self.checks[i].name,

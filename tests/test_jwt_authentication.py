@@ -9,6 +9,7 @@ Tests cover:
 - Token refresh flow
 - Security headers
 """
+
 import pytest
 import asyncio
 from datetime import datetime, timedelta, timezone
@@ -23,12 +24,12 @@ from api.dependencies.auth import (
     create_refresh_token,
     decode_token,
     SECRET_KEY,
-    ALGORITHM
+    ALGORITHM,
 )
 from api.dependencies.token_blacklist import (
     EnhancedTokenBlacklist as TokenBlacklistService,
     blacklist_token,
-    is_token_blacklisted
+    is_token_blacklisted,
 )
 from middleware.jwt_auth import JWTAuthMiddleware
 
@@ -121,11 +122,7 @@ class TestTokenBlacklist:
         service._initialized = True
 
         token = "test-token-123"
-        result = await service.blacklist_token(
-            token=token,
-            reason="logout",
-            user_id="user-123"
-        )
+        result = await service.blacklist_token(token=token, reason="logout", user_id="user-123")
 
         assert result is True
         # Verify Redis operations were called
@@ -168,7 +165,9 @@ class TestTokenBlacklist:
 
         # Mock user has 3 tokens
         service.redis_client.smembers.return_value = {
-            "token-hash-1", "token-hash-2", "token-hash-3"
+            "token-hash-1",
+            "token-hash-2",
+            "token-hash-3",
         }
         service.redis_client.exists.return_value = False
 
@@ -188,7 +187,7 @@ class TestTokenBlacklist:
         stats_data = {
             "total_blacklisted": 100,
             "total_checked": 500,
-            "reasons": {"logout": 80, "security": 20}
+            "reasons": {"logout": 80, "security": 20},
         }
         service.redis_client.get.return_value = '{"total_blacklisted": 100, "total_checked": 500, "reasons": {"logout": 80, "security": 20}}'
         service.redis_client.keys.return_value = ["key1", "key2", "key3"]
@@ -216,6 +215,7 @@ class TestJWTMiddleware:
 
         # Mock call_next
         response = Mock()
+
         async def call_next(req):
             return response
 
@@ -223,7 +223,7 @@ class TestJWTMiddleware:
 
         assert result == response
         # Verify no authentication was attempted
-        assert not hasattr(request.state, 'user_id')
+        assert not hasattr(request.state, "user_id")
 
     async def test_protected_path_requires_auth(self):
         """Test that protected paths require valid JWT."""
@@ -244,7 +244,7 @@ class TestJWTMiddleware:
         assert result.status_code == 401
         assert "Authentication required" in str(result.content)
 
-    @patch('middleware.jwt_auth.is_token_blacklisted')
+    @patch("middleware.jwt_auth.is_token_blacklisted")
     async def test_valid_token_access(self, mock_blacklist):
         """Test access with valid JWT token."""
         mock_blacklist.return_value = False
@@ -275,7 +275,7 @@ class TestJWTMiddleware:
         assert request.state.user_id == "user-123"
         assert request.state.is_authenticated is True
 
-    @patch('middleware.jwt_auth.is_token_blacklisted')
+    @patch("middleware.jwt_auth.is_token_blacklisted")
     async def test_blacklisted_token_rejected(self, mock_blacklist):
         """Test that blacklisted tokens are rejected."""
         mock_blacklist.return_value = True
@@ -313,6 +313,7 @@ class TestJWTMiddleware:
         request.client = Mock(host="127.0.0.1")
 
         response = Mock()
+
         async def call_next(req):
             return response
 
@@ -326,7 +327,7 @@ class TestJWTMiddleware:
         assert result.status_code == 429
         assert "Too many authentication attempts" in str(result.content)
 
-    @patch('middleware.jwt_auth.is_token_blacklisted')
+    @patch("middleware.jwt_auth.is_token_blacklisted")
     async def test_token_expiry_warning_header(self, mock_blacklist):
         """Test that expiring tokens get warning headers."""
         mock_blacklist.return_value = False
@@ -397,7 +398,7 @@ class TestProtectedRoutes:
             "/api/v1/webhooks/configure",
             "/api/v1/assessments/create",
             "/api/v1/ai/generate",
-            "/api/v1/dashboard/stats"
+            "/api/v1/dashboard/stats",
         ]
 
         for path in critical_paths:
@@ -413,7 +414,7 @@ class TestProtectedRoutes:
             "/health",
             "/api/v1/auth/login",
             "/api/v1/auth/register",
-            "/api/v1/freemium/assessment"
+            "/api/v1/freemium/assessment",
         ]
 
         for path in public_paths:
@@ -431,7 +432,9 @@ class TestProtectedRoutes:
 
         coverage_percentage = (protected_count / total_routes) * 100
 
-        assert coverage_percentage >= 20, f"Only {coverage_percentage:.1f}% coverage, need at least 20%"
+        assert coverage_percentage >= 20, (
+            f"Only {coverage_percentage:.1f}% coverage, need at least 20%"
+        )
         print(f"JWT Protection Coverage: {coverage_percentage:.1f}% of routes")
 
 
@@ -477,7 +480,7 @@ class TestTokenRefreshFlow:
             return Mock()
 
         # Patch blacklist check to avoid that issue
-        with patch('middleware.jwt_auth.is_token_blacklisted', return_value=False):
+        with patch("middleware.jwt_auth.is_token_blacklisted", return_value=False):
             result = await middleware(request, call_next)
 
         # Should be rejected (wrong token type)
@@ -493,20 +496,26 @@ class TestSecurityBestPractices:
 
         # In production, should not be the default
         if settings.is_production:
-            assert SECRET_KEY != 'insecure-dev-key-change-in-production-minimum-32-chars'
+            assert SECRET_KEY != "insecure-dev-key-change-in-production-minimum-32-chars"
 
     def test_jwt_algorithm_security(self):
         """Test that secure JWT algorithm is used."""
-        assert ALGORITHM in ['HS256', 'RS256'], "Should use secure algorithm"
+        assert ALGORITHM in ["HS256", "RS256"], "Should use secure algorithm"
 
     def test_token_expiry_times(self):
         """Test that token expiry times are reasonable."""
-        assert settings.jwt_access_token_expire_minutes <= 60, "Access tokens should expire within 1 hour"
-        assert settings.jwt_refresh_token_expire_days <= 30, "Refresh tokens should expire within 30 days"
+        assert settings.jwt_access_token_expire_minutes <= 60, (
+            "Access tokens should expire within 1 hour"
+        )
+        assert settings.jwt_refresh_token_expire_days <= 30, (
+            "Refresh tokens should expire within 30 days"
+        )
 
     def test_rate_limiting_configured(self):
         """Test that rate limiting is properly configured."""
-        assert settings.auth_rate_limit_per_minute <= 10, "Auth endpoints should have strict rate limiting"
+        assert settings.auth_rate_limit_per_minute <= 10, (
+            "Auth endpoints should have strict rate limiting"
+        )
         assert settings.rate_limit_per_minute <= 200, "General rate limit should be reasonable"
 
 

@@ -82,9 +82,7 @@ class TestContextAwareRecommendations:
         business_profile_id = uuid4()
 
         # Mock context manager
-        with patch.object(
-            assistant.context_manager, "get_conversation_context"
-        ) as mock_context:
+        with patch.object(assistant.context_manager, "get_conversation_context") as mock_context:
             mock_context.return_value = {
                 "business_profile": sample_business_context,
                 "recent_evidence": [
@@ -105,11 +103,7 @@ class TestContextAwareRecommendations:
                             "effort_hours": 8,
                             "automation_possible": True,
                             "business_justification": "Critical for ISO 27001 compliance",
-                            "implementation_steps": [
-                                "Draft policy",
-                                "Review",
-                                "Approve"
-                            ]
+                            "implementation_steps": ["Draft policy", "Review", "Approve"],
                         },
                     ],
                 )
@@ -146,9 +140,7 @@ class TestContextAwareRecommendations:
                     assert rec["automation_possible"] is True
 
     @pytest.mark.asyncio
-    async def test_analyze_compliance_maturity(
-        self, mock_db_session, sample_business_context
-    ):
+    async def test_analyze_compliance_maturity(self, mock_db_session, sample_business_context):
         """Test compliance maturity analysis"""
 
         assistant = ComplianceAssistant(mock_db_session)
@@ -161,7 +153,9 @@ class TestContextAwareRecommendations:
         ]
 
         result = await assistant._analyze_compliance_maturity(
-            sample_business_context, existing_evidence, "ISO27001",
+            sample_business_context,
+            existing_evidence,
+            "ISO27001",
         )
 
         assert "maturity_level" in result
@@ -210,7 +204,9 @@ class TestContextAwareRecommendations:
         ]
 
         prioritized = assistant._prioritize_recommendations(
-            recommendations, sample_business_context, sample_maturity_analysis,
+            recommendations,
+            sample_business_context,
+            sample_maturity_analysis,
         )
 
         # Check that high priority quick win is first
@@ -218,18 +214,14 @@ class TestContextAwareRecommendations:
         assert prioritized[0]["priority_score"] > prioritized[1]["priority_score"]
 
     @pytest.mark.asyncio
-    async def test_context_aware_recommendations_error_handling(
-        self, mock_db_session, mock_user
-    ):
+    async def test_context_aware_recommendations_error_handling(self, mock_db_session, mock_user):
         """Test error handling in context-aware recommendations"""
 
         assistant = ComplianceAssistant(mock_db_session)
         business_profile_id = uuid4()
 
         # Mock context manager to raise exception
-        with patch.object(
-            assistant.context_manager, "get_conversation_context"
-        ) as mock_context:
+        with patch.object(assistant.context_manager, "get_conversation_context") as mock_context:
             mock_context.side_effect = Exception("Database error")
 
             with pytest.raises(BusinessLogicException):
@@ -251,7 +243,8 @@ class TestContextAwareRecommendations:
         ]
 
         enhanced = assistant._add_automation_insights(
-            recommendations, sample_business_context,
+            recommendations,
+            sample_business_context,
         )
 
         # Check automation insights were added
@@ -297,7 +290,8 @@ class TestContextAwareRecommendations:
         assistant = ComplianceAssistant(mock_db_session)
 
         fallback = assistant._get_fallback_recommendations(
-            "ISO27001", {"maturity_level": "Basic"},
+            "ISO27001",
+            {"maturity_level": "Basic"},
         )
 
         assert len(fallback) > 0
@@ -322,18 +316,14 @@ class TestWorkflowGeneration:
         return user
 
     @pytest.mark.asyncio
-    async def test_generate_evidence_collection_workflow_success(
-        self, mock_db_session, mock_user
-    ):
+    async def test_generate_evidence_collection_workflow_success(self, mock_db_session, mock_user):
         """Test successful workflow generation"""
 
         assistant = ComplianceAssistant(mock_db_session)
         business_profile_id = uuid4()
 
         # Mock context and AI response
-        with patch.object(
-            assistant.context_manager, "get_conversation_context"
-        ) as mock_context:
+        with patch.object(assistant.context_manager, "get_conversation_context") as mock_context:
             mock_context.return_value = {
                 "business_profile": {
                     "company_name": "Test Corp",
@@ -441,9 +431,7 @@ class TestPolicyGeneration:
         business_profile_id = uuid4()
 
         # Mock context and AI response
-        with patch.object(
-            assistant.context_manager, "get_conversation_context"
-        ) as mock_context:
+        with patch.object(assistant.context_manager, "get_conversation_context") as mock_context:
             mock_context.return_value = {
                 "business_profile": {
                     "company_name": "Test Corp",
@@ -536,19 +524,16 @@ class TestPolicyGeneration:
         # Test micro organization
         micro_policy = assistant._apply_size_customizations(policy.copy(), "micro")
         assert "implementation_notes" in micro_policy
-        assert any(
-            "outsourcing" in note.lower()
-            for note in micro_policy["implementation_notes"]
-        )
+        assert any("outsourcing" in note.lower() for note in micro_policy["implementation_notes"])
 
         # Test enterprise organization
         enterprise_policy = assistant._apply_size_customizations(
-            policy.copy(), "enterprise",
+            policy.copy(),
+            "enterprise",
         )
         assert "implementation_notes" in enterprise_policy
         assert any(
-            "enterprise-grade" in note.lower()
-            for note in enterprise_policy["implementation_notes"]
+            "enterprise-grade" in note.lower() for note in enterprise_policy["implementation_notes"]
         )
 
     def test_generate_policy_implementation_guidance(self, mock_db_session):
@@ -561,7 +546,9 @@ class TestPolicyGeneration:
         maturity_analysis = {"maturity_level": "Intermediate"}
 
         guidance = assistant._generate_policy_implementation_guidance(
-            policy, business_context, maturity_analysis,
+            policy,
+            business_context,
+            maturity_analysis,
         )
 
         assert "implementation_phases" in guidance
@@ -582,7 +569,9 @@ class TestPolicyGeneration:
         policy = {}
 
         mapping = assistant._generate_compliance_mapping(
-            policy, "ISO27001", "information_security",
+            policy,
+            "ISO27001",
+            "information_security",
         )
 
         assert mapping["framework"] == "ISO27001"
@@ -602,7 +591,9 @@ class TestPolicyGeneration:
         business_context = {"company_name": "Test Corp", "industry": "Technology"}
 
         fallback = assistant._get_fallback_policy(
-            "ISO27001", "information_security", business_context,
+            "ISO27001",
+            "information_security",
+            business_context,
         )
 
         assert fallback["framework"] == "ISO27001"
@@ -620,9 +611,7 @@ class TestPolicyGeneration:
         business_profile_id = uuid4()
 
         # Mock context manager to raise exception
-        with patch.object(
-            assistant.context_manager, "get_conversation_context"
-        ) as mock_context:
+        with patch.object(assistant.context_manager, "get_conversation_context") as mock_context:
             mock_context.side_effect = Exception("Database error")
 
             with pytest.raises(BusinessLogicException):

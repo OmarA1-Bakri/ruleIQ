@@ -1,6 +1,5 @@
 """Fix RBAC relationship foreign keys
 
-from __future__ import annotations
 
 Revision ID: 6df4d1d557f2
 Revises: 8b656f197a19

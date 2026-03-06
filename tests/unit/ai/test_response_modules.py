@@ -187,7 +187,7 @@ class TestResponseParser:
         Priority: Medium
         Effort: 4 hours
         """
-        parsed = ResponseParser.parse_recommendations(recommendations_text)
+        parsed = ResponseParser.parse_recommendations(recommendations_text, "GDPR")
 
         assert isinstance(parsed, list)
         # Parser should extract structured recommendations
@@ -202,7 +202,7 @@ class TestResponseGenerator:
         """Mock provider factory."""
         factory = Mock()
         model = Mock()
-        model.generate_content = AsyncMock(return_value=Mock(text="Test response"))
+        model.generate_content_async = AsyncMock(return_value=Mock(text="Test response"))
         factory.get_provider_for_task.return_value = (model, "test_instruction")
         return factory
 
@@ -211,7 +211,7 @@ class TestResponseGenerator:
         """Mock safety manager."""
         manager = Mock()
         manager.should_allow_generation = AsyncMock(return_value=(True, None))
-        manager.validate_response = AsyncMock(return_value=(True, None, 0.95))
+        manager.validate_response = AsyncMock(return_value=(True, None))
         return manager
 
     @pytest.fixture

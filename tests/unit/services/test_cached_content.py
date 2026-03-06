@@ -1,11 +1,4 @@
 """
-
-# Constants
-DEFAULT_TIMEOUT = 30
-
-CONFIDENCE_THRESHOLD = 0.8
-DEFAULT_RETRIES = 5
-
 Unit Tests for Google Cached Content Integration
 
 Tests the new cached content manager functionality including:
@@ -14,6 +7,11 @@ Tests the new cached content manager functionality including:
 - Performance metrics
 - Cache key generation
 """
+
+# Constants
+DEFAULT_TIMEOUT = 30
+CONFIDENCE_THRESHOLD = 0.8
+DEFAULT_RETRIES = 5
 
 import pytest
 from unittest.mock import AsyncMock, Mock, patch
@@ -383,7 +381,7 @@ class TestCachedContentEndToEnd:
     @pytest.mark.asyncio
     async def test_cache_metrics_collection_integration(self, assistant_with_cache):
         """Test cache metrics collection in integration context."""
-        cached_content_manager = (await assistant_with_cache._get_cached_content_manager(),)
+        cached_content_manager = await assistant_with_cache._get_cached_content_manager()
         cached_content_manager.metrics["cache_hits"] = 5
         cached_content_manager.metrics["cache_misses"] = 1
         cached_content_manager.metrics["cache_creates"] = 2

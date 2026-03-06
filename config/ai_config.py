@@ -1,17 +1,12 @@
 """
-import logging
-
-
-logger = logging.getLogger(__name__)
-# Constants
-MAX_ITEMS = 1000
-
-
 AI Configuration and Model Setup for ComplianceGPT
 
 This module handles configuration and initialization of AI models,
 primarily Google Generative AI for compliance content generation.
 """
+
+# Constants
+MAX_ITEMS = 1000
 
 import os
 from dataclasses import dataclass
@@ -213,7 +208,7 @@ class AIConfig:
             model_params["tools"] = tools
         try:
             return genai.GenerativeModel(**model_params)
-        except (ValueError, TypeError):
+        except Exception:
             return genai.GenerativeModel(**model_params)
 
     def update_generation_config(self, **kwargs) -> None:
@@ -417,7 +412,7 @@ class AIConfig:
             )
         if task_complexity == "simple":
             selected_model = (
-                ModelType.GEMINI_25_FLASH_LIGHT if prefer_speed else ModelType.GEMINI_25_FLASH
+                ModelType.GEMINI_FLASH if prefer_speed else ModelType.GEMINI_25_FLASH
             )
         elif task_complexity == "complex":
             selected_model = ModelType.GEMINI_25_PRO
@@ -493,7 +488,7 @@ def get_ai_model(
     if model_type is None:
         try:
             model_type = ai_config.get_optimal_model(task_complexity, prefer_speed, task_context)
-        except (ValueError, TypeError):
+        except Exception:
             model_type = ai_config.default_model_type
     return ai_config.get_model(model_type, system_instruction=system_instruction, tools=tools)
 

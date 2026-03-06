@@ -151,7 +151,7 @@ class GoogleCachedContentManager:
             ]
             logger.info("Created assessment cache: %s with %sh TTL" % (display_name, ttl_hours))
             return cached_content
-        except (OSError, json.JSONDecodeError, requests.RequestException) as e:
+        except Exception as e:
             logger.error("Failed to create assessment cache: %s" % e)
             self.metrics["cache_misses"] += 1
             return None

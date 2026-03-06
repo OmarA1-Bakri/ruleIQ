@@ -9,7 +9,7 @@ and implement automatic fallback mechanisms with health monitoring.
 import logging
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from threading import Lock
 from typing import Any, Callable, Dict, List, Optional
 from services.ai.ai_types import CircuitState, FailureRecord
@@ -163,7 +163,7 @@ class AICircuitBreaker:
     ) -> None:
         """Record a failed AI operation"""
         with self._lock:
-            now = datetime.now()
+            now = datetime.now(timezone.utc)
             self.metrics.total_requests += 1
             self.metrics.failed_requests += 1
             self.metrics.update_failure_rate()
@@ -190,7 +190,7 @@ class AICircuitBreaker:
         """Trip the circuit breaker for a specific model"""
         self._model_states[model_name] = CircuitState.OPEN
         self._state = CircuitState.OPEN
-        self._last_failure_time = datetime.now()
+        self._last_failure_time = datetime.now(timezone.utc)
         self._consecutive_successes = 0
         self.metrics.circuit_trips += 1
         self.metrics.last_trip_time = self._last_failure_time
@@ -201,14 +201,14 @@ class AICircuitBreaker:
         """Check if enough time has passed to attempt circuit reset"""
         if not self._last_failure_time:
             return True
-        time_since_failure = datetime.now() - self._last_failure_time
+        time_since_failure = datetime.now(timezone.utc) - self._last_failure_time
         return time_since_failure.total_seconds() >= self.config.recovery_timeout
 
     def _clean_old_failures(self, model_name: str) -> None:
         """Remove failures outside the time window"""
         if model_name not in self._failures:
             return
-        cutoff_time = datetime.now() - timedelta(seconds=self.config.time_window)
+        cutoff_time = datetime.now(timezone.utc) - timedelta(seconds=self.config.time_window)
         self._failures[model_name] = [
             failure for failure in self._failures[model_name] if failure.timestamp > cutoff_time
         ]

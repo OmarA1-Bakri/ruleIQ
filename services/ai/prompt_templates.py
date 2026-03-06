@@ -1,20 +1,15 @@
 """
-import logging
-
-
-logger = logging.getLogger(__name__)
-# Constants
-CONFIDENCE_THRESHOLD = 0.8
-DEFAULT_LIMIT = 100
-DEFAULT_RETRIES = 5
-MAX_ITEMS = 1000
-
-
 Central repository for all prompt templates used by the AI assistant.
 
 Updated to work with system instructions rather than system prompts for better
 AI model performance and consistency.
 """
+
+# Constants (must be module-level, not inside the docstring)
+CONFIDENCE_THRESHOLD = 0.8
+DEFAULT_LIMIT = 100
+DEFAULT_RETRIES = 5
+MAX_ITEMS = 1000
 
 import json
 import re

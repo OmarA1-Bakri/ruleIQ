@@ -163,7 +163,7 @@ class TestAIPerformanceOptimizer:
         """Test prompt optimization functionality"""
 
         long_prompt = (
-            "Generate ISO 27001 recommendations with lots of redundant information " * 50,
+            "Generate ISO 27001 recommendations with lots of redundant information " * 50
         )
         context = {"framework": "ISO27001"}
 

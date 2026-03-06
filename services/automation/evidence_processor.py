@@ -344,7 +344,7 @@ REASONING: [brief explanation]"""
                 ):
                     evidence.evidence_type = classification["suggested_type"]
                     logger.info(
-                        "Updated evidence %s type to %s (confidence: %s%)"
+                        "Updated evidence %s type to %s (confidence: %s%%)"
                         % (
                             evidence.id,
                             classification["suggested_type"],
@@ -361,7 +361,7 @@ REASONING: [brief explanation]"""
             evidence.metadata = existing_metadata
             flag_modified(evidence, "metadata")
             logger.info(
-                "AI enrichment completed for evidence %s with confidence %s%"
+                "AI enrichment completed for evidence %s with confidence %s%%"
                 % (evidence.id, classification["confidence"])
             )
             return evidence

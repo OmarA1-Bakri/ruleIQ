@@ -17,6 +17,49 @@ class ResponseParser:
     """Parses AI responses into structured data."""
 
     @staticmethod
+    def parse_json(text: str) -> Optional[Dict[str, Any]]:
+        """
+        Parse a JSON string, stripping markdown code fences if present.
+
+        Args:
+            text: Text that may contain JSON, optionally inside ```json fences.
+
+        Returns:
+            Parsed dict/list, or None on failure.
+        """
+        if text is None:
+            return None
+
+        cleaned = text.strip()
+
+        # Strip markdown json code fences
+        if cleaned.startswith("```"):
+            # Remove opening fence line
+            first_newline = cleaned.find("\n")
+            if first_newline != -1:
+                cleaned = cleaned[first_newline + 1 :]
+            # Remove closing fence
+            if cleaned.rstrip().endswith("```"):
+                cleaned = cleaned.rstrip()[:-3].rstrip()
+
+        # Try direct JSON parse
+        try:
+            return json.loads(cleaned)
+        except (json.JSONDecodeError, ValueError):
+            pass
+
+        # Try to find JSON object or array in text
+        for pattern in [r"\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}", r"\[.*\]"]:
+            match = re.search(pattern, text, re.DOTALL)
+            if match:
+                try:
+                    return json.loads(match.group(0))
+                except (json.JSONDecodeError, ValueError):
+                    continue
+
+        return None
+
+    @staticmethod
     def parse_recommendations(response: str, framework: str) -> List[Dict[str, Any]]:
         """
         Parse recommendations from AI response.

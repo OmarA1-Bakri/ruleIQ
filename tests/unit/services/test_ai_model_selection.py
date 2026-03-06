@@ -1,13 +1,12 @@
 """
-
-# Constants
-DEFAULT_RETRIES = 5.0
-
 Unit tests for AI Model Selection and Configuration.
 
 Tests the intelligent model selection logic, model metadata,
 and task-complexity based model assignment.
 """
+
+# Constants
+DEFAULT_RETRIES = 5.0
 
 import os
 from unittest.mock import Mock, patch
@@ -83,7 +82,7 @@ class TestModelType:
         """Test ModelType enum values."""
         assert ModelType.GEMINI_25_PRO.value == "gemini-2.5-pro"
         assert ModelType.GEMINI_25_FLASH.value == "gemini-2.5-flash"
-        assert ModelType.GEMINI_25_FLASH_LIGHT.value == "gemini-2.5-flash-8b"
+        assert ModelType.GEMINI_FLASH.value == "gemini-2.5-flash-preview-05-20"
         assert ModelType.GEMMA_3.value == "gemma-3-8b-it"
 
     def test_fallback_chain_order(self):
@@ -123,7 +122,7 @@ class TestAIConfig:
         model_type = ai_config.get_optimal_model(task_complexity="simple", prefer_speed=True)
         ai_config.get_model_metadata(model_type)
         assert model_type in [
-            ModelType.GEMINI_25_FLASH_LIGHT,
+            ModelType.GEMINI_FLASH,
             ModelType.GEMMA_3,
             ModelType.GEMINI_25_FLASH,
         ]

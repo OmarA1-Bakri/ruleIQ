@@ -18,7 +18,7 @@ requests>=2.31.0  # For HTTP requests in deployment scripts
 defusedxml==0.7.1  # For secure XML parsing (prevents XXE attacks)
 openai==1.91.0
 langchain==0.3.26
-langchain-openai==0.2.14
+langchain-openai==1.1.10
 langchain-community==0.3.27
 chromadb==0.4.22
 pinecone-client==5.0.1

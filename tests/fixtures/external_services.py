@@ -510,7 +510,7 @@ def auto_mock_external_services(monkeypatch):
     # Patch common external service imports
     with patch("openai.OpenAI") as mock_openai:
         with patch("anthropic.Anthropic") as mock_anthropic:
-            with patch("google.generativeai.GenerativeModel") as mock_gemini:
+            with patch("config.ai_config.AIConfig.get_model") as mock_gemini:
                 with patch("boto3.client") as mock_boto:
                     with patch("stripe.api_key") as mock_stripe_key:
                         # Set up basic returns

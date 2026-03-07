@@ -134,13 +134,13 @@ class TestCacheStrategyOptimization:
         assert cache_manager._should_warm_cache(low_priority_entry) is False
 
     @pytest.mark.asyncio
-    @patch("google.generativeai.caching.CachedContent.create")
-    async def test_process_warming_queue(self, mock_create, cache_manager, sample_business_profile):
+    async def test_process_warming_queue(self, cache_manager, sample_business_profile):
         """Test processing of cache warming queue."""
-        # Mock successful cache creation
+        # Mock successful cache creation via new genai client
         mock_cached_content = Mock()
         mock_cached_content.name = "test_warmed_cache"
-        mock_create.return_value = mock_cached_content
+        mock_client = Mock()
+        mock_client.caches.create.return_value = mock_cached_content
 
         # Add items to warming queue
         cache_manager.add_to_warming_queue(
@@ -153,8 +153,9 @@ class TestCacheStrategyOptimization:
             priority=1,
         )
 
-        # Process warming queue
-        processed = await cache_manager.process_warming_queue(max_items=1)
+        with patch("config.ai_config.ai_config._get_genai_client", return_value=mock_client):
+            # Process warming queue
+            processed = await cache_manager.process_warming_queue(max_items=1)
 
         assert processed == 1
         assert len(cache_manager.cache_warming_queue) == 0

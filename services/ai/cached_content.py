@@ -135,12 +135,13 @@ class GoogleCachedContentManager:
             from config.ai_config import ai_config
             from google.genai import types as _gtypes
             client = ai_config._get_genai_client()
+            dn = display_name[0] if isinstance(display_name, tuple) else display_name
             cached_content = client.caches.create(
+                model=model_type.value,
                 config=_gtypes.CreateCachedContentConfig(
-                    model=model_type.value,
                     contents=cache_content,
                     ttl=f"{int(ttl.total_seconds())}s",
-                    display_name=display_name[0] if isinstance(display_name, tuple) else display_name,
+                    display_name=dn,
                 )
             )
             self.active_caches[cache_key] = cached_content
@@ -194,8 +195,8 @@ class GoogleCachedContentManager:
             from google.genai import types as _gtypes
             client = ai_config._get_genai_client()
             cached_content = client.caches.create(
+                model=model_type.value,
                 config=_gtypes.CreateCachedContentConfig(
-                    model=model_type.value,
                     contents=cache_content,
                     ttl=f"{int(ttl.total_seconds())}s",
                     display_name=display_name,
@@ -260,8 +261,8 @@ class GoogleCachedContentManager:
             from google.genai import types as _gtypes
             client = ai_config._get_genai_client()
             cached_content = client.caches.create(
+                model=model_type.value,
                 config=_gtypes.CreateCachedContentConfig(
-                    model=model_type.value,
                     contents=cache_content,
                     ttl=f"{int(ttl.total_seconds())}s",
                     display_name=display_name,

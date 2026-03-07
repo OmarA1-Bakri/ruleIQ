@@ -193,35 +193,37 @@ class TestGoogleCachedContentManager:
         assert "Initial" in beginner_maturity
 
     @pytest.mark.asyncio
-    @patch("google.generativeai.caching.CachedContent.create")
     async def test_assessment_cache_creation_success(
-        self, mock_create, cache_manager, sample_business_profile
+        self, cache_manager, sample_business_profile
     ):
         """Test successful assessment cache creation."""
         mock_cached_content = Mock()
         mock_cached_content.name = "test_cache"
-        mock_create.return_value = mock_cached_content
+        mock_client = Mock()
+        mock_client.caches.create.return_value = mock_cached_content
         framework_id = "ISO27001"
-        result = await cache_manager.create_assessment_cache(framework_id, sample_business_profile)
+        with patch("config.ai_config.ai_config._get_genai_client", return_value=mock_client):
+            result = await cache_manager.create_assessment_cache(framework_id, sample_business_profile)
         assert result is not None
         assert cache_manager.metrics["cache_creates"] == 1
         if cache_manager.use_mock:
             assert result.name == f"mock-cache-{framework_id}"
         else:
-            mock_create.assert_called_once()
+            mock_client.caches.create.assert_called_once()
 
     @pytest.mark.asyncio
-    @patch("services.ai.cached_content.genai.caching.CachedContent.create")
     async def test_assessment_cache_creation_failure(
-        self, mock_create, cache_manager, sample_business_profile
+        self, cache_manager, sample_business_profile
     ):
         """Test assessment cache creation failure handling."""
         cache_manager.use_mock = False
-        mock_create.side_effect = Exception("Cache creation failed")
+        mock_client = Mock()
+        mock_client.caches.create.side_effect = Exception("Cache creation failed")
         framework_id = "ISO27001"
         cache_manager.metrics["cache_misses"] = 0
         cache_manager.metrics["cache_creates"] = 0
-        result = await cache_manager.create_assessment_cache(framework_id, sample_business_profile)
+        with patch("config.ai_config.ai_config._get_genai_client", return_value=mock_client):
+            result = await cache_manager.create_assessment_cache(framework_id, sample_business_profile)
         assert result is None
         assert cache_manager.metrics["cache_misses"] == 1
         assert cache_manager.metrics["cache_creates"] == 0

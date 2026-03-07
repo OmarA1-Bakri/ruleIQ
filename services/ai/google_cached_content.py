@@ -88,8 +88,8 @@ class GoogleCachedContentManager:
             _client = _ai_config._get_genai_client()
             ttl = self.ttl_strategies["assessment_context"]
             cached_content = _client.caches.create(
+                model=self.config.default_model,
                 config=_gtypes.CreateCachedContentConfig(
-                    model=self.config.default_model,
                     contents=cache_content,
                     ttl=f"{int(ttl.total_seconds())}s",
                     display_name=f"assessment_context_{framework_id}_{business_profile.get('id', 'unknown')}",
@@ -140,8 +140,8 @@ class GoogleCachedContentManager:
             _client = _ai_config._get_genai_client()
             ttl = self.ttl_strategies["business_profile"]
             cached_content = _client.caches.create(
+                model=self.config.default_model,
                 config=_gtypes.CreateCachedContentConfig(
-                    model=self.config.default_model,
                     contents=cache_content,
                     ttl=f"{int(ttl.total_seconds())}s",
                     display_name=f"business_profile_{business_profile.get('id', 'unknown')}",

@@ -201,6 +201,8 @@ def setup_auth_mocks():
 
     sys.modules["google.generativeai"] = mock_genai
     sys.modules["google.generativeai.types"] = unittest.mock.MagicMock()
+    sys.modules["google.genai"] = mock_genai
+    sys.modules["google.genai.types"] = unittest.mock.MagicMock()
 
     return mock_genai
 

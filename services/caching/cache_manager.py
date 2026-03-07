@@ -19,7 +19,7 @@ import hashlib
 from redis.exceptions import (
     ConnectionError as RedisConnectionError,
     TimeoutError as RedisTimeoutError,
-    RedisError
+    RedisError,
 )
 
 
@@ -105,7 +105,7 @@ class CacheMetrics:
             "hit_rate": self.get_hit_rate(),
             "avg_response_time": self.get_avg_response_time(),
             "errors": self.errors,
-            "total_requests": self.hits + self.misses
+            "total_requests": self.hits + self.misses,
         }
 
 
@@ -135,9 +135,7 @@ class LRUCache:
                 return value
             return None
 
-    async def set(
-        self, key: str, value: Any, ttl: Optional[int] = None
-    ) -> None:
+    async def set(self, key: str, value: Any, ttl: Optional[int] = None) -> None:
         """Set value in cache"""
         async with self._lock:
             # Remove if exists
@@ -146,10 +144,7 @@ class LRUCache:
 
             # Check memory limits
             value_size = self._estimate_size(value)
-            while (
-                self.memory_usage + value_size > self.max_memory_bytes
-                and self.cache
-            ):
+            while self.memory_usage + value_size > self.max_memory_bytes and self.cache:
                 # Remove least recently used
                 oldest_key, _ = self.cache.popitem(last=False)
                 if oldest_key in self.expirations:
@@ -195,7 +190,7 @@ class LRUCache:
         """Estimate memory usage of object"""
         try:
             # Rough estimation based on JSON serialization
-            return len(json.dumps(obj, default=str).encode('utf-8'))
+            return len(json.dumps(obj, default=str).encode("utf-8"))
         except (TypeError, ValueError, OverflowError) as e:
             # Fallback for non-serializable objects
             logger.debug("Size estimation failed: %s", e)
@@ -209,7 +204,7 @@ class LRUCache:
             "memory_usage_mb": self.memory_usage / (1024 * 1024),
             "max_items": self.max_items,
             "max_memory_mb": self.max_memory_bytes / (1024 * 1024),
-            "hit_rate": 0.0  # Would need to track hits/misses separately
+            "hit_rate": 0.0,  # Would need to track hits/misses separately
         }
 
 
@@ -232,17 +227,14 @@ class CacheManager:
         l1_max_items: int = 10000,
         l1_max_memory_mb: int = 100,
         ttl_config: Optional[Dict[str, int]] = None,
-        metrics: Optional[CacheMetrics] = None
+        metrics: Optional[CacheMetrics] = None,
     ) -> None:
         self.enable_caching = enable_caching
         self.ttl_config = ttl_config or {}
         self.metrics = metrics or CacheMetrics()
 
         # L1 Cache (in-memory LRU)
-        self._l1_cache = LRUCache(
-            max_items=l1_max_items,
-            max_memory_mb=l1_max_memory_mb
-        )
+        self._l1_cache = LRUCache(max_items=l1_max_items, max_memory_mb=l1_max_memory_mb)
 
         # L2 Cache (Redis)
         self._redis = None
@@ -264,15 +256,12 @@ class CacheManager:
         # Initialize L2 cache (Redis)
         try:
             from database.redis_client import get_redis_client
+
             self._redis = await get_redis_client()
             self._redis_available = True
             logger.info("Redis cache initialized successfully")
-        except (
-            ImportError, RedisConnectionError, RedisTimeoutError, OSError
-        ) as e:
-            logger.warning(
-                "Redis unavailable, falling back to L1 only: %s", e
-            )
+        except (ImportError, RedisConnectionError, RedisTimeoutError, OSError) as e:
+            logger.warning("Redis unavailable, falling back to L1 only: %s", e)
             self._redis_available = False
 
         self._initialized = True
@@ -280,7 +269,7 @@ class CacheManager:
 
     async def close(self) -> None:
         """Close cache connections"""
-        if self._redis and hasattr(self._redis, 'close'):
+        if self._redis and hasattr(self._redis, "close"):
             await self._redis.close()
         self._initialized = False
 
@@ -313,19 +302,13 @@ class CacheManager:
                             # Promote to L1
                             await self._l1_cache.set(key, value)
                             self.metrics.record_hit()
-                            self.metrics.record_response_time(
-                                time.time() - start_time
-                            )
+                            self.metrics.record_response_time(time.time() - start_time)
                             return value
                 except (RedisConnectionError, RedisTimeoutError, OSError) as e:
-                    logger.warning(
-                        "Redis connection error for key %s: %s", key, e
-                    )
+                    logger.warning("Redis connection error for key %s: %s", key, e)
                     self.metrics.record_error()
                 except ValueError as e:
-                    logger.warning(
-                        "Redis serialization error for key %s: %s", key, e
-                    )
+                    logger.warning("Redis serialization error for key %s: %s", key, e)
                     self.metrics.record_error()
                 except RedisError:
                     logger.exception("Redis get error for key %s", key)
@@ -349,9 +332,7 @@ class CacheManager:
             self.metrics.record_response_time(time.time() - start_time)
             return None
 
-    async def set(
-        self, key: str, value: Any, ttl: Optional[int] = None
-    ) -> bool:
+    async def set(self, key: str, value: Any, ttl: Optional[int] = None) -> bool:
         """
         Set value in cache.
 
@@ -370,14 +351,10 @@ class CacheManager:
                     serialized = self._serialize(value)
                     await self._redis.set(key, serialized, ex=ttl)
                 except (RedisConnectionError, RedisTimeoutError, OSError) as e:
-                    logger.warning(
-                        "Redis connection error for key %s: %s", key, e
-                    )
+                    logger.warning("Redis connection error for key %s: %s", key, e)
                     self.metrics.record_error()
                 except ValueError as e:
-                    logger.warning(
-                        "Redis serialization error for key %s: %s", key, e
-                    )
+                    logger.warning("Redis serialization error for key %s: %s", key, e)
                     self.metrics.record_error()
                 except RedisError:
                     logger.exception("Redis set error for key %s", key)
@@ -416,14 +393,10 @@ class CacheManager:
                     if await self._redis.delete(key):
                         deleted = True
                 except (RedisConnectionError, RedisTimeoutError, OSError) as e:
-                    logger.warning(
-                        "Redis connection error for key %s: %s", key, e
-                    )
+                    logger.warning("Redis connection error for key %s: %s", key, e)
                     self.metrics.record_error()
                 except ValueError as e:
-                    logger.warning(
-                        "Redis serialization error for key %s: %s", key, e
-                    )
+                    logger.warning("Redis serialization error for key %s: %s", key, e)
                     self.metrics.record_error()
                 except RedisError:
                     logger.exception("Redis delete error for key %s", key)
@@ -462,28 +435,19 @@ class CacheManager:
             if self._redis_available and self._redis:
                 try:
                     # Get keys matching pattern
-                    if hasattr(self._redis, 'keys'):
+                    if hasattr(self._redis, "keys"):
                         keys = await self._redis.keys(pattern)
                         if keys:
                             await self._redis.delete(*keys)
                             invalidated += len(keys)
                 except (RedisConnectionError, RedisTimeoutError, OSError) as e:
-                    logger.warning(
-                        "Redis connection error for pattern %s: %s",
-                        pattern, e
-                    )
+                    logger.warning("Redis connection error for pattern %s: %s", pattern, e)
                     self.metrics.record_error()
                 except ValueError as e:
-                    logger.warning(
-                        "Redis serialization error for pattern %s: %s",
-                        pattern, e
-                    )
+                    logger.warning("Redis serialization error for pattern %s: %s", pattern, e)
                     self.metrics.record_error()
                 except RedisError:
-                    logger.exception(
-                        "Redis pattern invalidation error for pattern %s",
-                        pattern
-                    )
+                    logger.exception("Redis pattern invalidation error for pattern %s", pattern)
                     self.metrics.record_error()
                     # Re-raise in debug mode for development
                     if logger.isEnabledFor(logging.DEBUG):
@@ -492,9 +456,7 @@ class CacheManager:
             return invalidated
 
         except (TypeError, ValueError, AttributeError):
-            logger.exception(
-                "Pattern invalidation error for %s", pattern
-            )
+            logger.exception("Pattern invalidation error for %s", pattern)
             self.metrics.record_error()
             return 0
 
@@ -531,16 +493,13 @@ class CacheManager:
             "initialized": self._initialized,
             "redis_available": self._redis_available,
             "l1_cache": l1_stats,
-            "metrics": self.metrics.get_stats()
+            "metrics": self.metrics.get_stats(),
         }
 
     # Integration methods for different layers
 
     async def get_or_set_db_query(
-        self,
-        query_key: str,
-        query_func: Callable[[], Awaitable[Any]],
-        ttl: Optional[int] = None
+        self, query_key: str, query_func: Callable[[], Awaitable[Any]], ttl: Optional[int] = None
     ) -> Any:
         """Get database query result from cache or execute query"""
         # Try cache first
@@ -553,9 +512,7 @@ class CacheManager:
 
         # Cache result
         if result is not None:
-            actual_ttl = ttl or self.ttl_config.get(
-                'db_query', DEFAULT_DB_QUERY_TTL
-            )
+            actual_ttl = ttl or self.ttl_config.get("db_query", DEFAULT_DB_QUERY_TTL)
             await self.set(query_key, result, actual_ttl)
 
         return result
@@ -566,7 +523,7 @@ class CacheManager:
         endpoint: str,
         params: Dict[str, Any],
         api_func: Callable[[], Awaitable[Any]],
-        ttl: Optional[int] = None
+        ttl: Optional[int] = None,
     ) -> Any:
         """Cache API response"""
         # Create cache key from method, endpoint, and params
@@ -574,9 +531,9 @@ class CacheManager:
         # Use SHA-256 for secure cache key generation
         # (truncated to maintain key length)
         # Generate SHA-256 hash for cache key
-        key_hash = hashlib.sha256(
-            json.dumps(key_data, sort_keys=True).encode()
-        ).hexdigest()[:API_CACHE_KEY_LENGTH]
+        key_hash = hashlib.sha256(json.dumps(key_data, sort_keys=True).encode()).hexdigest()[
+            :API_CACHE_KEY_LENGTH
+        ]
         cache_key = f"api:{key_hash}"
 
         # Try cache first
@@ -592,7 +549,8 @@ class CacheManager:
                 # Compute legacy MD5 key using same key_data structure
                 # noqa: S324 - MD5 needed for backward compatibility
                 legacy_hash = hashlib.md5(
-                    json.dumps(key_data, sort_keys=True).encode()
+                    json.dumps(key_data, sort_keys=True).encode(),
+                    usedforsecurity=False,
                 ).hexdigest()[:LEGACY_MD5_HASH_LENGTH]
                 legacy_key = f"api:{legacy_hash}"
 
@@ -609,32 +567,24 @@ class CacheManager:
                         RedisTimeoutError,
                         RedisError,
                         OSError,
-                        ValueError
+                        ValueError,
                     ) as e:
-                        logger.debug(
-                            "Legacy MD5 fetch failed for %s: %s",
-                            legacy_key, e
-                        )
+                        logger.debug("Legacy MD5 fetch failed for %s: %s", legacy_key, e)
                 else:
                     # Fallback to L1 cache
                     legacy_value = await self._l1_cache.get(legacy_key)
                 if legacy_value is not None:
                     logger.debug(
-                        "Found value in legacy MD5 key %s, "
-                        "promoting to SHA-256 key %s",
-                        legacy_key, cache_key
+                        "Found value in legacy MD5 key %s, promoting to SHA-256 key %s",
+                        legacy_key,
+                        cache_key,
                     )
                     # Promote to new SHA-256 key
-                    actual_ttl = ttl or self.ttl_config.get(
-                        'api_response', DEFAULT_API_TTL
-                    )
+                    actual_ttl = ttl or self.ttl_config.get("api_response", DEFAULT_API_TTL)
                     await self.set(cache_key, legacy_value, actual_ttl)
                     # Note: set() already records the metric internally
                     return legacy_value
-            except (
-                RedisConnectionError, RedisTimeoutError,
-                RedisError, OSError, ValueError
-            ) as e:
+            except (RedisConnectionError, RedisTimeoutError, RedisError, OSError, ValueError) as e:
                 logger.debug("Legacy key check failed: %s", e)
 
         # Execute API call
@@ -642,9 +592,7 @@ class CacheManager:
 
         # Cache result
         if result is not None:
-            actual_ttl = ttl or self.ttl_config.get(
-                'api_response', DEFAULT_API_TTL
-            )
+            actual_ttl = ttl or self.ttl_config.get("api_response", DEFAULT_API_TTL)
             await self.set(cache_key, result, actual_ttl)
 
         return result
@@ -654,7 +602,7 @@ class CacheManager:
         computation_key: str,
         params: Dict[str, Any],
         compute_func: Callable[[], Awaitable[Any]],
-        ttl: Optional[int] = None
+        ttl: Optional[int] = None,
     ) -> Any:
         """Cache expensive service computation"""
         # Create cache key from computation key and params
@@ -662,9 +610,9 @@ class CacheManager:
         # Use SHA-256 for secure cache key generation
         # (truncated to maintain key length)
         # Generate SHA-256 hash for cache key
-        key_hash = hashlib.sha256(
-            json.dumps(key_data, sort_keys=True).encode()
-        ).hexdigest()[:COMPUTE_CACHE_KEY_LENGTH]
+        key_hash = hashlib.sha256(json.dumps(key_data, sort_keys=True).encode()).hexdigest()[
+            :COMPUTE_CACHE_KEY_LENGTH
+        ]
         cache_key = f"compute:{key_hash}"
 
         # Try cache first
@@ -680,7 +628,8 @@ class CacheManager:
                 # Compute legacy MD5 key using same key_data structure
                 # noqa: S324 - MD5 needed for backward compatibility
                 legacy_hash = hashlib.md5(
-                    json.dumps(key_data, sort_keys=True).encode()
+                    json.dumps(key_data, sort_keys=True).encode(),
+                    usedforsecurity=False,
                 ).hexdigest()[:LEGACY_MD5_HASH_LENGTH]
                 legacy_key = f"compute:{legacy_hash}"
 
@@ -697,32 +646,24 @@ class CacheManager:
                         RedisTimeoutError,
                         RedisError,
                         OSError,
-                        ValueError
+                        ValueError,
                     ) as e:
-                        logger.debug(
-                            "Legacy MD5 fetch failed for %s: %s",
-                            legacy_key, e
-                        )
+                        logger.debug("Legacy MD5 fetch failed for %s: %s", legacy_key, e)
                 else:
                     # Fallback to L1 cache
                     legacy_value = await self._l1_cache.get(legacy_key)
                 if legacy_value is not None:
                     logger.debug(
-                        "Found value in legacy MD5 key %s, "
-                        "promoting to SHA-256 key %s",
-                        legacy_key, cache_key
+                        "Found value in legacy MD5 key %s, promoting to SHA-256 key %s",
+                        legacy_key,
+                        cache_key,
                     )
                     # Promote to new SHA-256 key
-                    actual_ttl = ttl or self.ttl_config.get(
-                        'computation', DEFAULT_COMPUTE_TTL
-                    )
+                    actual_ttl = ttl or self.ttl_config.get("computation", DEFAULT_COMPUTE_TTL)
                     await self.set(cache_key, legacy_value, actual_ttl)
                     # Note: set() already records the metric internally
                     return legacy_value
-            except (
-                RedisConnectionError, RedisTimeoutError,
-                RedisError, OSError, ValueError
-            ) as e:
+            except (RedisConnectionError, RedisTimeoutError, RedisError, OSError, ValueError) as e:
                 logger.debug("Legacy key check failed: %s", e)
 
         # Execute computation
@@ -730,9 +671,7 @@ class CacheManager:
 
         # Cache result
         if result is not None:
-            actual_ttl = ttl or self.ttl_config.get(
-                'computation', DEFAULT_COMPUTE_TTL
-            )
+            actual_ttl = ttl or self.ttl_config.get("computation", DEFAULT_COMPUTE_TTL)
             await self.set(cache_key, result, actual_ttl)
 
         return result
@@ -742,7 +681,7 @@ class CacheManager:
         service: str,
         endpoint: str,
         api_func: Callable[[], Awaitable[Any]],
-        ttl: Optional[int] = None
+        ttl: Optional[int] = None,
     ) -> Any:
         """Cache external API calls"""
         cache_key = f"external:{service}:{endpoint}"
@@ -757,25 +696,19 @@ class CacheManager:
 
         # Cache result
         if result is not None:
-            actual_ttl = ttl or self.ttl_config.get(
-                'external_api', DEFAULT_EXTERNAL_API_TTL
-            )
+            actual_ttl = ttl or self.ttl_config.get("external_api", DEFAULT_EXTERNAL_API_TTL)
             await self.set(cache_key, result, actual_ttl)
 
         return result
 
-    async def invalidate_db_entity(
-        self, entity_type: str, entity_id: str
-    ) -> None:
+    async def invalidate_db_entity(self, entity_type: str, entity_id: str) -> None:
         """Invalidate cache for database entity"""
         pattern = f"db:{entity_type}:{entity_id}:*"
         await self.invalidate_pattern(pattern)
 
-    async def invalidate_api_caches(
-        self, resource: str, method: Optional[str] = None
-    ) -> None:
+    async def invalidate_api_caches(self, resource: str, method: Optional[str] = None) -> None:
         """Invalidate API caches for resource"""
-        if method in ['POST', 'PUT', 'DELETE']:
+        if method in ["POST", "PUT", "DELETE"]:
             # Invalidate list caches
             pattern = f"api:*{resource}*list*"
             await self.invalidate_pattern(pattern)
@@ -785,23 +718,19 @@ class CacheManager:
 
     # Cache warming methods
 
-    async def warm_startup_cache(
-        self,
-        data_source: Dict[str, Any],
-        min_priority: int = 0
-    ) -> int:
+    async def warm_startup_cache(self, data_source: Dict[str, Any], min_priority: int = 0) -> int:
         """Warm cache with startup data based on priority"""
         warmed = 0
 
         for key, data in data_source.items():
-            if isinstance(data, dict) and 'priority' in data:
-                if data['priority'] >= min_priority:
-                    ttl = self.ttl_config.get('startup', DEFAULT_STARTUP_TTL)
-                    await self.set(key, data['data'], ttl=ttl)
+            if isinstance(data, dict) and "priority" in data:
+                if data["priority"] >= min_priority:
+                    ttl = self.ttl_config.get("startup", DEFAULT_STARTUP_TTL)
+                    await self.set(key, data["data"], ttl=ttl)
                     warmed += 1
             else:
                 # No priority specified, include by default
-                ttl = self.ttl_config.get('startup', DEFAULT_STARTUP_TTL)
+                ttl = self.ttl_config.get("startup", DEFAULT_STARTUP_TTL)
                 await self.set(key, data, ttl=ttl)
                 warmed += 1
 
@@ -809,9 +738,7 @@ class CacheManager:
         return warmed
 
     async def background_warming(
-        self,
-        data_source: Callable[[], Dict[str, Any]],
-        interval: int = BACKGROUND_WARMING_INTERVAL
+        self, data_source: Callable[[], Dict[str, Any]], interval: int = BACKGROUND_WARMING_INTERVAL
     ) -> None:
         """Background cache warming task"""
         while True:
@@ -821,9 +748,7 @@ class CacheManager:
                     # Only set if not already cached
                     existing = await self.get(key)
                     if existing is None:
-                        ttl = self.ttl_config.get(
-                            'background', DEFAULT_BACKGROUND_TTL
-                        )
+                        ttl = self.ttl_config.get("background", DEFAULT_BACKGROUND_TTL)
                         await self.set(key, value, ttl=ttl)
                 await asyncio.sleep(interval)
             except (TypeError, ValueError, AttributeError):
@@ -837,10 +762,7 @@ class CacheManager:
         return f"cache:{':'.join(str(p) for p in parts)}"
 
     async def get_or_compute(
-        self,
-        key: str,
-        compute_func: Callable[[], Awaitable[Any]],
-        ttl: Optional[int] = None
+        self, key: str, compute_func: Callable[[], Awaitable[Any]], ttl: Optional[int] = None
     ) -> Any:
         """Get from cache or compute and cache"""
         # Try cache first

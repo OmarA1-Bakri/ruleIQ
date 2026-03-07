@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 Test helper utilities for preventing hanging tests and ensuring proper cleanup.
 Implementation following test-first approach per ALWAYS_READ_FIRST protocol.
@@ -15,7 +14,7 @@ from typing import Any, Callable, Dict, TypeVar
 from urllib.parse import urlparse
 import pytest
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 # Async timeout handling
@@ -86,16 +85,18 @@ def with_db_cleanup(async_func):
     Returns:
         Wrapped function with cleanup
     """
+
     @functools.wraps(async_func)
     async def wrapper(conn, *args, **kwargs):
         try:
             return await async_func(conn, *args, **kwargs)
         finally:
-            if hasattr(conn, 'close'):
+            if hasattr(conn, "close"):
                 if asyncio.iscoroutinefunction(conn.close):
                     await conn.close()
                 else:
                     conn.close()
+
     return wrapper
 
 
@@ -109,16 +110,18 @@ def with_redis_cleanup(async_func):
     Returns:
         Wrapped function with cleanup
     """
+
     @functools.wraps(async_func)
     async def wrapper(redis_client, *args, **kwargs):
         try:
             return await async_func(redis_client, *args, **kwargs)
         finally:
-            if hasattr(redis_client, 'close'):
+            if hasattr(redis_client, "close"):
                 if asyncio.iscoroutinefunction(redis_client.close):
                     await redis_client.close()
                 else:
                     redis_client.close()
+
     return wrapper
 
 
@@ -130,7 +133,7 @@ async def cleanup_all_connections(connections: Dict[str, Any]):
         connections: Dictionary of connection objects
     """
     for name, conn in connections.items():
-        if conn and hasattr(conn, 'close'):
+        if conn and hasattr(conn, "close"):
             try:
                 if asyncio.iscoroutinefunction(conn.close):
                     await conn.close()
@@ -151,19 +154,23 @@ def with_test_timeout(seconds: int):
     Returns:
         Decorated test function with timeout
     """
+
     def decorator(test_func):
         # Add pytest timeout mark
         test_func = pytest.mark.timeout(seconds)(test_func)
 
         if asyncio.iscoroutinefunction(test_func):
+
             @functools.wraps(test_func)
             async def async_wrapper(*args, **kwargs):
                 return await async_with_timeout(
                     test_func(*args, **kwargs),
                     timeout=seconds,
                 )
+
             return async_wrapper
         else:
+
             @functools.wraps(test_func)
             def sync_wrapper(*args, **kwargs):
                 return sync_with_timeout(
@@ -172,6 +179,7 @@ def with_test_timeout(seconds: int):
                     *args,
                     **kwargs,
                 )
+
             return sync_wrapper
 
     return decorator
@@ -193,22 +201,22 @@ def create_smart_mock_ai_client():
         # Return context-specific responses based on prompt
         prompt_lower = prompt.lower()
 
-        if 'gdpr' in prompt_lower:
+        if "gdpr" in prompt_lower:
             response.text = (
                 "GDPR (General Data Protection Regulation) is a comprehensive "
                 "data protection law that regulates how personal data is collected, "
-                "processed, and stored.",
+                "processed, and stored."
             )
-        elif 'soc2' in prompt_lower or 'soc 2' in prompt_lower:
+        elif "soc2" in prompt_lower or "soc 2" in prompt_lower:
             response.text = (
                 "SOC 2 is a compliance framework for service organizations "
                 "that store customer data in the cloud, focusing on five "
-                "trust service criteria.",
+                "trust service criteria."
             )
-        elif 'compliance' in prompt_lower:
+        elif "compliance" in prompt_lower:
             response.text = (
                 "Compliance refers to conforming to rules, regulations, "
-                "standards, and laws relevant to your business processes.",
+                "standards, and laws relevant to your business processes."
             )
         else:
             response.text = f"Response for: {prompt[:50]}"
@@ -232,15 +240,15 @@ def create_smart_mock_openai():
     from unittest.mock import MagicMock
 
     def create_completion(messages, **kwargs):
-        last_message = messages[-1]['content'] if messages else ""
+        last_message = messages[-1]["content"] if messages else ""
 
         response = MagicMock()
         response.choices = [MagicMock()]
 
         # Generate context-aware response
-        if 'compliance' in last_message.lower():
+        if "compliance" in last_message.lower():
             content = "Compliance requirements include regulatory adherence and documentation."
-        elif 'gdpr' in last_message.lower():
+        elif "gdpr" in last_message.lower():
             content = "GDPR compliance requires data protection measures."
         else:
             content = f"Response to: {last_message[:50]}"
@@ -263,9 +271,9 @@ def get_redis_config() -> Dict[str, Any]:
         Redis configuration dictionary
     """
     return {
-        'host': os.getenv('REDIS_HOST', 'localhost'),
-        'port': int(os.getenv('REDIS_PORT', '6379')),
-        'db': int(os.getenv('REDIS_DB', '0')),
+        "host": os.getenv("REDIS_HOST", "localhost"),
+        "port": int(os.getenv("REDIS_PORT", "6379")),
+        "db": int(os.getenv("REDIS_DB", "0")),
     }
 
 
@@ -276,24 +284,24 @@ def get_postgres_config() -> Dict[str, Any]:
     Returns:
         PostgreSQL configuration dictionary
     """
-    database_url = os.getenv('DATABASE_URL', '')
+    database_url = os.getenv("DATABASE_URL", "")
 
     if database_url:
         parsed = urlparse(database_url)
         return {
-            'host': parsed.hostname or 'localhost',
-            'port': parsed.port or 5432,
-            'database': parsed.path.lstrip('/') if parsed.path else 'postgres',
-            'user': parsed.username,
-            'password': parsed.password,
+            "host": parsed.hostname or "localhost",
+            "port": parsed.port or 5432,
+            "database": parsed.path.lstrip("/") if parsed.path else "postgres",
+            "user": parsed.username,
+            "password": parsed.password,
         }
 
     return {
-        'host': 'localhost',
-        'port': 5432,
-        'database': 'postgres',
-        'user': 'postgres',
-        'password': 'postgres',
+        "host": "localhost",
+        "port": 5432,
+        "database": "postgres",
+        "user": "postgres",
+        "password": "postgres",
     }
 
 
@@ -328,6 +336,7 @@ def timeout_context(seconds: float):
     Raises:
         TimeoutError: If context exceeds timeout
     """
+
     def timeout_handler(signum, frame):
         raise TimeoutError(f"Operation timed out after {seconds} seconds")
 

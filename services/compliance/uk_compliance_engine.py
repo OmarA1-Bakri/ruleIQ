@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 UK Compliance Engine - Comprehensive Implementation
 Integrates all UK regulations with machine-actionable obligations
@@ -81,9 +80,7 @@ class UKComplianceManifest:
     """
 
     def __init__(self, manifest_path: Optional[str] = None) -> None:
-        self.manifest_path = (
-            manifest_path or "data/manifests/uk_compliance_manifest.json",
-        )
+        self.manifest_path = (manifest_path or "data/manifests/uk_compliance_manifest.json",)
         self.regulations = {}
         self.obligations = {}
         self.cross_mappings = []
@@ -164,17 +161,11 @@ class UKComplianceManifest:
 
         return min(score, 1.0)
 
-    def get_obligations_by_regulation(
-        self, regulation_id: str
-    ) -> List[ComplianceObligation]:
+    def get_obligations_by_regulation(self, regulation_id: str) -> List[ComplianceObligation]:
         """Get all obligations for a specific regulation"""
-        return [
-            ob for ob in self.obligations.values() if ob.regulation_ref == regulation_id
-        ]
+        return [ob for ob in self.obligations.values() if ob.regulation_ref == regulation_id]
 
-    def get_applicable_obligations(
-        self, entity_type: str
-    ) -> List[ComplianceObligation]:
+    def get_applicable_obligations(self, entity_type: str) -> List[ComplianceObligation]:
         """Get obligations applicable to a specific entity type"""
         return [
             ob

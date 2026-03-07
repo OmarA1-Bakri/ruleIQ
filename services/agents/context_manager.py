@@ -3,6 +3,7 @@ Context Manager Service - Manages context storage and merging.
 
 Handles context validation, merging strategies, and recovery.
 """
+
 from typing import Dict, List, Optional, Any, Set
 from uuid import UUID
 from datetime import datetime
@@ -17,10 +18,11 @@ logger = logging.getLogger(__name__)
 @dataclass
 class ContextNode:
     """Represents a node in the context tree."""
+
     key: str
     value: Any
     metadata: Dict[str, Any] = field(default_factory=dict)
-    children: Dict[str, 'ContextNode'] = field(default_factory=dict)
+    children: Dict[str, "ContextNode"] = field(default_factory=dict)
     created_at: datetime = field(default_factory=datetime.utcnow)
     updated_at: datetime = field(default_factory=datetime.utcnow)
     version: int = 1
@@ -37,29 +39,22 @@ class ContextManager:
             "overwrite": self._merge_overwrite,
             "append": self._merge_append,
             "deep": self._merge_deep,
-            "smart": self._merge_smart
+            "smart": self._merge_smart,
         }
 
     def create_context(
-        self,
-        session_id: UUID,
-        initial_data: Optional[Dict[str, Any]] = None
+        self, session_id: UUID, initial_data: Optional[Dict[str, Any]] = None
     ) -> ContextNode:
         """Create a new context tree."""
         root = ContextNode(
-            key="root",
-            value=initial_data or {},
-            metadata={"session_id": str(session_id)}
+            key="root", value=initial_data or {}, metadata={"session_id": str(session_id)}
         )
 
         self.context_trees[session_id] = root
         logger.info(f"Created context for session {session_id}")
         return root
 
-    def validate_context(
-        self,
-        context_data: Dict[str, Any]
-    ) -> tuple[bool, List[str]]:
+    def validate_context(self, context_data: Dict[str, Any]) -> tuple[bool, List[str]]:
         """Validate context data structure and content."""
         errors = []
 
@@ -84,12 +79,7 @@ class ContextManager:
 
         return len(errors) == 0, errors
 
-    def _validate_types(
-        self,
-        data: Any,
-        errors: List[str],
-        path: str = ""
-    ) -> bool:
+    def _validate_types(self, data: Any, errors: List[str], path: str = "") -> bool:
         """Recursively validate data types."""
         valid = True
 
@@ -112,11 +102,7 @@ class ContextManager:
 
         return valid
 
-    def _has_circular_reference(
-        self,
-        data: Any,
-        seen: Optional[Set[id]] = None
-    ) -> bool:
+    def _has_circular_reference(self, data: Any, seen: Optional[Set[id]] = None) -> bool:
         """Check for circular references in data structure."""
         if seen is None:
             seen = set()
@@ -138,10 +124,7 @@ class ContextManager:
         return False
 
     def merge_context(
-        self,
-        session_id: UUID,
-        new_data: Dict[str, Any],
-        strategy: str = "smart"
+        self, session_id: UUID, new_data: Dict[str, Any], strategy: str = "smart"
     ) -> Dict[str, Any]:
         """Merge new data into existing context."""
         if session_id not in self.context_trees:
@@ -163,19 +146,11 @@ class ContextManager:
         logger.info(f"Merged context for session {session_id} using {strategy} strategy")
         return merged_value
 
-    def _merge_overwrite(
-        self,
-        existing: Dict[str, Any],
-        new: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _merge_overwrite(self, existing: Dict[str, Any], new: Dict[str, Any]) -> Dict[str, Any]:
         """Overwrite existing with new data."""
         return new
 
-    def _merge_append(
-        self,
-        existing: Dict[str, Any],
-        new: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _merge_append(self, existing: Dict[str, Any], new: Dict[str, Any]) -> Dict[str, Any]:
         """Append new data to existing (for list values)."""
         merged = existing.copy()
 
@@ -187,11 +162,7 @@ class ContextManager:
 
         return merged
 
-    def _merge_deep(
-        self,
-        existing: Dict[str, Any],
-        new: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _merge_deep(self, existing: Dict[str, Any], new: Dict[str, Any]) -> Dict[str, Any]:
         """Deep merge of nested dictionaries."""
         merged = deepcopy(existing)
 
@@ -206,11 +177,7 @@ class ContextManager:
 
         return merged
 
-    def _merge_smart(
-        self,
-        existing: Dict[str, Any],
-        new: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _merge_smart(self, existing: Dict[str, Any], new: Dict[str, Any]) -> Dict[str, Any]:
         """Smart merge based on data types and context."""
         merged = deepcopy(existing)
 
@@ -241,11 +208,7 @@ class ContextManager:
 
         return merged
 
-    def get_context(
-        self,
-        session_id: UUID,
-        path: Optional[str] = None
-    ) -> Optional[Any]:
+    def get_context(self, session_id: UUID, path: Optional[str] = None) -> Optional[Any]:
         """Get context or specific path within context."""
         if session_id not in self.context_trees:
             return None
@@ -267,12 +230,7 @@ class ContextManager:
 
         return current
 
-    def set_context(
-        self,
-        session_id: UUID,
-        path: str,
-        value: Any
-    ) -> bool:
+    def set_context(self, session_id: UUID, path: str, value: Any) -> bool:
         """Set a specific value in the context."""
         if session_id not in self.context_trees:
             self.create_context(session_id)
@@ -295,11 +253,7 @@ class ContextManager:
         logger.info(f"Set context value at {path} for session {session_id}")
         return True
 
-    def delete_context(
-        self,
-        session_id: UUID,
-        path: Optional[str] = None
-    ) -> bool:
+    def delete_context(self, session_id: UUID, path: Optional[str] = None) -> bool:
         """Delete context or specific path within context."""
         if session_id not in self.context_trees:
             return False
@@ -331,10 +285,7 @@ class ContextManager:
 
         return False
 
-    def create_recovery_point(
-        self,
-        session_id: UUID
-    ) -> Dict[str, Any]:
+    def create_recovery_point(self, session_id: UUID) -> Dict[str, Any]:
         """Create a recovery point for context."""
         if session_id not in self.context_trees:
             return {}
@@ -345,17 +296,13 @@ class ContextManager:
             "timestamp": datetime.utcnow().isoformat(),
             "version": root.version,
             "context": deepcopy(root.value),
-            "metadata": root.metadata
+            "metadata": root.metadata,
         }
 
         logger.info(f"Created recovery point for session {session_id}")
         return recovery_point
 
-    def restore_from_recovery(
-        self,
-        session_id: UUID,
-        recovery_point: Dict[str, Any]
-    ) -> bool:
+    def restore_from_recovery(self, session_id: UUID, recovery_point: Dict[str, Any]) -> bool:
         """Restore context from a recovery point."""
         try:
             if session_id not in self.context_trees:
@@ -417,5 +364,5 @@ class ContextManager:
             "node_count": nodes,
             "max_depth": depth,
             "created_at": root.created_at.isoformat(),
-            "updated_at": root.updated_at.isoformat()
+            "updated_at": root.updated_at.isoformat(),
         }

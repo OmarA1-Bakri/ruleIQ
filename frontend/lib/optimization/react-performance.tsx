@@ -5,6 +5,7 @@
 
 import React, { memo, useMemo, useCallback, lazy, Suspense, ComponentType } from 'react';
 import dynamic from 'next/dynamic';
+// @ts-expect-error react-window types may not match
 import { FixedSizeList as List } from 'react-window';
 import AutoSizer from 'react-virtualized-auto-sizer';
 
@@ -27,12 +28,14 @@ export function lazyLoadComponent<T extends ComponentType<any>>(
   fallback: React.ReactNode = <LoadingSpinner />
 ) {
   const LazyComponent = lazy(importFunc);
-  
-  return (props: React.ComponentProps<T>) => (
+
+  const WrappedComponent = (props: React.ComponentProps<T>) => (
     <Suspense fallback={fallback}>
       <LazyComponent {...props} />
     </Suspense>
   );
+  WrappedComponent.displayName = `LazyLoaded(${importFunc.toString().slice(0, 50)})`;
+  return WrappedComponent;
 }
 
 /**
@@ -78,7 +81,7 @@ export const LazyAssessmentWizard = lazyLoadComponent(
 export function deepMemo<P extends object>(
   Component: React.FC<P>,
   propsAreEqual?: (prevProps: P, nextProps: P) => boolean
-): React.MemoExoticComponent<React.FC<P>> {
+): React.NamedExoticComponent<P> {
   return memo(Component, propsAreEqual || deepEqual);
 }
 
@@ -185,7 +188,7 @@ export function AutoVirtualList<T>({
           itemSize={itemHeight}
           overscanCount={overscan}
         >
-          {({ index, style }) => (
+          {({ index, style }: { index: number; style: React.CSSProperties }) => (
             <div style={style}>{renderItem(items[index], index)}</div>
           )}
         </List>
@@ -312,7 +315,7 @@ export function useThrottledCallback<T extends (...args: any[]) => any>(
  * Intersection observer hook for lazy loading
  */
 export function useIntersectionObserver(
-  ref: React.RefObject<Element>,
+  ref: React.RefObject<Element | null>,
   options?: IntersectionObserverInit
 ): boolean {
   const [isIntersecting, setIsIntersecting] = React.useState(false);
@@ -414,17 +417,6 @@ export const bundleSplitConfig = {
 // ============================================
 // Component Utilities
 // ============================================
-
-/**
- * Loading spinner component
- */
-function LoadingSpinner() {
-  return (
-    <div className="flex items-center justify-center p-4">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-    </div>
-  );
-}
 
 /**
  * Error boundary wrapper

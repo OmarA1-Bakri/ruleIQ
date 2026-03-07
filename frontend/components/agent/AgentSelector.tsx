@@ -1,18 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Agent, TrustLevel } from '@/lib/websocket/types';
+import { Agent } from '@/lib/websocket/types';
 import { cn } from '@/lib/utils';
 import {
   Search,
-  Filter,
   Grid,
   List,
   Settings,
-  Info,
   Play,
-  Pause,
-  RefreshCw,
   Shield,
   Cpu,
   Zap,
@@ -21,14 +17,12 @@ import {
   FileText,
   Database,
   Globe,
-  Lock
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Select,
   SelectContent,
@@ -36,14 +30,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
 import {
   Tooltip,
   TooltipContent,
@@ -271,7 +257,7 @@ export function AgentSelector({
                 if (onConfigureAgent) {
                   props.onConfigure = onConfigureAgent;
                 }
-                return <PersonaCard {...props} />;
+                return <PersonaCard key={agent.id} {...props} />;
               })}
             </div>
           ) : (

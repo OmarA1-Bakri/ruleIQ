@@ -283,7 +283,7 @@ export class AnnouncementQueue {
 
     // Combine similar announcements
     const combined: AccessibilityAnnouncement[] = [];
-    for (const [key, group] of grouped.entries()) {
+    for (const [_key, group] of grouped.entries()) {
       if (group.length === 1) {
         combined.push(group[0]);
       } else {
@@ -386,8 +386,8 @@ export function generateAccessibilityAnnouncements(
 
 // Internationalization support
 export function createI18nAnnouncements(
-  locale: string,
-  translations: Record<string, any>
+  _locale: string,
+  _translations: Record<string, any>
 ): typeof announcementTemplates {
   // This would load locale-specific templates
   // For now, return default English templates

@@ -5,7 +5,6 @@ Conversation management endpoints.
 import asyncio
 import logging
 from datetime import datetime, timezone
-from typing import List
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -47,7 +46,9 @@ async def create_conversation(
         if request.title:
             request.title = SecurityValidator.validate_no_dangerous_content(request.title, "title")
         if request.initial_message:
-            request.initial_message = SecurityValidator.validate_no_dangerous_content(request.initial_message, "message")
+            request.initial_message = SecurityValidator.validate_no_dangerous_content(
+                request.initial_message, "message"
+            )
 
         # Optimized: Single query to get both business profile and conversation count
         user_id_str = str(current_user.id)
@@ -231,7 +232,11 @@ async def create_conversation(
         raise HTTPException(status_code=500, detail="Failed to create conversation")
 
 
-@router.get("/conversations", response_model=ConversationListResponse, dependencies=[Depends(validate_request)])
+@router.get(
+    "/conversations",
+    response_model=ConversationListResponse,
+    dependencies=[Depends(validate_request)],
+)
 async def list_conversations(
     page: int = Query(1, ge=1),
     per_page: int = Query(20, ge=1, le=100),
@@ -300,7 +305,11 @@ async def list_conversations(
         raise HTTPException(status_code=500, detail="Failed to list conversations")
 
 
-@router.get("/conversations/{conversation_id}", response_model=ConversationResponse, dependencies=[Depends(validate_request)])
+@router.get(
+    "/conversations/{conversation_id}",
+    response_model=ConversationResponse,
+    dependencies=[Depends(validate_request)],
+)
 async def get_conversation(
     conversation_id: UUID,
     db: Session = Depends(get_db),

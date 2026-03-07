@@ -14,7 +14,7 @@ from utils.coordination_utils import (
     create_coordination_session,
     update_task_status,
     aggregate_results,
-    wait_for_task_completion
+    wait_for_task_completion,
 )
 
 
@@ -30,6 +30,7 @@ class TestCoordinationManager:
     def teardown_method(self):
         """Clean up test fixtures."""
         import shutil
+
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def test_initialization(self):
@@ -43,11 +44,7 @@ class TestCoordinationManager:
     def test_create_task(self):
         """Test task creation."""
         task_id = "task_1"
-        task_config = {
-            "mode": "code",
-            "description": "Test task",
-            "dependencies": []
-        }
+        task_config = {"mode": "code", "description": "Test task", "dependencies": []}
 
         self.manager.create_task(task_id, task_config)
 
@@ -111,9 +108,7 @@ class TestCoordinationManager:
         for i, task_id in enumerate(tasks):
             self.manager.create_task(task_id, {"mode": "code"})
             self.manager.update_task_status(
-                task_id, 
-                TaskStatus.COMPLETED, 
-                result={"output": f"result_{i}"}
+                task_id, TaskStatus.COMPLETED, result={"output": f"result_{i}"}
             )
 
         # Aggregate results
@@ -134,6 +129,7 @@ class TestCoordinationUtilities:
     def teardown_method(self):
         """Clean up test fixtures."""
         import shutil
+
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def test_create_coordination_session(self):
@@ -141,7 +137,7 @@ class TestCoordinationUtilities:
         session_id = "test_session"
         tasks_config = {
             "task_1": {"mode": "code", "description": "First task"},
-            "task_2": {"mode": "test", "description": "Second task", "dependencies": ["task_1"]}
+            "task_2": {"mode": "test", "description": "Second task", "dependencies": ["task_1"]},
         }
 
         manager = create_coordination_session(session_id, tasks_config, base_dir=self.temp_dir)
@@ -190,11 +186,7 @@ class TestCoordinationUtilities:
         for i in range(3):
             task_id = f"task_{i}"
             manager.create_task(task_id, {"mode": "code"})
-            manager.update_task_status(
-                task_id, 
-                TaskStatus.COMPLETED, 
-                result={"data": f"value_{i}"}
-            )
+            manager.update_task_status(task_id, TaskStatus.COMPLETED, result={"data": f"value_{i}"})
 
         # Test utility function
         results = aggregate_results(session_id, base_dir=self.temp_dir)
@@ -214,6 +206,7 @@ class TestErrorConditions:
     def teardown_method(self):
         """Clean up test fixtures."""
         import shutil
+
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def test_invalid_session(self):

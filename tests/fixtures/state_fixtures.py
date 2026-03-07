@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 State fixtures for LangGraph testing.
 
@@ -79,9 +78,7 @@ class StateBuilder:
         self.compliance_data[key] = value
         return self
 
-    def add_tool_output(
-        self, tool_name: str, output: Any, success: bool = True
-    ) -> "StateBuilder":
+    def add_tool_output(self, tool_name: str, output: Any, success: bool = True) -> "StateBuilder":
         """Add a tool output."""
         self.tool_outputs.append(
             {
@@ -114,9 +111,7 @@ class StateBuilder:
         self.retry_count = count
         return self
 
-    def add_checkpoint(
-        self, checkpoint_id: str, data: Dict[str, Any]
-    ) -> "StateBuilder":
+    def add_checkpoint(self, checkpoint_id: str, data: Dict[str, Any]) -> "StateBuilder":
         """Add a checkpoint."""
         self.checkpoints.append(
             {
@@ -185,16 +180,16 @@ def create_test_state(
 
     if scenario == TestScenario.INITIAL:
         builder.with_status(WorkflowStatus.PENDING).with_node("start").add_message(
-            "system", "Workflow initialized",
+            "system",
+            "Workflow initialized",
         )
 
     elif scenario == TestScenario.IN_PROGRESS:
-        builder.with_status(WorkflowStatus.IN_PROGRESS).with_node(
-            "data_collection"
-        ).add_message("system", "Processing compliance data").add_compliance_data(
-            "framework", "SOC2"
-        ).add_tool_output(
-            "data_collector", {"records": 100},
+        builder.with_status(WorkflowStatus.IN_PROGRESS).with_node("data_collection").add_message(
+            "system", "Processing compliance data"
+        ).add_compliance_data("framework", "SOC2").add_tool_output(
+            "data_collector",
+            {"records": 100},
         )
 
     elif scenario == TestScenario.ERROR_STATE:
@@ -203,10 +198,11 @@ def create_test_state(
         ).with_retry(2)
 
     elif scenario == TestScenario.COMPLETED:
-        builder.with_status(WorkflowStatus.COMPLETED).with_node(
-            "end"
-        ).add_compliance_data("assessment_complete", True).add_compliance_data(
-            "compliance_score", 0.95,
+        builder.with_status(WorkflowStatus.COMPLETED).with_node("end").add_compliance_data(
+            "assessment_complete", True
+        ).add_compliance_data(
+            "compliance_score",
+            0.95,
         )
 
     elif scenario == TestScenario.REVIEW_NEEDED:
@@ -217,9 +213,9 @@ def create_test_state(
         )
 
     elif scenario == TestScenario.RETRY_REQUIRED:
-        builder.with_status(WorkflowStatus.IN_PROGRESS).with_node(
-            "retry_handler"
-        ).with_retry(1).add_error("TransientError", "API temporarily unavailable")
+        builder.with_status(WorkflowStatus.IN_PROGRESS).with_node("retry_handler").with_retry(
+            1
+        ).add_error("TransientError", "API temporarily unavailable")
 
     # Apply overrides
     for key, value in overrides.items():
@@ -270,26 +266,23 @@ def assert_state_transition(
         expected_status: Expected workflow status (optional)
     """
     # Check node transition
-    assert (
-        final_state["current_node"] == expected_node
-    ), f"Expected node {expected_node}, got {final_state['current_node']}"
+    assert final_state["current_node"] == expected_node, (
+        f"Expected node {expected_node}, got {final_state['current_node']}"
+    )
 
     # Check status if specified
     if expected_status:
-        assert (
-            final_state["workflow_status"] == expected_status
-        ), f"Expected status {expected_status}, got {final_state['workflow_status']}"
+        assert final_state["workflow_status"] == expected_status, (
+            f"Expected status {expected_status}, got {final_state['workflow_status']}"
+        )
 
     # Ensure state has progressed
-    assert (
-        final_state["metadata"]["last_updated"]
-        >= initial_state["metadata"]["last_updated"],
-    )
+    assert (final_state["metadata"]["last_updated"] >= initial_state["metadata"]["last_updated"],)
 
     # Check for state consistency
-    assert (
-        final_state["company_id"] == initial_state["company_id"]
-    ), "Company ID should not change during transition"
+    assert final_state["company_id"] == initial_state["company_id"], (
+        "Company ID should not change during transition"
+    )
 
 
 def assert_error_recorded(state: EnhancedComplianceState, error_type: str):
@@ -301,9 +294,9 @@ def assert_error_recorded(state: EnhancedComplianceState, error_type: str):
         error_type: Expected error type
     """
     error_types = [e.get("type") for e in state.get("errors", [])]
-    assert (
-        error_type in error_types
-    ), f"Expected error type {error_type} not found. Found: {error_types}"
+    assert error_type in error_types, (
+        f"Expected error type {error_type} not found. Found: {error_types}"
+    )
 
 
 def assert_tool_output_exists(state: EnhancedComplianceState, tool_name: str):
@@ -315,9 +308,7 @@ def assert_tool_output_exists(state: EnhancedComplianceState, tool_name: str):
         tool_name: Name of the tool
     """
     tool_names = [t.get("tool") for t in state.get("tool_outputs", [])]
-    assert (
-        tool_name in tool_names
-    ), f"Expected tool {tool_name} not found. Found: {tool_names}"
+    assert tool_name in tool_names, f"Expected tool {tool_name} not found. Found: {tool_names}"
 
 
 # Pytest fixture

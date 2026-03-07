@@ -88,7 +88,7 @@ class PaymentService {
         '/payments/subscription',
       );
       return response.subscription;
-    } catch (error) {
+    } catch (_error) {
       return null;
     }
   }
@@ -173,7 +173,7 @@ class PaymentService {
     try {
       const response = await apiClient.get<{ invoice: Invoice }>('/payments/invoices/upcoming');
       return response.invoice;
-    } catch (error) {
+    } catch (_error) {
       return null;
     }
   }

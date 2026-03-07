@@ -28,7 +28,7 @@ class APIClient {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${tokens.access}`,
       };
-    } catch (error) {
+    } catch (_error) {
       // If we have a refresh token, try to refresh
       if (tokens.refresh) {
         try {
@@ -38,7 +38,7 @@ class APIClient {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${newTokens?.access}`,
           };
-        } catch (error) {
+        } catch (_refreshError) {
           throw new APIError('Authentication failed', 401);
         }
       }

@@ -1,7 +1,5 @@
 """Alembic environment configuration for ruleIQ database migrations."""
 
-from __future__ import annotations
-
 import os
 import sys
 from logging.config import fileConfig

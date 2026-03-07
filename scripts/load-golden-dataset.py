@@ -18,20 +18,22 @@ from neo4j import GraphDatabase
 
 async def check_connection():
     """Check if Neo4j is accessible before loading data."""
-    uri = os.getenv('NEO4J_URI')
-    username = os.getenv('NEO4J_USERNAME')
-    password = os.getenv('NEO4J_PASSWORD')
+    uri = os.getenv("NEO4J_URI")
+    username = os.getenv("NEO4J_USERNAME")
+    password = os.getenv("NEO4J_PASSWORD")
 
     print(f"🔍 Checking connection to: {uri}")
 
     try:
         driver = GraphDatabase.driver(uri, auth=(username, password))
         with driver.session() as session:
-            result = session.run('RETURN 1 as test')
-            if result.single()['test'] == 1:
+            result = session.run("RETURN 1 as test")
+            if result.single()["test"] == 1:
                 # Get current stats
-                node_count = session.run('MATCH (n) RETURN count(n) as count').single()['count']
-                rel_count = session.run('MATCH ()-[r]->() RETURN count(r) as count').single()['count']
+                node_count = session.run("MATCH (n) RETURN count(n) as count").single()["count"]
+                rel_count = session.run("MATCH ()-[r]->() RETURN count(r) as count").single()[
+                    "count"
+                ]
 
                 print("✅ Connected successfully!")
                 print("📊 Current database state:")
@@ -95,6 +97,7 @@ async def load_golden_dataset():
     except Exception as e:
         print(f"\n❌ Error loading data: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 
@@ -122,7 +125,7 @@ async def main():
     print("\n⚠️  This will load the compliance golden dataset into Neo4j")
     response = input("Continue? (yes/no): ")
 
-    if response.lower() != 'yes':
+    if response.lower() != "yes":
         print("❌ Aborted")
         sys.exit(0)
 
@@ -133,13 +136,15 @@ async def main():
         print("\n🎉 Success! The golden compliance dataset is now loaded in Neo4j AuraDB")
         print("\n📝 Next steps:")
         print("   1. View the data at: https://console.neo4j.io")
-        print("   2. Run your application: doppler run -- uvicorn api.main:app --host 0.0.0.0 --port 8000")
+        print(
+            "   2. Run your application: doppler run -- uvicorn api.main:app --host 0.0.0.0 --port 8000"
+        )
         print("   3. The IQ Agent can now use this compliance knowledge graph")
     else:
         print("\n❌ Data loading failed. Please check the error messages above.")
         sys.exit(1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Run with Doppler: doppler run -- python scripts/load-golden-dataset.py
     asyncio.run(main())

@@ -23,7 +23,8 @@ export default function PricingPage() {
       if (subscription) {
         setCurrentPlan(subscription.plan_id);
       }
-    } catch (error) {
+    } catch (_error) {
+      // intentionally empty - silently fail on subscription fetch
     } finally {
       setLoading(false);
     }
@@ -46,7 +47,8 @@ export default function PricingPage() {
       if (response.url) {
         window.location.href = response.url;
       }
-    } catch (error) {
+    } catch (_error) {
+      // intentionally empty - silently fail on checkout creation
     }
   };
 

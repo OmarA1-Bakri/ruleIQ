@@ -5,16 +5,19 @@ Comprehensive application metrics for monitoring user experience,
 performance, and system health.
 """
 
-from __future__ import annotations
-
 import time
 from typing import Optional
 from functools import wraps
 from contextlib import contextmanager
 
 from prometheus_client import (
-    Counter, Histogram, Gauge, Info,
-    CollectorRegistry, generate_latest, CONTENT_TYPE_LATEST
+    Counter,
+    Histogram,
+    Gauge,
+    Info,
+    CollectorRegistry,
+    generate_latest,
+    CONTENT_TYPE_LATEST,
 )
 from fastapi import Response
 import logging
@@ -26,172 +29,129 @@ REGISTRY = CollectorRegistry()
 
 # Request Metrics
 REQUEST_COUNT = Counter(
-    'ruleiq_requests_total',
-    'Total number of requests',
-    ['method', 'endpoint', 'status'],
-    registry=REGISTRY
+    "ruleiq_requests_total",
+    "Total number of requests",
+    ["method", "endpoint", "status"],
+    registry=REGISTRY,
 )
 
 REQUEST_LATENCY = Histogram(
-    'ruleiq_request_duration_seconds',
-    'Request latency in seconds',
-    ['method', 'endpoint'],
+    "ruleiq_request_duration_seconds",
+    "Request latency in seconds",
+    ["method", "endpoint"],
     registry=REGISTRY,
-    buckets=(0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0)
+    buckets=(0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0),
 )
 
 ERROR_RATE = Counter(
-    'ruleiq_errors_total',
-    'Total number of errors',
-    ['error_type', 'endpoint'],
-    registry=REGISTRY
+    "ruleiq_errors_total", "Total number of errors", ["error_type", "endpoint"], registry=REGISTRY
 )
 
 # User Session Metrics
 ACTIVE_SESSIONS = Gauge(
-    'ruleiq_active_sessions',
-    'Number of active user sessions',
-    registry=REGISTRY
+    "ruleiq_active_sessions", "Number of active user sessions", registry=REGISTRY
 )
 
 SESSION_DURATION = Histogram(
-    'ruleiq_session_duration_seconds',
-    'User session duration',
+    "ruleiq_session_duration_seconds",
+    "User session duration",
     registry=REGISTRY,
-    buckets=(60, 300, 600, 1800, 3600, 7200, 14400)
+    buckets=(60, 300, 600, 1800, 3600, 7200, 14400),
 )
 
 # Database Metrics
 DB_CONNECTIONS_ACTIVE = Gauge(
-    'ruleiq_db_connections_active',
-    'Active database connections',
-    ['pool_type'],
-    registry=REGISTRY
+    "ruleiq_db_connections_active", "Active database connections", ["pool_type"], registry=REGISTRY
 )
 
 DB_CONNECTIONS_TOTAL = Gauge(
-    'ruleiq_db_connections_total',
-    'Total database connections',
-    ['pool_type'],
-    registry=REGISTRY
+    "ruleiq_db_connections_total", "Total database connections", ["pool_type"], registry=REGISTRY
 )
 
 DB_QUERY_DURATION = Histogram(
-    'ruleiq_db_query_duration_seconds',
-    'Database query duration',
-    ['query_type'],
+    "ruleiq_db_query_duration_seconds",
+    "Database query duration",
+    ["query_type"],
     registry=REGISTRY,
-    buckets=(0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1.0, 5.0)
+    buckets=(0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1.0, 5.0),
 )
 
 # Redis Cache Metrics
 CACHE_HITS = Counter(
-    'ruleiq_cache_hits_total',
-    'Total cache hits',
-    ['cache_type'],
-    registry=REGISTRY
+    "ruleiq_cache_hits_total", "Total cache hits", ["cache_type"], registry=REGISTRY
 )
 
 CACHE_MISSES = Counter(
-    'ruleiq_cache_misses_total',
-    'Total cache misses',
-    ['cache_type'],
-    registry=REGISTRY
+    "ruleiq_cache_misses_total", "Total cache misses", ["cache_type"], registry=REGISTRY
 )
 
 REDIS_CONNECTIONS = Gauge(
-    'ruleiq_redis_connections',
-    'Redis connection pool status',
-    ['status'],
-    registry=REGISTRY
+    "ruleiq_redis_connections", "Redis connection pool status", ["status"], registry=REGISTRY
 )
 
 # AI/ML Metrics
 AI_TOKEN_USAGE = Counter(
-    'ruleiq_ai_tokens_total',
-    'Total AI tokens consumed',
-    ['model', 'operation'],
-    registry=REGISTRY
+    "ruleiq_ai_tokens_total", "Total AI tokens consumed", ["model", "operation"], registry=REGISTRY
 )
 
 AI_COST_TOTAL = Counter(
-    'ruleiq_ai_cost_usd_total',
-    'Total AI cost in USD',
-    ['model', 'operation'],
-    registry=REGISTRY
+    "ruleiq_ai_cost_usd_total", "Total AI cost in USD", ["model", "operation"], registry=REGISTRY
 )
 
 AI_REQUEST_DURATION = Histogram(
-    'ruleiq_ai_request_duration_seconds',
-    'AI request duration',
-    ['model', 'operation'],
+    "ruleiq_ai_request_duration_seconds",
+    "AI request duration",
+    ["model", "operation"],
     registry=REGISTRY,
-    buckets=(0.1, 0.5, 1.0, 2.5, 5.0, 10.0, 30.0)
+    buckets=(0.1, 0.5, 1.0, 2.5, 5.0, 10.0, 30.0),
 )
 
 # Feature Flag Metrics
 FEATURE_FLAG_EVALUATIONS = Counter(
-    'ruleiq_feature_flag_evaluations_total',
-    'Feature flag evaluations',
-    ['flag_name', 'result'],
-    registry=REGISTRY
+    "ruleiq_feature_flag_evaluations_total",
+    "Feature flag evaluations",
+    ["flag_name", "result"],
+    registry=REGISTRY,
 )
 
 FEATURE_FLAG_CACHE_HIT_RATE = Gauge(
-    'ruleiq_feature_flag_cache_hit_rate',
-    'Feature flag cache hit rate',
-    registry=REGISTRY
+    "ruleiq_feature_flag_cache_hit_rate", "Feature flag cache hit rate", registry=REGISTRY
 )
 
 # Security Metrics
 AUTH_ATTEMPTS = Counter(
-    'ruleiq_auth_attempts_total',
-    'Authentication attempts',
-    ['result', 'method'],
-    registry=REGISTRY
+    "ruleiq_auth_attempts_total", "Authentication attempts", ["result", "method"], registry=REGISTRY
 )
 
 AUTH_FAILURES = Counter(
-    'ruleiq_auth_failures_total',
-    'Authentication failures',
-    ['reason'],
-    registry=REGISTRY
+    "ruleiq_auth_failures_total", "Authentication failures", ["reason"], registry=REGISTRY
 )
 
 JWT_VALIDATION_ERRORS = Counter(
-    'ruleiq_jwt_validation_errors_total',
-    'JWT validation errors',
-    ['error_type'],
-    registry=REGISTRY
+    "ruleiq_jwt_validation_errors_total", "JWT validation errors", ["error_type"], registry=REGISTRY
 )
 
 SUSPICIOUS_REQUESTS = Counter(
-    'ruleiq_suspicious_requests_total',
-    'Suspicious request patterns detected',
-    ['pattern_type'],
-    registry=REGISTRY
+    "ruleiq_suspicious_requests_total",
+    "Suspicious request patterns detected",
+    ["pattern_type"],
+    registry=REGISTRY,
 )
 
 # System Health Metrics
 SYSTEM_HEALTH = Gauge(
-    'ruleiq_system_health_score',
-    'Overall system health score (0-100)',
-    registry=REGISTRY
+    "ruleiq_system_health_score", "Overall system health score (0-100)", registry=REGISTRY
 )
 
 SERVICE_AVAILABILITY = Gauge(
-    'ruleiq_service_availability',
-    'Service availability status',
-    ['service_name'],
-    registry=REGISTRY
+    "ruleiq_service_availability",
+    "Service availability status",
+    ["service_name"],
+    registry=REGISTRY,
 )
 
 # Application Info
-APP_INFO = Info(
-    'ruleiq_app',
-    'Application information',
-    registry=REGISTRY
-)
+APP_INFO = Info("ruleiq_app", "Application information", registry=REGISTRY)
 
 
 class MetricsCollector:
@@ -204,11 +164,14 @@ class MetricsCollector:
     def _update_app_info(self):
         """Update application info metrics."""
         from config.settings import settings
-        APP_INFO.info({
-            'version': getattr(settings, 'APP_VERSION', '1.0.0'),
-            'environment': getattr(settings, 'ENVIRONMENT', 'production'),
-            'deployed_at': str(int(self.start_time))
-        })
+
+        APP_INFO.info(
+            {
+                "version": getattr(settings, "APP_VERSION", "1.0.0"),
+                "environment": getattr(settings, "ENVIRONMENT", "production"),
+                "deployed_at": str(int(self.start_time)),
+            }
+        )
 
     @contextmanager
     def track_request(self, method: str, endpoint: str):
@@ -216,25 +179,15 @@ class MetricsCollector:
         start_time = time.time()
         try:
             yield
-            status = 'success'
+            status = "success"
         except Exception as e:
-            status = 'error'
-            ERROR_RATE.labels(
-                error_type=type(e).__name__,
-                endpoint=endpoint
-            ).inc()
+            status = "error"
+            ERROR_RATE.labels(error_type=type(e).__name__, endpoint=endpoint).inc()
             raise
         finally:
             duration = time.time() - start_time
-            REQUEST_COUNT.labels(
-                method=method,
-                endpoint=endpoint,
-                status=status
-            ).inc()
-            REQUEST_LATENCY.labels(
-                method=method,
-                endpoint=endpoint
-            ).observe(duration)
+            REQUEST_COUNT.labels(method=method, endpoint=endpoint, status=status).inc()
+            REQUEST_LATENCY.labels(method=method, endpoint=endpoint).observe(duration)
 
     @contextmanager
     def track_db_query(self, query_type: str):
@@ -253,8 +206,7 @@ class MetricsCollector:
         else:
             CACHE_MISSES.labels(cache_type=cache_type).inc()
 
-    def track_ai_usage(self, model: str, operation: str,
-                      tokens: int, cost: float, duration: float):
+    def track_ai_usage(self, model: str, operation: str, tokens: int, cost: float, duration: float):
         """Track AI/ML usage metrics."""
         AI_TOKEN_USAGE.labels(model=model, operation=operation).inc(tokens)
         AI_COST_TOTAL.labels(model=model, operation=operation).inc(cost)
@@ -262,16 +214,13 @@ class MetricsCollector:
 
     def track_feature_flag(self, flag_name: str, result: str):
         """Track feature flag evaluation."""
-        FEATURE_FLAG_EVALUATIONS.labels(
-            flag_name=flag_name,
-            result=result
-        ).inc()
+        FEATURE_FLAG_EVALUATIONS.labels(flag_name=flag_name, result=result).inc()
 
-    def track_auth_attempt(self, result: str, method: str = 'jwt'):
+    def track_auth_attempt(self, result: str, method: str = "jwt"):
         """Track authentication attempt."""
         AUTH_ATTEMPTS.labels(result=result, method=method).inc()
-        if result == 'failure':
-            AUTH_FAILURES.labels(reason='invalid_credentials').inc()
+        if result == "failure":
+            AUTH_FAILURES.labels(reason="invalid_credentials").inc()
 
     def track_jwt_error(self, error_type: str):
         """Track JWT validation error."""
@@ -285,15 +234,15 @@ class MetricsCollector:
         """Update active session count."""
         ACTIVE_SESSIONS.set(count)
 
-    def update_db_connections(self, active: int, total: int, pool_type: str = 'main'):
+    def update_db_connections(self, active: int, total: int, pool_type: str = "main"):
         """Update database connection metrics."""
         DB_CONNECTIONS_ACTIVE.labels(pool_type=pool_type).set(active)
         DB_CONNECTIONS_TOTAL.labels(pool_type=pool_type).set(total)
 
     def update_redis_connections(self, active: int, idle: int):
         """Update Redis connection metrics."""
-        REDIS_CONNECTIONS.labels(status='active').set(active)
-        REDIS_CONNECTIONS.labels(status='idle').set(idle)
+        REDIS_CONNECTIONS.labels(status="active").set(active)
+        REDIS_CONNECTIONS.labels(status="idle").set(idle)
 
     def update_system_health(self, score: float):
         """Update system health score (0-100)."""
@@ -301,9 +250,7 @@ class MetricsCollector:
 
     def update_service_availability(self, service_name: str, available: bool):
         """Update service availability status."""
-        SERVICE_AVAILABILITY.labels(service_name=service_name).set(
-            1.0 if available else 0.0
-        )
+        SERVICE_AVAILABILITY.labels(service_name=service_name).set(1.0 if available else 0.0)
 
     def calculate_health_score(self) -> float:
         """Calculate overall system health score."""
@@ -371,9 +318,10 @@ def get_metrics_collector() -> MetricsCollector:
 
 def track_request_metrics(func):
     """Decorator to track request metrics."""
+
     @wraps(func)
     async def wrapper(*args, **kwargs):
-        request = kwargs.get('request')
+        request = kwargs.get("request")
         if request:
             method = request.method
             endpoint = request.url.path
@@ -381,13 +329,11 @@ def track_request_metrics(func):
             with collector.track_request(method, endpoint):
                 return await func(*args, **kwargs)
         return await func(*args, **kwargs)
+
     return wrapper
 
 
 async def metrics_endpoint() -> Response:
     """Prometheus metrics endpoint."""
     collector = get_metrics_collector()
-    return Response(
-        content=collector.get_metrics(),
-        media_type=CONTENT_TYPE_LATEST
-    )
+    return Response(content=collector.get_metrics(), media_type=CONTENT_TYPE_LATEST)

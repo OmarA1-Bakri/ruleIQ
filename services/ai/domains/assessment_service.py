@@ -22,9 +22,7 @@ class AssessmentService:
     """Handles assessment-related AI operations."""
 
     def __init__(
-        self,
-        response_generator: ResponseGenerator,
-        context_manager: ContextManager
+        self, response_generator: ResponseGenerator, context_manager: ContextManager
     ) -> None:
         """Initialize the assessment service."""
         self.response_generator = response_generator
@@ -37,7 +35,7 @@ class AssessmentService:
         framework_id: str,
         business_profile_id: UUID,
         section_id: Optional[str] = None,
-        user_context: Optional[Dict[str, Any]] = None
+        user_context: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """
         Provide AI-powered contextual guidance for specific assessment questions.
@@ -55,8 +53,7 @@ class AssessmentService:
         """
         try:
             system_prompt = (
-                f"You are a {framework_id} compliance expert. "
-                "Provide concise, actionable guidance."
+                f"You are a {framework_id} compliance expert. Provide concise, actionable guidance."
             )
             user_prompt = f"""Question: {question_text}
 
@@ -68,22 +65,24 @@ Provide brief, practical guidance in JSON format with 'guidance' and 'confidence
                 self.response_generator.generate_simple(
                     system_prompt=system_prompt,
                     user_prompt=user_prompt,
-                    task_type='help',
-                    context={'framework': framework_id}
+                    task_type="help",
+                    context={"framework": framework_id},
                 ),
-                timeout=2.5
+                timeout=2.5,
             )
 
             response_time = (datetime.now(timezone.utc) - start_time).total_seconds()
 
             structured_response = self._parse_assessment_help_response(response)
-            structured_response.update({
-                'request_id': f"help_{framework_id}_{question_id}_{uuid4().hex[:8]}",
-                'generated_at': datetime.now(timezone.utc).isoformat(),
-                'framework_id': framework_id,
-                'question_id': question_id,
-                'response_time': response_time
-            })
+            structured_response.update(
+                {
+                    "request_id": f"help_{framework_id}_{question_id}_{uuid4().hex[:8]}",
+                    "generated_at": datetime.now(timezone.utc).isoformat(),
+                    "framework_id": framework_id,
+                    "question_id": question_id,
+                    "response_time": response_time,
+                }
+            )
 
             return structured_response
 
@@ -100,7 +99,7 @@ Provide brief, practical guidance in JSON format with 'guidance' and 'confidence
         current_answers: Dict[str, Any],
         framework_id: str,
         business_profile_id: UUID,
-        assessment_context: Optional[Dict[str, Any]] = None
+        assessment_context: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """
         Generate intelligent follow-up questions based on current assessment progress.
@@ -116,19 +115,17 @@ Provide brief, practical guidance in JSON format with 'guidance' and 'confidence
         """
         try:
             context = await self.context_manager.get_conversation_context(
-                conversation_id=uuid4(),
-                business_profile_id=business_profile_id
+                conversation_id=uuid4(), business_profile_id=business_profile_id
             )
 
-            business_profile = context.get('business_profile', {})
+            business_profile = context.get("business_profile", {})
 
             # Build prompt for followup generation
             system_prompt = (
-                f"You are a {framework_id} compliance expert "
-                "generating follow-up questions."
+                f"You are a {framework_id} compliance expert generating follow-up questions."
             )
-            company = business_profile.get('company_name', 'Unknown')
-            industry = business_profile.get('industry', 'Unknown')
+            company = business_profile.get("company_name", "Unknown")
+            industry = business_profile.get("industry", "Unknown")
 
             user_prompt = f"""Based on current answers: {json.dumps(current_answers, indent=2)}
 
@@ -142,16 +139,18 @@ Generate 2-3 relevant follow-up questions in JSON format with
             response = await self.response_generator.generate_simple(
                 system_prompt=system_prompt,
                 user_prompt=user_prompt,
-                task_type='followup',
-                context={'framework': framework_id}
+                task_type="followup",
+                context={"framework": framework_id},
             )
 
             structured_response = self._parse_assessment_followup_response(response)
-            structured_response.update({
-                'request_id': f"followup_{framework_id}_{uuid4().hex[:8]}",
-                'generated_at': datetime.now(timezone.utc).isoformat(),
-                'framework_id': framework_id
-            })
+            structured_response.update(
+                {
+                    "request_id": f"followup_{framework_id}_{uuid4().hex[:8]}",
+                    "generated_at": datetime.now(timezone.utc).isoformat(),
+                    "framework_id": framework_id,
+                }
+            )
 
             return structured_response
 
@@ -160,10 +159,7 @@ Generate 2-3 relevant follow-up questions in JSON format with
             return self._get_fallback_assessment_followup(framework_id)
 
     async def analyze_assessment_results(
-        self,
-        assessment_results: Dict[str, Any],
-        framework_id: str,
-        business_profile_id: UUID
+        self, assessment_results: Dict[str, Any], framework_id: str, business_profile_id: UUID
     ) -> Dict[str, Any]:
         """
         Perform comprehensive AI analysis of assessment results.
@@ -178,24 +174,22 @@ Generate 2-3 relevant follow-up questions in JSON format with
         """
         try:
             context = await self.context_manager.get_conversation_context(
-                conversation_id=uuid4(),
-                business_profile_id=business_profile_id
+                conversation_id=uuid4(), business_profile_id=business_profile_id
             )
 
-            business_profile = context.get('business_profile', {})
+            business_profile = context.get("business_profile", {})
 
             # Build comprehensive analysis prompt
             system_prompt = (
-                f"You are a {framework_id} compliance expert "
-                "analyzing assessment results."
+                f"You are a {framework_id} compliance expert analyzing assessment results."
             )
             user_prompt = f"""Assessment Results:
 {json.dumps(assessment_results, indent=2)}
 
 Business Context:
-- Company: {business_profile.get('company_name', 'Unknown')}
-- Industry: {business_profile.get('industry', 'Unknown')}
-- Size: {business_profile.get('employee_count', 0)} employees
+- Company: {business_profile.get("company_name", "Unknown")}
+- Industry: {business_profile.get("industry", "Unknown")}
+- Size: {business_profile.get("employee_count", 0)} employees
 
 Provide comprehensive analysis in JSON format with:
 - gaps: List of compliance gaps identified
@@ -207,16 +201,18 @@ Provide comprehensive analysis in JSON format with:
             response = await self.response_generator.generate_simple(
                 system_prompt=system_prompt,
                 user_prompt=user_prompt,
-                task_type='analysis',
-                context={'framework': framework_id}
+                task_type="analysis",
+                context={"framework": framework_id},
             )
 
             structured_response = self._parse_assessment_analysis_response(response)
-            structured_response.update({
-                'request_id': f"analysis_{framework_id}_{uuid4().hex[:8]}",
-                'generated_at': datetime.now(timezone.utc).isoformat(),
-                'framework_id': framework_id
-            })
+            structured_response.update(
+                {
+                    "request_id": f"analysis_{framework_id}_{uuid4().hex[:8]}",
+                    "generated_at": datetime.now(timezone.utc).isoformat(),
+                    "framework_id": framework_id,
+                }
+            )
 
             return structured_response
 
@@ -229,7 +225,7 @@ Provide comprehensive analysis in JSON format with:
         assessment_responses: Dict[str, Any],
         framework_id: str,
         business_profile_id: UUID,
-        user_context: Optional[Dict[str, Any]] = None
+        user_context: Optional[Dict[str, Any]] = None,
     ) -> AsyncIterator[str]:
         """
         Stream comprehensive analysis of assessment results.
@@ -245,19 +241,18 @@ Provide comprehensive analysis in JSON format with:
         """
         try:
             context = await self.context_manager.get_conversation_context(
-                conversation_id=uuid4(),
-                business_profile_id=business_profile_id
+                conversation_id=uuid4(), business_profile_id=business_profile_id
             )
 
-            business_profile = context.get('business_profile', {})
+            business_profile = context.get("business_profile", {})
 
             prompt = f"""Analyze assessment results for {framework_id}:
 
 Assessment Data: {json.dumps(assessment_responses, indent=2)}
 
 Business Context:
-- Company: {business_profile.get('company_name', 'Unknown')}
-- Industry: {business_profile.get('industry', 'Unknown')}
+- Company: {business_profile.get("company_name", "Unknown")}
+- Industry: {business_profile.get("industry", "Unknown")}
 
 Provide detailed analysis of compliance gaps, strengths, and recommendations."""
 
@@ -266,8 +261,8 @@ Provide detailed analysis of compliance gaps, strengths, and recommendations."""
             response = await self.response_generator.generate_simple(
                 system_prompt="You are ComplianceGPT, providing comprehensive assessment analysis.",
                 user_prompt=prompt,
-                task_type='analysis',
-                context={'framework': framework_id}
+                task_type="analysis",
+                context={"framework": framework_id},
             )
 
             yield response
@@ -283,7 +278,7 @@ Provide detailed analysis of compliance gaps, strengths, and recommendations."""
         framework_id: str,
         business_profile_id: UUID,
         section_id: Optional[str] = None,
-        user_context: Optional[Dict[str, Any]] = None
+        user_context: Optional[Dict[str, Any]] = None,
     ) -> AsyncIterator[str]:
         """
         Stream contextual guidance for specific assessment questions.
@@ -301,14 +296,13 @@ Provide detailed analysis of compliance gaps, strengths, and recommendations."""
         """
         try:
             context = await self.context_manager.get_conversation_context(
-                conversation_id=uuid4(),
-                business_profile_id=business_profile_id
+                conversation_id=uuid4(), business_profile_id=business_profile_id
             )
 
-            business_profile = context.get('business_profile', {})
+            business_profile = context.get("business_profile", {})
 
-            company = business_profile.get('company_name', 'Unknown')
-            industry = business_profile.get('industry', 'Unknown')
+            company = business_profile.get("company_name", "Unknown")
+            industry = business_profile.get("industry", "Unknown")
 
             prompt = f"""Question: {question_text}
 
@@ -321,8 +315,8 @@ Provide practical guidance for answering this compliance question."""
             response = await self.response_generator.generate_simple(
                 system_prompt="You are ComplianceGPT, providing contextual assessment guidance.",
                 user_prompt=prompt,
-                task_type='help',
-                context={'framework': framework_id}
+                task_type="help",
+                context={"framework": framework_id},
             )
 
             yield response
@@ -336,60 +330,49 @@ Provide practical guidance for answering this compliance question."""
     def _parse_assessment_help_response(self, response: str) -> Dict[str, Any]:
         """Parse AI response for assessment help into structured format."""
         try:
-            if response.strip().startswith('{'):
+            if response.strip().startswith("{"):
                 return json.loads(response)
         except json.JSONDecodeError:
             pass
 
         return {
-            'guidance': response,
-            'confidence_score': 0.8,
-            'related_topics': [],
-            'follow_up_suggestions': [],
-            'source_references': []
+            "guidance": response,
+            "confidence_score": 0.8,
+            "related_topics": [],
+            "follow_up_suggestions": [],
+            "source_references": [],
         }
 
     def _parse_assessment_followup_response(self, response: str) -> Dict[str, Any]:
         """Parse AI response for assessment followup into structured format."""
         try:
-            if response.strip().startswith('{'):
+            if response.strip().startswith("{"):
                 return json.loads(response)
         except json.JSONDecodeError:
             pass
 
-        return {
-            'follow_up_questions': [response],
-            'recommendations': [],
-            'confidence_score': 0.8
-        }
+        return {"follow_up_questions": [response], "recommendations": [], "confidence_score": 0.8}
 
     def _parse_assessment_analysis_response(self, response: str) -> Dict[str, Any]:
         """Parse AI response for assessment analysis into structured format."""
         try:
-            if response.strip().startswith('{'):
+            if response.strip().startswith("{"):
                 return json.loads(response)
         except json.JSONDecodeError:
             pass
 
         return {
-            'gaps': [],
-            'recommendations': [],
-            'risk_assessment': {
-                'level': 'medium',
-                'description': response
-            },
-            'compliance_insights': {
-                'summary': response
-            },
-            'evidence_requirements': []
+            "gaps": [],
+            "recommendations": [],
+            "risk_assessment": {"level": "medium", "description": response},
+            "compliance_insights": {"summary": response},
+            "evidence_requirements": [],
         }
 
     # ============= FALLBACK METHODS =============
 
     def _get_fallback_assessment_help(
-        self,
-        question_text: str,
-        framework_id: str
+        self, question_text: str, framework_id: str
     ) -> Dict[str, Any]:
         """Provide fallback response when AI assessment help fails."""
         guidance_text = (
@@ -399,42 +382,39 @@ Provide practical guidance for answering this compliance question."""
             "consideration of your business context."
         )
         return {
-            'guidance': guidance_text,
-            'confidence_score': 0.5,
-            'related_topics': [framework_id, 'compliance guidance'],
-            'follow_up_suggestions': [
-                'Review framework documentation',
-                'Consult compliance expert'
+            "guidance": guidance_text,
+            "confidence_score": 0.5,
+            "related_topics": [framework_id, "compliance guidance"],
+            "follow_up_suggestions": [
+                "Review framework documentation",
+                "Consult compliance expert",
             ],
-            'source_references': [f"{framework_id} official documentation"],
-            'request_id': f"fallback_help_{framework_id}",
-            'generated_at': datetime.now(timezone.utc).isoformat()
+            "source_references": [f"{framework_id} official documentation"],
+            "request_id": f"fallback_help_{framework_id}",
+            "generated_at": datetime.now(timezone.utc).isoformat(),
         }
 
     def _get_fast_fallback_help(
-        self,
-        question_text: str,
-        framework_id: str,
-        question_id: str
+        self, question_text: str, framework_id: str, question_id: str
     ) -> Dict[str, Any]:
         """Provide fast fallback response when AI times out."""
         framework_guidance = {
-            'gdpr': (
-                'GDPR requires lawful basis for processing personal data. '
-                'Consider data minimization, consent, and individual rights.'
+            "gdpr": (
+                "GDPR requires lawful basis for processing personal data. "
+                "Consider data minimization, consent, and individual rights."
             ),
-            'iso27001': (
-                'ISO 27001 focuses on information security management. '
-                'Implement risk assessment and security controls.'
+            "iso27001": (
+                "ISO 27001 focuses on information security management. "
+                "Implement risk assessment and security controls."
             ),
-            'sox': (
-                'SOX requires internal controls over financial reporting. '
-                'Ensure accurate financial disclosures.'
+            "sox": (
+                "SOX requires internal controls over financial reporting. "
+                "Ensure accurate financial disclosures."
             ),
-            'hipaa': (
-                'HIPAA protects health information. '
-                'Implement safeguards for PHI and business associate agreements.'
-            )
+            "hipaa": (
+                "HIPAA protects health information. "
+                "Implement safeguards for PHI and business associate agreements."
+            ),
         }
 
         default_guidance = (
@@ -445,66 +425,66 @@ Provide practical guidance for answering this compliance question."""
         guidance = framework_guidance.get(framework_id.lower(), default_guidance)
 
         return {
-            'guidance': guidance,
-            'confidence_score': 0.7,
-            'related_topics': [framework_id, 'compliance requirements'],
-            'follow_up_suggestions': [
-                'Review specific requirements',
-                'Consult documentation'
-            ],
-            'source_references': [f"{framework_id} standards"],
-            'request_id': f"fast_fallback_{framework_id}_{question_id}",
-            'generated_at': datetime.now(timezone.utc).isoformat(),
-            'response_time': 0.1
+            "guidance": guidance,
+            "confidence_score": 0.7,
+            "related_topics": [framework_id, "compliance requirements"],
+            "follow_up_suggestions": ["Review specific requirements", "Consult documentation"],
+            "source_references": [f"{framework_id} standards"],
+            "request_id": f"fast_fallback_{framework_id}_{question_id}",
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "response_time": 0.1,
         }
 
     def _get_fallback_assessment_followup(self, framework_id: str) -> Dict[str, Any]:
         """Provide fallback response when AI assessment followup fails."""
         return {
-            'follow_up_questions': [
+            "follow_up_questions": [
                 f"What specific aspects of {framework_id} are you most concerned about?",
                 "Do you have existing policies that might be relevant?",
-                "What is your target timeline for compliance?"
+                "What is your target timeline for compliance?",
             ],
-            'recommendations': [
-                'Review current compliance posture',
-                'Identify key stakeholders',
-                'Establish implementation timeline'
+            "recommendations": [
+                "Review current compliance posture",
+                "Identify key stakeholders",
+                "Establish implementation timeline",
             ],
-            'confidence_score': 0.5,
-            'request_id': f"fallback_followup_{framework_id}",
-            'generated_at': datetime.now(timezone.utc).isoformat()
+            "confidence_score": 0.5,
+            "request_id": f"fallback_followup_{framework_id}",
+            "generated_at": datetime.now(timezone.utc).isoformat(),
         }
 
     def _get_fallback_assessment_analysis(self, framework_id: str) -> Dict[str, Any]:
         """Provide fallback response when AI assessment analysis fails."""
         return {
-            'gaps': [{
-                'id': 'general_gap',
-                'title': 'General Compliance Gap',
-                'description': (
-                    f"Unable to perform detailed analysis for "
-                    f"{framework_id} at this time"
-                ),
-                'severity': 'medium',
-                'category': 'general'
-            }],
-            'recommendations': [{
-                'id': 'general_rec',
-                'title': 'Conduct Manual Review',
-                'description': 'Perform manual compliance assessment with expert guidance',
-                'priority': 'high',
-                'effort_estimate': '2-4 weeks',
-                'impact_score': 0.7
-            }],
-            'risk_assessment': {
-                'level': 'medium',
-                'description': 'Unable to assess specific risks at this time'
+            "gaps": [
+                {
+                    "id": "general_gap",
+                    "title": "General Compliance Gap",
+                    "description": (
+                        f"Unable to perform detailed analysis for {framework_id} at this time"
+                    ),
+                    "severity": "medium",
+                    "category": "general",
+                }
+            ],
+            "recommendations": [
+                {
+                    "id": "general_rec",
+                    "title": "Conduct Manual Review",
+                    "description": "Perform manual compliance assessment with expert guidance",
+                    "priority": "high",
+                    "effort_estimate": "2-4 weeks",
+                    "impact_score": 0.7,
+                }
+            ],
+            "risk_assessment": {
+                "level": "medium",
+                "description": "Unable to assess specific risks at this time",
             },
-            'compliance_insights': {
-                'summary': f"Manual review recommended for {framework_id} compliance"
+            "compliance_insights": {
+                "summary": f"Manual review recommended for {framework_id} compliance"
             },
-            'evidence_requirements': [],
-            'request_id': f"fallback_analysis_{framework_id}",
-            'generated_at': datetime.now(timezone.utc).isoformat()
+            "evidence_requirements": [],
+            "request_id": f"fallback_analysis_{framework_id}",
+            "generated_at": datetime.now(timezone.utc).isoformat(),
         }

@@ -4,6 +4,7 @@ Integration tests for database dependency injection system
 Tests the complete integration of database providers, dependencies,
 health monitoring, and FastAPI application lifecycle.
 """
+
 import pytest
 import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -20,7 +21,7 @@ from database.dependencies import (
     get_postgres_provider,
     get_neo4j_provider,
     get_database_health,
-    lifespan
+    lifespan,
 )
 from database.health import DatabaseHealthMonitor, PostgreSQLHealthMonitor, Neo4jHealthMonitor
 
@@ -40,10 +41,7 @@ class TestDatabaseIntegration:
         postgres_provider.close.return_value = None
         neo4j_provider.close.return_value = None
 
-        return {
-            "postgres": postgres_provider,
-            "neo4j": neo4j_provider
-        }
+        return {"postgres": postgres_provider, "neo4j": neo4j_provider}
 
     @pytest.fixture
     async def container(self, mock_providers):
@@ -102,20 +100,17 @@ class TestDatabaseIntegration:
     async def test_health_monitoring_integration(self, container):
         """Test integrated health monitoring."""
         # Mock health check responses
-        with patch.object(PostgreSQLHealthMonitor, 'check_health') as mock_postgres_health, \
-             patch.object(Neo4jHealthMonitor, 'check_health') as mock_neo4j_health:
-
+        with (
+            patch.object(PostgreSQLHealthMonitor, "check_health") as mock_postgres_health,
+            patch.object(Neo4jHealthMonitor, "check_health") as mock_neo4j_health,
+        ):
             from database.health import HealthMetrics, HealthStatus
 
             postgres_metrics = HealthMetrics(
-                status=HealthStatus.HEALTHY,
-                response_time=0.1,
-                details={"connections": 5}
+                status=HealthStatus.HEALTHY, response_time=0.1, details={"connections": 5}
             )
             neo4j_metrics = HealthMetrics(
-                status=HealthStatus.HEALTHY,
-                response_time=0.05,
-                details={"nodes": 1000}
+                status=HealthStatus.HEALTHY, response_time=0.05, details={"nodes": 1000}
             )
 
             mock_postgres_health.return_value = postgres_metrics
@@ -132,12 +127,16 @@ class TestDatabaseIntegration:
     async def test_system_health_summary(self, container):
         """Test system-wide health summary."""
         # Mock health monitors
-        with patch.object(DatabaseHealthMonitor, 'check_health') as mock_check:
+        with patch.object(DatabaseHealthMonitor, "check_health") as mock_check:
             from database.health import HealthMetrics, HealthStatus
 
             mock_check.return_value = [
-                HealthMetrics(status=HealthStatus.HEALTHY, response_time=0.1, details={"service": "postgres"}),
-                HealthMetrics(status=HealthStatus.HEALTHY, response_time=0.05, details={"service": "neo4j"})
+                HealthMetrics(
+                    status=HealthStatus.HEALTHY, response_time=0.1, details={"service": "postgres"}
+                ),
+                HealthMetrics(
+                    status=HealthStatus.HEALTHY, response_time=0.05, details={"service": "neo4j"}
+                ),
             ]
 
             db_monitor = DatabaseHealthMonitor()
@@ -173,13 +172,13 @@ class TestFastAPIIntegration:
         app = FastAPI(lifespan=lifespan)
 
         @app.get("/test-postgres")
-        async def test_postgres_endpoint(postgres = get_postgres_provider):
+        async def test_postgres_endpoint(postgres=get_postgres_provider):
             """Test endpoint using PostgreSQL provider."""
             result = await postgres.execute_query("SELECT 1")
             return {"result": result}
 
         @app.get("/test-neo4j")
-        async def test_neo4j_endpoint(neo4j = get_neo4j_provider):
+        async def test_neo4j_endpoint(neo4j=get_neo4j_provider):
             """Test endpoint using Neo4j provider."""
             result = await neo4j.execute_query("MATCH (n) RETURN count(n)")
             return {"result": result}
@@ -201,9 +200,10 @@ class TestFastAPIIntegration:
     async def test_fastapi_lifespan_integration(self, app):
         """Test FastAPI lifespan integration."""
         # Mock the dependency initialization
-        with patch('database.dependencies.initialize_global_container') as mock_init, \
-             patch('database.dependencies.close_global_container') as mock_close:
-
+        with (
+            patch("database.dependencies.initialize_global_container") as mock_init,
+            patch("database.dependencies.close_global_container") as mock_close,
+        ):
             # Test startup
             async with lifespan():
                 pass
@@ -229,13 +229,13 @@ class TestFastAPIIntegration:
     @pytest.mark.asyncio
     async def test_health_endpoint_integration(self):
         """Test health endpoint with mocked services."""
-        with patch('database.dependencies.get_container') as mock_get_container:
+        with patch("database.dependencies.get_container") as mock_get_container:
             mock_container = AsyncMock()
             mock_health_data = {
                 "status": "healthy",
                 "response_time": 0.1,
                 "timestamp": 1234567890.0,
-                "details": {"connections": 5}
+                "details": {"connections": 5},
             }
             mock_container.get_health_status.return_value = mock_health_data
             mock_get_container.return_value = mock_container
@@ -257,7 +257,7 @@ class TestBackwardCompatibility:
     async def test_legacy_get_db_compatibility(self):
         """Test that legacy get_db function still works."""
         # This would test integration with existing database/db_setup.py functions
-        with patch('database.db_setup.get_db_session') as mock_get_db:
+        with patch("database.db_setup.get_db_session") as mock_get_db:
             mock_session = MagicMock()
             mock_get_db.return_value.__enter__.return_value = mock_session
             mock_get_db.return_value.__exit__.return_value = None
@@ -271,7 +271,7 @@ class TestBackwardCompatibility:
     @pytest.mark.asyncio
     async def test_async_db_compatibility(self):
         """Test compatibility with existing async database functions."""
-        with patch('database.db_setup.get_async_db') as mock_get_async_db:
+        with patch("database.db_setup.get_async_db") as mock_get_async_db:
             mock_session = AsyncMock()
             mock_get_async_db.return_value.__aenter__.return_value = mock_session
             mock_get_async_db.return_value.__aexit__.return_value = None
@@ -312,7 +312,7 @@ class TestErrorHandlingIntegration:
     @pytest.mark.asyncio
     async def test_dependency_error_handling(self):
         """Test dependency injection error handling."""
-        with patch('database.dependencies.get_container') as mock_get_container:
+        with patch("database.dependencies.get_container") as mock_get_container:
             mock_container = AsyncMock()
             mock_container.get_provider.side_effect = ValueError("Provider not available")
             mock_get_container.return_value = mock_container
@@ -340,6 +340,7 @@ class TestPerformanceIntegration:
 
         # Simulate multiple concurrent queries
         import asyncio
+
         tasks = []
         for i in range(10):
             task = provider.execute_query(f"SELECT {i}")
@@ -361,15 +362,15 @@ class TestPerformanceIntegration:
         for i in range(5):
             mock_monitor = AsyncMock()
             from database.health import HealthMetrics, HealthStatus
+
             mock_monitor.check_health.return_value = HealthMetrics(
-                status=HealthStatus.HEALTHY,
-                response_time=0.05,
-                details={"service": f"service_{i}"}
+                status=HealthStatus.HEALTHY, response_time=0.05, details={"service": f"service_{i}"}
             )
             await container.register_health_monitor(f"service_{i}", mock_monitor)
 
         # Perform health checks concurrently
         import asyncio
+
         tasks = []
         for i in range(5):
             task = container.get_health_status(f"service_{i}")
@@ -387,12 +388,15 @@ class TestConfigurationIntegration:
 
     def test_environment_variable_integration(self):
         """Test that environment variables are properly used."""
-        with patch.dict('os.environ', {
-            'DATABASE_URL': 'postgresql://test:test@localhost:5432/testdb',
-            'NEO4J_URI': 'neo4j+s://test.databases.neo4j.io',
-            'NEO4J_USERNAME': 'testuser',
-            'NEO4J_PASSWORD': 'testpass'
-        }):
+        with patch.dict(
+            "os.environ",
+            {
+                "DATABASE_URL": "postgresql://test:test@localhost:5432/testdb",
+                "NEO4J_URI": "neo4j+s://test.databases.neo4j.io",
+                "NEO4J_USERNAME": "testuser",
+                "NEO4J_PASSWORD": "testpass",
+            },
+        ):
             # Test that providers can be created with env vars
             # This would normally test the actual provider instantiation
             pass
@@ -400,11 +404,13 @@ class TestConfigurationIntegration:
     @pytest.mark.asyncio
     async def test_connection_pool_config_integration(self):
         """Test integration with connection pool configuration."""
-        with patch('config.database_pool_config.ConnectionPoolConfig.get_pool_settings') as mock_pool_config:
+        with patch(
+            "config.database_pool_config.ConnectionPoolConfig.get_pool_settings"
+        ) as mock_pool_config:
             mock_pool_config.return_value = {
-                'pool_size': 10,
-                'max_overflow': 20,
-                'pool_timeout': 30
+                "pool_size": 10,
+                "max_overflow": 20,
+                "pool_timeout": 30,
             }
 
             # This would test that pool config is used during provider initialization
@@ -423,7 +429,7 @@ class TestMigrationPath:
 
         # This would test that existing code continues to work
         # during the migration period
-        with patch('database.db_setup.get_async_db') as mock_legacy_db:
+        with patch("database.db_setup.get_async_db") as mock_legacy_db:
             mock_session = AsyncMock()
             mock_legacy_db.return_value.__aenter__.return_value = mock_session
 
@@ -440,9 +446,10 @@ class TestMigrationPath:
         # Test that both legacy and new dependency injection
         # can be used simultaneously during migration
 
-        with patch('database.db_setup.get_async_db') as mock_legacy, \
-             patch('database.dependencies.get_container') as mock_new:
-
+        with (
+            patch("database.db_setup.get_async_db") as mock_legacy,
+            patch("database.dependencies.get_container") as mock_new,
+        ):
             mock_legacy_session = AsyncMock()
             mock_new_container = AsyncMock()
 
@@ -460,4 +467,3 @@ class TestMigrationPath:
             # New usage
             container = await get_container()
             assert container == mock_new_container
-</edit_file>

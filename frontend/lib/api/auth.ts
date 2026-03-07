@@ -110,7 +110,7 @@ class AuthAPIClient {
           method: 'POST',
           headers: this.getAuthHeaders(),
         });
-      } catch (error) {
+      } catch (_error) {
         // Ignore logout errors
       }
     }

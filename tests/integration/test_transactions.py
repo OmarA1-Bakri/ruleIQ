@@ -28,7 +28,7 @@ class TestTransactionIsolation:
             email="isolation@test.com",
             full_name="Isolation Test",
             hashed_password=get_password_hash("Password123!"),
-            is_active=True
+            is_active=True,
         )
         integration_db_session.add(user)
         integration_db_session.commit()
@@ -62,11 +62,7 @@ class TestTransactionIsolation:
         from database import BusinessProfile
 
         # Create a business profile
-        profile = BusinessProfile(
-            user_id=1,
-            company_name="Test Company",
-            employee_count="50-100"
-        )
+        profile = BusinessProfile(user_id=1, company_name="Test Company", employee_count="50-100")
         integration_db_session.add(profile)
         integration_db_session.commit()
         profile_id = profile.id
@@ -115,11 +111,7 @@ class TestTransactionIsolation:
             count1 = session1.query(ComplianceFramework).count()
 
             # Session2: Add new framework
-            framework = ComplianceFramework(
-                name="New Framework",
-                description="Test",
-                version="1.0"
-            )
+            framework = ComplianceFramework(name="New Framework", description="Test", version="1.0")
             session2.add(framework)
             session2.commit()
 
@@ -151,18 +143,14 @@ class TestTransactionRollback:
 
         try:
             # Add valid user
-            user1 = User(
-                email="valid@test.com",
-                full_name="Valid User",
-                hashed_password="hash"
-            )
+            user1 = User(email="valid@test.com", full_name="Valid User", hashed_password="hash")
             integration_db_session.add(user1)
 
             # Add invalid user (duplicate email)
             user2 = User(
                 email="valid@test.com",  # Duplicate
                 full_name="Another User",
-                hashed_password="hash"
+                hashed_password="hash",
             )
             integration_db_session.add(user2)
 
@@ -185,11 +173,7 @@ class TestTransactionRollback:
         from database import User, BusinessProfile
 
         # Create user
-        user = User(
-            email="savepoint@test.com",
-            full_name="Savepoint User",
-            hashed_password="hash"
-        )
+        user = User(email="savepoint@test.com", full_name="Savepoint User", hashed_password="hash")
         integration_db_session.add(user)
         integration_db_session.commit()
 
@@ -198,10 +182,7 @@ class TestTransactionRollback:
 
         try:
             # Add business profile
-            profile = BusinessProfile(
-                user_id=user.id,
-                company_name="Test Company"
-            )
+            profile = BusinessProfile(user_id=user.id, company_name="Test Company")
             integration_db_session.add(profile)
 
             # Force an error
@@ -215,7 +196,9 @@ class TestTransactionRollback:
         assert integration_db_session.query(User).filter_by(id=user.id).first() is not None
 
         # Profile should not exist
-        assert integration_db_session.query(BusinessProfile).filter_by(user_id=user.id).first() is None
+        assert (
+            integration_db_session.query(BusinessProfile).filter_by(user_id=user.id).first() is None
+        )
 
     def test_nested_transaction_rollback(self, integration_db_session):
         """Test nested transaction rollback behavior."""
@@ -224,11 +207,7 @@ class TestTransactionRollback:
         # Start outer transaction (already in progress via fixture)
 
         # Add framework
-        framework = ComplianceFramework(
-            name="Outer Framework",
-            description="Test",
-            version="1.0"
-        )
+        framework = ComplianceFramework(name="Outer Framework", description="Test", version="1.0")
         integration_db_session.add(framework)
         integration_db_session.flush()
 
@@ -237,11 +216,7 @@ class TestTransactionRollback:
 
         try:
             # Add assessment
-            assessment = AssessmentSession(
-                user_id=1,
-                framework_id=framework.id,
-                status="draft"
-            )
+            assessment = AssessmentSession(user_id=1, framework_id=framework.id, status="draft")
             integration_db_session.add(assessment)
             integration_db_session.flush()
 
@@ -255,9 +230,11 @@ class TestTransactionRollback:
         assert framework in integration_db_session
 
         # Assessment should not be in session
-        assessments = integration_db_session.query(AssessmentSession).filter_by(
-            framework_id=framework.id
-        ).all()
+        assessments = (
+            integration_db_session.query(AssessmentSession)
+            .filter_by(framework_id=framework.id)
+            .all()
+        )
         assert len(assessments) == 0
 
 
@@ -273,7 +250,7 @@ class TestDataIntegrity:
         # Try to create profile with non-existent user_id
         profile = BusinessProfile(
             user_id=99999,  # Non-existent
-            company_name="Orphan Company"
+            company_name="Orphan Company",
         )
         integration_db_session.add(profile)
 
@@ -287,18 +264,11 @@ class TestDataIntegrity:
         from database import User, BusinessProfile, AssessmentSession
 
         # Create user with related data
-        user = User(
-            email="cascade@test.com",
-            full_name="Cascade User",
-            hashed_password="hash"
-        )
+        user = User(email="cascade@test.com", full_name="Cascade User", hashed_password="hash")
         integration_db_session.add(user)
         integration_db_session.commit()
 
-        profile = BusinessProfile(
-            user_id=user.id,
-            company_name="Cascade Company"
-        )
+        profile = BusinessProfile(user_id=user.id, company_name="Cascade Company")
         integration_db_session.add(profile)
         integration_db_session.commit()
 
@@ -307,9 +277,9 @@ class TestDataIntegrity:
         integration_db_session.commit()
 
         # Check if profile was deleted
-        remaining_profile = integration_db_session.query(BusinessProfile).filter_by(
-            user_id=user.id
-        ).first()
+        remaining_profile = (
+            integration_db_session.query(BusinessProfile).filter_by(user_id=user.id).first()
+        )
 
         # Behavior depends on cascade configuration
         # If CASCADE is set, profile should be None
@@ -320,11 +290,7 @@ class TestDataIntegrity:
         from database import User
 
         # Create user
-        user1 = User(
-            email="unique@test.com",
-            full_name="User 1",
-            hashed_password="hash"
-        )
+        user1 = User(email="unique@test.com", full_name="User 1", hashed_password="hash")
         integration_db_session.add(user1)
         integration_db_session.commit()
 
@@ -332,7 +298,7 @@ class TestDataIntegrity:
         user2 = User(
             email="unique@test.com",  # Duplicate
             full_name="User 2",
-            hashed_password="hash"
+            hashed_password="hash",
         )
         integration_db_session.add(user2)
 
@@ -349,7 +315,7 @@ class TestDataIntegrity:
         profile = BusinessProfile(
             user_id=1,
             company_name="",  # Empty name (if check constraint exists)
-            employee_count="invalid"  # Invalid enum value
+            employee_count="invalid",  # Invalid enum value
         )
 
         # This might raise an error depending on constraints
@@ -378,7 +344,7 @@ class TestConcurrentTransactions:
                 user = User(
                     email=email,
                     full_name=f"User {email}",
-                    hashed_password=get_password_hash("Password123!")
+                    hashed_password=get_password_hash("Password123!"),
                 )
                 session.add(user)
                 session.commit()
@@ -408,9 +374,7 @@ class TestConcurrentTransactions:
 
         # Verify all users were created
         session = Session()
-        count = session.query(User).filter(
-            User.email.like("parallel%@test.com")
-        ).count()
+        count = session.query(User).filter(User.email.like("parallel%@test.com")).count()
         session.close()
         assert count == 10
 
@@ -473,18 +437,12 @@ class TestAsyncTransactions:
         from database import User
 
         # Get initial count
-        result = await async_integration_db_session.execute(
-            text("SELECT COUNT(*) FROM users")
-        )
+        result = await async_integration_db_session.execute(text("SELECT COUNT(*) FROM users"))
         initial_count = result.scalar()
 
         try:
             # Add user
-            user = User(
-                email="async@test.com",
-                full_name="Async User",
-                hashed_password="hash"
-            )
+            user = User(email="async@test.com", full_name="Async User", hashed_password="hash")
             async_integration_db_session.add(user)
 
             # Force an error before commit
@@ -495,9 +453,7 @@ class TestAsyncTransactions:
             pass
 
         # Count should be unchanged after fixture cleanup
-        result = await async_integration_db_session.execute(
-            text("SELECT COUNT(*) FROM users")
-        )
+        result = await async_integration_db_session.execute(text("SELECT COUNT(*) FROM users"))
         final_count = result.scalar()
         assert final_count == initial_count
 
@@ -508,9 +464,7 @@ class TestAsyncTransactions:
         # Create test users
         for i in range(5):
             user = User(
-                email=f"async{i}@test.com",
-                full_name=f"Async User {i}",
-                hashed_password="hash"
+                email=f"async{i}@test.com", full_name=f"Async User {i}", hashed_password="hash"
             )
             async_integration_db_session.add(user)
 
@@ -519,16 +473,12 @@ class TestAsyncTransactions:
         # Run concurrent queries
         async def query_user(email):
             result = await async_integration_db_session.execute(
-                text("SELECT * FROM users WHERE email = :email"),
-                {"email": email}
+                text("SELECT * FROM users WHERE email = :email"), {"email": email}
             )
             return result.first()
 
         # Execute queries concurrently
-        tasks = [
-            query_user(f"async{i}@test.com")
-            for i in range(5)
-        ]
+        tasks = [query_user(f"async{i}@test.com") for i in range(5)]
 
         results = await asyncio.gather(*tasks)
 
@@ -542,8 +492,8 @@ class TestAsyncTransactions:
 
         # Create async engine
         db_url = str(test_db_engine.url)
-        if '+asyncpg' not in db_url:
-            db_url = db_url.replace('postgresql://', 'postgresql+asyncpg://')
+        if "+asyncpg" not in db_url:
+            db_url = db_url.replace("postgresql://", "postgresql+asyncpg://")
 
         async_engine = create_async_engine(db_url)
 
@@ -552,17 +502,14 @@ class TestAsyncTransactions:
             async with AsyncSession(async_engine) as session2:
                 # Session1: Start transaction and insert
                 async with session1.begin():
-                    profile1 = BusinessProfile(
-                        user_id=1,
-                        company_name="Async Company 1"
-                    )
+                    profile1 = BusinessProfile(user_id=1, company_name="Async Company 1")
                     session1.add(profile1)
                     await session1.flush()
 
                     # Session2: Should not see uncommitted data
                     result = await session2.execute(
                         text("SELECT COUNT(*) FROM business_profiles WHERE company_name = :name"),
-                        {"name": "Async Company 1"}
+                        {"name": "Async Company 1"},
                     )
                     count = result.scalar()
 
@@ -583,9 +530,7 @@ class TestBulkOperations:
 
         frameworks = [
             ComplianceFramework(
-                name=f"Framework {i}",
-                description=f"Description {i}",
-                version="1.0"
+                name=f"Framework {i}", description=f"Description {i}", version="1.0"
             )
             for i in range(100)
         ]
@@ -595,9 +540,11 @@ class TestBulkOperations:
         integration_db_session.commit()
 
         # Verify all were inserted
-        count = integration_db_session.query(ComplianceFramework).filter(
-            ComplianceFramework.name.like("Framework %")
-        ).count()
+        count = (
+            integration_db_session.query(ComplianceFramework)
+            .filter(ComplianceFramework.name.like("Framework %"))
+            .count()
+        )
         assert count == 100
 
     def test_bulk_update_transaction(self, integration_db_session):
@@ -611,7 +558,7 @@ class TestBulkOperations:
                 email=f"bulk{i}@test.com",
                 full_name=f"Bulk User {i}",
                 hashed_password="hash",
-                is_active=False
+                is_active=False,
             )
             users.append(user)
 
@@ -619,19 +566,17 @@ class TestBulkOperations:
         integration_db_session.commit()
 
         # Bulk update
-        integration_db_session.query(User).filter(
-            User.email.like("bulk%@test.com")
-        ).update(
-            {"is_active": True},
-            synchronize_session=False
+        integration_db_session.query(User).filter(User.email.like("bulk%@test.com")).update(
+            {"is_active": True}, synchronize_session=False
         )
         integration_db_session.commit()
 
         # Verify all were updated
-        active_count = integration_db_session.query(User).filter(
-            User.email.like("bulk%@test.com"),
-            User.is_active
-        ).count()
+        active_count = (
+            integration_db_session.query(User)
+            .filter(User.email.like("bulk%@test.com"), User.is_active)
+            .count()
+        )
         assert active_count == 50
 
     def test_bulk_operation_rollback(self, integration_db_session):
@@ -642,12 +587,7 @@ class TestBulkOperations:
 
         # Start bulk insert
         assessments = [
-            AssessmentSession(
-                user_id=1,
-                framework_id=1,
-                status="draft"
-            )
-            for _ in range(20)
+            AssessmentSession(user_id=1, framework_id=1, status="draft") for _ in range(20)
         ]
 
         integration_db_session.bulk_save_objects(assessments)

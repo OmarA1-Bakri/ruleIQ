@@ -12,13 +12,11 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from database.db_setup import get_db_session
-from services.feature_flag_service import (
-    get_feature_flag_service
-)
+from services.feature_flag_service import get_feature_flag_service
 from models.feature_flags import (
     FeatureFlag as FeatureFlagModel,
     FeatureFlagAudit,
-    FeatureFlagStatus
+    FeatureFlagStatus,
 )
 from middleware.jwt_auth_v2 import jwt_required
 
@@ -27,21 +25,26 @@ from middleware.jwt_auth_v2 import jwt_required
 router = APIRouter(
     prefix="/api/v1/feature-flags",
     tags=["feature-flags"],
-    responses={404: {"description": "Not found"}}
+    responses={404: {"description": "Not found"}},
 )
 
 
 # Request/Response Models
 class FeatureFlagCreateRequest(BaseModel):
     """Request model for creating a feature flag"""
+
     name: str = Field(..., description="Unique name of the feature flag")
     description: Optional[str] = Field(None, description="Description of the feature flag")
     enabled: bool = Field(False, description="Whether the flag is enabled")
     percentage: float = Field(0.0, ge=0.0, le=100.0, description="Percentage rollout (0-100)")
     whitelist: List[str] = Field(default_factory=list, description="User IDs to always enable")
     blacklist: List[str] = Field(default_factory=list, description="User IDs to always disable")
-    environment_overrides: Dict[str, bool] = Field(default_factory=dict, description="Environment-specific overrides")
-    environments: List[str] = Field(default_factory=lambda: ["development"], description="Allowed environments")
+    environment_overrides: Dict[str, bool] = Field(
+        default_factory=dict, description="Environment-specific overrides"
+    )
+    environments: List[str] = Field(
+        default_factory=lambda: ["development"], description="Allowed environments"
+    )
     expires_at: Optional[datetime] = Field(None, description="Expiration time")
     starts_at: Optional[datetime] = Field(None, description="Start time")
     tags: List[str] = Field(default_factory=list, description="Tags for categorization")
@@ -50,6 +53,7 @@ class FeatureFlagCreateRequest(BaseModel):
 
 class FeatureFlagUpdateRequest(BaseModel):
     """Request model for updating a feature flag"""
+
     description: Optional[str] = None
     enabled: Optional[bool] = None
     percentage: Optional[float] = Field(None, ge=0.0, le=100.0)
@@ -66,6 +70,7 @@ class FeatureFlagUpdateRequest(BaseModel):
 
 class FeatureFlagResponse(BaseModel):
     """Response model for feature flag"""
+
     id: UUID
     name: str
     description: Optional[str]
@@ -89,6 +94,7 @@ class FeatureFlagResponse(BaseModel):
 
 class FeatureFlagEvaluationRequest(BaseModel):
     """Request model for evaluating a feature flag"""
+
     user_id: Optional[str] = Field(None, description="User ID for evaluation")
     environment: str = Field("production", description="Environment for evaluation")
     context: Optional[Dict[str, Any]] = Field(None, description="Additional context for evaluation")
@@ -96,6 +102,7 @@ class FeatureFlagEvaluationRequest(BaseModel):
 
 class FeatureFlagEvaluationResponse(BaseModel):
     """Response model for feature flag evaluation"""
+
     flag_name: str
     enabled: bool
     reason: str
@@ -106,6 +113,7 @@ class FeatureFlagEvaluationResponse(BaseModel):
 
 class FeatureFlagBulkEvaluationRequest(BaseModel):
     """Request model for evaluating multiple feature flags"""
+
     flag_names: List[str] = Field(..., description="List of flag names to evaluate")
     user_id: Optional[str] = Field(None, description="User ID for evaluation")
     environment: str = Field("production", description="Environment for evaluation")
@@ -113,6 +121,7 @@ class FeatureFlagBulkEvaluationRequest(BaseModel):
 
 class FeatureFlagBulkEvaluationResponse(BaseModel):
     """Response model for bulk feature flag evaluation"""
+
     evaluations: Dict[str, bool]
     reasons: Dict[str, str]
     total_time_ms: float
@@ -126,7 +135,7 @@ async def list_feature_flags(
     enabled: Optional[bool] = Query(None, description="Filter by enabled status"),
     skip: int = Query(0, ge=0, description="Number of items to skip"),
     limit: int = Query(100, ge=1, le=1000, description="Number of items to return"),
-    db: Session = Depends(get_db_session)
+    db: Session = Depends(get_db_session),
 ):
     """
     List all feature flags with optional filtering
@@ -136,14 +145,10 @@ async def list_feature_flags(
 
         # Apply filters
         if environment:
-            query = query.filter(
-                FeatureFlagModel.environments.contains([environment])
-            )
+            query = query.filter(FeatureFlagModel.environments.contains([environment]))
 
         if tag:
-            query = query.filter(
-                FeatureFlagModel.tags.contains([tag])
-            )
+            query = query.filter(FeatureFlagModel.tags.contains([tag]))
 
         if enabled is not None:
             query = query.filter(FeatureFlagModel.enabled == enabled)
@@ -155,27 +160,29 @@ async def list_feature_flags(
         # Convert to response models
         response = []
         for flag in flags:
-            response.append(FeatureFlagResponse(
-                id=flag.id,
-                name=flag.name,
-                description=flag.description,
-                enabled=flag.enabled,
-                status=flag.status or FeatureFlagStatus.DISABLED.value,
-                percentage=flag.percentage,
-                whitelist=flag.whitelist or [],
-                blacklist=flag.blacklist or [],
-                environment_overrides=flag.environment_overrides or {},
-                environments=flag.environments or [],
-                expires_at=flag.expires_at,
-                starts_at=flag.starts_at,
-                tags=flag.tags or [],
-                metadata=flag.metadata or {},
-                version=flag.version,
-                created_at=flag.created_at,
-                updated_at=flag.updated_at,
-                created_by=flag.created_by,
-                updated_by=flag.updated_by
-            ))
+            response.append(
+                FeatureFlagResponse(
+                    id=flag.id,
+                    name=flag.name,
+                    description=flag.description,
+                    enabled=flag.enabled,
+                    status=flag.status or FeatureFlagStatus.DISABLED.value,
+                    percentage=flag.percentage,
+                    whitelist=flag.whitelist or [],
+                    blacklist=flag.blacklist or [],
+                    environment_overrides=flag.environment_overrides or {},
+                    environments=flag.environments or [],
+                    expires_at=flag.expires_at,
+                    starts_at=flag.starts_at,
+                    tags=flag.tags or [],
+                    metadata=flag.metadata or {},
+                    version=flag.version,
+                    created_at=flag.created_at,
+                    updated_at=flag.updated_at,
+                    created_by=flag.created_by,
+                    updated_by=flag.updated_by,
+                )
+            )
 
         return response
 
@@ -184,10 +191,7 @@ async def list_feature_flags(
 
 
 @router.get("/{flag_name}", response_model=FeatureFlagResponse)
-async def get_feature_flag(
-    flag_name: str,
-    db: Session = Depends(get_db_session)
-):
+async def get_feature_flag(flag_name: str, db: Session = Depends(get_db_session)):
     """
     Get a specific feature flag by name
     """
@@ -216,7 +220,7 @@ async def get_feature_flag(
             created_at=flag.created_at,
             updated_at=flag.updated_at,
             created_by=flag.created_by,
-            updated_by=flag.updated_by
+            updated_by=flag.updated_by,
         )
 
     except HTTPException:
@@ -228,9 +232,7 @@ async def get_feature_flag(
 @router.post("/", response_model=FeatureFlagResponse, status_code=201)
 @jwt_required
 async def create_feature_flag(
-    request: Request,
-    flag_request: FeatureFlagCreateRequest,
-    db: Session = Depends(get_db_session)
+    request: Request, flag_request: FeatureFlagCreateRequest, db: Session = Depends(get_db_session)
 ):
     """
     Create a new feature flag
@@ -244,14 +246,18 @@ async def create_feature_flag(
         # Check if flag already exists
         existing = db.query(FeatureFlagModel).filter_by(name=flag_request.name).first()
         if existing:
-            raise HTTPException(status_code=409, detail=f"Feature flag '{flag_request.name}' already exists")
+            raise HTTPException(
+                status_code=409, detail=f"Feature flag '{flag_request.name}' already exists"
+            )
 
         # Create new flag
         flag = FeatureFlagModel(
             name=flag_request.name,
             description=flag_request.description,
             enabled=flag_request.enabled,
-            status=FeatureFlagStatus.ENABLED.value if flag_request.enabled else FeatureFlagStatus.DISABLED.value,
+            status=FeatureFlagStatus.ENABLED.value
+            if flag_request.enabled
+            else FeatureFlagStatus.DISABLED.value,
             percentage=flag_request.percentage,
             whitelist=flag_request.whitelist,
             blacklist=flag_request.blacklist,
@@ -262,7 +268,7 @@ async def create_feature_flag(
             tags=flag_request.tags,
             metadata=flag_request.metadata,
             created_by=user_id,
-            updated_by=user_id
+            updated_by=user_id,
         )
 
         db.add(flag)
@@ -273,7 +279,7 @@ async def create_feature_flag(
             action="created",
             new_state=flag_request.dict(),
             user_id=user_id,
-            reason="Initial creation"
+            reason="Initial creation",
         )
         db.add(audit)
 
@@ -303,7 +309,7 @@ async def create_feature_flag(
             created_at=flag.created_at,
             updated_at=flag.updated_at,
             created_by=flag.created_by,
-            updated_by=flag.updated_by
+            updated_by=flag.updated_by,
         )
 
     except HTTPException:
@@ -319,7 +325,7 @@ async def update_feature_flag(
     request: Request,
     flag_name: str,
     flag_update: FeatureFlagUpdateRequest,
-    db: Session = Depends(get_db_session)
+    db: Session = Depends(get_db_session),
 ):
     """
     Update an existing feature flag
@@ -355,7 +361,11 @@ async def update_feature_flag(
 
         # Update status based on enabled state
         if "enabled" in update_data:
-            flag.status = FeatureFlagStatus.ENABLED.value if flag.enabled else FeatureFlagStatus.DISABLED.value
+            flag.status = (
+                FeatureFlagStatus.ENABLED.value
+                if flag.enabled
+                else FeatureFlagStatus.DISABLED.value
+            )
 
         # Update metadata
         flag.updated_at = datetime.utcnow()
@@ -370,7 +380,7 @@ async def update_feature_flag(
             new_state=update_data,
             changes=update_data,
             user_id=user_id,
-            reason=flag_update.reason or "Manual update via API"
+            reason=flag_update.reason or "Manual update via API",
         )
         db.add(audit)
 
@@ -400,7 +410,7 @@ async def update_feature_flag(
             created_at=flag.created_at,
             updated_at=flag.updated_at,
             created_by=flag.created_by,
-            updated_by=flag.updated_by
+            updated_by=flag.updated_by,
         )
 
     except HTTPException:
@@ -413,9 +423,7 @@ async def update_feature_flag(
 @router.delete("/{flag_name}", status_code=204)
 @jwt_required
 async def delete_feature_flag(
-    request: Request,
-    flag_name: str,
-    db: Session = Depends(get_db_session)
+    request: Request, flag_name: str, db: Session = Depends(get_db_session)
 ):
     """
     Delete a feature flag
@@ -441,7 +449,7 @@ async def delete_feature_flag(
                 "percentage": flag.percentage,
             },
             user_id=user_id,
-            reason="Deleted via API"
+            reason="Deleted via API",
         )
         db.add(audit)
 
@@ -463,16 +471,14 @@ async def delete_feature_flag(
 
 
 @router.post("/{flag_name}/evaluate", response_model=FeatureFlagEvaluationResponse)
-async def evaluate_feature_flag(
-    flag_name: str,
-    evaluation_request: FeatureFlagEvaluationRequest
-):
+async def evaluate_feature_flag(flag_name: str, evaluation_request: FeatureFlagEvaluationRequest):
     """
     Evaluate a feature flag for a specific user and context
     Does not require authentication for public evaluation
     """
     try:
         import time
+
         start_time = time.perf_counter()
 
         service = get_feature_flag_service()
@@ -481,7 +487,7 @@ async def evaluate_feature_flag(
             flag_name=flag_name,
             user_id=evaluation_request.user_id,
             environment=evaluation_request.environment,
-            context=evaluation_request.context
+            context=evaluation_request.context,
         )
 
         elapsed_ms = (time.perf_counter() - start_time) * 1000
@@ -492,7 +498,7 @@ async def evaluate_feature_flag(
             reason=reason,
             user_id=evaluation_request.user_id,
             environment=evaluation_request.environment,
-            evaluation_time_ms=elapsed_ms
+            evaluation_time_ms=elapsed_ms,
         )
 
     except Exception as e:
@@ -500,9 +506,7 @@ async def evaluate_feature_flag(
 
 
 @router.post("/evaluate-bulk", response_model=FeatureFlagBulkEvaluationResponse)
-async def evaluate_feature_flags_bulk(
-    evaluation_request: FeatureFlagBulkEvaluationRequest
-):
+async def evaluate_feature_flags_bulk(evaluation_request: FeatureFlagBulkEvaluationRequest):
     """
     Evaluate multiple feature flags at once
     Optimized for performance with parallel evaluation
@@ -520,7 +524,7 @@ async def evaluate_feature_flags_bulk(
             task = service.is_enabled_for_user(
                 flag_name=flag_name,
                 user_id=evaluation_request.user_id,
-                environment=evaluation_request.environment
+                environment=evaluation_request.environment,
             )
             tasks.append(task)
 
@@ -541,9 +545,7 @@ async def evaluate_feature_flags_bulk(
         total_time_ms = (time.perf_counter() - start_time) * 1000
 
         return FeatureFlagBulkEvaluationResponse(
-            evaluations=evaluations,
-            reasons=reasons,
-            total_time_ms=total_time_ms
+            evaluations=evaluations, reasons=reasons, total_time_ms=total_time_ms
         )
 
     except Exception as e:
@@ -556,7 +558,7 @@ async def get_feature_flag_audit_trail(
     request: Request,
     flag_name: str,
     limit: int = Query(50, ge=1, le=500, description="Number of audit entries to return"),
-    db: Session = Depends(get_db_session)
+    db: Session = Depends(get_db_session),
 ):
     """
     Get audit trail for a specific feature flag
@@ -569,26 +571,30 @@ async def get_feature_flag_audit_trail(
             raise HTTPException(status_code=404, detail=f"Feature flag '{flag_name}' not found")
 
         # Get audit logs
-        audits = db.query(FeatureFlagAudit)\
-            .filter_by(feature_flag_id=flag.id)\
-            .order_by(FeatureFlagAudit.created_at.desc())\
-            .limit(limit)\
+        audits = (
+            db.query(FeatureFlagAudit)
+            .filter_by(feature_flag_id=flag.id)
+            .order_by(FeatureFlagAudit.created_at.desc())
+            .limit(limit)
             .all()
+        )
 
         # Convert to response
         response = []
         for audit in audits:
-            response.append({
-                "id": str(audit.id),
-                "action": audit.action,
-                "changes": audit.changes,
-                "previous_state": audit.previous_state,
-                "new_state": audit.new_state,
-                "user_id": audit.user_id,
-                "user_email": audit.user_email,
-                "reason": audit.reason,
-                "created_at": audit.created_at.isoformat()
-            })
+            response.append(
+                {
+                    "id": str(audit.id),
+                    "action": audit.action,
+                    "changes": audit.changes,
+                    "previous_state": audit.previous_state,
+                    "new_state": audit.new_state,
+                    "user_id": audit.user_id,
+                    "user_email": audit.user_email,
+                    "reason": audit.reason,
+                    "created_at": audit.created_at.isoformat(),
+                }
+            )
 
         return response
 
@@ -603,7 +609,7 @@ async def get_feature_flag_audit_trail(
 async def get_feature_flag_metrics(
     request: Request,
     flag_name: str,
-    hours: int = Query(24, ge=1, le=168, description="Number of hours of metrics to retrieve")
+    hours: int = Query(24, ge=1, le=168, description="Number of hours of metrics to retrieve"),
 ):
     """
     Get usage metrics for a specific feature flag
@@ -622,15 +628,11 @@ async def get_feature_flag_metrics(
 
             hour_metrics = service.redis.hgetall(metrics_key)
             if hour_metrics:
-                metrics[timestamp.strftime('%Y-%m-%d %H:00')] = {
+                metrics[timestamp.strftime("%Y-%m-%d %H:00")] = {
                     k: int(v) for k, v in hour_metrics.items()
                 }
 
-        return {
-            "flag_name": flag_name,
-            "period_hours": hours,
-            "metrics": metrics
-        }
+        return {"flag_name": flag_name, "period_hours": hours, "metrics": metrics}
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error retrieving metrics: {str(e)}")

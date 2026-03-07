@@ -68,13 +68,14 @@ export default function AssessmentPage() {
       } catch (err) {
         // Check if component is still mounted before updating error state
         if (!mounted) return;
-        
+
         setError(err instanceof Error ? err.message : 'Failed to load assessment session');
+        setLoading(false);
       } finally {
         // Check if component is still mounted before updating loading state
-        if (!mounted) return;
-        
-        setLoading(false);
+        if (mounted) {
+          setLoading(false);
+        }
       }
     };
 

@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """Test Golden Dataset validators with security testing."""
 
-from __future__ import annotations
 import logging
 
 import pytest
@@ -10,9 +9,9 @@ from datetime import datetime, timedelta
 from typing import Dict, Any
 from unittest.mock import Mock, patch
 
-from services.ai.evaluation.schemas import (
-
 logger = logging.getLogger(__name__)
+
+from services.ai.evaluation.schemas import (
     ComplianceScenario,
     EvidenceCase,
     RegulatoryQAPair,
@@ -43,7 +42,8 @@ def create_valid_compliance_scenario() -> ComplianceScenario:
         obligation_id="OBL001",
         triggers=["data_collection", "data_storage"],
         expected_outcome=ExpectedOutcome(
-            outcome_code="COMPLIANT", details={"retention_period": "7_years"},
+            outcome_code="COMPLIANT",
+            details={"retention_period": "7_years"},
         ),
         regulation_refs=[RegCitation(framework="GDPR", citation="Article 5")],
         temporal=TemporalValidity(effective_from=datetime.now()),
@@ -424,9 +424,7 @@ class TestSecurityValidation:
         results = validator.validate(scenario)
         # Should handle without hanging due to pre-compiled patterns
         assert isinstance(results, list)
-        assert any(
-            ("ID exceeds maximum allowed length" in str(r.errors) for r in results)
-        )
+        assert any(("ID exceeds maximum allowed length" in str(r.errors) for r in results))
 
     def test_sanitized_error_messages(self):
         """Test that error messages don't leak sensitive information."""
@@ -459,9 +457,7 @@ class TestSecurityValidation:
         score = validator.calculate_trust_score(source)
 
         # Should get moderate score due to validation (not highest score)
-        assert (
-            score < 0.8
-        )  # Adjusted - unknown types get moderate score with some valid components
+        assert score < 0.8  # Adjusted - unknown types get moderate score with some valid components
         assert 0.0 <= score <= 1.0
 
     def test_audit_logging(self):
@@ -498,7 +494,8 @@ class TestSecurityValidation:
 
         # Should detect invalid URL
         regulatory_result = next(
-            (r for r in results if r.layer == "regulatory_accuracy"), None,
+            (r for r in results if r.layer == "regulatory_accuracy"),
+            None,
         )
         assert regulatory_result
         assert any("Invalid URL format" in error for error in regulatory_result.errors)
@@ -526,8 +523,7 @@ class TestSecurityValidation:
         # Create dataset with too many entries
         huge_dataset = {
             "compliance_scenarios": [
-                create_valid_compliance_scenario()
-                for _ in range(MAX_ENTRIES_COUNT + 100)
+                create_valid_compliance_scenario() for _ in range(MAX_ENTRIES_COUNT + 100)
             ]
         }
 

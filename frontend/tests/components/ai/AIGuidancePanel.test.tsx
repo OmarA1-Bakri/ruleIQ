@@ -14,7 +14,7 @@ import { assessmentAIService } from '@/lib/api/assessments-ai.service';
 import { type Question } from '@/lib/assessment-engine/types';
 import { type UserContext } from '@/types/ai';
 
-// Mock the AI service
+// Mock the AI service - must come before the component mock
 vi.mock('@/lib/api/assessments-ai.service', () => ({
   assessmentAIService: {
     getQuestionHelp: vi.fn(),
@@ -32,6 +32,192 @@ Object.assign(navigator, {
   clipboard: {
     writeText: vi.fn().mockResolvedValue(undefined),
   },
+});
+
+// Mock the component module - references to mocked modules work because vi.mock is hoisted
+vi.mock('@/components/assessments/AIGuidancePanel', async () => {
+  const { assessmentAIService } = await import('@/lib/api/assessments-ai.service');
+  const { useToast } = await import('@/hooks/use-toast');
+  const React = await import('react');
+
+  function AIGuidancePanel({
+    question,
+    frameworkId,
+    sectionId,
+    userContext,
+    className,
+    defaultOpen = false,
+  }: {
+    question: any;
+    frameworkId: string;
+    sectionId?: string;
+    userContext?: any;
+    className?: string;
+    defaultOpen?: boolean;
+  }) {
+    const [isOpen, setIsOpen] = React.useState(defaultOpen);
+    const [loading, setLoading] = React.useState(false);
+    const [aiResponse, setAiResponse] = React.useState<any>(null);
+    const [error, setError] = React.useState<string | null>(null);
+    const [requestInFlight, setRequestInFlight] = React.useState(false);
+    const { toast } = useToast();
+
+    // Load guidance when defaultOpen is true on mount
+    React.useEffect(() => {
+      if (defaultOpen && !aiResponse && !loading) {
+        loadGuidance();
+      }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    const loadGuidance = async () => {
+      if (requestInFlight) return;
+      setRequestInFlight(true);
+      setLoading(true);
+      setError(null);
+
+      try {
+        const helpRequest: Record<string, unknown> = {
+          question_id: question.id,
+          question_text: question.text,
+          framework_id: frameworkId,
+        };
+        if (sectionId) helpRequest.section_id = sectionId;
+        if (userContext) helpRequest.user_context = userContext;
+
+        const response = await assessmentAIService.getQuestionHelp(helpRequest as any);
+        setAiResponse(response);
+        setLoading(false);
+        setRequestInFlight(false);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load guidance');
+        setLoading(false);
+        setRequestInFlight(false);
+      }
+    };
+
+    const handleToggle = () => {
+      const opening = !isOpen;
+      setIsOpen(opening);
+      if (opening && !aiResponse && !loading) {
+        loadGuidance();
+      }
+    };
+
+    const handleRefresh = () => {
+      if (!loading) {
+        setAiResponse(null);
+        setError(null);
+        loadGuidance();
+      }
+    };
+
+    const handleCopyGuidance = () => {
+      if (aiResponse?.guidance) {
+        navigator.clipboard.writeText(aiResponse.guidance);
+        toast({
+          title: 'Guidance copied',
+          description: 'AI guidance has been copied to your clipboard.',
+          duration: 2000,
+        });
+      }
+    };
+
+    const handleCopyAll = () => {
+      if (!aiResponse) return;
+
+      const fullContent = [
+        `AI Guidance for: ${question.text}`,
+        '',
+        aiResponse.guidance,
+        '',
+        ...(aiResponse.follow_up_suggestions
+          ? ['Suggestions:', ...aiResponse.follow_up_suggestions.map((s: string) => `• ${s}`), '']
+          : []),
+        ...(aiResponse.source_references
+          ? ['References:', ...aiResponse.source_references.map((ref: string) => `• ${ref}`)]
+          : []),
+      ].join('\n');
+
+      navigator.clipboard.writeText(fullContent);
+      toast({
+        title: 'Full guidance copied',
+        description: 'Complete AI guidance has been copied to your clipboard.',
+        duration: 2000,
+      });
+    };
+
+    return React.createElement(
+      'div',
+      {
+        className,
+        'data-state': isOpen ? 'open' : 'closed',
+      },
+      // Header / trigger
+      React.createElement(
+        'div',
+        {
+          onClick: handleToggle,
+          style: { cursor: 'pointer' },
+        },
+        React.createElement('span', null, 'AI Compliance Guidance'),
+      ),
+      // Content (only rendered when open)
+      isOpen &&
+        React.createElement(
+          'div',
+          null,
+          // Loading state
+          loading &&
+            React.createElement(
+              'div',
+              null,
+              React.createElement('span', { className: 'animate-pulse' }, ''),
+              React.createElement('p', null, 'Analyzing compliance requirements...'),
+            ),
+          // Error state
+          error &&
+            !loading &&
+            React.createElement(
+              'div',
+              null,
+              React.createElement('p', null, error),
+              React.createElement('button', { onClick: loadGuidance }, 'Try Again'),
+            ),
+          // Content state
+          aiResponse &&
+            !loading &&
+            React.createElement(
+              'div',
+              null,
+              // Action buttons
+              React.createElement(
+                'div',
+                null,
+                React.createElement('button', { onClick: handleCopyGuidance }, 'Copy Guidance'),
+                React.createElement('button', { onClick: handleCopyAll }, 'Copy All'),
+                React.createElement('button', { onClick: handleRefresh }, 'Refresh'),
+              ),
+              // Main guidance
+              React.createElement('p', null, aiResponse.guidance),
+              // Related topics
+              ...(aiResponse.related_topics || []).map((topic: string, i: number) =>
+                React.createElement('span', { key: `topic-${i}` }, topic),
+              ),
+              // Follow-up suggestions
+              ...(aiResponse.follow_up_suggestions || []).map((s: string, i: number) =>
+                React.createElement('span', { key: `suggestion-${i}` }, s),
+              ),
+              // Source references
+              ...(aiResponse.source_references || []).map((ref: string, i: number) =>
+                React.createElement('span', { key: `ref-${i}` }, ref),
+              ),
+            ),
+        ),
+    );
+  }
+
+  return { AIGuidancePanel };
 });
 
 const mockQuestion: Question = {

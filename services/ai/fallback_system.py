@@ -18,6 +18,7 @@ from services.ai.exceptions import AIServiceException
 class FallbackLevel(Enum):
     """Levels of fallback degradation"""
 
+
 #     NONE = "none"  # No fallback, fail immediately  # Unused variable
 #     BASIC = "basic"  # Basic static responses  # Unused variable
 #     CACHED = "cached"  # Use cached responses  # Unused variable
@@ -227,9 +228,7 @@ We apologize for the inconvenience and are working to restore full service quick
                 return self.templates[template_type]["general"]
         return None
 
-    def get_assessment_help_fallback(
-        self, framework: str = "general"
-    ) -> FallbackResponse:
+    def get_assessment_help_fallback(self, framework: str = "general") -> FallbackResponse:
         """Get fallback response for assessment help"""
         template = self.get_template("assessment_help", framework.lower())
 
@@ -247,9 +246,7 @@ We apologize for the inconvenience and are working to restore full service quick
                 source="default_fallback",
             )
 
-    def get_recommendations_fallback(
-        self, risk_level: str = "medium"
-    ) -> FallbackResponse:
+    def get_recommendations_fallback(self, risk_level: str = "medium") -> FallbackResponse:
         """Get fallback response for recommendations"""
         template = self.get_template("assessment_recommendations", risk_level.lower())
 
@@ -305,9 +302,7 @@ class CacheManager:
 
         return "|".join(key_elements)
 
-    def store_response(
-        self, operation: str, context: Dict[str, Any], response: str
-    ) -> None:
+    def store_response(self, operation: str, context: Dict[str, Any], response: str) -> None:
         """Store a successful AI response in cache"""
         cache_key = self._generate_cache_key(operation, context)
 
@@ -370,9 +365,7 @@ class FallbackSystem:
     Comprehensive fallback system for AI services
     """
 
-    def __init__(
-        self, fallback_level: FallbackLevel = FallbackLevel.COMPREHENSIVE
-    ) -> None:
+    def __init__(self, fallback_level: FallbackLevel = FallbackLevel.COMPREHENSIVE) -> None:
         self.fallback_level = fallback_level
         self.template_manager = FallbackTemplateManager()
         self.cache_manager = CacheManager()
@@ -471,8 +464,8 @@ class FallbackSystem:
         """Get basic fallback response"""
         if exception:
             content = (
-                f"The {operation} service is temporarily unavailable due to: {exception!s}. Please try f
-                fagain later or contact support.f,
+                f"The {operation} service is temporarily unavailable due to: {exception!s}. "
+                f"Please try again later or contact support."
             )
         else:
             content = f"The {operation} service is temporarily unavailable. Please try again later."

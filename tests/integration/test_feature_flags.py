@@ -32,19 +32,18 @@ class TestFeatureFlagIntegration:
             "enable_ai_assistant",
             "enable_advanced_reporting",
             "enable_multi_factor_auth",
-            "enable_api_rate_limiting"
+            "enable_api_rate_limiting",
         ]
 
         for flag in expected_flags:
             assert flag in data, f"Feature flag '{flag}' not found"
 
-    def test_feature_flag_middleware_integration(self, integration_client, integration_auth_headers):
+    def test_feature_flag_middleware_integration(
+        self, integration_client, integration_auth_headers
+    ):
         """Test that feature flags are checked in middleware."""
         # Try to access a feature that might be behind a flag
-        response = integration_client.get(
-            "/api/v1/ai/assistant",
-            headers=integration_auth_headers
-        )
+        response = integration_client.get("/api/v1/ai/assistant", headers=integration_auth_headers)
 
         # If feature is disabled, should get 403 or specific error
         if response.status_code == 403:
@@ -61,8 +60,7 @@ class TestFeatureFlagIntegration:
         """Test dynamic feature flag toggling."""
         # Get current flags
         response = integration_client.get(
-            "/api/v1/admin/feature-flags",
-            headers=integration_admin_headers
+            "/api/v1/admin/feature-flags", headers=integration_admin_headers
         )
 
         if response.status_code == 404:
@@ -78,24 +76,24 @@ class TestFeatureFlagIntegration:
             update_response = integration_client.put(
                 f"/api/v1/admin/feature-flags/{test_flag}",
                 json={"enabled": new_value},
-                headers=integration_admin_headers
+                headers=integration_admin_headers,
             )
 
             if update_response.status_code == 200:
                 # Verify the change
                 verify_response = integration_client.get(
-                    "/api/v1/admin/feature-flags",
-                    headers=integration_admin_headers
+                    "/api/v1/admin/feature-flags", headers=integration_admin_headers
                 )
                 updated_flags = verify_response.json()
                 assert updated_flags[test_flag] == new_value
 
-    def test_feature_flag_user_targeting(self, integration_client, integration_auth_headers, sample_integration_data):
+    def test_feature_flag_user_targeting(
+        self, integration_client, integration_auth_headers, sample_integration_data
+    ):
         """Test feature flags with user targeting rules."""
         # Some features might be enabled only for specific users
         response = integration_client.get(
-            "/api/v1/users/features",
-            headers=integration_auth_headers
+            "/api/v1/users/features", headers=integration_auth_headers
         )
 
         if response.status_code == 404:
@@ -125,7 +123,7 @@ class TestFeatureFlagIntegration:
                 full_name=f"Rollout User {i}",
                 hashed_password=get_password_hash("Password123!"),
                 is_active=True,
-                is_verified=True
+                is_verified=True,
             )
             integration_db_session.add(user)
 
@@ -136,10 +134,7 @@ class TestFeatureFlagIntegration:
             token = create_access_token(data={"sub": f"rollout_test_{i}@test.com"})
             headers = {"Authorization": f"Bearer {token}"}
 
-            response = integration_client.get(
-                "/api/v1/users/features",
-                headers=headers
-            )
+            response = integration_client.get("/api/v1/users/features", headers=headers)
 
             if response.status_code == 200:
                 features = response.json()
@@ -187,14 +182,12 @@ class TestFeatureFlagIntegration:
         """Test feature flags affecting API versioning."""
         # Test v1 endpoint
         v1_response = integration_client.get(
-            "/api/v1/compliance/frameworks",
-            headers=integration_auth_headers
+            "/api/v1/compliance/frameworks", headers=integration_auth_headers
         )
 
         # Test v2 endpoint (might be behind feature flag)
         v2_response = integration_client.get(
-            "/api/v2/compliance/frameworks",
-            headers=integration_auth_headers
+            "/api/v2/compliance/frameworks", headers=integration_auth_headers
         )
 
         if v2_response.status_code == 404:
@@ -211,8 +204,7 @@ class TestFeatureFlagIntegration:
     def test_feature_flag_dependency_chain(self, integration_client, integration_admin_headers):
         """Test feature flags with dependencies on other flags."""
         response = integration_client.get(
-            "/api/v1/admin/feature-flags",
-            headers=integration_admin_headers
+            "/api/v1/admin/feature-flags", headers=integration_admin_headers
         )
 
         if response.status_code == 200:
@@ -220,24 +212,25 @@ class TestFeatureFlagIntegration:
 
             # If advanced_reporting is enabled, basic_reporting should also be enabled
             if flags.get("enable_advanced_reporting", False):
-                assert flags.get("enable_basic_reporting", True), \
+                assert flags.get("enable_basic_reporting", True), (
                     "Basic reporting should be enabled when advanced reporting is enabled"
+                )
 
             # If MFA is enabled, basic auth should be enabled
             if flags.get("enable_multi_factor_auth", False):
-                assert flags.get("enable_authentication", True), \
+                assert flags.get("enable_authentication", True), (
                     "Authentication must be enabled for MFA to work"
+                )
 
-    def test_feature_flag_performance_impact(self, integration_client, integration_auth_headers, performance_monitor):
+    def test_feature_flag_performance_impact(
+        self, integration_client, integration_auth_headers, performance_monitor
+    ):
         """Test that feature flag checks don't significantly impact performance."""
         # Make requests with and without feature flag checks
         performance_monitor.start("with_flags")
 
         for _ in range(10):
-            response = integration_client.get(
-                "/api/v1/users/me",
-                headers=integration_auth_headers
-            )
+            response = integration_client.get("/api/v1/users/me", headers=integration_auth_headers)
             assert response.status_code in [200, 401]
 
         performance_monitor.end("with_flags")
@@ -245,15 +238,19 @@ class TestFeatureFlagIntegration:
         # Feature flag checks should add minimal overhead (<50ms per request)
         duration = performance_monitor.get_duration("with_flags")
         avg_duration = duration / 10
-        assert avg_duration < 0.5, f"Feature flag checks adding too much latency: {avg_duration}s per request"
+        assert avg_duration < 0.5, (
+            f"Feature flag checks adding too much latency: {avg_duration}s per request"
+        )
 
-    def test_feature_flag_audit_logging(self, integration_client, integration_admin_headers, integration_db_session):
+    def test_feature_flag_audit_logging(
+        self, integration_client, integration_admin_headers, integration_db_session
+    ):
         """Test that feature flag changes are audit logged."""
         # Change a feature flag
         response = integration_client.put(
             "/api/v1/admin/feature-flags/enable_audit_test",
             json={"enabled": True, "reason": "Testing audit logging"},
-            headers=integration_admin_headers
+            headers=integration_admin_headers,
         )
 
         if response.status_code == 200:
@@ -261,10 +258,15 @@ class TestFeatureFlagIntegration:
             from database import AuditLog
 
             # Look for recent audit log entry
-            audit_entry = integration_db_session.query(AuditLog).filter(
-                AuditLog.action.like("%feature_flag%"),
-                AuditLog.details.like("%enable_audit_test%")
-            ).order_by(AuditLog.created_at.desc()).first()
+            audit_entry = (
+                integration_db_session.query(AuditLog)
+                .filter(
+                    AuditLog.action.like("%feature_flag%"),
+                    AuditLog.details.like("%enable_audit_test%"),
+                )
+                .order_by(AuditLog.created_at.desc())
+                .first()
+            )
 
             if audit_entry:
                 assert "enable_audit_test" in audit_entry.details
@@ -283,12 +285,12 @@ class TestFeatureFlagConfiguration:
         config = FeatureFlagConfig()
 
         # Check that configuration is loaded
-        assert hasattr(config, 'flags')
+        assert hasattr(config, "flags")
         assert isinstance(config.flags, dict)
 
         # Check for required flags
-        assert 'enable_ai_assistant' in config.flags
-        assert 'enable_api_rate_limiting' in config.flags
+        assert "enable_ai_assistant" in config.flags
+        assert "enable_api_rate_limiting" in config.flags
 
     def test_feature_flag_default_values(self):
         """Test that feature flags have sensible defaults."""
@@ -297,12 +299,12 @@ class TestFeatureFlagConfiguration:
         config = FeatureFlagConfig()
 
         # Security features should be enabled by default
-        assert config.flags.get('enable_authentication', True)
-        assert config.flags.get('enable_api_rate_limiting', True)
+        assert config.flags.get("enable_authentication", True)
+        assert config.flags.get("enable_api_rate_limiting", True)
 
         # Experimental features should be disabled by default
-        assert not config.flags.get('enable_experimental_ai', False)
-        assert not config.flags.get('enable_beta_features', False)
+        assert not config.flags.get("enable_experimental_ai", False)
+        assert not config.flags.get("enable_beta_features", False)
 
     def test_feature_flag_environment_overrides(self, monkeypatch):
         """Test that environment variables can override feature flags."""
@@ -316,9 +318,9 @@ class TestFeatureFlagConfiguration:
         config = FeatureFlagConfig()
 
         # Check that environment variables override config
-        if hasattr(config, 'from_env'):
-            assert config.flags.get('enable_test_feature', False)
-            assert not config.flags.get('disable_other_feature', True)
+        if hasattr(config, "from_env"):
+            assert config.flags.get("enable_test_feature", False)
+            assert not config.flags.get("disable_other_feature", True)
 
     def test_feature_flag_validation(self):
         """Test feature flag validation and type checking."""
@@ -328,9 +330,12 @@ class TestFeatureFlagConfiguration:
 
         # All feature flags should be boolean
         for flag_name, flag_value in config.flags.items():
-            assert isinstance(flag_value, bool), f"Feature flag {flag_name} should be boolean, got {type(flag_value)}"
+            assert isinstance(flag_value, bool), (
+                f"Feature flag {flag_name} should be boolean, got {type(flag_value)}"
+            )
 
         # Flag names should follow naming convention
         for flag_name in config.flags:
-            assert flag_name.startswith('enable_') or flag_name.startswith('disable_'), \
+            assert flag_name.startswith("enable_") or flag_name.startswith("disable_"), (
                 f"Feature flag {flag_name} doesn't follow naming convention"
+            )

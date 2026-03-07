@@ -80,9 +80,9 @@ class TrustMetrics(Base):
 
     # Indexes for queries
     __table_args__ = (
-        Index('idx_trust_metrics_score', 'trust_score', 'current_trust_level'),
-        Index('idx_trust_metrics_activity', 'last_action_at', 'days_active'),
-        Index('idx_trust_metrics_violations', 'total_violations', 'recent_violations_30d'),
+        Index("idx_trust_metrics_score", "trust_score", "current_trust_level"),
+        Index("idx_trust_metrics_activity", "last_action_at", "days_active"),
+        Index("idx_trust_metrics_violations", "total_violations", "recent_violations_30d"),
     )
 
 
@@ -130,9 +130,9 @@ class TrustActionLog(Base):
 
     # Indexes for analysis
     __table_args__ = (
-        Index('idx_action_log_user_time', 'user_id', 'timestamp'),
-        Index('idx_action_log_type_outcome', 'action_type', 'was_successful'),
-        Index('idx_action_log_session', 'session_id', 'timestamp'),
+        Index("idx_action_log_user_time", "user_id", "timestamp"),
+        Index("idx_action_log_type_outcome", "action_type", "was_successful"),
+        Index("idx_action_log_session", "session_id", "timestamp"),
     )
 
 
@@ -175,12 +175,13 @@ class TrustTransitionLog(Base):
 
     # Indexes
     __table_args__ = (
-        Index('idx_transition_log_user', 'user_id', 'timestamp'),
-        Index('idx_transition_log_type', 'transition_type', 'timestamp'),
+        Index("idx_transition_log_user", "user_id", "timestamp"),
+        Index("idx_transition_log_type", "transition_type", "timestamp"),
     )
 
 
 # Pydantic models for API
+
 
 class TrustMetricsResponse(BaseModel):
     """Response model for trust metrics API."""

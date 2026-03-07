@@ -1,11 +1,10 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 
 import { integrationService } from '@/lib/api/integrations.service';
 
 import {
   createQueryKey,
   type BaseQueryOptions,
-  type BaseMutationOptions,
   type PaginationParams,
   type PaginatedResponse,
 } from './base';
@@ -14,30 +13,10 @@ import {
 import type { Integration } from '@/types/api';
 
 // Define missing types locally
-interface IntegrationConfig {
-  [key: string]: any;
-}
-
-interface IntegrationStatus {
-  status: string;
-  [key: string]: any;
-}
-
-interface IntegrationProvider {
-  id: string;
-  name: string;
-  [key: string]: any;
-}
-
 interface IntegrationLog {
   id: string;
   message: string;
   timestamp: string;
-  [key: string]: any;
-}
-
-interface SyncResult {
-  success: boolean;
   [key: string]: any;
 }
 

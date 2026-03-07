@@ -215,7 +215,7 @@ export function validateRuleOrder(
   // Check order sequence
   const orders = rules.map(r => r.order).sort((a, b) => a - b);
   for (let i = 1; i < orders.length; i++) {
-    if (orders[i] - orders[i - 1] > 1) {
+    if (orders[i]! - orders[i - 1]! > 1) {
       errors.push({
         field: 'rules',
         message: `Gap in rule order sequence between ${orders[i - 1]} and ${orders[i]}`,
@@ -313,8 +313,8 @@ function findWidgetOverlaps(widgets: WidgetPosition[]): Array<[WidgetPosition, W
 
   for (let i = 0; i < widgets.length - 1; i++) {
     for (let j = i + 1; j < widgets.length; j++) {
-      const w1 = widgets[i];
-      const w2 = widgets[j];
+      const w1 = widgets[i]!;
+      const w2 = widgets[j]!;
 
       if (w1.static || w2.static) continue; // Skip static widgets
 
@@ -550,7 +550,7 @@ function calculateMaxDepth(obj: any, currentDepth = 0): number {
 
   let maxDepth = currentDepth;
   for (const key in obj) {
-    if (obj.hasOwnProperty(key)) {
+    if (Object.hasOwn(obj, key)) {
       const depth = calculateMaxDepth(obj[key], currentDepth + 1);
       maxDepth = Math.max(maxDepth, depth);
     }

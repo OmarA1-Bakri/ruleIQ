@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from datetime import datetime, timezone
 from typing import Dict, List, Optional
 from uuid import UUID
@@ -89,7 +87,9 @@ class AssessmentService:
                 f"Error retrieving assessment session {session_id}: {e}",
             )
 
-    async def get_current_assessment_session(self, db: AsyncSession, user: User) -> Optional[AssessmentSession]:
+    async def get_current_assessment_session(
+        self, db: AsyncSession, user: User
+    ) -> Optional[AssessmentSession]:
         """Get the current active assessment session for the user."""
         try:
             stmt = (
@@ -107,7 +107,9 @@ class AssessmentService:
                 f"Error retrieving current assessment session for user {user.id}: {e}",
             )
 
-    async def get_user_assessment_sessions(self, db: AsyncSession, user: User) -> List[AssessmentSession]:
+    async def get_user_assessment_sessions(
+        self, db: AsyncSession, user: User
+    ) -> List[AssessmentSession]:
         """Get all assessment sessions for the user."""
         try:
             stmt = (
@@ -171,7 +173,9 @@ class AssessmentService:
             # Log error appropriately
             raise  # Or wrap in a custom API error
 
-    async def complete_assessment_session(self, db: AsyncSession, user: User, session_id: UUID) -> AssessmentSession:
+    async def complete_assessment_session(
+        self, db: AsyncSession, user: User, session_id: UUID
+    ) -> AssessmentSession:
         """Complete an assessment session and generate recommendations."""
         try:
             session = await self.get_assessment_session(db, user, session_id)
@@ -183,7 +187,8 @@ class AssessmentService:
             if session.status != "in_progress":
                 # Consider a more specific exception, e.g., InvalidSessionStateError
                 raise ValueError(
-                     f"Assessment session {session_id} is not 'in_progress' (status: {session.status}). Cannot complete.")
+                    f"Assessment session {session_id} is not 'in_progress' (status: {session.status}). Cannot complete."
+                )
 
             # Perform any final validation or processing
             session.status = "completed"
@@ -198,18 +203,19 @@ class AssessmentService:
                     # Basic recommendation: suggest frameworks with high relevance
                     # Ensure framework_info structure is as expected by get_relevant_frameworks
                     # It returns a list of dicts like: {"framework": framework_object.to_dict(), "relevance_score": score} # noqa: E501
-                    if (framework_info.get("relevance_score", 0) > 50): # Adjusted threshold based on calculate_framework_relevance logic
+                    if (
+                        framework_info.get("relevance_score", 0) > 50
+                    ):  # Adjusted threshold based on calculate_framework_relevance logic
                         framework_details = framework_info.get("framework", {})
-                        recommendations.append({
+                        recommendations.append(
+                            {
                                 "framework_id": str(framework_details.get("id")),
                                 "framework_name": framework_details.get("name"),
                                 "reason": f"High relevance score: {framework_info['relevance_score']}",
                             }
                         )
 
-            session.recommendations = (
-                recommendations  # Ensure AssessmentSession model has this field as JSON or similar  # noqa: E501
-            )
+            session.recommendations = recommendations  # Ensure AssessmentSession model has this field as JSON or similar  # noqa: E501
 
             db.add(session)
             await db.commit()

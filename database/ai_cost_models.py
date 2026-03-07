@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 Database models for AI cost tracking and management.
 
@@ -131,7 +130,10 @@ class AIModelConfig(Base):
     # Metadata
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
     updated_at = Column(
-        DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow,
+        DateTime,
+        nullable=False,
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
     )
     description = Column(Text, nullable=True)
     metadata = Column(JSON, nullable=True)
@@ -139,10 +141,12 @@ class AIModelConfig(Base):
     # Constraints
     __table_args__ = (
         CheckConstraint(
-            "input_cost_per_million >= 0", name="check_input_cost_positive",
+            "input_cost_per_million >= 0",
+            name="check_input_cost_positive",
         ),
         CheckConstraint(
-            "output_cost_per_million >= 0", name="check_output_cost_positive",
+            "output_cost_per_million >= 0",
+            name="check_output_cost_positive",
         ),
         CheckConstraint("context_window > 0", name="check_context_window_positive"),
         CheckConstraint("max_output_tokens > 0", name="check_max_output_positive"),
@@ -151,7 +155,8 @@ class AIModelConfig(Base):
             name="check_reliability_range",
         ),
         CheckConstraint(
-            "quality_score >= 0 AND quality_score <= 1", name="check_quality_range",
+            "quality_score >= 0 AND quality_score <= 1",
+            name="check_quality_range",
         ),
     )
 
@@ -182,7 +187,10 @@ class BudgetConfiguration(Base):
     is_active = Column(Boolean, nullable=False, default=True)
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
     updated_at = Column(
-        DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow,
+        DateTime,
+        nullable=False,
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
     )
     created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
 
@@ -277,9 +285,7 @@ class CostOptimizationInsight(Base):
     id = Column(Integer, primary_key=True, index=True)
 
     # Optimization details
-    strategy = Column(
-        String(50), nullable=False, index=True
-    )  # model_switch, caching, etc.
+    strategy = Column(String(50), nullable=False, index=True)  # model_switch, caching, etc.
     title = Column(String(255), nullable=False)
     description = Column(Text, nullable=False)
     recommendation = Column(Text, nullable=False)
@@ -310,7 +316,10 @@ class CostOptimizationInsight(Base):
     # Metadata
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow, index=True)
     updated_at = Column(
-        DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow,
+        DateTime,
+        nullable=False,
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
     )
     created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
 
@@ -326,14 +335,16 @@ class CostOptimizationInsight(Base):
     # Constraints
     __table_args__ = (
         CheckConstraint(
-            "potential_savings_usd >= 0", name="check_potential_savings_positive",
+            "potential_savings_usd >= 0",
+            name="check_potential_savings_positive",
         ),
         CheckConstraint(
             "confidence_score >= 0 AND confidence_score <= 1",
             name="check_confidence_range",
         ),
         CheckConstraint(
-            "actual_savings_usd >= 0", name="check_actual_savings_positive",
+            "actual_savings_usd >= 0",
+            name="check_actual_savings_positive",
         ),
         Index("idx_optimization_status_priority", "status", "priority"),
         Index("idx_optimization_strategy_date", "strategy", "created_at"),
@@ -349,9 +360,7 @@ class CostAggregation(Base):
     id = Column(Integer, primary_key=True, index=True)
 
     # Aggregation scope
-    aggregation_type = Column(
-        String(20), nullable=False, index=True
-    )  # daily, weekly, monthly
+    aggregation_type = Column(String(20), nullable=False, index=True)  # daily, weekly, monthly
     date_key = Column(Date, nullable=False, index=True)
     service_name = Column(String(100), nullable=True, index=True)
     model_name = Column(String(100), nullable=True, index=True)
@@ -377,9 +386,7 @@ class CostAggregation(Base):
 
     # Metadata
     calculated_at = Column(DateTime, nullable=False, default=datetime.utcnow)
-    is_final = Column(
-        Boolean, nullable=False, default=False
-    )  # False for partial day calculations
+    is_final = Column(Boolean, nullable=False, default=False)  # False for partial day calculations
 
     # Relationships
     user = relationship("User", back_populates="cost_aggregations")
@@ -390,7 +397,8 @@ class CostAggregation(Base):
         CheckConstraint("total_requests >= 0", name="check_total_requests_positive"),
         CheckConstraint("total_tokens >= 0", name="check_total_tokens_positive"),
         CheckConstraint(
-            "cost_per_request >= 0", name="check_cost_per_request_positive",
+            "cost_per_request >= 0",
+            name="check_cost_per_request_positive",
         ),
         CheckConstraint("cost_per_token >= 0", name="check_cost_per_token_positive"),
         CheckConstraint(
@@ -398,7 +406,8 @@ class CostAggregation(Base):
             name="check_cache_hit_rate_range",
         ),
         CheckConstraint(
-            "error_rate >= 0 AND error_rate <= 100", name="check_error_rate_range",
+            "error_rate >= 0 AND error_rate <= 100",
+            name="check_error_rate_range",
         ),
         Index("idx_agg_type_date", "aggregation_type", "date_key"),
         Index("idx_agg_service_date", "service_name", "date_key"),
@@ -421,9 +430,7 @@ class CostForecast(Base):
     id = Column(Integer, primary_key=True, index=True)
 
     # Forecast scope
-    forecast_type = Column(
-        String(20), nullable=False, index=True
-    )  # daily, weekly, monthly
+    forecast_type = Column(String(20), nullable=False, index=True)  # daily, weekly, monthly
     service_name = Column(String(100), nullable=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
 
@@ -468,17 +475,20 @@ class CostForecast(Base):
         CheckConstraint("lower_bound_cost >= 0", name="check_lower_bound_positive"),
         CheckConstraint("upper_bound_cost >= 0", name="check_upper_bound_positive"),
         CheckConstraint(
-            "lower_bound_cost <= predicted_cost", name="check_bounds_logical",
+            "lower_bound_cost <= predicted_cost",
+            name="check_bounds_logical",
         ),
         CheckConstraint(
-            "predicted_cost <= upper_bound_cost", name="check_bounds_logical2",
+            "predicted_cost <= upper_bound_cost",
+            name="check_bounds_logical2",
         ),
         CheckConstraint(
             "confidence_level > 0 AND confidence_level <= 100",
             name="check_confidence_level_range",
         ),
         CheckConstraint(
-            "training_data_points > 0", name="check_training_points_positive",
+            "training_data_points > 0",
+            name="check_training_points_positive",
         ),
         Index("idx_forecast_date_type", "forecast_date", "forecast_type"),
         Index("idx_forecast_service_date", "service_name", "forecast_date"),

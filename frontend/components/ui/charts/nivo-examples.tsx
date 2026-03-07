@@ -2,9 +2,6 @@
 
 import React from 'react';
 import { ResponsiveLine } from '@nivo/line';
-import { ResponsiveBar } from '@nivo/bar';
-import { ResponsivePie } from '@nivo/pie';
-import { ResponsiveHeatMap } from '@nivo/heatmap';
 
 // Nivo theme for dark mode with purple accent
 const purpleTheme = {

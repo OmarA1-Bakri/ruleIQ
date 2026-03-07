@@ -22,8 +22,8 @@ class ResponseFormatter:
     def format_for_display(response: Dict[str, Any]) -> str:
         """Format response as human-readable text."""
         if isinstance(response, dict):
-            if 'text' in response:
-                return response['text']
-            elif 'guidance' in response:
-                return response['guidance']
+            if "text" in response:
+                return response["text"]
+            elif "guidance" in response:
+                return response["guidance"]
         return str(response)

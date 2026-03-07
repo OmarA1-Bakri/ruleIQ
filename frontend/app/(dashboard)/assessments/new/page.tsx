@@ -165,7 +165,7 @@ export default function NewAssessmentPage() {
 
       // Navigate to assessment wizard
       router.push(`/assessments/${assessment.id}`);
-    } catch (error) {
+    } catch (_error) {
       addNotification({
         type: 'error',
         title: 'Error',

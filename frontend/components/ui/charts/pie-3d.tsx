@@ -44,7 +44,7 @@ export const PieChart3D = () => {
             const endAngle = startAngle + angle;
             const isHovered = hoveredIndex === index;            
             const path = describeArc(150, 100, 80, startAngle, endAngle);
-            const currentStartAngle = startAngle;
+            const _currentStartAngle = startAngle;
             startAngle = endAngle;
 
             return (

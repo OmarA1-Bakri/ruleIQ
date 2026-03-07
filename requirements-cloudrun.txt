@@ -2,7 +2,7 @@
 # This file contains only essential dependencies for running the API
 
 # Core FastAPI framework
-fastapi==0.110.0
+fastapi==0.117.0
 uvicorn==0.27.0
 
 # Data validation and settings
@@ -16,7 +16,7 @@ asyncpg==0.29.0  # Required for async PostgreSQL
 aiosqlite==0.19.0  # Required for async SQLite (testing)
 
 # Authentication and security
-python-jose[cryptography]==3.3.0
+python-jose[cryptography]==3.4.0
 passlib[bcrypt]==1.7.4
 
 # Environment and configuration

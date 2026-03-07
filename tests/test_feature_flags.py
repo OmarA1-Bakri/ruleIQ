@@ -18,12 +18,12 @@ from services.feature_flag_service import (
     FeatureFlagConfig,
     EvaluationReason,
     feature_flag,
-    FeatureNotEnabledException
+    FeatureNotEnabledException,
 )
 from models.feature_flags import (
     FeatureFlag as FeatureFlagModel,
     FeatureFlagAudit,
-    FeatureFlagStatus
+    FeatureFlagStatus,
 )
 
 
@@ -52,10 +52,7 @@ class TestFeatureFlagService:
     @pytest.fixture
     def service(self, mock_redis, mock_db_session):
         """Create service instance with mocked dependencies"""
-        return EnhancedFeatureFlagService(
-            redis_client=mock_redis,
-            db_session=mock_db_session
-        )
+        return EnhancedFeatureFlagService(redis_client=mock_redis, db_session=mock_db_session)
 
     def test_cache_key_generation(self, service):
         """Test cache key generation"""
@@ -89,7 +86,7 @@ class TestFeatureFlagService:
             "percentage": 0,
             "whitelist": [],
             "blacklist": [],
-            "environments": ["production"]
+            "environments": ["production"],
         }
 
         result, reason = service._evaluate_flag(flag_data, "user123", "production")
@@ -104,7 +101,7 @@ class TestFeatureFlagService:
             "percentage": 0,
             "whitelist": ["user123", "user456"],
             "blacklist": [],
-            "environments": ["production"]
+            "environments": ["production"],
         }
 
         result, reason = service._evaluate_flag(flag_data, "user123", "production")
@@ -123,7 +120,7 @@ class TestFeatureFlagService:
             "percentage": 100,
             "whitelist": ["user123"],
             "blacklist": ["user123"],  # Blacklist takes precedence
-            "environments": ["production"]
+            "environments": ["production"],
         }
 
         result, reason = service._evaluate_flag(flag_data, "user123", "production")
@@ -138,7 +135,7 @@ class TestFeatureFlagService:
             "percentage": 50,
             "whitelist": [],
             "blacklist": [],
-            "environments": ["production"]
+            "environments": ["production"],
         }
 
         # Test multiple users to ensure some get enabled and some don't
@@ -162,11 +159,8 @@ class TestFeatureFlagService:
             "percentage": 0,
             "whitelist": [],
             "blacklist": [],
-            "environment_overrides": {
-                "development": True,
-                "production": False
-            },
-            "environments": ["development", "production"]
+            "environment_overrides": {"development": True, "production": False},
+            "environments": ["development", "production"],
         }
 
         result, reason = service._evaluate_flag(flag_data, "user123", "development")
@@ -187,7 +181,7 @@ class TestFeatureFlagService:
             "whitelist": [],
             "blacklist": [],
             "environments": ["production"],
-            "expires_at": expired_time
+            "expires_at": expired_time,
         }
 
         result, reason = service._evaluate_flag(flag_data, "user123", "production")
@@ -204,7 +198,7 @@ class TestFeatureFlagService:
             "whitelist": [],
             "blacklist": [],
             "environments": ["production"],
-            "starts_at": future_time
+            "starts_at": future_time,
         }
 
         result, reason = service._evaluate_flag(flag_data, "user123", "production")
@@ -220,7 +214,7 @@ class TestFeatureFlagService:
             "percentage": 100,
             "whitelist": [],
             "blacklist": [],
-            "environments": ["production"]
+            "environments": ["production"],
         }
 
         mock_redis.get.return_value = json.dumps(flag_data)
@@ -269,7 +263,7 @@ class TestFeatureFlagService:
             "percentage": 50,
             "whitelist": ["user123"],
             "blacklist": [],
-            "environments": ["production"]
+            "environments": ["production"],
         }
 
         mock_redis.get.return_value = json.dumps(flag_data)
@@ -313,11 +307,11 @@ class TestFeatureFlagService:
             enabled=True,
             percentage=50,
             whitelist=["user123"],
-            environments=["production"]
+            environments=["production"],
         )
 
         # Mock the context manager for get_db_session
-        with patch('services.feature_flag_service.get_db_session') as mock_get_db:
+        with patch("services.feature_flag_service.get_db_session") as mock_get_db:
             mock_context = MagicMock()
             mock_context.__enter__.return_value = mock_db_session
             mock_context.__exit__.return_value = None
@@ -338,7 +332,7 @@ class TestFeatureFlagDecorator:
     @pytest.mark.asyncio
     async def test_async_decorator_enabled(self):
         """Test async decorator when flag is enabled"""
-        with patch('services.feature_flag_service.EnhancedFeatureFlagService') as MockService:
+        with patch("services.feature_flag_service.EnhancedFeatureFlagService") as MockService:
             mock_service = MockService.return_value
             mock_service.is_enabled_for_user.return_value = (True, EvaluationReason.ENABLED)
 
@@ -353,7 +347,7 @@ class TestFeatureFlagDecorator:
     @pytest.mark.asyncio
     async def test_async_decorator_disabled_with_fallback(self):
         """Test async decorator with fallback when flag is disabled"""
-        with patch('services.feature_flag_service.EnhancedFeatureFlagService') as MockService:
+        with patch("services.feature_flag_service.EnhancedFeatureFlagService") as MockService:
             mock_service = MockService.return_value
             mock_service.is_enabled_for_user.return_value = (False, EvaluationReason.DISABLED)
 
@@ -370,7 +364,7 @@ class TestFeatureFlagDecorator:
     @pytest.mark.asyncio
     async def test_async_decorator_disabled_with_exception(self):
         """Test async decorator raising exception when flag is disabled"""
-        with patch('services.feature_flag_service.EnhancedFeatureFlagService') as MockService:
+        with patch("services.feature_flag_service.EnhancedFeatureFlagService") as MockService:
             mock_service = MockService.return_value
             mock_service.is_enabled_for_user.return_value = (False, EvaluationReason.DISABLED)
 
@@ -383,7 +377,7 @@ class TestFeatureFlagDecorator:
 
     def test_sync_decorator_enabled(self):
         """Test sync decorator when flag is enabled"""
-        with patch('services.feature_flag_service.EnhancedFeatureFlagService') as MockService:
+        with patch("services.feature_flag_service.EnhancedFeatureFlagService") as MockService:
             mock_service = MockService.return_value
 
             # Mock the coroutine
@@ -401,7 +395,7 @@ class TestFeatureFlagDecorator:
 
     def test_decorator_extracts_user_id_from_object(self):
         """Test decorator extracting user_id from object attribute"""
-        with patch('services.feature_flag_service.EnhancedFeatureFlagService') as MockService:
+        with patch("services.feature_flag_service.EnhancedFeatureFlagService") as MockService:
             mock_service = MockService.return_value
 
             async def mock_is_enabled():
@@ -435,7 +429,7 @@ class TestFeatureFlagIntegration:
     @pytest.mark.asyncio
     async def test_concurrent_evaluations(self):
         """Test concurrent flag evaluations for performance"""
-        with patch('services.feature_flag_service.EnhancedFeatureFlagService') as MockService:
+        with patch("services.feature_flag_service.EnhancedFeatureFlagService") as MockService:
             mock_service = MockService.return_value
             mock_service.is_enabled_for_user.return_value = (True, EvaluationReason.ENABLED)
 
@@ -444,11 +438,7 @@ class TestFeatureFlagIntegration:
             # Simulate 100 concurrent evaluations
             tasks = []
             for i in range(100):
-                task = service.is_enabled_for_user(
-                    "test_flag",
-                    f"user{i}",
-                    "production"
-                )
+                task = service.is_enabled_for_user("test_flag", f"user{i}", "production")
                 tasks.append(task)
 
             start = time.perf_counter()
@@ -469,6 +459,7 @@ class TestFeatureFlagAPI:
         """Create test client"""
         from fastapi.testclient import TestClient
         from main import app
+
         return TestClient(app)
 
     def test_list_feature_flags(self, client):
@@ -506,15 +497,10 @@ class TestPerformanceBenchmarks:
             "whitelist": ["user1", "user2", "user3"],
             "blacklist": ["user4", "user5"],
             "environments": ["production"],
-            "environment_overrides": {"staging": False}
+            "environment_overrides": {"staging": False},
         }
 
-        result = benchmark(
-            service._evaluate_flag,
-            flag_data,
-            "user123",
-            "production"
-        )
+        result = benchmark(service._evaluate_flag, flag_data, "user123", "production")
 
         assert result[0] in [True, False]
         assert result[1] in [e.value for e in EvaluationReason]
@@ -524,10 +510,6 @@ class TestPerformanceBenchmarks:
         """Benchmark user hashing performance"""
         service = EnhancedFeatureFlagService()
 
-        result = benchmark(
-            service._hash_user_id,
-            "test_flag",
-            "user123"
-        )
+        result = benchmark(service._hash_user_id, "test_flag", "user123")
 
         assert 0 <= result < 100

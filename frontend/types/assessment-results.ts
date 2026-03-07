@@ -186,8 +186,9 @@ export interface SectionHistoricalScore {
 // EXPORT FUNCTIONALITY TYPES
 // ============================================================================
 
-// Re-export the unified ExportOptions from export.ts
+// Import and re-export the unified ExportOptions from export.ts
 // This ensures a single source of truth for ExportOptions type
+import type { ExportOptions } from '@/lib/utils/export';
 export type { ExportOptions } from '@/lib/utils/export';
 
 export interface ExportMetadata {
@@ -476,30 +477,5 @@ export interface ValidationResult {
 }
 
 // ============================================================================
-// EXPORT ALL TYPES
+// ALL TYPES EXPORTED INLINE ABOVE
 // ============================================================================
-
-export type {
-  DetailedAssessmentResults,
-  SectionScoreDetail,
-  QuestionScoreDetail,
-  QuestionResponse,
-  HistoricalAssessment,
-  TrendDataPoint,
-  SectionHistoricalScore,
-  ExportOptions,
-  ExportMetadata,
-  ExportProgress,
-  DisplayMetrics,
-  BenchmarkData,
-  RiskAssessment,
-  ComplianceStatusDetail,
-  ChartDataPoint,
-  SectionChartData,
-  ComparisonChartData,
-  AssessmentSummary,
-  ExportJob,
-  AssessmentComparison,
-  AssessmentResultsError,
-  ValidationResult
-};

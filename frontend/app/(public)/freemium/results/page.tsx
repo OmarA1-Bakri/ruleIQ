@@ -83,7 +83,7 @@ function ResultsContent() {
           url: `${window.location.origin}/freemium`,
         });
         setHasSharedResults(true);
-      } catch (error) {
+      } catch (_error) {
         // User cancelled or share failed, fallback to copy
         await navigator.clipboard.writeText(`${window.location.origin}/freemium`);
         setHasSharedResults(true);

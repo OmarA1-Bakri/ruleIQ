@@ -13,7 +13,7 @@ from api.utils.security_validation import (
     SecurityValidator,
     validate_evidence_data as _validate_evidence_data,
     validate_business_profile_data as _validate_business_profile_data,
-    validate_integration_data as _validate_integration_data
+    validate_integration_data as _validate_integration_data,
 )
 from middleware.audit_logging import log_security_event
 
@@ -49,9 +49,7 @@ class SecurityDependencies:
         except HTTPException as e:
             # Log security validation failure
             await log_security_event(
-                request=request,
-                event_type="validation_failure",
-                details={"error": str(e.detail)}
+                request=request, event_type="validation_failure", details={"error": str(e.detail)}
             )
             raise
 
@@ -74,9 +72,7 @@ class SecurityDependencies:
 
             # Log successful validation
             await log_security_event(
-                request=request,
-                event_type="validation_success",
-                details={"data_type": "json_body"}
+                request=request, event_type="validation_success", details={"data_type": "json_body"}
             )
 
             return validated
@@ -85,17 +81,14 @@ class SecurityDependencies:
             await log_security_event(
                 request=request,
                 event_type="validation_failure",
-                details={"error": str(e), "data_type": "json_body"}
+                details={"error": str(e), "data_type": "json_body"},
             )
             if isinstance(e, HTTPException):
                 raise
             raise HTTPException(status_code=400, detail=f"Invalid JSON body: {str(e)}")
 
     @staticmethod
-    async def validate_file_upload(
-        file: UploadFile,
-        request: Request = None
-    ) -> UploadFile:
+    async def validate_file_upload(file: UploadFile, request: Request = None) -> UploadFile:
         """
         Validate uploaded file.
 
@@ -118,8 +111,8 @@ class SecurityDependencies:
                     details={
                         "filename": file.filename,
                         "content_type": file.content_type,
-                        "size": computed_size
-                    }
+                        "size": computed_size,
+                    },
                 )
 
             return validated_file
@@ -129,17 +122,13 @@ class SecurityDependencies:
                 await log_security_event(
                     request=request,
                     event_type="file_upload_rejected",
-                    details={
-                        "filename": file.filename,
-                        "error": str(e.detail)
-                    }
+                    details={"filename": file.filename, "error": str(e.detail)},
                 )
             raise
 
     @staticmethod
     async def validate_auth_token(
-        credentials: HTTPAuthorizationCredentials = Depends(HTTPBearer()),
-        request: Request = None
+        credentials: HTTPAuthorizationCredentials = Depends(HTTPBearer()), request: Request = None
     ) -> str:
         """
         Validate authentication token.
@@ -157,7 +146,7 @@ class SecurityDependencies:
                 await log_security_event(
                     request=request,
                     event_type="auth_failure",
-                    details={"reason": "missing_credentials"}
+                    details={"reason": "missing_credentials"},
                 )
             raise HTTPException(status_code=401, detail="Missing authentication credentials")
 
@@ -170,7 +159,7 @@ class SecurityDependencies:
                 await log_security_event(
                     request=request,
                     event_type="auth_validated",
-                    details={"token_prefix": token[:10] + "..."}
+                    details={"token_prefix": token[:10] + "..."},
                 )
 
             return token
@@ -179,14 +168,12 @@ class SecurityDependencies:
                 await log_security_event(
                     request=request,
                     event_type="auth_failure",
-                    details={"reason": "invalid_token", "error": str(e.detail)}
+                    details={"reason": "invalid_token", "error": str(e.detail)},
                 )
             raise
 
     @staticmethod
-    async def validate_evidence_request(
-        request: Request
-    ) -> Dict[str, Any]:
+    async def validate_evidence_request(request: Request) -> Dict[str, Any]:
         """
         Validate evidence-specific request data.
 
@@ -205,24 +192,20 @@ class SecurityDependencies:
             await log_security_event(
                 request=request,
                 event_type="evidence_validation_success",
-                details={"data_keys": list(validated.keys())}
+                details={"data_keys": list(validated.keys())},
             )
 
             return validated
         except Exception as e:
             await log_security_event(
-                request=request,
-                event_type="evidence_validation_failure",
-                details={"error": str(e)}
+                request=request, event_type="evidence_validation_failure", details={"error": str(e)}
             )
             if isinstance(e, HTTPException):
                 raise
             raise HTTPException(status_code=400, detail=f"Invalid evidence data: {str(e)}")
 
     @staticmethod
-    async def validate_business_profile_request(
-        request: Request
-    ) -> Dict[str, Any]:
+    async def validate_business_profile_request(request: Request) -> Dict[str, Any]:
         """
         Validate business profile request data.
 
@@ -241,24 +224,20 @@ class SecurityDependencies:
             await log_security_event(
                 request=request,
                 event_type="profile_validation_success",
-                details={"data_keys": list(validated.keys())}
+                details={"data_keys": list(validated.keys())},
             )
 
             return validated
         except Exception as e:
             await log_security_event(
-                request=request,
-                event_type="profile_validation_failure",
-                details={"error": str(e)}
+                request=request, event_type="profile_validation_failure", details={"error": str(e)}
             )
             if isinstance(e, HTTPException):
                 raise
             raise HTTPException(status_code=400, detail=f"Invalid business profile data: {str(e)}")
 
     @staticmethod
-    async def validate_integration_request(
-        request: Request
-    ) -> Dict[str, Any]:
+    async def validate_integration_request(request: Request) -> Dict[str, Any]:
         """
         Validate integration configuration request.
 
@@ -275,11 +254,11 @@ class SecurityDependencies:
             validated = await _validate_integration_data(body)
 
             # Don't log sensitive credential data
-            log_data = {k: v for k, v in validated.items() if k != 'credentials'}
+            log_data = {k: v for k, v in validated.items() if k != "credentials"}
             await log_security_event(
                 request=request,
                 event_type="integration_validation_success",
-                details={"data_keys": list(log_data.keys())}
+                details={"data_keys": list(log_data.keys())},
             )
 
             return validated
@@ -287,7 +266,7 @@ class SecurityDependencies:
             await log_security_event(
                 request=request,
                 event_type="integration_validation_failure",
-                details={"error": str(e)}
+                details={"error": str(e)},
             )
             if isinstance(e, HTTPException):
                 raise
@@ -295,8 +274,7 @@ class SecurityDependencies:
 
     @staticmethod
     async def validate_query_params(
-        request: Request,
-        allowed_params: Optional[list] = None
+        request: Request, allowed_params: Optional[list] = None
     ) -> Dict[str, Any]:
         """
         Validate query parameters against whitelist.
@@ -318,11 +296,10 @@ class SecurityDependencies:
                 await log_security_event(
                     request=request,
                     event_type="invalid_query_params",
-                    details={"invalid_params": list(invalid_params)}
+                    details={"invalid_params": list(invalid_params)},
                 )
                 raise HTTPException(
-                    status_code=400,
-                    detail=f"Invalid query parameters: {', '.join(invalid_params)}"
+                    status_code=400, detail=f"Invalid query parameters: {', '.join(invalid_params)}"
                 )
 
         try:
@@ -332,15 +309,12 @@ class SecurityDependencies:
             await log_security_event(
                 request=request,
                 event_type="query_param_validation_failure",
-                details={"error": str(e.detail)}
+                details={"error": str(e.detail)},
             )
             raise
 
     @staticmethod
-    async def validate_form_data(
-        request: Request,
-        **form_fields
-    ) -> Dict[str, Any]:
+    async def validate_form_data(request: Request, **form_fields) -> Dict[str, Any]:
         """
         Validate form data fields.
 
@@ -368,7 +342,7 @@ class SecurityDependencies:
         await log_security_event(
             request=request,
             event_type="form_validation_success",
-            details={"fields": list(validated.keys())}
+            details={"fields": list(validated.keys())},
         )
 
         return validated
@@ -388,14 +362,14 @@ validate_form_data = SecurityDependencies.validate_form_data
 
 # Export all dependencies
 __all__ = [
-    'SecurityDependencies',
-    'validate_request',
-    'validate_json_body',
-    'validate_file_upload',
-    'validate_auth_token',
-    'validate_evidence_request',
-    'validate_business_profile_request',
-    'validate_integration_request',
-    'validate_query_params',
-    'validate_form_data',
+    "SecurityDependencies",
+    "validate_request",
+    "validate_json_body",
+    "validate_file_upload",
+    "validate_auth_token",
+    "validate_evidence_request",
+    "validate_business_profile_request",
+    "validate_integration_request",
+    "validate_query_params",
+    "validate_form_data",
 ]

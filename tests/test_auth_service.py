@@ -11,11 +11,7 @@ from datetime import datetime, timezone, timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import uuid4
 
-from services.auth_service import (
-    SessionManager,
-    AuthService,
-    auth_service
-)
+from services.auth_service import SessionManager, AuthService, auth_service
 from database.user import User
 
 
@@ -50,7 +46,7 @@ class TestSessionManager:
     @pytest.mark.asyncio
     async def test_get_redis_client_success(self, session_manager, mock_redis):
         """Test successful Redis client creation."""
-        with patch('services.auth_service.redis.from_url', return_value=mock_redis):
+        with patch("services.auth_service.redis.from_url", return_value=mock_redis):
             client = await session_manager.get_redis_client()
             assert client == mock_redis
             assert session_manager._redis_available is True
@@ -58,7 +54,9 @@ class TestSessionManager:
     @pytest.mark.asyncio
     async def test_get_redis_client_connection_failure(self, session_manager):
         """Test Redis client creation failure."""
-        with patch('services.auth_service.redis.from_url', side_effect=ValueError("Connection failed")):
+        with patch(
+            "services.auth_service.redis.from_url", side_effect=ValueError("Connection failed")
+        ):
             client = await session_manager.get_redis_client()
             assert client is None
             assert session_manager._redis_available is False
@@ -67,7 +65,7 @@ class TestSessionManager:
     async def test_get_redis_client_ping_failure(self, session_manager, mock_redis):
         """Test Redis client ping failure."""
         mock_redis.ping.side_effect = Exception("Ping failed")
-        with patch('services.auth_service.redis.from_url', return_value=mock_redis):
+        with patch("services.auth_service.redis.from_url", return_value=mock_redis):
             client = await session_manager.get_redis_client()
             assert client is None
             assert session_manager._redis_available is False
@@ -75,7 +73,7 @@ class TestSessionManager:
     @pytest.mark.asyncio
     async def test_create_session_redis_success(self, session_manager, mock_redis):
         """Test successful session creation with Redis."""
-        with patch('services.auth_service.redis.from_url', return_value=mock_redis):
+        with patch("services.auth_service.redis.from_url", return_value=mock_redis):
             user_id = uuid4()
             session_id = await session_manager.create_session(user_id, "test_token")
 
@@ -87,7 +85,7 @@ class TestSessionManager:
     async def test_create_session_redis_failure_fallback(self, session_manager, mock_redis):
         """Test session creation with Redis failure, fallback to memory."""
         mock_redis.setex.side_effect = Exception("Redis error")
-        with patch('services.auth_service.redis.from_url', return_value=mock_redis):
+        with patch("services.auth_service.redis.from_url", return_value=mock_redis):
             user_id = uuid4()
             session_id = await session_manager.create_session(user_id, "test_token")
 
@@ -111,7 +109,7 @@ class TestSessionManager:
         session_data = {"user_id": str(uuid4()), "token": "test"}
         mock_redis.get.return_value = json.dumps(session_data)
 
-        with patch('services.auth_service.redis.from_url', return_value=mock_redis):
+        with patch("services.auth_service.redis.from_url", return_value=mock_redis):
             result = await session_manager.get_session("session_123")
             assert result == session_data
 
@@ -121,7 +119,7 @@ class TestSessionManager:
         mock_redis.get.return_value = "invalid json"
         session_manager._memory_sessions["session_123"] = {"user_id": str(uuid4())}
 
-        with patch('services.auth_service.redis.from_url', return_value=mock_redis):
+        with patch("services.auth_service.redis.from_url", return_value=mock_redis):
             result = await session_manager.get_session("session_123")
             assert result is not None
 
@@ -146,7 +144,7 @@ class TestSessionManager:
         session_data = {"user_id": str(uuid4()), "token": "test", "last_activity": "old"}
         mock_redis.get.return_value = json.dumps(session_data)
 
-        with patch('services.auth_service.redis.from_url', return_value=mock_redis):
+        with patch("services.auth_service.redis.from_url", return_value=mock_redis):
             result = await session_manager.update_session_activity("session_123")
             assert result is True
             mock_redis.setex.assert_called()
@@ -163,7 +161,7 @@ class TestSessionManager:
         session_data = {"user_id": str(uuid4())}
         mock_redis.get.return_value = json.dumps(session_data)
 
-        with patch('services.auth_service.redis.from_url', return_value=mock_redis):
+        with patch("services.auth_service.redis.from_url", return_value=mock_redis):
             result = await session_manager.invalidate_session("session_123")
             assert result is True
             mock_redis.delete.assert_called()
@@ -181,7 +179,7 @@ class TestSessionManager:
         """Test successful user sessions retrieval from Redis."""
         mock_redis.smembers.return_value = {"session1", "session2"}
 
-        with patch('services.auth_service.redis.from_url', return_value=mock_redis):
+        with patch("services.auth_service.redis.from_url", return_value=mock_redis):
             sessions = await session_manager.get_user_sessions(uuid4())
             assert sessions == ["session1", "session2"]
 
@@ -192,7 +190,7 @@ class TestSessionManager:
         session_manager._memory_sessions = {
             "session1": {"user_id": user_id},
             "session2": {"user_id": user_id},
-            "session3": {"user_id": str(uuid4())}
+            "session3": {"user_id": str(uuid4())},
         }
 
         sessions = await session_manager.get_user_sessions(uuid4())
@@ -206,7 +204,7 @@ class TestSessionManager:
         user_id = uuid4()
         mock_redis.smembers.return_value = {"session1", "session2"}
 
-        with patch('services.auth_service.redis.from_url', return_value=mock_redis):
+        with patch("services.auth_service.redis.from_url", return_value=mock_redis):
             count = await session_manager.invalidate_all_user_sessions(user_id)
             assert count == 2  # Should return count of sessions invalidated
 
@@ -220,7 +218,7 @@ class TestSessionManager:
         session_manager._memory_sessions = {
             "expired": {"last_activity": old_time},
             "active": {"last_activity": new_time},
-            "malformed": {}  # Missing last_activity
+            "malformed": {},  # Missing last_activity
         }
 
         count = await session_manager.cleanup_expired_sessions()
@@ -258,25 +256,28 @@ class TestAuthService:
         assert isinstance(auth_service_instance.session_manager, SessionManager)
 
     @pytest.mark.asyncio
-    async def test_create_user_session_success(self, auth_service_instance, mock_user, mock_session_manager):
+    async def test_create_user_session_success(
+        self, auth_service_instance, mock_user, mock_session_manager
+    ):
         """Test successful user session creation."""
         auth_service_instance.session_manager = mock_session_manager
 
         metadata = {"ip": "127.0.0.1"}
-        session_id = await auth_service_instance.create_user_session(mock_user, "test_token", metadata)
+        session_id = await auth_service_instance.create_user_session(
+            mock_user, "test_token", metadata
+        )
 
         assert session_id == "session_123"
         mock_session_manager.create_session.assert_called_once_with(
-            mock_user.id, "test_token",
-            {
-                "user_agent": "",
-                "ip_address": "127.0.0.1",
-                "login_time": pytest.any
-            }
+            mock_user.id,
+            "test_token",
+            {"user_agent": "", "ip_address": "127.0.0.1", "login_time": pytest.any},
         )
 
     @pytest.mark.asyncio
-    async def test_create_user_session_no_metadata(self, auth_service_instance, mock_user, mock_session_manager):
+    async def test_create_user_session_no_metadata(
+        self, auth_service_instance, mock_user, mock_session_manager
+    ):
         """Test user session creation without metadata."""
         auth_service_instance.session_manager = mock_session_manager
 
@@ -289,7 +290,9 @@ class TestAuthService:
         assert metadata["ip_address"] == ""
 
     @pytest.mark.asyncio
-    async def test_validate_session_success(self, auth_service_instance, mock_user, mock_session_manager):
+    async def test_validate_session_success(
+        self, auth_service_instance, mock_user, mock_session_manager
+    ):
         """Test successful session validation."""
         # Mock session data
         session_data = {"user_id": str(mock_user.id), "token": "test_token"}
@@ -321,7 +324,9 @@ class TestAuthService:
         assert result is None
 
     @pytest.mark.asyncio
-    async def test_validate_session_user_not_found(self, auth_service_instance, mock_session_manager):
+    async def test_validate_session_user_not_found(
+        self, auth_service_instance, mock_session_manager
+    ):
         """Test session validation when user doesn't exist in database."""
         session_data = {"user_id": str(uuid4()), "token": "test_token"}
         mock_session_manager.get_session.return_value = session_data
@@ -339,7 +344,9 @@ class TestAuthService:
         mock_session_manager.invalidate_session.assert_called_once_with("session_123")
 
     @pytest.mark.asyncio
-    async def test_validate_session_inactive_user(self, auth_service_instance, mock_session_manager):
+    async def test_validate_session_inactive_user(
+        self, auth_service_instance, mock_session_manager
+    ):
         """Test session validation when user is inactive."""
         mock_user_inactive = MagicMock(spec=User)
         mock_user_inactive.id = uuid4()
@@ -389,8 +396,16 @@ class TestAuthService:
         """Test getting user active sessions."""
         mock_session_manager.get_user_sessions.return_value = ["session1", "session2"]
         mock_session_manager.get_session.side_effect = [
-            {"created_at": "2023-01-01T00:00:00", "last_activity": "2023-01-02T00:00:00", "metadata": {}},
-            {"created_at": "2023-01-01T01:00:00", "last_activity": "2023-01-02T01:00:00", "metadata": {"ip": "127.0.0.1"}}
+            {
+                "created_at": "2023-01-01T00:00:00",
+                "last_activity": "2023-01-02T00:00:00",
+                "metadata": {},
+            },
+            {
+                "created_at": "2023-01-01T01:00:00",
+                "last_activity": "2023-01-02T01:00:00",
+                "metadata": {"ip": "127.0.0.1"},
+            },
         ]
 
         auth_service_instance.session_manager = mock_session_manager
@@ -402,7 +417,9 @@ class TestAuthService:
         assert sessions[1]["session_id"] == "session2"
 
     @pytest.mark.asyncio
-    async def test_enforce_session_limits_no_action(self, auth_service_instance, mock_session_manager):
+    async def test_enforce_session_limits_no_action(
+        self, auth_service_instance, mock_session_manager
+    ):
         """Test session limit enforcement when under limit."""
         mock_session_manager.get_user_sessions.return_value = ["s1", "s2", "s3"]
         auth_service_instance.session_manager = mock_session_manager
@@ -412,7 +429,9 @@ class TestAuthService:
         assert result == 0  # No sessions removed
 
     @pytest.mark.asyncio
-    async def test_enforce_session_limits_remove_oldest(self, auth_service_instance, mock_session_manager):
+    async def test_enforce_session_limits_remove_oldest(
+        self, auth_service_instance, mock_session_manager
+    ):
         """Test session limit enforcement removing oldest sessions."""
         mock_session_manager.get_user_sessions.return_value = ["s1", "s2", "s3", "s4", "s5", "s6"]
         mock_session_manager.invalidate_session.return_value = True
@@ -424,7 +443,7 @@ class TestAuthService:
             {"last_activity": "2023-01-01T04:00:00"},  # Third oldest
             {"last_activity": "2023-01-01T03:00:00"},  # Fourth oldest
             {"last_activity": "2023-01-01T02:00:00"},  # Fifth oldest
-            {"last_activity": "2023-01-01T01:00:00"}   # Sixth oldest
+            {"last_activity": "2023-01-01T01:00:00"},  # Sixth oldest
         ]
 
         auth_service_instance.session_manager = mock_session_manager
@@ -498,7 +517,9 @@ class TestSecurityEdgeCases:
             "good_session": {"last_activity": datetime.now(timezone.utc).isoformat()},
             "malformed_no_activity": {},
             "malformed_bad_date": {"last_activity": "not-a-date"},
-            "expired_session": {"last_activity": (datetime.now(timezone.utc) - timedelta(days=31)).isoformat()}
+            "expired_session": {
+                "last_activity": (datetime.now(timezone.utc) - timedelta(days=31)).isoformat()
+            },
         }
 
         count = await session_manager.cleanup_expired_sessions()

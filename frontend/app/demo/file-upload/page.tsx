@@ -10,7 +10,7 @@ export default function FileUploadDemoPage() {
   // Suppress TypeScript unused variable warning
   void addNotification;
 
-  const handleFileUpload = async (files: File[]) => {
+  const handleFileUpload = async (_files: File[]) => {
     // Simulate API upload
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
@@ -20,11 +20,11 @@ export default function FileUploadDemoPage() {
     // await apiClient.post('/upload', formData)
   };
 
-  const handleSingleFileUpload = async (files: File[]) => {
+  const handleSingleFileUpload = async (_files: File[]) => {
     await new Promise((resolve) => setTimeout(resolve, 1000));
   };
 
-  const handleImageUpload = async (files: File[]) => {
+  const handleImageUpload = async (_files: File[]) => {
     await new Promise((resolve) => setTimeout(resolve, 1500));
   };
 

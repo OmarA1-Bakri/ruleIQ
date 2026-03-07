@@ -14,7 +14,6 @@ import re
 import json
 import argparse
 from pathlib import Path
-from typing import Dict, List, Tuple, Optional
 
 
 def update_todo_in_file(file_path: Path, line_number: int, issue_number: int) -> bool:
@@ -30,7 +29,7 @@ def update_todo_in_file(file_path: Path, line_number: int, issue_number: int) ->
         True if update successful, False otherwise
     """
     try:
-        lines = file_path.read_text(encoding='utf-8').splitlines(keepends=True)
+        lines = file_path.read_text(encoding="utf-8").splitlines(keepends=True)
     except (OSError, UnicodeDecodeError) as e:
         print(f"Error reading {file_path}: {e}")
         return False
@@ -40,27 +39,28 @@ def update_todo_in_file(file_path: Path, line_number: int, issue_number: int) ->
         return False
 
     line = lines[line_number - 1]
-    original_line = line
 
     # Detect comment style and update accordingly
     patterns = [
         # Python style: # TODO: ...
-        (r'(#\s*)(TODO|FIXME|HACK|XXX|OPTIMIZE|BUG|REFACTOR|NOTE)(\s*:?\s*)',
-         r'\1\2(#{issue})\3'),
+        (r"(#\s*)(TODO|FIXME|HACK|XXX|OPTIMIZE|BUG|REFACTOR|NOTE)(\s*:?\s*)", r"\1\2(#{issue})\3"),
         # JavaScript/TypeScript style: // TODO: ...
-        (r'(//\s*)(TODO|FIXME|HACK|XXX|OPTIMIZE|BUG|REFACTOR|NOTE)(\s*:?\s*)',
-         r'\1\2(#{issue})\3'),
+        (r"(//\s*)(TODO|FIXME|HACK|XXX|OPTIMIZE|BUG|REFACTOR|NOTE)(\s*:?\s*)", r"\1\2(#{issue})\3"),
         # Multi-line comment style: /* TODO: ...
-        (r'(/\*\s*)(TODO|FIXME|HACK|XXX|OPTIMIZE|BUG|REFACTOR|NOTE)(\s*:?\s*)',
-         r'\1\2(#{issue})\3'),
+        (
+            r"(/\*\s*)(TODO|FIXME|HACK|XXX|OPTIMIZE|BUG|REFACTOR|NOTE)(\s*:?\s*)",
+            r"\1\2(#{issue})\3",
+        ),
         # HTML/Markdown comment style: <!-- TODO: ...
-        (r'(<!--\s*)(TODO|FIXME|HACK|XXX|OPTIMIZE|BUG|REFACTOR|NOTE)(\s*:?\s*)',
-         r'\1\2(#{issue})\3'),
+        (
+            r"(<!--\s*)(TODO|FIXME|HACK|XXX|OPTIMIZE|BUG|REFACTOR|NOTE)(\s*:?\s*)",
+            r"\1\2(#{issue})\3",
+        ),
     ]
 
     updated = line
     for pattern, replacement in patterns:
-        replacement_str = replacement.replace('{issue}', str(issue_number))
+        replacement_str = replacement.replace("{issue}", str(issue_number))
         updated = re.sub(pattern, replacement_str, line, flags=re.IGNORECASE)
         if updated != line:
             break
@@ -71,14 +71,14 @@ def update_todo_in_file(file_path: Path, line_number: int, issue_number: int) ->
 
     lines[line_number - 1] = updated
     try:
-        file_path.write_text(''.join(lines), encoding='utf-8')
+        file_path.write_text("".join(lines), encoding="utf-8")
         return True
     except (OSError, UnicodeDecodeError) as e:
         print(f"Error writing {file_path}: {e}")
         return False
 
 
-def batch_update_todos(mapping: Dict[str, int], dry_run: bool = False) -> Tuple[int, int]:
+def batch_update_todos(mapping: dict[str, int], dry_run: bool = False) -> tuple[int, int]:
     """
     Update multiple TODOs from a mapping file.
 
@@ -94,7 +94,7 @@ def batch_update_todos(mapping: Dict[str, int], dry_run: bool = False) -> Tuple[
 
     for location, issue_num in mapping.items():
         try:
-            file_path_str, line_num_str = location.rsplit(':', 1)
+            file_path_str, line_num_str = location.rsplit(":", 1)
             file_path = Path(file_path_str)
             line_num = int(line_num_str)
         except ValueError:
@@ -110,13 +110,12 @@ def batch_update_todos(mapping: Dict[str, int], dry_run: bool = False) -> Tuple[
         if dry_run:
             print(f"  🔍 Would update: {file_path}:{line_num} → #{issue_num}")
             successful += 1
+        elif update_todo_in_file(file_path, line_num, issue_num):
+            print(f"  ✅ Updated: {file_path}:{line_num} → #{issue_num}")
+            successful += 1
         else:
-            if update_todo_in_file(file_path, line_num, issue_num):
-                print(f"  ✅ Updated: {file_path}:{line_num} → #{issue_num}")
-                successful += 1
-            else:
-                print(f"  ❌ Failed: {file_path}:{line_num}")
-                failed += 1
+            print(f"  ❌ Failed: {file_path}:{line_num}")
+            failed += 1
 
     return successful, failed
 
@@ -151,16 +150,16 @@ def interactive_update():
 
         # Show context
         if todo.context:
-            print(f"\n  Context:")
-            for line in todo.context.strip().split('\n'):
+            print("\n  Context:")
+            for line in todo.context.strip().split("\n"):
                 print(f"    {line}")
 
         response = input("\n  Enter issue number (or 's' to skip, 'q' to quit): ").strip()
 
-        if response.lower() == 'q':
+        if response.lower() == "q":
             print("\n👋 Quitting interactive mode")
             break
-        elif response.lower() == 's':
+        elif response.lower() == "s":
             print("  ⏭️  Skipped")
             skipped += 1
             continue
@@ -170,13 +169,13 @@ def interactive_update():
                 print(f"  ✅ Updated with issue #{issue_num}")
                 updated += 1
             else:
-                print(f"  ❌ Failed to update")
+                print("  ❌ Failed to update")
                 failed += 1
         else:
-            print(f"  ⚠️  Invalid input, skipping")
+            print("  ⚠️  Invalid input, skipping")
             skipped += 1
 
-    print(f"\n📊 Summary:")
+    print("\n📊 Summary:")
     print(f"  Updated: {updated}")
     print(f"  Skipped: {skipped}")
     print(f"  Failed: {failed}")
@@ -192,7 +191,7 @@ def preview_update(file_path: Path, line_number: int, issue_number: int):
         issue_number: GitHub issue number
     """
     try:
-        lines = file_path.read_text(encoding='utf-8').splitlines()
+        lines = file_path.read_text(encoding="utf-8").splitlines()
     except (OSError, UnicodeDecodeError) as e:
         print(f"Error reading {file_path}: {e}")
         return
@@ -213,19 +212,21 @@ def preview_update(file_path: Path, line_number: int, issue_number: int):
     # Simulate update
     line = lines[line_number - 1]
     patterns = [
-        (r'(#\s*)(TODO|FIXME|HACK|XXX|OPTIMIZE|BUG|REFACTOR|NOTE)(\s*:?\s*)',
-         r'\1\2(#{issue})\3'),
-        (r'(//\s*)(TODO|FIXME|HACK|XXX|OPTIMIZE|BUG|REFACTOR|NOTE)(\s*:?\s*)',
-         r'\1\2(#{issue})\3'),
-        (r'(/\*\s*)(TODO|FIXME|HACK|XXX|OPTIMIZE|BUG|REFACTOR|NOTE)(\s*:?\s*)',
-         r'\1\2(#{issue})\3'),
-        (r'(<!--\s*)(TODO|FIXME|HACK|XXX|OPTIMIZE|BUG|REFACTOR|NOTE)(\s*:?\s*)',
-         r'\1\2(#{issue})\3'),
+        (r"(#\s*)(TODO|FIXME|HACK|XXX|OPTIMIZE|BUG|REFACTOR|NOTE)(\s*:?\s*)", r"\1\2(#{issue})\3"),
+        (r"(//\s*)(TODO|FIXME|HACK|XXX|OPTIMIZE|BUG|REFACTOR|NOTE)(\s*:?\s*)", r"\1\2(#{issue})\3"),
+        (
+            r"(/\*\s*)(TODO|FIXME|HACK|XXX|OPTIMIZE|BUG|REFACTOR|NOTE)(\s*:?\s*)",
+            r"\1\2(#{issue})\3",
+        ),
+        (
+            r"(<!--\s*)(TODO|FIXME|HACK|XXX|OPTIMIZE|BUG|REFACTOR|NOTE)(\s*:?\s*)",
+            r"\1\2(#{issue})\3",
+        ),
     ]
 
     updated = line
     for pattern, replacement in patterns:
-        replacement_str = replacement.replace('{issue}', str(issue_number))
+        replacement_str = replacement.replace("{issue}", str(issue_number))
         updated = re.sub(pattern, replacement_str, line, flags=re.IGNORECASE)
         if updated != line:
             break
@@ -238,21 +239,20 @@ def preview_update(file_path: Path, line_number: int, issue_number: int):
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Update TODO comments with issue references')
-    parser.add_argument('--mapping', type=Path,
-                        help='JSON file mapping locations to issue numbers')
-    parser.add_argument('--interactive', action='store_true',
-                        help='Interactively update TODOs')
-    parser.add_argument('--dry-run', action='store_true',
-                        help='Show what would be updated without updating')
-    parser.add_argument('--file', type=Path,
-                        help='Update specific file only')
-    parser.add_argument('--line', type=int,
-                        help='Update specific line (requires --file)')
-    parser.add_argument('--issue', type=int,
-                        help='Issue number (requires --file and --line)')
-    parser.add_argument('--preview', action='store_true',
-                        help='Preview the update (requires --file, --line, --issue)')
+    parser = argparse.ArgumentParser(description="Update TODO comments with issue references")
+    parser.add_argument("--mapping", type=Path, help="JSON file mapping locations to issue numbers")
+    parser.add_argument("--interactive", action="store_true", help="Interactively update TODOs")
+    parser.add_argument(
+        "--dry-run", action="store_true", help="Show what would be updated without updating"
+    )
+    parser.add_argument("--file", type=Path, help="Update specific file only")
+    parser.add_argument("--line", type=int, help="Update specific line (requires --file)")
+    parser.add_argument("--issue", type=int, help="Issue number (requires --file and --line)")
+    parser.add_argument(
+        "--preview",
+        action="store_true",
+        help="Preview the update (requires --file, --line, --issue)",
+    )
     args = parser.parse_args()
 
     if args.interactive:
@@ -271,13 +271,13 @@ def main():
         print(f"📝 Updating TODOs from {args.mapping}...\n")
         successful, failed = batch_update_todos(mapping, args.dry_run)
 
-        print(f"\n📊 Summary:")
+        print("\n📊 Summary:")
         print(f"  Successful: {successful}")
         print(f"  Failed: {failed}")
 
         if args.dry_run:
-            print(f"\n💡 This was a dry run. No files were modified.")
-            print(f"   Remove --dry-run to update for real")
+            print("\n💡 This was a dry run. No files were modified.")
+            print("   Remove --dry-run to update for real")
     elif args.file and args.line and args.issue:
         if not args.file.exists():
             print(f"❌ Error: File not found: {args.file}")
@@ -288,11 +288,10 @@ def main():
         elif args.dry_run:
             print(f"🔍 Would update: {args.file}:{args.line} → #{args.issue}")
             preview_update(args.file, args.line, args.issue)
+        elif update_todo_in_file(args.file, args.line, args.issue):
+            print(f"✅ Updated: {args.file}:{args.line} → #{args.issue}")
         else:
-            if update_todo_in_file(args.file, args.line, args.issue):
-                print(f"✅ Updated: {args.file}:{args.line} → #{args.issue}")
-            else:
-                print(f"❌ Failed to update {args.file}:{args.line}")
+            print(f"❌ Failed to update {args.file}:{args.line}")
     else:
         parser.error("Must specify --mapping, --interactive, or --file/--line/--issue")
 

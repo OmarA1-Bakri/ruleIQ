@@ -1,23 +1,8 @@
-"""
-from __future__ import annotations
-import logging
-
-
-logger = logging.getLogger(__name__)
-# Constants
-HTTP_INTERNAL_SERVER_ERROR = 500
-
-DEFAULT_TIMEOUT = 30
-
-DEFAULT_LIMIT = 100
-MAX_RETRIES = 3
-
-
-Service for calculating a quality score for each piece of evidence.
-"""
+"""Service for calculating a quality score for each piece of evidence."""
 
 import asyncio
 import json
+import logging
 import re
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
@@ -28,13 +13,24 @@ from database.evidence_item import EvidenceItem
 
 logger = get_logger(__name__)
 
+# Constants
+HTTP_INTERNAL_SERVER_ERROR = 500
+DEFAULT_TIMEOUT = 30
+DEFAULT_LIMIT = 100
+MAX_RETRIES = 3
+
 
 class QualityScorer:
     """Calculates a quality score (0-100) for evidence."""
 
     def __init__(self) -> None:
         """Initialize the quality scorer with scoring weights."""
-        self.weights = {"completeness": 0.3, "freshness": 0.25, "relevance": 0.25, "verifiability": 0.2}
+        self.weights = {
+            "completeness": 0.3,
+            "freshness": 0.25,
+            "relevance": 0.25,
+            "verifiability": 0.2,
+        }
         self.ai_model = None
         self.ai_weights = {
             "completeness": 0.2,
@@ -61,7 +57,8 @@ class QualityScorer:
             return round(min(max(total_score, 0.0), 100.0), 2)
         except (ValueError, TypeError, KeyError) as e:
             logger.warning(
-                "Could not calculate quality score for evidence %s due to data issue: %s" % (evidence.id, e),
+                "Could not calculate quality score for evidence %s due to data issue: %s"
+                % (evidence.id, e),
                 exc_info=True,
             )
             return 50.0
@@ -103,7 +100,9 @@ class QualityScorer:
                 return 10.0
             relevance_score = 50.0
             description = evidence.content.get("description", "").lower()
-            if any(keyword in description for keyword in ["audit", "control", "security", "compliance"]):
+            if any(
+                keyword in description for keyword in ["audit", "control", "security", "compliance"]
+            ):
                 relevance_score += 25.0
             if evidence.control_id:
                 relevance_score += 25.0
@@ -139,7 +138,9 @@ class QualityScorer:
             total_score = self.calculate_score(evidence)
             return {"total_score": total_score, "breakdown": scores, "weights": self.weights}
         except (ValueError, TypeError) as e:
-            raise BusinessLogicException(f"Failed to get score breakdown for evidence {evidence.id}") from e
+            raise BusinessLogicException(
+                f"Failed to get score breakdown for evidence {evidence.id}"
+            ) from e
 
     def calculate_batch_scores(self, evidence_items: List[EvidenceItem]) -> Dict[str, Any]:
         """Calculates quality scores for multiple evidence items."""
@@ -155,7 +156,9 @@ class QualityScorer:
                 "poor": (50, 69.99),
                 "very_poor": (0, 49.99),
             }
-            distribution = {range_name: {"count": 0, "percentage": 0.0} for range_name in score_ranges}
+            distribution = {
+                range_name: {"count": 0, "percentage": 0.0} for range_name in score_ranges
+            }
             for score in scores:
                 for range_name, (min_s, max_s) in score_ranges.items():
                     if min_s <= score <= max_s:
@@ -204,7 +207,9 @@ class QualityScorer:
                 "analysis_timestamp": datetime.now(timezone.utc).isoformat(),
             }
         except Exception as e:
-            logger.error("Enhanced scoring failed for evidence %s: %s" % (evidence.id, e), exc_info=True)
+            logger.error(
+                "Enhanced scoring failed for evidence %s: %s" % (evidence.id, e), exc_info=True
+            )
             traditional_score = self.calculate_score(evidence)
             return {
                 "overall_score": traditional_score,
@@ -275,7 +280,11 @@ RECOMMENDATIONS: [list recommendations]"""
             content_parts.append(f"Collected: {evidence.collected_at.isoformat()}")
         if evidence.raw_data:
             try:
-                raw_data = json.loads(evidence.raw_data) if isinstance(evidence.raw_data, str) else evidence.raw_data
+                raw_data = (
+                    json.loads(evidence.raw_data)
+                    if isinstance(evidence.raw_data, str)
+                    else evidence.raw_data
+                )
                 if isinstance(raw_data, dict):
                     for key, value in raw_data.items():
                         if isinstance(value, str) and len(value) > 2:
@@ -439,11 +448,14 @@ RECOMMENDATIONS: [list recommendations]"""
         completeness_factors = [
             evidence.evidence_name is not None,
             evidence.description is not None and len(evidence.description) > 10,
-            hasattr(evidence, "control_reference") and bool(getattr(evidence, "control_reference", None)),
+            hasattr(evidence, "control_reference")
+            and bool(getattr(evidence, "control_reference", None)),
             hasattr(evidence, "file_path") and bool(getattr(evidence, "file_path", None)),
             evidence.evidence_type is not None,
         ]
-        scores["completeness"] = sum(int(factor) for factor in completeness_factors) / len(completeness_factors) * 100
+        scores["completeness"] = (
+            sum(int(factor) for factor in completeness_factors) / len(completeness_factors) * 100
+        )
         if evidence.collected_at:
             age_days = (datetime.now(timezone.utc) - evidence.collected_at).days
             scores["freshness"] = max(0, 100 - age_days * 2)
@@ -462,7 +474,10 @@ RECOMMENDATIONS: [list recommendations]"""
         relevance_score = 50
         if evidence.description:
             desc_lower = evidence.description.lower()
-            if any(keyword in desc_lower for keyword in ["audit", "control", "security", "compliance", "policy"]):
+            if any(
+                keyword in desc_lower
+                for keyword in ["audit", "control", "security", "compliance", "policy"]
+            ):
                 relevance_score += 25
         if evidence.evidence_type and evidence.evidence_type != "unknown":
             relevance_score += 25
@@ -478,16 +493,27 @@ RECOMMENDATIONS: [list recommendations]"""
             ai_confidence = ai_analysis.get("ai_confidence", 0)
             ai_weight = ai_confidence / 100
             traditional_weight = 1 - ai_weight
-            traditional_avg = sum(traditional_scores.values()) / len(traditional_scores) if traditional_scores else 50
+            traditional_avg = (
+                sum(traditional_scores.values()) / len(traditional_scores)
+                if traditional_scores
+                else 50
+            )
             ai_avg = ai_analysis.get("overall_score", 50) if ai_scores else 50
             final_score = traditional_avg * traditional_weight + ai_avg * ai_weight
             return round(final_score, 2)
         except Exception as e:
             logger.warning("Score combination failed: %s" % e)
-            return sum(traditional_scores.values()) / len(traditional_scores) if traditional_scores else 50.0
+            return (
+                sum(traditional_scores.values()) / len(traditional_scores)
+                if traditional_scores
+                else 50.0
+            )
 
     async def detect_semantic_duplicates(
-        self, evidence: EvidenceItem, candidate_evidence: List[EvidenceItem], similarity_threshold: float = 0.8
+        self,
+        evidence: EvidenceItem,
+        candidate_evidence: List[EvidenceItem],
+        similarity_threshold: float = 0.8,
     ) -> List[Dict[str, Any]]:
         """
         Detect semantic duplicates using AI-powered content analysis.
@@ -520,7 +546,10 @@ RECOMMENDATIONS: [list recommendations]"""
             duplicates.sort(key=lambda x: x["similarity_score"], reverse=True)
             return duplicates
         except Exception as e:
-            logger.error("Semantic duplicate detection failed for evidence %s: %s" % (evidence.id, e), exc_info=True)
+            logger.error(
+                "Semantic duplicate detection failed for evidence %s: %s" % (evidence.id, e),
+                exc_info=True,
+            )
             return []
 
     async def _analyze_semantic_similarity(
@@ -584,7 +613,12 @@ RECOMMENDATION: [action]"""
                     parts = line.split(":", 1)
                     key = parts[0].strip().upper()
                     value = parts[1].strip()
-                    if key in ["CONTENT_SIMILARITY", "PURPOSE_SIMILARITY", "SCOPE_OVERLAP", "OVERALL_SIMILARITY"]:
+                    if key in [
+                        "CONTENT_SIMILARITY",
+                        "PURPOSE_SIMILARITY",
+                        "SCOPE_OVERLAP",
+                        "OVERALL_SIMILARITY",
+                    ]:
                         try:
                             score = int(re.search("\\d+", value).group())
                             score = max(0, min(100, score))
@@ -594,7 +628,12 @@ RECOMMENDATION: [action]"""
                         except (ValueError, AttributeError):
                             continue
                     elif key == "SIMILARITY_TYPE":
-                        if value.lower() in ["exact_duplicate", "substantial_overlap", "partial_overlap", "different"]:
+                        if value.lower() in [
+                            "exact_duplicate",
+                            "substantial_overlap",
+                            "partial_overlap",
+                            "different",
+                        ]:
                             result["similarity_type"] = value.lower()
                     elif key == "REASONING":
                         result["reasoning"] = value
@@ -633,8 +672,10 @@ RECOMMENDATION: [action]"""
             for i, evidence in enumerate(evidence_items):
                 if evidence.id in processed_ids:
                     continue
-                candidates = evidence_items[i + 1:]
-                duplicates = await self.detect_semantic_duplicates(evidence, candidates, similarity_threshold)
+                candidates = evidence_items[i + 1 :]
+                duplicates = await self.detect_semantic_duplicates(
+                    evidence, candidates, similarity_threshold
+                )
                 if duplicates:
                     group = {
                         "primary_evidence": {
@@ -655,8 +696,7 @@ RECOMMENDATION: [action]"""
                 "total_items": len(evidence_items),
                 "duplicate_groups": duplicate_groups,
                 "potential_duplicates": total_duplicates,
-                "unique_items": len(evidence_items) -
-                total_duplicates,
+                "unique_items": len(evidence_items) - total_duplicates,
                 "analysis_summary": f"Found {len(duplicate_groups)} duplicate groups with {total_duplicates} potential duplicates",
             }
         except Exception as e:

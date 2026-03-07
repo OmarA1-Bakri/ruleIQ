@@ -24,6 +24,7 @@ from redis import ConnectionPool
 from core.config import settings
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -41,11 +42,11 @@ class APIOptimizer:
         """Initialize Redis for response caching."""
         try:
             pool = ConnectionPool(
-                host=settings.REDIS_HOST if hasattr(settings, 'REDIS_HOST') else 'localhost',
-                port=settings.REDIS_PORT if hasattr(settings, 'REDIS_PORT') else 6379,
+                host=settings.REDIS_HOST if hasattr(settings, "REDIS_HOST") else "localhost",
+                port=settings.REDIS_PORT if hasattr(settings, "REDIS_PORT") else 6379,
                 db=1,  # Use DB 1 for API cache
                 max_connections=100,
-                socket_keepalive=True
+                socket_keepalive=True,
             )
             self.redis_client = redis.Redis(connection_pool=pool)
             self.redis_client.ping()
@@ -97,10 +98,10 @@ class ResponseCacheMiddleware(BaseHTTPMiddleware):
             cached_response = self._get_cached_response(cache_key)
             if cached_response:
                 return Response(
-                    content=cached_response['content'],
-                    status_code=cached_response['status_code'],
-                    headers=cached_response['headers'],
-                    media_type=cached_response['media_type']
+                    content=cached_response["content"],
+                    status_code=cached_response["status_code"],
+                    headers=cached_response["headers"],
+                    media_type=cached_response["media_type"],
                 )
 
         # Process request
@@ -126,14 +127,10 @@ class ResponseCacheMiddleware(BaseHTTPMiddleware):
     def _generate_cache_key(self, request: Request) -> str:
         """Generate cache key for request."""
         # Include user ID if authenticated
-        user_id = getattr(request.state, 'user_id', 'anonymous')
+        user_id = getattr(request.state, "user_id", "anonymous")
 
         # Create key from path, query params, and user
-        key_parts = [
-            request.url.path,
-            str(request.query_params),
-            user_id
-        ]
+        key_parts = [request.url.path, str(request.query_params), user_id]
 
         key_str = ":".join(key_parts)
         # Use SHA-256 instead of MD5 for security compliance, truncated for cache key optimization
@@ -159,17 +156,15 @@ class ResponseCacheMiddleware(BaseHTTPMiddleware):
 
             # Prepare cache data
             cache_data = {
-                'content': body,
-                'status_code': response.status_code,
-                'headers': dict(response.headers),
-                'media_type': response.media_type
+                "content": body,
+                "status_code": response.status_code,
+                "headers": dict(response.headers),
+                "media_type": response.media_type,
             }
 
             # Store in cache
             self.optimizer.redis_client.setex(
-                cache_key,
-                self.optimizer.cache_ttl,
-                msgpack.packb(cache_data)
+                cache_key, self.optimizer.cache_ttl, msgpack.packb(cache_data)
             )
 
             # Reset response body
@@ -201,7 +196,7 @@ class CompressionOptimizer:
             return False
 
         # Don't compress already compressed formats
-        compressed_types = {'image/', 'video/', 'audio/', 'application/zip'}
+        compressed_types = {"image/", "video/", "audio/", "application/zip"}
         return not any(content_type.startswith(ct) for ct in compressed_types)
 
 
@@ -222,11 +217,11 @@ class PaginationOptimizer:
         end = start + per_page
 
         return {
-            'items': items[start:end],
-            'total': total,
-            'page': page,
-            'per_page': per_page,
-            'pages': (total + per_page - 1) // per_page
+            "items": items[start:end],
+            "total": total,
+            "page": page,
+            "per_page": per_page,
+            "pages": (total + per_page - 1) // per_page,
         }
 
     @staticmethod
@@ -249,13 +244,9 @@ class PaginationOptimizer:
         next_cursor = None
         if has_next and results:
             last_item = results[-1]
-            next_cursor = json.dumps({'id': last_item.id})
+            next_cursor = json.dumps({"id": last_item.id})
 
-        return {
-            'items': results,
-            'next_cursor': next_cursor,
-            'has_next': has_next
-        }
+        return {"items": results, "next_cursor": next_cursor, "has_next": has_next}
 
 
 class AsyncProcessingOptimizer:
@@ -276,15 +267,15 @@ class AsyncProcessingOptimizer:
             try:
                 result = await task
                 self.results_cache[task_id] = {
-                    'status': 'completed',
-                    'result': result,
-                    'completed_at': datetime.utcnow()
+                    "status": "completed",
+                    "result": result,
+                    "completed_at": datetime.utcnow(),
                 }
             except Exception as e:
                 self.results_cache[task_id] = {
-                    'status': 'failed',
-                    'error': str(e),
-                    'completed_at': datetime.utcnow()
+                    "status": "failed",
+                    "error": str(e),
+                    "completed_at": datetime.utcnow(),
                 }
 
         asyncio.create_task(store_result())
@@ -299,10 +290,10 @@ class AsyncProcessingOptimizer:
         if task_id in self.task_queue:
             task = self.task_queue[task_id]
             if task.done():
-                return {'status': 'completed'}
-            return {'status': 'processing'}
+                return {"status": "completed"}
+            return {"status": "processing"}
 
-        return {'status': 'not_found'}
+        return {"status": "not_found"}
 
 
 class ResponseOptimizer:
@@ -311,42 +302,35 @@ class ResponseOptimizer:
     @staticmethod
     def optimize_json_response(data: Any) -> Response:
         """Create optimized JSON response using orjson."""
-        content = orjson.dumps(
-            data,
-            option=orjson.OPT_NON_STR_KEYS | orjson.OPT_SERIALIZE_NUMPY
-        )
+        content = orjson.dumps(data, option=orjson.OPT_NON_STR_KEYS | orjson.OPT_SERIALIZE_NUMPY)
 
         return Response(
             content=content,
             media_type="application/json",
-            headers={
-                "Cache-Control": "public, max-age=300",
-                "X-Content-Type-Options": "nosniff"
-            }
+            headers={"Cache-Control": "public, max-age=300", "X-Content-Type-Options": "nosniff"},
         )
 
     @staticmethod
     def stream_large_response(data_generator):
         """Stream large responses to avoid memory issues."""
+
         async def generate():
-            yield b'['
+            yield b"["
             first = True
             async for item in data_generator:
                 if not first:
-                    yield b','
+                    yield b","
                 yield orjson.dumps(item)
                 first = False
-            yield b']'
+            yield b"]"
 
-        return StreamingResponse(
-            generate(),
-            media_type="application/json"
-        )
+        return StreamingResponse(generate(), media_type="application/json")
 
 
 # Decorators for optimization
 def cache_response(ttl: int = 300):
     """Decorator to cache function responses."""
+
     def decorator(func):
         @wraps(func)
         async def wrapper(*args, **kwargs):
@@ -371,29 +355,27 @@ def cache_response(ttl: int = 300):
             # Cache result
             if optimizer.redis_client:
                 try:
-                    optimizer.redis_client.setex(
-                        cache_key,
-                        ttl,
-                        msgpack.packb(result)
-                    )
+                    optimizer.redis_client.setex(cache_key, ttl, msgpack.packb(result))
                 except Exception as e:
                     logger.warning(f"Cache storage error: {e}")
 
             return result
 
         return wrapper
+
     return decorator
 
 
 def batch_process(batch_size: int = 100):
     """Decorator for batch processing of large datasets."""
+
     def decorator(func):
         @wraps(func)
         async def wrapper(items: List, *args, **kwargs):
             results = []
 
             for i in range(0, len(items), batch_size):
-                batch = items[i:i + batch_size]
+                batch = items[i : i + batch_size]
                 batch_results = await func(batch, *args, **kwargs)
                 results.extend(batch_results)
 
@@ -404,11 +386,13 @@ def batch_process(batch_size: int = 100):
             return results
 
         return wrapper
+
     return decorator
 
 
 # Singleton instance
 _optimizer_instance = None
+
 
 def get_api_optimizer() -> APIOptimizer:
     """Get singleton API optimizer instance."""

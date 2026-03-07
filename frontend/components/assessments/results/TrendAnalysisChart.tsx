@@ -153,7 +153,7 @@ export function TrendAnalysisChart({ data, className }: TrendAnalysisChartProps)
 
   // Calculate scales
   const xScale = useMemo(() => {
-    if (filteredData.length === 0) return { min: 0, max: 1, scale: (x: number) => 0 };
+    if (filteredData.length === 0) return { min: 0, max: 1, scale: (_x: number) => 0 };
     
     const minTime = Math.min(...filteredData.map(d => new Date(d.date).getTime()));
     const maxTime = Math.max(...filteredData.map(d => new Date(d.date).getTime()));
@@ -227,7 +227,7 @@ export function TrendAnalysisChart({ data, className }: TrendAnalysisChartProps)
 
     // Calculate coordinates relative to SVG plot area for finding nearest point
     const xInChart = event.clientX - svgRect.left - padding.left;
-    const yInChart = event.clientY - svgRect.top - padding.top;
+    const _yInChart = event.clientY - svgRect.top - padding.top;
 
     // Find closest data point
     let closestIndex = 0;

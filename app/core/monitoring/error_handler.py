@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 import logging
 
 
@@ -220,9 +219,7 @@ class ErrorHandler:
             else:
                 logger.warning(f"Application error: {error.message}", **error_context)
         else:
-            logger.error(
-                f"Unhandled error: {str(error)}", exc_info=True, **error_context
-            )
+            logger.error(f"Unhandled error: {str(error)}", exc_info=True, **error_context)
 
         # Execute callbacks
         for callback in self.error_callbacks:
@@ -266,14 +263,10 @@ class GlobalErrorHandler:
         self.app.add_exception_handler(ApplicationError, self._handle_application_error)
 
         # Validation errors
-        self.app.add_exception_handler(
-            RequestValidationError, self._handle_validation_error
-        )
+        self.app.add_exception_handler(RequestValidationError, self._handle_validation_error)
 
         # HTTP exceptions
-        self.app.add_exception_handler(
-            StarletteHTTPException, self._handle_http_exception
-        )
+        self.app.add_exception_handler(StarletteHTTPException, self._handle_http_exception)
 
         # Database errors
         self.app.add_exception_handler(SQLAlchemyError, self._handle_database_error)
@@ -317,9 +310,7 @@ class GlobalErrorHandler:
         )
         return await self.handler.handle_error(db_error, request)
 
-    async def _handle_generic_error(
-        self, request: Request, error: Exception
-    ) -> JSONResponse:
+    async def _handle_generic_error(self, request: Request, error: Exception) -> JSONResponse:
         """Handle generic errors."""
         return await self.handler.handle_error(error, request)
 

@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 import requests
 
 Reducer functions for LangGraph state management.
@@ -141,14 +140,10 @@ def update_cost_tracker(
         result["prompt_tokens"] = result.get("prompt_tokens", 0) + new["prompt_tokens"]
 
     if "completion_tokens" in new:
-        result["completion_tokens"] = (
-            result.get("completion_tokens", 0) + new["completion_tokens"]
-        )
+        result["completion_tokens"] = result.get("completion_tokens", 0) + new["completion_tokens"]
 
     if "estimated_cost" in new:
-        result["estimated_cost"] = (
-            result.get("estimated_cost", 0.0) + new["estimated_cost"]
-        )
+        result["estimated_cost"] = result.get("estimated_cost", 0.0) + new["estimated_cost"]
 
     # Update model if provided
     if "model" in new:

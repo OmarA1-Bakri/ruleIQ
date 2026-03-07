@@ -81,9 +81,9 @@ class TestContextAwareRecommendations:
         assistant = ComplianceAssistant(mock_db_session)
         business_profile_id = uuid4()
 
-        # Mock context manager
+        # Mock at the evidence_service level - context_manager on the evidence service
         with patch.object(
-            assistant.context_manager, "get_conversation_context"
+            assistant.evidence_service.context_manager, "get_conversation_context"
         ) as mock_context:
             mock_context.return_value = {
                 "business_profile": sample_business_context,
@@ -93,8 +93,10 @@ class TestContextAwareRecommendations:
                 ],
             }
 
-            # Mock AI response
-            with patch.object(assistant, "_generate_gemini_response") as mock_ai:
+            # Mock the response generator used by evidence_service
+            with patch.object(
+                assistant.evidence_service.response_generator, "generate_simple"
+            ) as mock_ai:
                 mock_ai.return_value = json.dumps(
                     [
                         {
@@ -105,17 +107,15 @@ class TestContextAwareRecommendations:
                             "effort_hours": 8,
                             "automation_possible": True,
                             "business_justification": "Critical for ISO 27001 compliance",
-                            "implementation_steps": [
-                                "Draft policy",
-                                "Review",
-                                "Approve"
-                            ]
+                            "implementation_steps": ["Draft policy", "Review", "Approve"],
                         },
                     ],
                 )
 
-                # Mock analyze_evidence_gap
-                with patch.object(assistant, "analyze_evidence_gap") as mock_gap:
+                # Mock compliance_service.analyze_evidence_gap on the evidence_service
+                with patch.object(
+                    assistant.evidence_service.compliance_service, "analyze_evidence_gap"
+                ) as mock_gap:
                     mock_gap.return_value = sample_gaps_analysis
 
                     result = await assistant.get_context_aware_recommendations(
@@ -136,7 +136,7 @@ class TestContextAwareRecommendations:
 
                     # Check business context
                     assert result["business_context"]["company_name"] == "Test Corp"
-                    # Maturity level is calculated based on evidence, so it might be different
+                    # Maturity level is calculated based on evidence
                     assert "maturity_level" in result["business_context"]
 
                     # Check recommendations structure
@@ -146,9 +146,7 @@ class TestContextAwareRecommendations:
                     assert rec["automation_possible"] is True
 
     @pytest.mark.asyncio
-    async def test_analyze_compliance_maturity(
-        self, mock_db_session, sample_business_context
-    ):
+    async def test_analyze_compliance_maturity(self, mock_db_session, sample_business_context):
         """Test compliance maturity analysis"""
 
         assistant = ComplianceAssistant(mock_db_session)
@@ -161,15 +159,19 @@ class TestContextAwareRecommendations:
         ]
 
         result = await assistant._analyze_compliance_maturity(
-            sample_business_context, existing_evidence, "ISO27001",
+            sample_business_context,
+            existing_evidence,
+            "ISO27001",
         )
 
         assert "maturity_level" in result
         assert "maturity_score" in result
-        assert "evidence_diversity" in result
+        assert "evidence_types_count" in result
         assert "size_category" in result
-        assert result["evidence_diversity"] == 4
-        assert result["size_category"] == "medium"
+        assert result["evidence_types_count"] == 4
+        # WorkflowService: >=1000 enterprise, >=250 medium, >=50 small, <50 micro
+        # 150 employees = "small"
+        assert result["size_category"] == "small"
 
     def test_categorize_organization_size(self, mock_db_session):
         """Test organization size categorization"""
@@ -210,7 +212,9 @@ class TestContextAwareRecommendations:
         ]
 
         prioritized = assistant._prioritize_recommendations(
-            recommendations, sample_business_context, sample_maturity_analysis,
+            recommendations,
+            sample_business_context,
+            sample_maturity_analysis,
         )
 
         # Check that high priority quick win is first
@@ -218,18 +222,14 @@ class TestContextAwareRecommendations:
         assert prioritized[0]["priority_score"] > prioritized[1]["priority_score"]
 
     @pytest.mark.asyncio
-    async def test_context_aware_recommendations_error_handling(
-        self, mock_db_session, mock_user
-    ):
+    async def test_context_aware_recommendations_error_handling(self, mock_db_session, mock_user):
         """Test error handling in context-aware recommendations"""
 
         assistant = ComplianceAssistant(mock_db_session)
         business_profile_id = uuid4()
 
         # Mock context manager to raise exception
-        with patch.object(
-            assistant.context_manager, "get_conversation_context"
-        ) as mock_context:
+        with patch.object(assistant.context_manager, "get_conversation_context") as mock_context:
             mock_context.side_effect = Exception("Database error")
 
             with pytest.raises(BusinessLogicException):
@@ -251,7 +251,8 @@ class TestContextAwareRecommendations:
         ]
 
         enhanced = assistant._add_automation_insights(
-            recommendations, sample_business_context,
+            recommendations,
+            sample_business_context,
         )
 
         # Check automation insights were added
@@ -297,7 +298,8 @@ class TestContextAwareRecommendations:
         assistant = ComplianceAssistant(mock_db_session)
 
         fallback = assistant._get_fallback_recommendations(
-            "ISO27001", {"maturity_level": "Basic"},
+            "ISO27001",
+            {"maturity_level": "Basic"},
         )
 
         assert len(fallback) > 0
@@ -322,18 +324,14 @@ class TestWorkflowGeneration:
         return user
 
     @pytest.mark.asyncio
-    async def test_generate_evidence_collection_workflow_success(
-        self, mock_db_session, mock_user
-    ):
+    async def test_generate_evidence_collection_workflow_success(self, mock_db_session, mock_user):
         """Test successful workflow generation"""
 
         assistant = ComplianceAssistant(mock_db_session)
         business_profile_id = uuid4()
 
         # Mock context and AI response
-        with patch.object(
-            assistant.context_manager, "get_conversation_context"
-        ) as mock_context:
+        with patch.object(assistant.context_manager, "get_conversation_context") as mock_context:
             mock_context.return_value = {
                 "business_profile": {
                     "company_name": "Test Corp",
@@ -377,21 +375,27 @@ class TestWorkflowGeneration:
                 assert "effort_estimation" in result
 
     def test_calculate_workflow_effort(self, mock_db_session):
-        """Test workflow effort calculation"""
+        """Test workflow effort calculation.
+
+        The actual _calculate_workflow_effort returns total_hours, total_days,
+        and by_phase breakdown rather than manual/automated split.
+        """
 
         assistant = ComplianceAssistant(mock_db_session)
 
         workflow = {
             "phases": [
                 {
+                    "phase_id": "phase_1",
                     "steps": [
-                        {"estimated_hours": 4, "estimated_hours_with_automation": 2},
-                        {"estimated_hours": 6, "estimated_hours_with_automation": 4},
+                        {"estimated_hours": 4},
+                        {"estimated_hours": 6},
                     ],
                 },
                 {
+                    "phase_id": "phase_2",
                     "steps": [
-                        {"estimated_hours": 8, "estimated_hours_with_automation": 6},
+                        {"estimated_hours": 8},
                     ],
                 },
             ],
@@ -399,11 +403,10 @@ class TestWorkflowGeneration:
 
         effort = assistant._calculate_workflow_effort(workflow)
 
-        assert effort["total_manual_hours"] == 18
-        assert effort["total_automated_hours"] == 12
-        assert effort["effort_savings"]["hours_saved"] == 6
-        assert effort["phases_count"] == 2
-        assert effort["steps_count"] == 3
+        assert effort["total_hours"] == 18
+        assert effort["total_days"] == 2.2  # round(18 / 8, 1) = round(2.25, 1) = 2.2
+        assert effort["by_phase"]["phase_1"] == 10
+        assert effort["by_phase"]["phase_2"] == 8
 
 
 @pytest.mark.unit
@@ -441,9 +444,7 @@ class TestPolicyGeneration:
         business_profile_id = uuid4()
 
         # Mock context and AI response
-        with patch.object(
-            assistant.context_manager, "get_conversation_context"
-        ) as mock_context:
+        with patch.object(assistant.context_manager, "get_conversation_context") as mock_context:
             mock_context.return_value = {
                 "business_profile": {
                     "company_name": "Test Corp",
@@ -536,19 +537,16 @@ class TestPolicyGeneration:
         # Test micro organization
         micro_policy = assistant._apply_size_customizations(policy.copy(), "micro")
         assert "implementation_notes" in micro_policy
-        assert any(
-            "outsourcing" in note.lower()
-            for note in micro_policy["implementation_notes"]
-        )
+        assert any("outsourcing" in note.lower() for note in micro_policy["implementation_notes"])
 
         # Test enterprise organization
         enterprise_policy = assistant._apply_size_customizations(
-            policy.copy(), "enterprise",
+            policy.copy(),
+            "enterprise",
         )
         assert "implementation_notes" in enterprise_policy
         assert any(
-            "enterprise-grade" in note.lower()
-            for note in enterprise_policy["implementation_notes"]
+            "enterprise-grade" in note.lower() for note in enterprise_policy["implementation_notes"]
         )
 
     def test_generate_policy_implementation_guidance(self, mock_db_session):
@@ -561,7 +559,9 @@ class TestPolicyGeneration:
         maturity_analysis = {"maturity_level": "Intermediate"}
 
         guidance = assistant._generate_policy_implementation_guidance(
-            policy, business_context, maturity_analysis,
+            policy,
+            business_context,
+            maturity_analysis,
         )
 
         assert "implementation_phases" in guidance
@@ -582,7 +582,9 @@ class TestPolicyGeneration:
         policy = {}
 
         mapping = assistant._generate_compliance_mapping(
-            policy, "ISO27001", "information_security",
+            policy,
+            "ISO27001",
+            "information_security",
         )
 
         assert mapping["framework"] == "ISO27001"
@@ -602,7 +604,9 @@ class TestPolicyGeneration:
         business_context = {"company_name": "Test Corp", "industry": "Technology"}
 
         fallback = assistant._get_fallback_policy(
-            "ISO27001", "information_security", business_context,
+            "ISO27001",
+            "information_security",
+            business_context,
         )
 
         assert fallback["framework"] == "ISO27001"
@@ -614,21 +618,31 @@ class TestPolicyGeneration:
 
     @pytest.mark.asyncio
     async def test_policy_generation_error_handling(self, mock_db_session, mock_user):
-        """Test error handling in policy generation"""
+        """Test error handling in policy generation.
+
+        When context manager raises, PolicyService catches the exception
+        and returns a fallback policy rather than propagating.
+        """
 
         assistant = ComplianceAssistant(mock_db_session)
         business_profile_id = uuid4()
 
-        # Mock context manager to raise exception
+        # Mock context manager on the policy_service to raise exception
         with patch.object(
-            assistant.context_manager, "get_conversation_context"
+            assistant.policy_service.context_manager, "get_conversation_context"
         ) as mock_context:
             mock_context.side_effect = Exception("Database error")
 
-            with pytest.raises(BusinessLogicException):
-                await assistant.generate_customized_policy(
-                    user=mock_user,
-                    business_profile_id=business_profile_id,
-                    framework="ISO27001",
-                    policy_type="information_security",
-                )
+            # PolicyService catches exceptions and returns a fallback policy
+            result = await assistant.generate_customized_policy(
+                user=mock_user,
+                business_profile_id=business_profile_id,
+                framework="ISO27001",
+                policy_type="information_security",
+            )
+
+            # Verify fallback policy was returned
+            assert result["framework"] == "ISO27001"
+            assert result["policy_type"] == "information_security"
+            assert "sections" in result
+            assert len(result["sections"]) >= 2

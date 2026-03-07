@@ -561,7 +561,7 @@ export class QuestionnaireEngine {
         // Fall back to mock recommendations
         return this.generateMockRecommendations(gaps);
       }
-    } catch (error) {
+    } catch (_error) {
       // Log error but don't break the assessment
 
 
@@ -1025,7 +1025,7 @@ export class QuestionnaireEngine {
         this.currentAIQuestionIndex = 0;
         this.isInAIQuestionMode = true;
       }
-    } catch (error) {
+    } catch (_error) {
       // Log error but don't break the assessment
 
 

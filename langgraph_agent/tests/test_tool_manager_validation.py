@@ -30,8 +30,7 @@ class TestToolCreation:
 
         assert tool.name == "compliance_analysis"
         assert (
-            tool.description
-            == "Analyze business compliance requirements and applicable frameworks"
+            tool.description == "Analyze business compliance requirements and applicable frameworks"
         )
         assert tool.category == ToolCategory.COMPLIANCE_ANALYSIS
         assert tool.priority == ToolPriority.HIGH
@@ -42,8 +41,7 @@ class TestToolCreation:
 
         assert tool.name == "document_retrieval"
         assert (
-            tool.description
-            == "Retrieve compliance documents, templates, and guidance materials"
+            tool.description == "Retrieve compliance documents, templates, and guidance materials"
         )
         assert tool.category == ToolCategory.DOCUMENT_RETRIEVAL
         assert tool.priority == ToolPriority.MEDIUM  # Default
@@ -53,10 +51,7 @@ class TestToolCreation:
         tool = EvidenceCollectionTool()
 
         assert tool.name == "evidence_collection"
-        assert (
-            tool.description
-            == "Collect and organize compliance evidence and documentation"
-        )
+        assert tool.description == "Collect and organize compliance evidence and documentation"
         assert tool.category == ToolCategory.EVIDENCE_COLLECTION
 
     def test_report_generation_tool_creation(self):
@@ -64,10 +59,7 @@ class TestToolCreation:
         tool = ReportGenerationTool()
 
         assert tool.name == "report_generation"
-        assert (
-            tool.description
-            == "Generate comprehensive compliance reports and assessments"
-        )
+        assert tool.description == "Generate comprehensive compliance reports and assessments"
         assert tool.category == ToolCategory.REPORT_GENERATION
         assert tool.priority == ToolPriority.MEDIUM
 
@@ -140,9 +132,7 @@ class TestToolManager:
         assert "compliance_analysis" in high_priority
 
         medium_priority = manager.get_tools_by_priority(ToolPriority.MEDIUM)
-        assert (
-            len(medium_priority) >= 1
-        )  # At least document_retrieval and report_generation
+        assert len(medium_priority) >= 1  # At least document_retrieval and report_generation
 
 
 @pytest.mark.asyncio
@@ -202,9 +192,7 @@ class TestToolExecution:
         """Test EvidenceCollectionTool execution."""
         tool = EvidenceCollectionTool()
 
-        result = await tool._execute(
-            company_id="test_company_123", frameworks=["GDPR", "UK_GDPR"]
-        )
+        result = await tool._execute(company_id="test_company_123", frameworks=["GDPR", "UK_GDPR"])
 
         assert isinstance(result, dict)
         assert "collected" in result
@@ -462,14 +450,10 @@ class TestSignatureValidation:
         assert tool._validate_signature(input_data, expected_signature, secret)
 
         # Test invalid signature
-        assert (
-            not tool._validate_signature(input_data, "invalid_signature", secret)
-        )
+        assert not tool._validate_signature(input_data, "invalid_signature", secret)
 
         # Test with different secret
-        assert (
-            not tool._validate_signature(input_data, expected_signature, "wrong_secret")
-        )
+        assert not tool._validate_signature(input_data, expected_signature, "wrong_secret")
 
 
 @pytest.mark.asyncio
@@ -490,9 +474,7 @@ class TestErrorHandling:
         tool._execute = slow_execute
 
         with pytest.raises(ToolError) as exc_info:
-            await tool._safe_execute(
-                business_profile={"test": "data"}, frameworks=["GDPR"]
-            )
+            await tool._safe_execute(business_profile={"test": "data"}, frameworks=["GDPR"])
 
         assert exc_info.value.error_type == "timeout"
         assert "timed out" in exc_info.value.message
@@ -507,9 +489,7 @@ class TestErrorHandling:
 
         tool._execute = failing_execute
 
-        result = await tool._safe_execute(
-            business_profile={"test": "data"}, frameworks=["GDPR"]
-        )
+        result = await tool._safe_execute(business_profile={"test": "data"}, frameworks=["GDPR"])
 
         assert isinstance(result, ToolResult)
         assert not result.success

@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 Enhanced state management for LangGraph with proper TypedDict and Annotated reducers.
 
@@ -81,9 +80,7 @@ def accumulate_errors(existing: List[Dict], new: Union[Dict, List[Dict]]) -> Lis
     return combined
 
 
-def merge_compliance_data(
-    existing: Dict[str, Any], new: Dict[str, Any]
-) -> Dict[str, Any]:
+def merge_compliance_data(existing: Dict[str, Any], new: Dict[str, Any]) -> Dict[str, Any]:
     """
     Merge compliance-specific data structures intelligently.
 
@@ -105,9 +102,7 @@ def merge_compliance_data(
 
         elif key == "obligations":
             # Merge obligations by ID
-            existing_obligations = {
-                o.get("id"): o for o in merged.get("obligations", [])
-            }
+            existing_obligations = {o.get("id"): o for o in merged.get("obligations", [])}
             new_obligations = value if isinstance(value, list) else [value]
 
             for obligation in new_obligations:
@@ -119,9 +114,7 @@ def merge_compliance_data(
         elif key == "evidence":
             # Append evidence with deduplication by hash
             existing_evidence = merged.get("evidence", [])
-            evidence_hashes = {
-                e.get("hash") for e in existing_evidence if e.get("hash")
-            }
+            evidence_hashes = {e.get("hash") for e in existing_evidence if e.get("hash")}
 
             new_evidence = value if isinstance(value, list) else [value]
             for evidence in new_evidence:
@@ -314,9 +307,7 @@ def create_enhanced_initial_state(
 
     return EnhancedComplianceState(
         # Conversation
-        messages=[
-            {"role": "user", "content": initial_message, "timestamp": now.isoformat()}
-        ],
+        messages=[{"role": "user", "content": initial_message, "timestamp": now.isoformat()}],
         # Identity
         session_id=session_id,
         company_id=company_id,
@@ -391,9 +382,7 @@ class StateTransition:
     """
 
     @staticmethod
-    def validate_transition(
-        state: EnhancedComplianceState, from_node: str, to_node: str
-    ) -> bool:
+    def validate_transition(state: EnhancedComplianceState, from_node: str, to_node: str) -> bool:
         """
         Validate if a state transition is allowed.
 

@@ -64,9 +64,7 @@ class TestStateTenancy:
         # Same company, different threads
         assert state_thread1["company_id"] == state_thread2["company_id"]
         assert state_thread1["thread_id"] != state_thread2["thread_id"]
-        assert (
-            state_thread1["messages"][0].content != state_thread2["messages"][0].content
-        )
+        assert state_thread1["messages"][0].content != state_thread2["messages"][0].content
 
     def test_state_user_isolation(self):
         """Test user isolation within company and thread."""
@@ -106,9 +104,7 @@ class TestToolTenancy:
         thread_id = "test_thread"
 
         # Mock tool execution to verify company_id is passed
-        with patch.object(
-            manager.tools["evidence_collection"], "_execute"
-        ) as mock_execute:
+        with patch.object(manager.tools["evidence_collection"], "_execute") as mock_execute:
             mock_execute.return_value = {"result": "success"}
 
             await manager.execute_tool(
@@ -237,13 +233,9 @@ class TestGraphTenancy:
             company_id = UUID(config.configurable["company_id"])
             state["company_id"] = company_id
             if company_id == company_a:
-                state["messages"].append(
-                    Mock(role="assistant", content="Response for Company A")
-                )
+                state["messages"].append(Mock(role="assistant", content="Response for Company A"))
             else:
-                state["messages"].append(
-                    Mock(role="assistant", content="Response for Company B")
-                )
+                state["messages"].append(Mock(role="assistant", content="Response for Company B"))
             return state
 
         mock_graph.ainvoke.side_effect = mock_invoke
@@ -401,16 +393,12 @@ class TestDataIsolation:
         company_b = uuid4()
 
         # Create states with conversation history
-        state_a = create_initial_state(
-            company_id=company_a, user_input="Company A conversation"
-        )
+        state_a = create_initial_state(company_id=company_a, user_input="Company A conversation")
         state_a["conversation_history"].append(
             {"role": "assistant", "content": "Company A response"}
         )
 
-        state_b = create_initial_state(
-            company_id=company_b, user_input="Company B conversation"
-        )
+        state_b = create_initial_state(company_id=company_b, user_input="Company B conversation")
         state_b["conversation_history"].append(
             {"role": "assistant", "content": "Company B response"}
         )

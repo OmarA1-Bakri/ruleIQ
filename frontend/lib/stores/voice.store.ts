@@ -7,7 +7,6 @@ import type {
   VoiceCallConfig,
   VoiceError,
   VoiceErrorCode,
-  VoiceTranscript,
   VoiceCommand,
 } from '@/types/voice';
 
@@ -184,7 +183,7 @@ const createActions = (set: any, get: any) => ({
   },
 
   // Synthesis Actions
-  speakResponse: async (text: string, options?: Partial<VoiceConfig>) => {
+  speakResponse: async (text: string, _options?: Partial<VoiceConfig>) => {
     // Check if synthesis is supported
     const capabilities = await get().checkCapabilities();
     if (!capabilities.speechSynthesis) {
@@ -221,7 +220,7 @@ const createActions = (set: any, get: any) => ({
   },
 
   // Calling Actions
-  startVoiceCall: async (config: VoiceCallConfig) => {
+  startVoiceCall: async (_config: VoiceCallConfig) => {
     // Check if calling is supported
     const capabilities = await get().checkCapabilities();
     if (!capabilities.calling || !capabilities.webRTC) {
@@ -265,7 +264,7 @@ const createActions = (set: any, get: any) => ({
     // Future implementation - store commands
   },
 
-  unregisterCommand: (trigger: string) => {
+  unregisterCommand: (_trigger: string) => {
     // Future implementation
   },
 
@@ -314,7 +313,7 @@ const createActions = (set: any, get: any) => ({
         set({ isEnabled: true });
         return true;
       }
-    } catch (error) {
+    } catch (_error) {
 
       const voiceError: VoiceError = {
         code: 'PERMISSION_DENIED' as VoiceErrorCode,
@@ -341,7 +340,8 @@ const createActions = (set: any, get: any) => ({
 
         return hasAudio;
       }
-    } catch (error) {
+    } catch (_error) {
+      // intentionally empty - microphone access denied or unavailable
     }
 
     return false;

@@ -1,6 +1,5 @@
 import { Metadata } from 'next';
 import AssessmentResultsClient from './client';
-import { assessmentResultsService } from '@/lib/services/assessment-results.service';
 
 interface PageProps {
   params: Promise<{

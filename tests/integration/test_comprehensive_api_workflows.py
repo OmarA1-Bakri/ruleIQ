@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 Comprehensive API Workflow Integration Tests
 
@@ -55,7 +54,8 @@ class TestComprehensiveAPIWorkflows:
         """Create test user with valid authentication token"""
         auth_manager = TestAuthManager()
         user = auth_manager.create_test_user(
-            email="integration@test.com", role="business_user",
+            email="integration@test.com",
+            role="business_user",
         )
 
         # Generate JWT token for user
@@ -70,9 +70,7 @@ class TestComprehensiveAPIWorkflows:
         }
 
     @pytest.mark.asyncio
-    async def test_complete_authentication_workflow(
-        self, async_client: httpx.AsyncClient
-    ):
+    async def test_complete_authentication_workflow(self, async_client: httpx.AsyncClient):
         """Test complete authentication flow integration
 
         Flow: Login → Token Validation → RBAC Check → Protected Resource Access
@@ -137,7 +135,7 @@ class TestComprehensiveAPIWorkflows:
                     "question_id": "gdpr_consent",
                     "question_text": "Do you have a lawful basis for processing personal data?",
                     "answer": "yes",
-                    "evidence_ids": []
+                    "evidence_ids": [],
                 },
                 {
                     "question_id": "gdpr_retention",
@@ -149,16 +147,16 @@ class TestComprehensiveAPIWorkflows:
         }
 
         response = await async_client.post(
-            "/assessments", json=assessment_data, headers=headers,
+            "/assessments",
+            json=assessment_data,
+            headers=headers,
         )
         assert response.status_code == 201
         assessment = response.json()
         assessment_id = assessment["id"]
 
         # Step 2: Trigger AI analysis
-        with patch(
-            "services.ai.assistant.ComplianceAssistant.analyze_assessment"
-        ) as mock_ai:
+        with patch("services.ai.assistant.ComplianceAssistant.analyze_assessment") as mock_ai:
             mock_ai.return_value = {
                 "compliance_score": 0.75,
                 "risk_level": "MEDIUM",
@@ -173,7 +171,8 @@ class TestComprehensiveAPIWorkflows:
             }
 
             response = await async_client.post(
-                f"/assessments/{assessment_id}/analyze", headers=headers,
+                f"/assessments/{assessment_id}/analyze",
+                headers=headers,
             )
             assert response.status_code == 200
             analysis = response.json()
@@ -185,7 +184,8 @@ class TestComprehensiveAPIWorkflows:
 
         # Step 3: Verify database state
         response = await async_client.get(
-            f"/assessments/{assessment_id}", headers=headers,
+            f"/assessments/{assessment_id}",
+            headers=headers,
         )
         assert response.status_code == 200
         db_assessment = response.json()
@@ -194,7 +194,8 @@ class TestComprehensiveAPIWorkflows:
 
         # Step 4: Generate compliance report
         response = await async_client.post(
-            f"/assessments/{assessment_id}/generate-report", headers=headers,
+            f"/assessments/{assessment_id}/generate-report",
+            headers=headers,
         )
         assert response.status_code == 200
         report = response.json()
@@ -206,7 +207,8 @@ class TestComprehensiveAPIWorkflows:
 
         # Step 6: Verify report can be retrieved
         response = await async_client.get(
-            f"/assessments/{assessment_id}/report", headers=headers,
+            f"/assessments/{assessment_id}/report",
+            headers=headers,
         )
         assert response.status_code == 200
 
@@ -226,11 +228,14 @@ class TestComprehensiveAPIWorkflows:
             "title": "Privacy Policy Document",
             "description": "Company privacy policy for GDPR compliance",
             "evidence_type": "policy_document",
-            "framework": "GDPR"
+            "framework": "GDPR",
         }
 
         response = await async_client.post(
-            "/evidence/upload", files=files, data=metadata, headers=headers,
+            "/evidence/upload",
+            files=files,
+            data=metadata,
+            headers=headers,
         )
         assert response.status_code == 201
         evidence = response.json()
@@ -246,7 +251,8 @@ class TestComprehensiveAPIWorkflows:
             }
 
             response = await async_client.post(
-                f"/evidence/{evidence_id}/process", headers=headers,
+                f"/evidence/{evidence_id}/process",
+                headers=headers,
             )
             assert response.status_code == 200
             processing_result = response.json()
@@ -276,7 +282,9 @@ class TestComprehensiveAPIWorkflows:
         }
 
         response = await async_client.post(
-            "/assessments", json=assessment_data, headers=headers,
+            "/assessments",
+            json=assessment_data,
+            headers=headers,
         )
         assert response.status_code == 201
         assessment = response.json()
@@ -302,7 +310,9 @@ class TestComprehensiveAPIWorkflows:
         }
 
         response = await async_client.post(
-            "/assessments", json=assessment_data, headers=headers,
+            "/assessments",
+            json=assessment_data,
+            headers=headers,
         )
         assessment_id = response.json()["id"]
 
@@ -312,22 +322,22 @@ class TestComprehensiveAPIWorkflows:
             mock_cb.return_value.call = AsyncMock(return_value={"score": 0.8})
 
             response = await async_client.post(
-                f"/assessments/{assessment_id}/analyze", headers=headers,
+                f"/assessments/{assessment_id}/analyze",
+                headers=headers,
             )
             assert response.status_code == 200
             assert response.json()["source"] != "fallback"  # Not using fallback
 
         # Test 2: Circuit breaker in OPEN state (failures trigger fallback)
-        with patch(
-            "services.ai.assistant.ComplianceAssistant.analyze_assessment"
-        ) as mock_ai:
+        with patch("services.ai.assistant.ComplianceAssistant.analyze_assessment") as mock_ai:
             # Simulate AI service failures
             mock_ai.side_effect = Exception("AI service unavailable")
 
             # Multiple requests should trigger circuit breaker
             for _ in range(3):
                 response = await async_client.post(
-                    f"/assessments/{assessment_id}/analyze", headers=headers,
+                    f"/assessments/{assessment_id}/analyze",
+                    headers=headers,
                 )
                 # Should still return 200 due to fallback mechanism
                 assert response.status_code == 200
@@ -340,21 +350,21 @@ class TestComprehensiveAPIWorkflows:
                 )
 
         # Test 3: Verify circuit breaker recovery (HALF_OPEN → CLOSED)
-        with patch(
-            "services.ai.assistant.ComplianceAssistant.analyze_assessment"
-        ) as mock_ai:
+        with patch("services.ai.assistant.ComplianceAssistant.analyze_assessment") as mock_ai:
             mock_ai.return_value = {"compliance_score": 0.85, "risk_level": "LOW"}
 
             # After recovery timeout, should attempt to close circuit
             response = await async_client.post(
-                f"/assessments/{assessment_id}/analyze", headers=headers,
+                f"/assessments/{assessment_id}/analyze",
+                headers=headers,
             )
             assert response.status_code == 200
 
             # Successful responses should eventually close the circuit
             for _ in range(5):  # Multiple successful calls
                 response = await async_client.post(
-                    f"/assessments/{assessment_id}/analyze", headers=headers,
+                    f"/assessments/{assessment_id}/analyze",
+                    headers=headers,
                 )
                 assert response.status_code == 200
 
@@ -379,7 +389,9 @@ class TestComprehensiveAPIWorkflows:
         }
 
         response = await async_client.post(
-            "/assessments", json=assessment_data, headers=headers,
+            "/assessments",
+            json=assessment_data,
+            headers=headers,
         )
         assert response.status_code == 201
         assessment = response.json()
@@ -387,7 +399,8 @@ class TestComprehensiveAPIWorkflows:
 
         # Step 2: Verify GET endpoint returns same data
         response = await async_client.get(
-            f"/assessments/{assessment_id}", headers=headers,
+            f"/assessments/{assessment_id}",
+            headers=headers,
         )
         assert response.status_code == 200
         retrieved_assessment = response.json()
@@ -399,14 +412,17 @@ class TestComprehensiveAPIWorkflows:
         # Step 3: Update assessment and verify consistency
         update_data = {"status": "in_progress", "completion_percentage": 25}
         response = await async_client.patch(
-            f"/assessments/{assessment_id}", json=update_data, headers=headers,
+            f"/assessments/{assessment_id}",
+            json=update_data,
+            headers=headers,
         )
         assert response.status_code == 200
         updated_assessment = response.json()
 
         # Step 4: Verify update is reflected in all endpoints
         response = await async_client.get(
-            f"/assessments/{assessment_id}", headers=headers,
+            f"/assessments/{assessment_id}",
+            headers=headers,
         )
         consistency_check = response.json()
 
@@ -417,9 +433,7 @@ class TestComprehensiveAPIWorkflows:
         response = await async_client.get("/assessments", headers=headers)
         assessments_list = response.json()
 
-        target_assessment = next(
-            a for a in assessments_list if a["id"] == assessment_id
-        )
+        target_assessment = next(a for a in assessments_list if a["id"] == assessment_id)
         assert target_assessment["status"] == "in_progress"
 
     @pytest.mark.asyncio
@@ -439,14 +453,18 @@ class TestComprehensiveAPIWorkflows:
         assessment_data = {"name": "Concurrent Test Assessment", "framework": "GDPR"}
 
         response = await async_client.post(
-            "/assessments", json=assessment_data, headers=headers,
+            "/assessments",
+            json=assessment_data,
+            headers=headers,
         )
         assessment_id = response.json()["id"]
 
         # Test concurrent updates to same resource
         async def update_assessment(update_data: Dict):
             return await async_client.patch(
-                f"/assessments/{assessment_id}", json=update_data, headers=headers,
+                f"/assessments/{assessment_id}",
+                json=update_data,
+                headers=headers,
             )
 
         # Concurrent updates with different fields
@@ -464,7 +482,8 @@ class TestComprehensiveAPIWorkflows:
 
         # Verify final state is consistent
         response = await async_client.get(
-            f"/assessments/{assessment_id}", headers=headers,
+            f"/assessments/{assessment_id}",
+            headers=headers,
         )
         final_state = response.json()
 
@@ -499,14 +518,17 @@ class TestComprehensiveAPIWorkflows:
         # Test AI endpoint rate limiting (20/min) - more restrictive
         assessment_data = {"name": f"Rate Test {i}", "framework": "GDPR"}
         response = await async_client.post(
-            "/assessments", json=assessment_data, headers=headers,
+            "/assessments",
+            json=assessment_data,
+            headers=headers,
         )
         assessment_id = response.json()["id"]
 
         ai_responses = []
         for i in range(5):  # Test AI endpoint rate limiting
             response = await async_client.post(
-                f"/assessments/{assessment_id}/analyze", headers=headers,
+                f"/assessments/{assessment_id}/analyze",
+                headers=headers,
             )
             ai_responses.append(response)
 
@@ -548,21 +570,23 @@ class TestComprehensiveAPIWorkflows:
         }
 
         response = await async_client.post(
-            "/assessments", json=invalid_assessment, headers=headers,
+            "/assessments",
+            json=invalid_assessment,
+            headers=headers,
         )
         assert response.status_code == 422  # Validation error
         error_data = response.json()
         assert "detail" in error_data
 
         # Test 3: Service dependency failure (mock external service down)
-        with patch(
-            "services.external_integration.ExternalService.call"
-        ) as mock_external:
+        with patch("services.external_integration.ExternalService.call") as mock_external:
             mock_external.side_effect = Exception("External service unavailable")
 
             assessment_data = {"name": "Service Failure Test", "framework": "GDPR"}
             response = await async_client.post(
-                "/assessments", json=assessment_data, headers=headers,
+                "/assessments",
+                json=assessment_data,
+                headers=headers,
             )
 
             # Should still succeed with graceful degradation
@@ -570,10 +594,7 @@ class TestComprehensiveAPIWorkflows:
             assessment = response.json()
 
             # Should indicate external service was unavailable
-            assert (
-                "warnings" in assessment
-                or not assessment.get("external_data_available"),
-            )
+            assert ("warnings" in assessment or not assessment.get("external_data_available"),)
 
 
 @pytest.mark.integration
@@ -601,25 +622,27 @@ class TestAPIWorkflowPerformance:
 
         # Create assessment
         response = await async_client.post(
-            "/assessments", json=assessment_data, headers=headers,
+            "/assessments",
+            json=assessment_data,
+            headers=headers,
         )
         assert response.status_code == 201
         assessment_id = response.json()["id"]
 
         # Analyze assessment (mock AI for consistent timing)
-        with patch(
-            "services.ai.assistant.ComplianceAssistant.analyze_assessment"
-        ) as mock_ai:
+        with patch("services.ai.assistant.ComplianceAssistant.analyze_assessment") as mock_ai:
             mock_ai.return_value = {"compliance_score": 0.8}
 
             response = await async_client.post(
-                f"/assessments/{assessment_id}/analyze", headers=headers,
+                f"/assessments/{assessment_id}/analyze",
+                headers=headers,
             )
             assert response.status_code == 200
 
         # Generate report
         response = await async_client.post(
-            f"/assessments/{assessment_id}/generate-report", headers=headers,
+            f"/assessments/{assessment_id}/generate-report",
+            headers=headers,
         )
         assert response.status_code == 200
 

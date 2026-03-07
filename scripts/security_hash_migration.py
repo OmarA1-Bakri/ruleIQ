@@ -32,28 +32,28 @@ class HashMigrationValidator:
     """Validates and manages the MD5 to SHA-256 migration."""
 
     MD5_PATTERNS = [
-        r'hashlib\.md5\(',
-        r'\.md5\(',
-        r'MD5\(',
-        r'import\s+md5',
-        r'from\s+hashlib\s+import\s+md5',
+        r"hashlib\.md5\(",
+        r"\.md5\(",
+        r"MD5\(",
+        r"import\s+md5",
+        r"from\s+hashlib\s+import\s+md5",
     ]
 
     SHA256_PATTERNS = [
-        r'hashlib\.sha256\(',
-        r'\.sha256\(',
-        r'SHA256\(',
+        r"hashlib\.sha256\(",
+        r"\.sha256\(",
+        r"SHA256\(",
     ]
 
     EXCLUDED_PATHS = [
-        '.git',
-        '__pycache__',
-        '.venv',
-        'venv',
-        'node_modules',
-        '.pytest_cache',
-        'htmlcov',
-        'migrations',
+        ".git",
+        "__pycache__",
+        ".venv",
+        "venv",
+        "node_modules",
+        ".pytest_cache",
+        "htmlcov",
+        "migrations",
     ]
 
     def __init__(self, project_root: Path) -> None:
@@ -61,13 +61,13 @@ class HashMigrationValidator:
         self.project_root = project_root
         self.findings: List[Dict] = []
         self.migration_report: Dict = {
-            'timestamp': datetime.utcnow().isoformat(),
-            'files_scanned': 0,
-            'md5_found': [],
-            'sha256_found': [],
-            'migration_needed': [],
-            'migration_complete': [],
-            'errors': []
+            "timestamp": datetime.utcnow().isoformat(),
+            "files_scanned": 0,
+            "md5_found": [],
+            "sha256_found": [],
+            "migration_needed": [],
+            "migration_complete": [],
+            "errors": [],
         }
 
     def scan_codebase(self) -> Dict:
@@ -79,7 +79,7 @@ class HashMigrationValidator:
             dirs[:] = [d for d in dirs if d not in self.EXCLUDED_PATHS]
 
             for file in files:
-                if file.endswith(('.py', '.js', '.ts', '.jsx', '.tsx')):
+                if file.endswith((".py", ".js", ".ts", ".jsx", ".tsx")):
                     file_path = Path(root) / file
                     self._scan_file(file_path)
 
@@ -88,12 +88,12 @@ class HashMigrationValidator:
 
     def _scan_file(self, file_path: Path) -> None:
         """Scan a single file for hash usage."""
-        self.migration_report['files_scanned'] += 1
+        self.migration_report["files_scanned"] += 1
 
         try:
-            with open(file_path, 'r', encoding='utf-8') as f:
+            with open(file_path, "r", encoding="utf-8") as f:
                 content = f.read()
-                lines = content.split('\n')
+                lines = content.split("\n")
 
             md5_found = False
             sha256_found = False
@@ -104,65 +104,55 @@ class HashMigrationValidator:
                 for pattern in self.MD5_PATTERNS:
                     if re.search(pattern, line, re.IGNORECASE):
                         md5_found = True
-                        findings.append({
-                            'line': line_num,
-                            'content': line.strip(),
-                            'type': 'MD5'
-                        })
+                        findings.append({"line": line_num, "content": line.strip(), "type": "MD5"})
 
                 # Check for SHA256 usage
                 for pattern in self.SHA256_PATTERNS:
                     if re.search(pattern, line, re.IGNORECASE):
                         sha256_found = True
-                        findings.append({
-                            'line': line_num,
-                            'content': line.strip(),
-                            'type': 'SHA256'
-                        })
+                        findings.append(
+                            {"line": line_num, "content": line.strip(), "type": "SHA256"}
+                        )
 
             # Categorize the file
             relative_path = str(file_path.relative_to(self.project_root))
 
             if md5_found and not sha256_found:
-                self.migration_report['migration_needed'].append({
-                    'file': relative_path,
-                    'findings': findings
-                })
+                self.migration_report["migration_needed"].append(
+                    {"file": relative_path, "findings": findings}
+                )
                 logger.warning(f"MD5 usage found in {relative_path}")
             elif md5_found and sha256_found:
-                self.migration_report['md5_found'].append({
-                    'file': relative_path,
-                    'findings': findings,
-                    'status': 'partial_migration'
-                })
+                self.migration_report["md5_found"].append(
+                    {"file": relative_path, "findings": findings, "status": "partial_migration"}
+                )
                 logger.info(f"Mixed hash usage in {relative_path}")
             elif sha256_found and not md5_found:
-                self.migration_report['migration_complete'].append(relative_path)
+                self.migration_report["migration_complete"].append(relative_path)
 
         except Exception as e:
-            self.migration_report['errors'].append({
-                'file': str(file_path),
-                'error': str(e)
-            })
+            self.migration_report["errors"].append({"file": str(file_path), "error": str(e)})
             logger.error(f"Error scanning {file_path}: {e}")
 
     def _generate_summary(self) -> None:
         """Generate a summary of the scan results."""
-        total_md5 = len(self.migration_report['migration_needed']) + len(self.migration_report['md5_found'])
-        total_sha256 = len(self.migration_report['migration_complete'])
+        total_md5 = len(self.migration_report["migration_needed"]) + len(
+            self.migration_report["md5_found"]
+        )
+        total_sha256 = len(self.migration_report["migration_complete"])
 
-        self.migration_report['summary'] = {
-            'total_files_scanned': self.migration_report['files_scanned'],
-            'files_with_md5': total_md5,
-            'files_with_sha256': total_sha256,
-            'files_needing_migration': len(self.migration_report['migration_needed']),
-            'migration_percentage': (total_sha256 / max(total_md5 + total_sha256, 1)) * 100
+        self.migration_report["summary"] = {
+            "total_files_scanned": self.migration_report["files_scanned"],
+            "files_with_md5": total_md5,
+            "files_with_sha256": total_sha256,
+            "files_needing_migration": len(self.migration_report["migration_needed"]),
+            "migration_percentage": (total_sha256 / max(total_md5 + total_sha256, 1)) * 100,
         }
 
     def validate_migration(self, file_path: Path) -> bool:
         """Validate that a file has been properly migrated."""
         try:
-            with open(file_path, 'r', encoding='utf-8') as f:
+            with open(file_path, "r", encoding="utf-8") as f:
                 content = f.read()
 
             # Check for any remaining MD5 usage
@@ -179,11 +169,11 @@ class HashMigrationValidator:
 
     def _is_safe_md5_usage(self, content: str, pattern: str) -> bool:
         """Check if MD5 usage is in comments or documentation."""
-        lines = content.split('\n')
+        lines = content.split("\n")
         for line in lines:
             if re.search(pattern, line, re.IGNORECASE):
                 # Check if it's in a comment
-                if '#' in line and line.index('#') < line.index('md5'):
+                if "#" in line and line.index("#") < line.index("md5"):
                     continue
                 # Check if it's in a docstring or string
                 if '"""' in line or "'''" in line or '"md5"' in line or "'md5'" in line:
@@ -202,22 +192,18 @@ class CacheMigrationManager:
 
     def invalidate_md5_caches(self) -> Dict:
         """Invalidate all caches that use MD5-based keys."""
-        result = {
-            'caches_cleared': 0,
-            'patterns_cleared': [],
-            'errors': []
-        }
+        result = {"caches_cleared": 0, "patterns_cleared": [], "errors": []}
 
         cache_patterns = [
-            'api_cache:*',
-            'evidence_stats:*',
-            'evidence_dashboard:*',
-            'business_profile:*',
-            'framework_info:*',
-            'func:*',
-            'query_cache:*',
-            'embedding_cache:*',
-            'policy_cache:*',
+            "api_cache:*",
+            "evidence_stats:*",
+            "evidence_dashboard:*",
+            "business_profile:*",
+            "framework_info:*",
+            "func:*",
+            "query_cache:*",
+            "embedding_cache:*",
+            "policy_cache:*",
         ]
 
         if self.redis_client:
@@ -226,11 +212,11 @@ class CacheMigrationManager:
                     keys = self.redis_client.keys(pattern)
                     if keys:
                         self.redis_client.delete(*keys)
-                        result['caches_cleared'] += len(keys)
-                        result['patterns_cleared'].append(pattern)
+                        result["caches_cleared"] += len(keys)
+                        result["patterns_cleared"].append(pattern)
                         logger.info(f"Cleared {len(keys)} cache entries for pattern: {pattern}")
                 except Exception as e:
-                    result['errors'].append(f"Failed to clear {pattern}: {e}")
+                    result["errors"].append(f"Failed to clear {pattern}: {e}")
                     logger.error(f"Cache clear error for {pattern}: {e}")
         else:
             logger.warning("Redis client not available, skipping cache invalidation")
@@ -239,11 +225,9 @@ class CacheMigrationManager:
 
     def create_hash_mapping(self, old_hash: str, new_hash: str) -> None:
         """Create a mapping from old MD5 hash to new SHA256 hash."""
-        self.migration_log.append({
-            'timestamp': datetime.utcnow().isoformat(),
-            'old_hash': old_hash,
-            'new_hash': new_hash
-        })
+        self.migration_log.append(
+            {"timestamp": datetime.utcnow().isoformat(), "old_hash": old_hash, "new_hash": new_hash}
+        )
 
     def migrate_hash_value(self, value: str) -> str:
         """Migrate a single hash value from MD5 to SHA256."""
@@ -256,7 +240,7 @@ class RollbackManager:
 
     def __init__(self) -> None:
         """Initialize rollback manager."""
-        self.backup_dir = Path('backups/hash_migration')
+        self.backup_dir = Path("backups/hash_migration")
         self.backup_dir.mkdir(parents=True, exist_ok=True)
 
     def create_backup(self, file_path: Path) -> bool:
@@ -265,9 +249,9 @@ class RollbackManager:
             backup_name = f"{file_path.name}.{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.bak"
             backup_path = self.backup_dir / backup_name
 
-            with open(file_path, 'r') as source:
+            with open(file_path, "r") as source:
                 content = source.read()
-            with open(backup_path, 'w') as backup:
+            with open(backup_path, "w") as backup:
                 backup.write(content)
 
             logger.info(f"Created backup: {backup_path}")
@@ -286,9 +270,9 @@ class RollbackManager:
                 logger.error(f"Backup not found: {backup_path}")
                 return False
 
-            with open(backup_path, 'r') as backup:
+            with open(backup_path, "r") as backup:
                 content = backup.read()
-            with open(file_path, 'w') as target:
+            with open(file_path, "w") as target:
                 target.write(content)
 
             logger.info(f"Restored {file_path} from backup")
@@ -306,20 +290,22 @@ def run_ci_check() -> int:
     report = validator.scan_codebase()
 
     # Check for any files needing migration
-    if report['migration_needed']:
+    if report["migration_needed"]:
         logger.error("CI Check Failed: MD5 usage found in the following files:")
-        for file_info in report['migration_needed']:
+        for file_info in report["migration_needed"]:
             logger.error(f"  - {file_info['file']}")
-            for finding in file_info['findings']:
-                if finding['type'] == 'MD5':
+            for finding in file_info["findings"]:
+                if finding["type"] == "MD5":
                     logger.error(f"    Line {finding['line']}: {finding['content']}")
         return 1
 
-    logger.info(f"CI Check Passed: {report['summary']['migration_percentage']:.1f}% of files use SHA-256")
+    logger.info(
+        f"CI Check Passed: {report['summary']['migration_percentage']:.1f}% of files use SHA-256"
+    )
     return 0
 
 
-def generate_migration_report(output_file: str = 'hash_migration_report.json') -> None:
+def generate_migration_report(output_file: str = "hash_migration_report.json") -> None:
     """Generate a detailed migration report."""
     project_root = Path(__file__).parent.parent
     validator = HashMigrationValidator(project_root)
@@ -327,7 +313,7 @@ def generate_migration_report(output_file: str = 'hash_migration_report.json') -
     report = validator.scan_codebase()
 
     # Save report to file
-    with open(output_file, 'w') as f:
+    with open(output_file, "w") as f:
         json.dump(report, f, indent=2)
 
     # Print summary
@@ -340,14 +326,14 @@ def generate_migration_report(output_file: str = 'hash_migration_report.json') -
     print(f"Files needing migration: {report['summary']['files_needing_migration']}")
     print(f"Migration progress: {report['summary']['migration_percentage']:.1f}%")
 
-    if report['migration_needed']:
+    if report["migration_needed"]:
         print("\nFiles requiring migration:")
-        for file_info in report['migration_needed']:
+        for file_info in report["migration_needed"]:
             print(f"  - {file_info['file']}")
 
-    if report['errors']:
+    if report["errors"]:
         print("\nErrors encountered:")
-        for error in report['errors']:
+        for error in report["errors"]:
             print(f"  - {error['file']}: {error['error']}")
 
     print(f"\nDetailed report saved to: {output_file}")
@@ -355,22 +341,24 @@ def generate_migration_report(output_file: str = 'hash_migration_report.json') -
 
 def main():
     """Main entry point for the migration script."""
-    parser = argparse.ArgumentParser(description='Security Hash Migration Tool')
-    parser.add_argument('command', choices=['scan', 'validate', 'ci-check', 'report'],
-                       help='Command to run')
-    parser.add_argument('--file', help='Specific file to validate')
-    parser.add_argument('--output', default='hash_migration_report.json',
-                       help='Output file for report')
+    parser = argparse.ArgumentParser(description="Security Hash Migration Tool")
+    parser.add_argument(
+        "command", choices=["scan", "validate", "ci-check", "report"], help="Command to run"
+    )
+    parser.add_argument("--file", help="Specific file to validate")
+    parser.add_argument(
+        "--output", default="hash_migration_report.json", help="Output file for report"
+    )
 
     args = parser.parse_args()
 
-    if args.command == 'scan':
+    if args.command == "scan":
         project_root = Path(__file__).parent.parent
         validator = HashMigrationValidator(project_root)
         report = validator.scan_codebase()
-        print(json.dumps(report['summary'], indent=2))
+        print(json.dumps(report["summary"], indent=2))
 
-    elif args.command == 'validate':
+    elif args.command == "validate":
         if not args.file:
             print("Error: --file required for validate command")
             sys.exit(1)
@@ -383,12 +371,12 @@ def main():
             print(f"✗ {file_path} still contains insecure hash usage")
             sys.exit(1)
 
-    elif args.command == 'ci-check':
+    elif args.command == "ci-check":
         sys.exit(run_ci_check())
 
-    elif args.command == 'report':
+    elif args.command == "report":
         generate_migration_report(args.output)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

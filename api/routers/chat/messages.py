@@ -7,7 +7,6 @@ from datetime import datetime, timezone
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.dependencies.auth import get_current_active_user
@@ -26,7 +25,11 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.post("/conversations/{conversation_id}/messages", response_model=MessageResponse, dependencies=[Depends(validate_request)])
+@router.post(
+    "/conversations/{conversation_id}/messages",
+    response_model=MessageResponse,
+    dependencies=[Depends(validate_request)],
+)
 async def send_message(
     conversation_id: UUID,
     request: SendMessageRequest,
@@ -38,7 +41,9 @@ async def send_message(
         from sqlalchemy import desc, select
 
         # Sanitize message content
-        request.message = SecurityValidator.validate_no_dangerous_content(request.message, "message")
+        request.message = SecurityValidator.validate_no_dangerous_content(
+            request.message, "message"
+        )
 
         # Verify conversation exists and belongs to user
         conv_stmt = select(ChatConversation).where(
@@ -103,8 +108,6 @@ async def send_message(
         db.add(assistant_message)
 
         # Update conversation timestamp
-        from datetime import datetime
-
         conversation.updated_at = datetime.now(timezone.utc)
 
         await db.commit()
@@ -114,6 +117,6 @@ async def send_message(
     except HTTPException:
         raise
     except Exception as e:
-        db.rollback()
+        await db.rollback()
         logger.error(f"Error sending message: {e}")
         raise HTTPException(status_code=500, detail="Failed to send message")

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   DndContext,
   closestCenter,
@@ -13,7 +13,6 @@ import {
   DragOverlay,
   MeasuringStrategy,
   UniqueIdentifier,
-  DragOverEvent,
 } from '@dnd-kit/core';
 import {
   arrayMove,
@@ -30,7 +29,7 @@ import { cn } from '@/lib/utils';
 import { useLayoutStore } from '@/lib/stores/layout.store';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -45,7 +44,6 @@ import {
   Edit,
   Copy,
   Trash2,
-  Eye,
   EyeOff,
   ChevronRight,
   AlertCircle,
@@ -434,7 +432,7 @@ export const RuleList: React.FC<RuleListProps> = ({
     setSelectedRules(new Set());
   };
 
-  const handleBulkStatusChange = (status: Rule['status']) => {
+  const _handleBulkStatusChange = (_status: Rule['status']) => {
     // Handle bulk status change
     const updates = Array.from(selectedRules).map((id, index) => ({
       ruleId: id,

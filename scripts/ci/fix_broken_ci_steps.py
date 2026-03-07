@@ -33,21 +33,24 @@ class WorkflowAnalyzer:
             print(f"❌ Workflows directory not found: {self.workflows_dir}")
             return []
 
-        workflow_files = list(self.workflows_dir.glob("*.yml")) + \
-                        list(self.workflows_dir.glob("*.yaml"))
+        workflow_files = list(self.workflows_dir.glob("*.yml")) + list(
+            self.workflows_dir.glob("*.yaml")
+        )
         return workflow_files
 
     def load_workflow(self, filepath: Path) -> Optional[Dict]:
         """Load and parse a workflow file."""
         try:
-            with open(filepath, 'r') as f:
+            with open(filepath, "r") as f:
                 return yaml.safe_load(f)
         except Exception as e:
-            self.issues.append({
-                "file": str(filepath),
-                "type": "parse_error",
-                "message": f"Failed to parse YAML: {e}"
-            })
+            self.issues.append(
+                {
+                    "file": str(filepath),
+                    "type": "parse_error",
+                    "message": f"Failed to parse YAML: {e}",
+                }
+            )
             return None
 
     def check_file_references(self, workflow: Dict, filepath: Path) -> List[Dict]:
@@ -56,19 +59,19 @@ class WorkflowAnalyzer:
 
         # Common patterns for file references
         file_patterns = [
-            r'python\s+([^\s|&;]+\.py)',  # Python scripts
-            r'bash\s+([^\s|&;]+\.sh)',     # Shell scripts
-            r'node\s+([^\s|&;]+\.js)',     # Node scripts
-            r'\./([^\s|&;]+)',              # Relative paths
-            r'test\s+-f\s+([^\s|&;]+)',    # File existence tests
-            r'cat\s+([^\s|&;]+)',          # Cat commands
+            r"python\s+([^\s|&;]+\.py)",  # Python scripts
+            r"bash\s+([^\s|&;]+\.sh)",  # Shell scripts
+            r"node\s+([^\s|&;]+\.js)",  # Node scripts
+            r"\./([^\s|&;]+)",  # Relative paths
+            r"test\s+-f\s+([^\s|&;]+)",  # File existence tests
+            r"cat\s+([^\s|&;]+)",  # Cat commands
         ]
 
         def check_step(step: Dict, job_name: str) -> None:
             if not isinstance(step, dict):
                 return
 
-            run_command = step.get('run', '')
+            run_command = step.get("run", "")
             if not run_command:
                 return
 
@@ -76,7 +79,7 @@ class WorkflowAnalyzer:
                 matches = re.findall(pattern, run_command)
                 for match in matches:
                     # Skip if it's a variable or contains $
-                    if '$' in match or match.startswith('-'):
+                    if "$" in match or match.startswith("-"):
                         continue
 
                     # Resolve the file path
@@ -84,22 +87,24 @@ class WorkflowAnalyzer:
 
                     # Check if file exists
                     if not file_path.exists():
-                        issues.append({
-                            "file": str(filepath.name),
-                            "job": job_name,
-                            "step": step.get('name', 'unnamed'),
-                            "type": "missing_file",
-                            "path": match,
-                            "full_path": str(file_path)
-                        })
+                        issues.append(
+                            {
+                                "file": str(filepath.name),
+                                "job": job_name,
+                                "step": step.get("name", "unnamed"),
+                                "type": "missing_file",
+                                "path": match,
+                                "full_path": str(file_path),
+                            }
+                        )
 
         # Check all jobs and steps
-        if 'jobs' in workflow:
-            for job_name, job_config in workflow['jobs'].items():
+        if "jobs" in workflow:
+            for job_name, job_config in workflow["jobs"].items():
                 if not isinstance(job_config, dict):
                     continue
 
-                steps = job_config.get('steps', [])
+                steps = job_config.get("steps", [])
                 for step in steps:
                     check_step(step, job_name)
 
@@ -110,53 +115,60 @@ class WorkflowAnalyzer:
         issues = []
 
         # Check for missing checkout step
-        if 'jobs' in workflow:
-            for job_name, job_config in workflow['jobs'].items():
+        if "jobs" in workflow:
+            for job_name, job_config in workflow["jobs"].items():
                 if not isinstance(job_config, dict):
                     continue
 
-                steps = job_config.get('steps', [])
+                steps = job_config.get("steps", [])
                 has_checkout = any(
-                    'actions/checkout' in str(step.get('uses', ''))
-                    for step in steps if isinstance(step, dict)
+                    "actions/checkout" in str(step.get("uses", ""))
+                    for step in steps
+                    if isinstance(step, dict)
                 )
 
                 # Check if job accesses files without checkout
                 needs_checkout = any(
-                    'run' in step and (
-                        'python' in step.get('run', '') or
-                        'npm' in step.get('run', '') or
-                        'pip install -r' in step.get('run', '') or
-                        './test' in step.get('run', '')
+                    "run" in step
+                    and (
+                        "python" in step.get("run", "")
+                        or "npm" in step.get("run", "")
+                        or "pip install -r" in step.get("run", "")
+                        or "./test" in step.get("run", "")
                     )
-                    for step in steps if isinstance(step, dict)
+                    for step in steps
+                    if isinstance(step, dict)
                 )
 
                 if needs_checkout and not has_checkout:
-                    issues.append({
-                        "file": str(filepath.name),
-                        "job": job_name,
-                        "type": "missing_checkout",
-                        "message": "Job appears to access files but has no checkout step"
-                    })
+                    issues.append(
+                        {
+                            "file": str(filepath.name),
+                            "job": job_name,
+                            "type": "missing_checkout",
+                            "message": "Job appears to access files but has no checkout step",
+                        }
+                    )
 
         # Check for undefined environment variables
-        env_pattern = r'\$\{\{\s*env\.([A-Z_]+)\s*\}\}'
+        env_pattern = r"\$\{\{\s*env\.([A-Z_]+)\s*\}\}"
         workflow_str = str(workflow)
         env_refs = re.findall(env_pattern, workflow_str)
 
         defined_envs = set()
-        if 'env' in workflow:
-            defined_envs.update(workflow['env'].keys())
+        if "env" in workflow:
+            defined_envs.update(workflow["env"].keys())
 
         for env_var in env_refs:
-            if env_var not in defined_envs and env_var not in ['CI', 'GITHUB_TOKEN']:
-                issues.append({
-                    "file": str(filepath.name),
-                    "type": "undefined_env",
-                    "variable": env_var,
-                    "message": f"Environment variable {env_var} is referenced but not defined"
-                })
+            if env_var not in defined_envs and env_var not in ["CI", "GITHUB_TOKEN"]:
+                issues.append(
+                    {
+                        "file": str(filepath.name),
+                        "type": "undefined_env",
+                        "variable": env_var,
+                        "message": f"Environment variable {env_var} is referenced but not defined",
+                    }
+                )
 
         return issues
 
@@ -165,48 +177,56 @@ class WorkflowAnalyzer:
         fixes = []
 
         for issue in issues:
-            if issue['type'] == 'missing_file':
+            if issue["type"] == "missing_file":
                 # Suggest creating the file or adding a guard
-                fixes.append({
-                    "issue": issue,
-                    "fix_type": "add_guard",
-                    "suggestion": f"Add file existence check: test -f {issue['path']} && ... || echo 'File missing'"
-                })
+                fixes.append(
+                    {
+                        "issue": issue,
+                        "fix_type": "add_guard",
+                        "suggestion": f"Add file existence check: test -f {issue['path']} && ... || echo 'File missing'",
+                    }
+                )
 
                 # If it's a validation script, suggest creating it
-                if 'validate' in issue['path'] or 'check' in issue['path']:
-                    fixes.append({
+                if "validate" in issue["path"] or "check" in issue["path"]:
+                    fixes.append(
+                        {
+                            "issue": issue,
+                            "fix_type": "create_stub",
+                            "suggestion": f"Create stub script at {issue['path']}",
+                        }
+                    )
+
+            elif issue["type"] == "missing_checkout":
+                fixes.append(
+                    {
                         "issue": issue,
-                        "fix_type": "create_stub",
-                        "suggestion": f"Create stub script at {issue['path']}"
-                    })
+                        "fix_type": "add_checkout",
+                        "suggestion": "Add 'actions/checkout' as the first step in the job",
+                    }
+                )
 
-            elif issue['type'] == 'missing_checkout':
-                fixes.append({
-                    "issue": issue,
-                    "fix_type": "add_checkout",
-                    "suggestion": "Add 'actions/checkout' as the first step in the job"
-                })
-
-            elif issue['type'] == 'undefined_env':
-                fixes.append({
-                    "issue": issue,
-                    "fix_type": "define_env",
-                    "suggestion": f"Define {issue['variable']} in workflow env section or use secrets"
-                })
+            elif issue["type"] == "undefined_env":
+                fixes.append(
+                    {
+                        "issue": issue,
+                        "fix_type": "define_env",
+                        "suggestion": f"Define {issue['variable']} in workflow env section or use secrets",
+                    }
+                )
 
         return fixes
 
     def apply_fix(self, fix: Dict, workflow_path: Path) -> bool:
         """Apply a fix to a workflow file."""
         try:
-            with open(workflow_path, 'r') as f:
+            with open(workflow_path, "r") as f:
                 content = f.read()
 
             modified = False
 
-            if fix['fix_type'] == 'add_guard':
-                issue = fix['issue']
+            if fix["fix_type"] == "add_guard":
+                issue = fix["issue"]
                 # Find the run command that references the file
                 pattern = f"(\\s+)(python|bash|node|\\./)?\\s*{re.escape(issue['path'])}"
                 replacement = f"\\1test -f {issue['path']} && \\2 {issue['path']} || echo '{issue['path']} missing; skipping'"
@@ -217,7 +237,7 @@ class WorkflowAnalyzer:
                     content = new_content
 
             if modified:
-                with open(workflow_path, 'w') as f:
+                with open(workflow_path, "w") as f:
                     f.write(content)
                 return True
 
@@ -269,7 +289,7 @@ class WorkflowAnalyzer:
                 if fix and fixes:
                     print(f"  🔧 Attempting to apply {len(fixes)} fixes...")
                     for fix_item in fixes:
-                        if fix_item['fix_type'] in ['add_guard']:
+                        if fix_item["fix_type"] in ["add_guard"]:
                             if self.apply_fix(fix_item, workflow_file):
                                 print(f"    ✅ Applied: {fix_item['suggestion']}")
                                 self.fixes_applied.append(fix_item)
@@ -283,19 +303,11 @@ def main():
     """Main entry point."""
     parser = argparse.ArgumentParser(description="Fix broken CI steps in GitHub Actions workflows")
     parser.add_argument(
-        "--report-only",
-        action="store_true",
-        help="Only report issues without fixing"
+        "--report-only", action="store_true", help="Only report issues without fixing"
     )
+    parser.add_argument("--fix", action="store_true", help="Attempt to fix issues automatically")
     parser.add_argument(
-        "--fix",
-        action="store_true",
-        help="Attempt to fix issues automatically"
-    )
-    parser.add_argument(
-        "--repo-root",
-        default=".",
-        help="Repository root directory (default: current directory)"
+        "--repo-root", default=".", help="Repository root directory (default: current directory)"
     )
 
     args = parser.parse_args()
@@ -324,7 +336,7 @@ def main():
     # Group issues by type
     issue_types = {}
     for issue in issues:
-        issue_type = issue['type']
+        issue_type = issue["type"]
         if issue_type not in issue_types:
             issue_types[issue_type] = []
         issue_types[issue_type].append(issue)
@@ -332,7 +344,7 @@ def main():
     for issue_type, type_issues in issue_types.items():
         print(f"\n  {issue_type.upper()} ({len(type_issues)} issues):")
         for issue in type_issues[:5]:  # Show first 5 of each type
-            if issue_type == 'missing_file':
+            if issue_type == "missing_file":
                 print(f"    • {issue['file']} → {issue['job']} → {issue['path']}")
             else:
                 print(f"    • {issue['file']}: {issue.get('message', '')}")

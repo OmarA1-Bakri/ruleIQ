@@ -83,4 +83,5 @@ if (isValidDsn) {
     },
   });
 } else {
+  // intentionally empty - Sentry DSN not configured
 }

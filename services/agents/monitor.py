@@ -3,6 +3,7 @@ Agent Monitor Service - Performance monitoring and health checks.
 
 Implements metrics collection, resource tracking, and health monitoring.
 """
+
 from typing import Dict, List, Optional, Any, Tuple
 from uuid import UUID
 from datetime import datetime, timedelta
@@ -18,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 class HealthStatus(Enum):
     """Health status levels."""
+
     HEALTHY = "healthy"
     DEGRADED = "degraded"
     UNHEALTHY = "unhealthy"
@@ -26,6 +28,7 @@ class HealthStatus(Enum):
 
 class MetricType(Enum):
     """Types of metrics to collect."""
+
     LATENCY = "latency"
     THROUGHPUT = "throughput"
     ERROR_RATE = "error_rate"
@@ -37,6 +40,7 @@ class MetricType(Enum):
 @dataclass
 class PerformanceMetric:
     """Represents a performance metric."""
+
     metric_type: MetricType
     value: float
     timestamp: datetime = field(default_factory=datetime.utcnow)
@@ -47,6 +51,7 @@ class PerformanceMetric:
 @dataclass
 class HealthCheck:
     """Represents a health check result."""
+
     agent_id: UUID
     status: HealthStatus
     checks: Dict[str, bool] = field(default_factory=dict)
@@ -58,6 +63,7 @@ class HealthCheck:
 @dataclass
 class ResourceUsage:
     """Tracks resource usage."""
+
     cpu_percent: float = 0.0
     memory_mb: float = 0.0
     memory_percent: float = 0.0
@@ -76,7 +82,7 @@ class CircuitBreaker:
         self,
         failure_threshold: int = 5,
         recovery_timeout: timedelta = timedelta(seconds=60),
-        half_open_requests: int = 3
+        half_open_requests: int = 3,
     ) -> None:
         """Initialize circuit breaker."""
         self.failure_threshold = failure_threshold
@@ -137,9 +143,7 @@ class AgentMonitor:
     """Monitors agent performance and health."""
 
     def __init__(
-        self,
-        metrics_window: timedelta = timedelta(minutes=5),
-        health_check_interval: float = 30.0
+        self, metrics_window: timedelta = timedelta(minutes=5), health_check_interval: float = 30.0
     ) -> None:
         """Initialize agent monitor."""
         self.metrics_window = metrics_window
@@ -169,14 +173,11 @@ class AgentMonitor:
         agent_id: UUID,
         metric_type: MetricType,
         value: float,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
     ):
         """Record a performance metric."""
         metric = PerformanceMetric(
-            metric_type=metric_type,
-            value=value,
-            agent_id=agent_id,
-            metadata=metadata or {}
+            metric_type=metric_type, value=value, agent_id=agent_id, metadata=metadata or {}
         )
 
         self.metrics_buffer[agent_id].append(metric)
@@ -243,11 +244,7 @@ class AgentMonitor:
             message = f"{failed_checks} checks failed - critical"
 
         health_check = HealthCheck(
-            agent_id=agent_id,
-            status=status,
-            checks=checks,
-            metrics=metrics,
-            message=message
+            agent_id=agent_id, status=status, checks=checks, metrics=metrics, message=message
         )
 
         self.health_status[agent_id] = health_check
@@ -264,10 +261,7 @@ class AgentMonitor:
         await asyncio.sleep(0.01)
         return True  # Placeholder
 
-    async def _check_resource_usage(
-        self,
-        agent_id: UUID
-    ) -> Tuple[bool, Dict[str, float]]:
+    async def _check_resource_usage(self, agent_id: UUID) -> Tuple[bool, Dict[str, float]]:
         """Check resource usage for an agent."""
         try:
             # Get system resource usage
@@ -283,21 +277,18 @@ class AgentMonitor:
                 disk_io_read_mb=disk_io.read_bytes / (1024 * 1024) if disk_io else 0,
                 disk_io_write_mb=disk_io.write_bytes / (1024 * 1024) if disk_io else 0,
                 network_sent_mb=network.bytes_sent / (1024 * 1024) if network else 0,
-                network_recv_mb=network.bytes_recv / (1024 * 1024) if network else 0
+                network_recv_mb=network.bytes_recv / (1024 * 1024) if network else 0,
             )
 
             self.resource_usage[agent_id] = usage
 
             # Check if within limits
-            ok = (
-                cpu_percent < 80 and
-                memory.percent < 90
-            )
+            ok = cpu_percent < 80 and memory.percent < 90
 
             metrics = {
                 "cpu_percent": cpu_percent,
                 "memory_percent": memory.percent,
-                "memory_mb": usage.memory_mb
+                "memory_mb": usage.memory_mb,
             }
 
             return ok, metrics
@@ -314,7 +305,8 @@ class AgentMonitor:
             return 0.0
 
         error_metrics = [
-            m for m in metrics
+            m
+            for m in metrics
             if m.metric_type == MetricType.ERROR_RATE
             and (datetime.utcnow() - m.timestamp) < self.metrics_window
         ]
@@ -331,7 +323,8 @@ class AgentMonitor:
             return 0.0
 
         latency_metrics = [
-            m for m in metrics
+            m
+            for m in metrics
             if m.metric_type == MetricType.LATENCY
             and (datetime.utcnow() - m.timestamp) < self.metrics_window
         ]
@@ -341,19 +334,14 @@ class AgentMonitor:
         return 0.0
 
     def get_metrics_summary(
-        self,
-        agent_id: UUID,
-        time_window: Optional[timedelta] = None
+        self, agent_id: UUID, time_window: Optional[timedelta] = None
     ) -> Dict[str, Any]:
         """Get metrics summary for an agent."""
         window = time_window or self.metrics_window
         cutoff_time = datetime.utcnow() - window
 
         metrics = self.metrics_buffer.get(agent_id, deque())
-        recent_metrics = [
-            m for m in metrics
-            if m.timestamp >= cutoff_time
-        ]
+        recent_metrics = [m for m in metrics if m.timestamp >= cutoff_time]
 
         if not recent_metrics:
             return {}
@@ -371,7 +359,7 @@ class AgentMonitor:
                     "avg": sum(values) / len(values),
                     "min": min(values),
                     "max": max(values),
-                    "count": len(values)
+                    "count": len(values),
                 }
 
         # Add resource usage
@@ -383,7 +371,7 @@ class AgentMonitor:
             summary["health"] = {
                 "status": self.health_status[agent_id].status.value,
                 "checks": self.health_status[agent_id].checks,
-                "message": self.health_status[agent_id].message
+                "message": self.health_status[agent_id].message,
             }
 
         return summary
@@ -403,7 +391,7 @@ class AgentMonitor:
         alert = {
             "agent_id": str(agent_id),
             "message": message,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.utcnow().isoformat(),
         }
 
         logger.warning(f"Alert for agent {agent_id}: {message}")
@@ -445,11 +433,11 @@ class AgentMonitor:
                     "status": health.status.value,
                     "checks": health.checks,
                     "metrics": health.metrics,
-                    "last_check": health.timestamp.isoformat()
+                    "last_check": health.timestamp.isoformat(),
                 }
                 for agent_id, health in self.health_status.items()
             },
-            "overall_status": self._calculate_overall_status().value
+            "overall_status": self._calculate_overall_status().value,
         }
 
     def _calculate_overall_status(self) -> HealthStatus:

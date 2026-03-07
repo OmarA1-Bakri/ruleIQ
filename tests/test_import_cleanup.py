@@ -9,7 +9,7 @@ import sys
 import os
 
 # Add scripts directory to path for imports
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'scripts'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "scripts"))
 
 from cleanup_unused_imports import UnusedImportDetector, find_unused_imports, remove_unused_imports
 from validate_module_imports import ImportValidator, CircularDependencyDetector
@@ -32,8 +32,8 @@ def main():
         detector.visit(tree)
 
         unused = detector.get_unused_imports()
-        self.assertIn('os', unused)
-        self.assertNotIn('sys', unused)
+        self.assertIn("os", unused)
+        self.assertNotIn("sys", unused)
 
     def test_detect_from_import_unused(self):
         """Test detection of unused from...import statements."""
@@ -48,9 +48,9 @@ def process(items: List[str]) -> Dict[str, int]:
         detector.visit(tree)
 
         unused = detector.get_unused_imports()
-        self.assertIn('Optional', unused)
-        self.assertNotIn('List', unused)
-        self.assertNotIn('Dict', unused)
+        self.assertIn("Optional", unused)
+        self.assertNotIn("List", unused)
+        self.assertNotIn("Dict", unused)
 
     def test_type_checking_imports_preserved(self):
         """Test that TYPE_CHECKING imports are preserved."""
@@ -69,9 +69,9 @@ def process(obj):
         detector.visit(tree)
 
         unused = detector.get_unused_imports()
-        self.assertNotIn('TYPE_CHECKING', unused)
+        self.assertNotIn("TYPE_CHECKING", unused)
         # MyClass is in TYPE_CHECKING block, shouldn't be marked as unused
-        self.assertNotIn('MyClass', unused)
+        self.assertNotIn("MyClass", unused)
 
     def test_annotation_imports_preserved(self):
         """Test that imports used in annotations are preserved."""
@@ -90,9 +90,9 @@ def get_value() -> Optional[str]:
         detector.visit(tree)
 
         unused = detector.get_unused_imports()
-        self.assertNotIn('List', unused)
-        self.assertNotIn('Optional', unused)
-        self.assertNotIn('datetime', unused)
+        self.assertNotIn("List", unused)
+        self.assertNotIn("Optional", unused)
+        self.assertNotIn("datetime", unused)
 
     def test_class_base_imports_preserved(self):
         """Test that imports used as base classes are preserved."""
@@ -111,8 +111,8 @@ class MyMapping(Mapping):
         detector.visit(tree)
 
         unused = detector.get_unused_imports()
-        self.assertNotIn('ABC', unused)
-        self.assertNotIn('Mapping', unused)
+        self.assertNotIn("ABC", unused)
+        self.assertNotIn("Mapping", unused)
 
     def test_string_annotations(self):
         """Test handling of string annotations."""
@@ -129,8 +129,8 @@ def process() -> "List[MyClass]":
 
         unused = detector.get_unused_imports()
         # Both should be detected as used in string annotation
-        self.assertNotIn('List', unused)
-        self.assertNotIn('MyClass', unused)
+        self.assertNotIn("List", unused)
+        self.assertNotIn("MyClass", unused)
 
     def test_aliased_imports(self):
         """Test detection of aliased imports."""
@@ -145,8 +145,8 @@ data = np.array([1, 2, 3])
         detector.visit(tree)
 
         unused = detector.get_unused_imports()
-        self.assertIn('pd', unused)  # Aliased name should be checked
-        self.assertNotIn('np', unused)
+        self.assertIn("pd", unused)  # Aliased name should be checked
+        self.assertNotIn("np", unused)
 
 
 class TestImportCleaner(unittest.TestCase):
@@ -154,7 +154,7 @@ class TestImportCleaner(unittest.TestCase):
 
     def test_find_unused_imports_in_file(self):
         """Test finding unused imports in a file."""
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
             f.write("""
 import os
 import sys
@@ -168,15 +168,15 @@ p = Path('.')
             try:
                 unused, error = find_unused_imports(Path(f.name))
                 self.assertIsNone(error)
-                self.assertIn('os', unused)
-                self.assertNotIn('sys', unused)
-                self.assertNotIn('Path', unused)
+                self.assertIn("os", unused)
+                self.assertNotIn("sys", unused)
+                self.assertNotIn("Path", unused)
             finally:
                 os.unlink(f.name)
 
     def test_remove_unused_imports(self):
         """Test removing unused imports from a file."""
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
             original_code = """import os
 import sys
 from pathlib import Path
@@ -190,24 +190,24 @@ p = Path('.')
             try:
                 # First find unused imports
                 unused, _ = find_unused_imports(Path(f.name))
-                self.assertIn('os', unused)
+                self.assertIn("os", unused)
 
                 # Remove them
                 modified = remove_unused_imports(Path(f.name), unused)
                 self.assertTrue(modified)
 
                 # Check the file was modified correctly
-                with open(f.name, 'r') as rf:
+                with open(f.name, "r") as rf:
                     new_code = rf.read()
-                    self.assertNotIn('import os', new_code)
-                    self.assertIn('import sys', new_code)
-                    self.assertIn('from pathlib import Path', new_code)
+                    self.assertNotIn("import os", new_code)
+                    self.assertIn("import sys", new_code)
+                    self.assertIn("from pathlib import Path", new_code)
             finally:
                 os.unlink(f.name)
 
     def test_dry_run_mode(self):
         """Test dry-run mode doesn't modify files."""
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
             original_code = """import os
 import sys
 
@@ -222,7 +222,7 @@ print(sys.version)
                 remove_unused_imports(Path(f.name), unused, dry_run=True)
 
                 # Check file wasn't modified
-                with open(f.name, 'r') as rf:
+                with open(f.name, "r") as rf:
                     new_code = rf.read()
                     self.assertEqual(original_code, new_code)
             finally:
@@ -234,7 +234,7 @@ class TestImportValidator(unittest.TestCase):
 
     def test_validate_standard_imports(self):
         """Test validation of standard library imports."""
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
             f.write("""
 import os
 import sys
@@ -267,7 +267,7 @@ def function1():
 class Class1:
     pass
 """
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
             f.write(code)
             f.flush()
 
@@ -278,7 +278,7 @@ class Class1:
 
                 issues = validator.validate_imports()
                 # Should report undefined_export as an issue
-                self.assertTrue(any('undefined_export' in issue for issue in issues))
+                self.assertTrue(any("undefined_export" in issue for issue in issues))
             finally:
                 os.unlink(f.name)
 
@@ -289,16 +289,16 @@ class Class1:
             tmpdir_path = Path(tmpdir)
 
             # Create package structure
-            package_dir = tmpdir_path / 'mypackage'
+            package_dir = tmpdir_path / "mypackage"
             package_dir.mkdir()
-            (package_dir / '__init__.py').touch()
+            (package_dir / "__init__.py").touch()
 
-            subpackage_dir = package_dir / 'subpackage'
+            subpackage_dir = package_dir / "subpackage"
             subpackage_dir.mkdir()
-            (subpackage_dir / '__init__.py').touch()
+            (subpackage_dir / "__init__.py").touch()
 
             # Create a module with relative import
-            test_file = subpackage_dir / 'module.py'
+            test_file = subpackage_dir / "module.py"
             test_file.write_text("""
 from .. import something
 from . import other
@@ -313,11 +313,11 @@ from . import other
 
             # The first import should resolve to 'mypackage'
             first_import = validator.from_imports[0]
-            self.assertEqual(first_import['module'], 'mypackage')
+            self.assertEqual(first_import["module"], "mypackage")
 
             # The second import should resolve to 'mypackage.subpackage'
             second_import = validator.from_imports[1]
-            self.assertEqual(second_import['module'], 'mypackage.subpackage')
+            self.assertEqual(second_import["module"], "mypackage.subpackage")
 
 
 class TestCircularDependencyDetector(unittest.TestCase):
@@ -329,11 +329,11 @@ class TestCircularDependencyDetector(unittest.TestCase):
             tmpdir_path = Path(tmpdir)
 
             # Create two modules that import each other
-            module_a = tmpdir_path / 'module_a.py'
-            module_a.write_text('import module_b\n')
+            module_a = tmpdir_path / "module_a.py"
+            module_a.write_text("import module_b\n")
 
-            module_b = tmpdir_path / 'module_b.py'
-            module_b.write_text('import module_a\n')
+            module_b = tmpdir_path / "module_b.py"
+            module_b.write_text("import module_a\n")
 
             detector = CircularDependencyDetector(tmpdir_path)
             detector.build_import_graph()
@@ -341,8 +341,8 @@ class TestCircularDependencyDetector(unittest.TestCase):
 
             # Should detect one circular dependency
             self.assertEqual(len(circles), 1)
-            self.assertIn('module_a', circles[0])
-            self.assertIn('module_b', circles[0])
+            self.assertIn("module_a", circles[0])
+            self.assertIn("module_b", circles[0])
 
     def test_detect_complex_circular_dependency(self):
         """Test detection of complex circular dependencies."""
@@ -350,14 +350,14 @@ class TestCircularDependencyDetector(unittest.TestCase):
             tmpdir_path = Path(tmpdir)
 
             # Create a chain: A -> B -> C -> A
-            module_a = tmpdir_path / 'module_a.py'
-            module_a.write_text('import module_b\n')
+            module_a = tmpdir_path / "module_a.py"
+            module_a.write_text("import module_b\n")
 
-            module_b = tmpdir_path / 'module_b.py'
-            module_b.write_text('import module_c\n')
+            module_b = tmpdir_path / "module_b.py"
+            module_b.write_text("import module_c\n")
 
-            module_c = tmpdir_path / 'module_c.py'
-            module_c.write_text('import module_a\n')
+            module_c = tmpdir_path / "module_c.py"
+            module_c.write_text("import module_a\n")
 
             detector = CircularDependencyDetector(tmpdir_path)
             detector.build_import_graph()
@@ -367,9 +367,9 @@ class TestCircularDependencyDetector(unittest.TestCase):
             self.assertEqual(len(circles), 1)
             circle = circles[0]
             self.assertEqual(len(circle), 3)
-            self.assertIn('module_a', circle)
-            self.assertIn('module_b', circle)
-            self.assertIn('module_c', circle)
+            self.assertIn("module_a", circle)
+            self.assertIn("module_b", circle)
+            self.assertIn("module_c", circle)
 
     def test_no_circular_dependency(self):
         """Test when there are no circular dependencies."""
@@ -377,14 +377,14 @@ class TestCircularDependencyDetector(unittest.TestCase):
             tmpdir_path = Path(tmpdir)
 
             # Create a linear dependency chain: A -> B -> C
-            module_a = tmpdir_path / 'module_a.py'
-            module_a.write_text('import module_b\n')
+            module_a = tmpdir_path / "module_a.py"
+            module_a.write_text("import module_b\n")
 
-            module_b = tmpdir_path / 'module_b.py'
-            module_b.write_text('import module_c\n')
+            module_b = tmpdir_path / "module_b.py"
+            module_b.write_text("import module_c\n")
 
-            module_c = tmpdir_path / 'module_c.py'
-            module_c.write_text('# No imports\n')
+            module_c = tmpdir_path / "module_c.py"
+            module_c.write_text("# No imports\n")
 
             detector = CircularDependencyDetector(tmpdir_path)
             detector.build_import_graph()
@@ -394,5 +394,5 @@ class TestCircularDependencyDetector(unittest.TestCase):
             self.assertEqual(len(circles), 0)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

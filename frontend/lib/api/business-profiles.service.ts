@@ -178,7 +178,7 @@ class BusinessProfileService {
         '/frameworks/recommendations',
       );
       return response;
-    } catch (error) {
+    } catch (_error) {
 
       // Return empty array if recommendations fail
       return [];

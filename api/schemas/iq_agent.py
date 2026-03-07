@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 IQ Agent Schemas for GraphRAG Compliance Intelligence
 
@@ -42,7 +41,8 @@ class ComplianceQueryRequest(BaseSchema):
         description="Whether to include detailed graph analysis in response",
     )
     include_recommendations: bool = Field(
-        default=True, description="Whether to include actionable recommendations",
+        default=True,
+        description="Whether to include actionable recommendations",
     )
 
 
@@ -51,7 +51,8 @@ class GraphContext(BaseSchema):
 
     nodes_traversed: int = Field(..., description="Number of graph nodes analyzed")
     patterns_detected: List[Dict[str, Any]] = Field(
-        ..., description="Compliance patterns detected during analysis",
+        ...,
+        description="Compliance patterns detected during analysis",
     )
     memories_accessed: List[str] = Field(..., description="IDs of relevant memories accessed")
     learnings_applied: int = Field(..., description="Number of learning insights applied")
@@ -62,7 +63,10 @@ class ComplianceSummary(BaseSchema):
 
     risk_posture: str = Field(..., description="Overall risk posture", example="HIGH")
     compliance_score: float = Field(
-        ..., description="Overall compliance coverage score (0.0-1.0)", ge=0.0, le=1.0,
+        ...,
+        description="Overall compliance coverage score (0.0-1.0)",
+        ge=0.0,
+        le=1.0,
     )
     top_gaps: List[str] = Field(..., description="Top compliance gaps identified", max_items=5)
     immediate_actions: List[str] = Field(..., description="Immediate actions required", max_items=5)
@@ -86,7 +90,8 @@ class ComplianceArtifacts(BaseSchema):
     """Detailed compliance analysis artifacts"""
 
     compliance_posture: Dict[str, Any] = Field(
-        ..., description="Detailed compliance posture analysis",
+        ...,
+        description="Detailed compliance posture analysis",
     )
     action_plan: List[ActionPlan] = Field(..., description="Prioritized action plan")
     risk_assessment: Dict[str, Any] = Field(..., description="Risk assessment details")
@@ -127,11 +132,16 @@ class MemoryStoreRequest(BaseSchema):
     """Request to store memory in IQ's knowledge base"""
 
     memory_type: str = Field(
-        ..., description="Type of memory to store", example="compliance_insight",
+        ...,
+        description="Type of memory to store",
+        example="compliance_insight",
     )
     content: Dict[str, Any] = Field(..., description="Memory content to store")
     importance_score: float = Field(
-        default=0.5, description="Importance score for memory retention", ge=0.0, le=1.0,
+        default=0.5,
+        description="Importance score for memory retention",
+        ge=0.0,
+        le=1.0,
     )
     tags: Optional[List[str]] = Field(default=None, description="Tags for memory categorization")
 
@@ -141,10 +151,16 @@ class MemoryRetrievalRequest(BaseSchema):
 
     query: str = Field(..., description="Query for memory retrieval")
     max_memories: int = Field(
-        default=10, description="Maximum number of memories to retrieve", ge=1, le=50,
+        default=10,
+        description="Maximum number of memories to retrieve",
+        ge=1,
+        le=50,
     )
     relevance_threshold: float = Field(
-        default=0.5, description="Minimum relevance threshold", ge=0.0, le=1.0,
+        default=0.5,
+        description="Minimum relevance threshold",
+        ge=0.0,
+        le=1.0,
     )
 
 
@@ -167,7 +183,8 @@ class MemoryRetrievalResponse(BaseSchema):
     query_id: str = Field(..., description="Query identifier")
     retrieved_memories: List[MemoryNode] = Field(..., description="Retrieved memory nodes")
     relevance_scores: List[float] = Field(
-        ..., description="Relevance scores for retrieved memories",
+        ...,
+        description="Relevance scores for retrieved memories",
     )
     total_memories_searched: int = Field(..., description="Total number of memories searched")
     retrieval_strategy: str = Field(..., description="Strategy used for retrieval")
@@ -179,7 +196,8 @@ class GraphInitializationRequest(BaseSchema):
 
     clear_existing: bool = Field(default=False, description="Whether to clear existing graph data")
     load_sample_data: bool = Field(
-        default=True, description="Whether to load sample compliance data",
+        default=True,
+        description="Whether to load sample compliance data",
     )
 
 
@@ -201,7 +219,8 @@ class HealthCheckResponse(BaseSchema):
     graph_statistics: Dict[str, Any] = Field(..., description="Graph database statistics")
     memory_statistics: Dict[str, Any] = Field(..., description="Memory system statistics")
     last_query_time: Optional[datetime] = Field(
-        default=None, description="Time of last query processed",
+        default=None,
+        description="Time of last query processed",
     )
 
 

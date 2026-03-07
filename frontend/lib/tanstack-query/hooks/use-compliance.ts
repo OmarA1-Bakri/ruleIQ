@@ -1,13 +1,11 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 
 import { complianceService } from '@/lib/api/compliance.service';
 
 import {
   createQueryKey,
   type BaseQueryOptions,
-  type BaseMutationOptions,
   type PaginationParams,
-  type PaginatedResponse,
 } from './base';
 
 // Import only the types that exist

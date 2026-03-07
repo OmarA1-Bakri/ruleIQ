@@ -11,9 +11,9 @@ from .evidence_service import EvidenceService
 from .compliance_service import ComplianceAnalysisService
 
 __all__ = [
-    'AssessmentService',
-    'PolicyService',
-    'WorkflowService',
-    'EvidenceService',
-    'ComplianceAnalysisService'
+    "AssessmentService",
+    "PolicyService",
+    "WorkflowService",
+    "EvidenceService",
+    "ComplianceAnalysisService",
 ]

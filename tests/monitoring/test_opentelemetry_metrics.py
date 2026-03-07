@@ -53,7 +53,9 @@ class TestOpenTelemetryMetricsCollector:
     def test_counter_creation_and_increment(self):
         """Test creating and incrementing a counter metric."""
         counter = self.collector.create_counter(
-            name="test_counter", description="Test counter metric", unit="1",
+            name="test_counter",
+            description="Test counter metric",
+            unit="1",
         )
 
         assert counter is not None
@@ -69,7 +71,9 @@ class TestOpenTelemetryMetricsCollector:
     def test_histogram_creation_and_recording(self):
         """Test creating and recording histogram metrics."""
         histogram = self.collector.create_histogram(
-            name="test_histogram", description="Test histogram metric", unit="ms",
+            name="test_histogram",
+            description="Test histogram metric",
+            unit="ms",
         )
 
         assert histogram is not None
@@ -89,7 +93,9 @@ class TestOpenTelemetryMetricsCollector:
     def test_updown_counter_creation(self):
         """Test creating and using an up-down counter."""
         gauge = self.collector.create_updown_counter(
-            name="test_gauge", description="Test gauge metric", unit="1",
+            name="test_gauge",
+            description="Test gauge metric",
+            unit="1",
         )
 
         assert gauge is not None
@@ -151,15 +157,9 @@ class TestOpenTelemetryMetricsCollector:
 
         # Verify each label combination
         for metric in metrics_data["labeled_counter"]:
-            if (
-                metric["labels"]["env"] == "prod"
-                and metric["labels"]["region"] == "us-east"
-            ):
+            if metric["labels"]["env"] == "prod" and metric["labels"]["region"] == "us-east":
                 assert metric["value"] == 1
-            elif (
-                metric["labels"]["env"] == "prod"
-                and metric["labels"]["region"] == "us-west"
-            ):
+            elif metric["labels"]["env"] == "prod" and metric["labels"]["region"] == "us-west":
                 assert metric["value"] == 2
             elif metric["labels"]["env"] == "dev":
                 assert metric["value"] == 3
@@ -324,14 +324,10 @@ class TestLangGraphMetricsInstrumentor:
         workflow_ctx.add_attribute("user_id", "user-456")
 
         # Execute nodes
-        with self.instrumentor.measure_node_execution(
-            "node1", workflow_ctx
-        ) as node_ctx:
+        with self.instrumentor.measure_node_execution("node1", workflow_ctx) as node_ctx:
             node_ctx.set_status("success")
 
-        with self.instrumentor.measure_node_execution(
-            "node2", workflow_ctx
-        ) as node_ctx:
+        with self.instrumentor.measure_node_execution("node2", workflow_ctx) as node_ctx:
             node_ctx.set_status("success")
 
         # Complete workflow
@@ -367,10 +363,14 @@ class TestLangGraphMetricsInstrumentor:
         """Test metrics for state transitions in LangGraph."""
         # Record state transitions
         self.instrumentor.record_state_transition(
-            from_state="pending", to_state="processing", workflow_id="test-workflow",
+            from_state="pending",
+            to_state="processing",
+            workflow_id="test-workflow",
         )
         self.instrumentor.record_state_transition(
-            from_state="processing", to_state="completed", workflow_id="test-workflow",
+            from_state="processing",
+            to_state="completed",
+            workflow_id="test-workflow",
         )
 
         metrics_data = self.collector.collect_metrics()
@@ -384,13 +384,11 @@ class TestLangGraphMetricsInstrumentor:
         # Check both transitions recorded
         assert len(transitions) == 2
         assert any(
-            t["labels"]["from_state"] == "pending"
-            and t["labels"]["to_state"] == "processing"
+            t["labels"]["from_state"] == "pending" and t["labels"]["to_state"] == "processing"
             for t in transitions
         )
         assert any(
-            t["labels"]["from_state"] == "processing"
-            and t["labels"]["to_state"] == "completed"
+            t["labels"]["from_state"] == "processing" and t["labels"]["to_state"] == "completed"
             for t in transitions
         )
 
@@ -418,7 +416,9 @@ class TestLangGraphMetricsInstrumentor:
         self.instrumentor.record_message_enqueued("compliance_queue", priority="high")
         self.instrumentor.record_message_enqueued("compliance_queue", priority="normal")
         self.instrumentor.record_message_processed(
-            "compliance_queue", duration_ms=150, success=True,
+            "compliance_queue",
+            duration_ms=150,
+            success=True,
         )
 
         metrics_data = self.collector.collect_metrics()
@@ -471,7 +471,9 @@ class TestMetricsBridge:
 
         # Register counter through bridge
         counter = bridge.register_counter(
-            name="test_counter", description="Test counter", labels={"env": "test"},
+            name="test_counter",
+            description="Test counter",
+            labels={"env": "test"},
         )
 
         # Increment counter
@@ -594,9 +596,7 @@ class TestIntegration:
         response_histogram.observe(0.150, {"endpoint": "/api/health"})
 
         # Simulate LangGraph metrics
-        with bridge.langgraph_instrumentor.measure_node_execution(
-            "compliance_check"
-        ) as ctx:
+        with bridge.langgraph_instrumentor.measure_node_execution("compliance_check") as ctx:
             ctx.set_status("success")
             time.sleep(0.1)
 

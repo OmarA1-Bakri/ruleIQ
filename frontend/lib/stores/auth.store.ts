@@ -313,7 +313,7 @@ export const useAuthStore = create<AuthState>()(
 
           const user: User = await response.json();
           set({ user, isAuthenticated: true });
-        } catch (error) {
+        } catch (_error) {
           // If all fails, logout
           get().logout();
         }

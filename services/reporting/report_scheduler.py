@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 Asynchronous service to manage report schedule configurations in the database.
 """
@@ -92,9 +91,7 @@ class ReportScheduler:
         self.db.add(schedule)
         await self.db.commit()
 
-    async def update_schedule(
-        self, schedule_id: UUID, updates: Dict[str, Any]
-    ) -> ReportSchedule:
+    async def update_schedule(self, schedule_id: UUID, updates: Dict[str, Any]) -> ReportSchedule:
         """Updates an existing report schedule."""
         schedule = await self.get_schedule(schedule_id)
         try:

@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 import requests
 import json
 
@@ -46,9 +45,7 @@ class TestAPIPerformance:
         assert "access_token" in result
 
         # Performance thresholds (adjusted for CI/CD environment)
-        assert (
-            benchmark.stats["mean"] < 2.0
-        )  # Mean response time < 2s (relaxed from 500ms)
+        assert benchmark.stats["mean"] < 2.0  # Mean response time < 2s (relaxed from 500ms)
         assert benchmark.stats["max"] < 5.0  # Max response time < 5s (relaxed from 2s)
 
     def test_evidence_creation_performance(
@@ -67,25 +64,23 @@ class TestAPIPerformance:
                 "description": "Evidence created during performance testing",
                 "control_id": "A.5.1.1",  # Required field
                 "framework_id": str(sample_compliance_framework.id),  # Required field
-                "business_profile_id": str(
-                    sample_business_profile.id
-                ),  # Required field
+                "business_profile_id": str(sample_business_profile.id),  # Required field
                 "source": "manual_upload",  # Required field
                 "evidence_type": "document",
                 "tags": ["performance", "test"],
             }
 
             response = client.post(
-                "/api/evidence", json=evidence_data, headers=authenticated_headers,
+                "/api/evidence",
+                json=evidence_data,
+                headers=authenticated_headers,
             )
             assert response.status_code == 201
             return response.json()
 
         result = benchmark(create_evidence)
         assert "id" in result
-        assert result["title"].startswith(
-            "Performance Test Evidence"
-        )  # Correct field name
+        assert result["title"].startswith("Performance Test Evidence")  # Correct field name
 
         # Performance assertions (adjusted for CI/CD environment)
         assert benchmark.stats["mean"] < 6.0  # Mean < 6s (relaxed for test environment)
@@ -121,12 +116,8 @@ class TestAPIPerformance:
         assert "total_count" in result
 
         # Search should be fast (adjusted for CI/CD environment)
-        assert (
-            benchmark.stats["mean"] < 7.0
-        )  # Mean < 7s (adjusted based on actual performance)
-        assert (
-            benchmark.stats["max"] < 12.0
-        )  # Max < 12s (adjusted based on actual performance)
+        assert benchmark.stats["mean"] < 7.0  # Mean < 7s (adjusted based on actual performance)
+        assert benchmark.stats["max"] < 12.0  # Max < 12s (adjusted based on actual performance)
 
     def test_dashboard_performance(
         self, benchmark: BenchmarkFixture, client, authenticated_headers
@@ -159,7 +150,9 @@ class TestAPIPerformance:
             }
 
             response = client.post(
-                "/api/chat/send", json=chat_data, headers=authenticated_headers,
+                "/api/chat/send",
+                json=chat_data,
+                headers=authenticated_headers,
             )
             assert response.status_code == 200
             return response.json()
@@ -174,9 +167,7 @@ class TestAPIPerformance:
     def test_concurrent_request_performance(self, client, authenticated_headers):
         """Test performance under concurrent load"""
 
-        def make_concurrent_requests(
-            endpoint: str, num_requests: int = 10
-        ) -> List[float]:
+        def make_concurrent_requests(endpoint: str, num_requests: int = 10) -> List[float]:
             """Make concurrent requests and return response times"""
             response_times = []
 
@@ -188,13 +179,10 @@ class TestAPIPerformance:
                 assert response.status_code == 200
                 return end_time - start_time
 
-            with concurrent.futures.ThreadPoolExecutor(
-                max_workers=num_requests
-            ) as executor:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=num_requests) as executor:
                 futures = [executor.submit(single_request) for _ in range(num_requests)]
                 response_times = [
-                    future.result()
-                    for future in concurrent.futures.as_completed(futures)
+                    future.result() for future in concurrent.futures.as_completed(futures)
                 ]
 
             return response_times
@@ -270,9 +258,7 @@ class TestAPIPerformance:
         assert result["failed_count"] == 0
 
         # Bulk operations should scale well (adjusted for CI/CD environment)
-        assert (
-            benchmark.stats["mean"] < 5.0
-        )  # Mean < 5s for 5 items (realistic threshold)
+        assert benchmark.stats["mean"] < 5.0  # Mean < 5s for 5 items (realistic threshold)
         assert benchmark.stats["max"] < 10.0  # Max < 10s (realistic threshold)
 
 
@@ -324,7 +310,8 @@ class TestMemoryPerformance:
         # Test retrieving large dataset via API
         start_time = time.time()
         response = client.get(
-            "/api/evidence?page_size=50", headers=authenticated_headers,
+            "/api/evidence?page_size=50",
+            headers=authenticated_headers,
         )
         retrieval_time = time.time() - start_time
 
@@ -366,12 +353,8 @@ class TestMemoryPerformance:
                     "description": f"Evidence from thread {thread_id}",
                     "evidence_type": "document",
                     "control_id": f"THREAD-{thread_id}-{i + 1}",  # Required field
-                    "framework_id": str(
-                        sample_compliance_framework.id
-                    ),  # Required field
-                    "business_profile_id": str(
-                        sample_business_profile.id
-                    ),  # Required field
+                    "framework_id": str(sample_compliance_framework.id),  # Required field
+                    "business_profile_id": str(sample_business_profile.id),  # Required field
                     "source": "manual_upload",  # Required field,
                 }
 
@@ -385,7 +368,8 @@ class TestMemoryPerformance:
 
                     # Retrieve user evidence
                     response = client.get(
-                        "/api/evidence", headers=authenticated_headers,
+                        "/api/evidence",
+                        headers=authenticated_headers,
                     )
                     assert response.status_code == 200
                 except (json.JSONDecodeError, requests.RequestException):
@@ -538,7 +522,9 @@ class TestEndToEndPerformance:
             }
 
             profile_response = client.post(
-                "/api/business-profiles", json=profile_data, headers=headers,
+                "/api/business-profiles",
+                json=profile_data,
+                headers=headers,
             )
             assert profile_response.status_code == 201
             business_profile_id = profile_response.json()["id"]
@@ -550,7 +536,9 @@ class TestEndToEndPerformance:
             }
 
             assessment_response = client.post(
-                "/api/assessments", json=assessment_data, headers=headers,
+                "/api/assessments",
+                json=assessment_data,
+                headers=headers,
             )
             # Accept both 200 (existing session) and 201 (new session)
             assert assessment_response.status_code in [200, 201]
@@ -571,7 +559,8 @@ class TestEndToEndPerformance:
                 )
 
             complete_response = client.post(
-                f"/api/assessments/{assessment_id}/complete", headers=headers,
+                f"/api/assessments/{assessment_id}/complete",
+                headers=headers,
             )
             assert complete_response.status_code == 200
 
@@ -595,9 +584,7 @@ class TestEndToEndPerformance:
         assert (
             benchmark.stats["mean"] < 45.0
         )  # Mean < 45s for complete flow (adjusted based on actual performance)
-        assert (
-            benchmark.stats["max"] < 60.0
-        )  # Max < 60s (adjusted based on actual performance)
+        assert benchmark.stats["max"] < 60.0  # Max < 60s (adjusted based on actual performance)
 
 
 # Performance test utilities
@@ -640,9 +627,7 @@ def performance_monitor():
     print(f"Performance metrics: {metrics}")
 
     # Performance assertions (adjusted based on actual performance)
-    assert (
-        metrics["duration"] < 45.0
-    )  # Test should complete in < 45s (adjusted from 30s)
+    assert metrics["duration"] < 45.0  # Test should complete in < 45s (adjusted from 30s)
     assert metrics["final_cpu"] - metrics["initial_cpu"] < 50  # CPU increase < 50%
 
 
@@ -666,7 +651,8 @@ class TestRealWorldScenarios:
 
         # Check evidence items
         response = client.get(
-            "/api/evidence?page=1&page_size=10", headers=authenticated_headers,
+            "/api/evidence?page=1&page_size=10",
+            headers=authenticated_headers,
         )
         assert response.status_code == 200
 
@@ -681,13 +667,16 @@ class TestRealWorldScenarios:
             "source": "manual_upload",  # Required field,
         }
         response = client.post(
-            "/api/evidence", json=evidence_data, headers=authenticated_headers,
+            "/api/evidence",
+            json=evidence_data,
+            headers=authenticated_headers,
         )
         assert response.status_code == 201
 
         # Search for evidence
         response = client.get(
-            "/api/evidence/search?q=workflow", headers=authenticated_headers,
+            "/api/evidence/search?q=workflow",
+            headers=authenticated_headers,
         )
         assert response.status_code == 200
 

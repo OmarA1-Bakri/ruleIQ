@@ -91,7 +91,8 @@ class PerformanceMonitor {
 
       // Navigation timing
       this.observeNavigationTiming();
-    } catch (error) {
+    } catch (_error) {
+      // intentionally empty - PerformanceObserver may not be supported
     }
   }
 
@@ -106,7 +107,8 @@ class PerformanceMonitor {
 
       observer.observe({ entryTypes: [entryType] });
       this.observers.push(observer);
-    } catch (error) {
+    } catch (_error) {
+      // intentionally empty - observer type may not be supported
     }
   }
 
@@ -164,6 +166,7 @@ class PerformanceMonitor {
 
     // Log performance issues
     if (metric.rating === 'poor') {
+      // intentionally empty - poor metric logged via analytics
     }
   }
 
@@ -199,6 +202,7 @@ class PerformanceMonitor {
     // For example: Google Analytics, DataDog, New Relic, etc.
 
     if (process.env.NODE_ENV === 'development') {
+      // intentionally empty - dev analytics logging disabled
     }
 
     // Example: Send to Google Analytics
@@ -225,7 +229,8 @@ class PerformanceMonitor {
 
       try {
         await fn();
-      } catch (error) {
+      } catch (_error) {
+        // intentionally empty - error ignored, duration still recorded
       }
 
       const duration = performance.now() - startTime;

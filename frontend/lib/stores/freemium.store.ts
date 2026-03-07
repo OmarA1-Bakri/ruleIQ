@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
+import { z } from 'zod';
 import { 
   validateApiResponse, 
   safeValidateApiResponse,
@@ -10,13 +11,11 @@ import {
   FreemiumAssessmentStartResponseSchema,
   AssessmentQuestionResponseSchema,
   AssessmentResultsResponseSchema,
-  AssessmentQuestionSchema,
 } from '../validation/zod-schemas';
 import type {
   LeadResponse,
   FreemiumAssessmentStartResponse,
   AssessmentQuestion,
-  AssessmentQuestionResponse,
   AssessmentResultsResponse,
   AssessmentAnswerRequest,
 } from '@/types/freemium';
@@ -62,6 +61,23 @@ interface FreemiumStoreState {
   loadSessionFromStorage: () => void;
   saveSessionToStorage: () => void;
   clearSession: () => void;
+
+  // Consumer compatibility
+  token: string | null;
+  utmSource: string | null;
+  utmCampaign: string | null;
+  setEmail: (email: string) => void;
+  setToken: (token: string | null) => void;
+  setConsent: (type: 'marketing' | 'terms', value: boolean) => void;
+  loadSession: (sessionToken: string) => Promise<void>;
+  markAssessmentStarted: () => void;
+  setCurrentQuestion: (questionId: string | null) => void;
+  markAssessmentCompleted: () => void;
+  markResultsViewed: () => void;
+  reset: () => void;
+  generateResults: () => Promise<void>;
+  trackEvent: (eventType: string, metadata?: Record<string, unknown>) => void;
+  setUtmParams: (params: Record<string, string>) => void;
 }
 
 // ===========================
@@ -85,6 +101,9 @@ export const useFreemiumStore = create<FreemiumStoreState>()(
       isLoading: false,
       error: null,
       validationErrors: [],
+      token: null,
+      utmSource: null,
+      utmCampaign: null,
 
       // Capture Email Action
       captureEmail: async (email: string, companyName: string, additionalData = {}) => {
@@ -98,11 +117,12 @@ export const useFreemiumStore = create<FreemiumStoreState>()(
           });
 
           // Validate response
-          const validatedResponse = validateApiResponse(response, LeadResponseSchema);
-          
+          const validatedResponse = validateApiResponse(response, LeadResponseSchema) as LeadResponse;
+
           set({
             lead: validatedResponse,
-            leadToken: validatedResponse.token,
+            leadToken: validatedResponse.lead_id ?? null,
+            token: validatedResponse.lead_id ?? null,
             isLoading: false,
           });
           
@@ -128,29 +148,33 @@ export const useFreemiumStore = create<FreemiumStoreState>()(
         
         try {
           const response = await freemiumService.startAssessment({
-            lead_email: leadToken,
+            lead_id: leadToken,
             business_type: assessmentType,
           });
 
           // Validate response
           const validatedResponse = validateApiResponse(
-            response, 
+            response,
             FreemiumAssessmentStartResponseSchema
-          );
-          
-          // Validate current question
-          const validatedQuestion = validateApiResponse(
-            validatedResponse.current_question,
-            AssessmentQuestionSchema
-          );
-          
+          ) as z.infer<typeof FreemiumAssessmentStartResponseSchema>;
+
+          // Build question from the start response fields
+          const validatedQuestion: AssessmentQuestion = {
+            question_id: validatedResponse.question_id ?? '',
+            question_text: validatedResponse.question_text ?? '',
+            question_type: validatedResponse.question_type,
+            question_context: validatedResponse.question_context ?? '',
+            answer_options: validatedResponse.answer_options ?? [],
+            is_required: validatedResponse.is_required ?? false,
+          };
+
           set({
             session: validatedResponse,
             sessionToken: validatedResponse.session_id,
             currentQuestion: validatedQuestion,
-            currentQuestionIndex: validatedResponse.current_question_index,
-            totalQuestions: validatedResponse.total_questions,
-            progressPercentage: validatedResponse.progress_percentage,
+            currentQuestionIndex: validatedResponse.progress?.current_question ?? 0,
+            totalQuestions: validatedResponse.progress?.total_questions_estimate ?? 0,
+            progressPercentage: validatedResponse.progress?.progress_percentage ?? 0,
             isLoading: false,
           });
           
@@ -176,10 +200,10 @@ export const useFreemiumStore = create<FreemiumStoreState>()(
         
         try {
           const answerData: AssessmentAnswerRequest = {
-            session_id: sessionToken,
+            session_token: sessionToken,
             question_id: questionId,
             answer: answer as string | number | boolean | string[],
-            time_spent: 0, // Track this if needed
+            time_spent_seconds: 0,
           };
           
           // Store answer locally
@@ -194,17 +218,21 @@ export const useFreemiumStore = create<FreemiumStoreState>()(
             AssessmentQuestionResponseSchema
           );
           
-          if (!validatedResponse.is_last_question) {
-            // Validate next question
-            const validatedQuestion = validateApiResponse(
-              validatedResponse.question,
-              AssessmentQuestionSchema
-            );
-            
+          if (!validatedResponse.is_complete) {
+            // Build next question from response fields
+            const nextQuestion: AssessmentQuestion = {
+              question_id: validatedResponse.next_question_id ?? '',
+              question_text: validatedResponse.next_question_text ?? '',
+              question_type: validatedResponse.next_question_type ?? 'text',
+              question_context: validatedResponse.next_question_context ?? '',
+              answer_options: validatedResponse.next_answer_options ?? [],
+              is_required: true,
+            };
+
             set({
-              currentQuestion: validatedQuestion,
-              currentQuestionIndex: validatedResponse.next_question_index || get().currentQuestionIndex + 1,
-              progressPercentage: validatedResponse.progress_percentage,
+              currentQuestion: nextQuestion,
+              currentQuestionIndex: validatedResponse.progress?.current_question ?? get().currentQuestionIndex + 1,
+              progressPercentage: validatedResponse.progress?.progress_percentage ?? get().progressPercentage,
               answers: newAnswers,
               isLoading: false,
             });
@@ -251,7 +279,7 @@ export const useFreemiumStore = create<FreemiumStoreState>()(
           );
           
           set({
-            results: validatedResponse,
+            results: validatedResponse as unknown as AssessmentResultsResponse,
             isLoading: false,
           });
           
@@ -324,7 +352,7 @@ export const useFreemiumStore = create<FreemiumStoreState>()(
             totalQuestions: parsed.totalQuestions || 0,
             progressPercentage: parsed.progressPercentage || 0,
             answers: new Map(parsed.answers || []),
-            results: resultsValidation.success ? resultsValidation.data : null,
+            results: resultsValidation.success ? (resultsValidation.data as unknown as AssessmentResultsResponse) : null,
           });
         } catch (error) {
           console.error('Failed to load session from storage:', error);
@@ -379,6 +407,66 @@ export const useFreemiumStore = create<FreemiumStoreState>()(
           localStorage.removeItem('freemium_session');
         }
       },
+
+      // Consumer compatibility stubs
+      setEmail: (email: string) => {
+        const lead = get().lead;
+        if (lead) {
+          set({ lead: { ...lead, email } });
+        }
+      },
+
+      setToken: (token: string | null) => {
+        set({ token, leadToken: token });
+      },
+
+      setConsent: (_type: 'marketing' | 'terms', _value: boolean) => {
+        // Consent state tracked by component; stub for store compatibility
+      },
+
+      loadSession: async (sessionToken: string) => {
+        set({ sessionToken, token: sessionToken });
+        get().loadSessionFromStorage();
+      },
+
+      markAssessmentStarted: () => {
+        // Assessment already started via startAssessment
+      },
+
+      setCurrentQuestion: (questionId: string | null) => {
+        if (questionId && get().currentQuestion) {
+          set({ currentQuestion: { ...get().currentQuestion!, question_id: questionId } });
+        } else if (!questionId) {
+          set({ currentQuestion: null });
+        }
+      },
+
+      markAssessmentCompleted: () => {
+        set({ currentQuestion: null, progressPercentage: 100 });
+      },
+
+      markResultsViewed: () => {
+        // Analytics marker - no-op
+      },
+
+      reset: () => {
+        get().resetAssessment();
+      },
+
+      generateResults: async () => {
+        await get().getResults();
+      },
+
+      trackEvent: (_eventType: string, _metadata?: Record<string, unknown>) => {
+        // Analytics stub
+      },
+
+      setUtmParams: (params: Record<string, string>) => {
+        set({
+          utmSource: params.utm_source || null,
+          utmCampaign: params.utm_campaign || null,
+        });
+      },
     }),
     {
       name: 'freemium-store',
@@ -391,7 +479,14 @@ export const useFreemiumStore = create<FreemiumStoreState>()(
 // ===========================
 
 export const useFreemiumLead = () => useFreemiumStore((state) => state.lead);
-export const useFreemiumSession = () => useFreemiumStore((state) => state.session);
+export const useFreemiumSession = () => useFreemiumStore((state) => ({
+  hasSession: state.session !== null || state.sessionToken !== null,
+  sessionData: {
+    sessionToken: state.sessionToken,
+    email: state.lead?.email ?? null,
+  },
+  canViewResults: state.results !== null,
+}));
 export const useFreemiumQuestion = () => useFreemiumStore((state) => state.currentQuestion);
 export const useFreemiumProgress = () => useFreemiumStore((state) => ({
   current: state.currentQuestionIndex,

@@ -7,7 +7,6 @@ Provides comprehensive monitoring for database connection pools including:
 - Alert threshold monitoring
 - Prometheus-compatible metrics export
 """
-from __future__ import annotations
 
 import asyncio
 import logging
@@ -106,9 +105,7 @@ class DatabaseMonitor:
                 checked_out=checked_out,
                 overflow=overflow,
                 total_connections=total_connections,
-                utilization_percent=(
-                    (checked_out / pool_size * 100) if pool_size > 0 else 0
-                ),
+                utilization_percent=((checked_out / pool_size * 100) if pool_size > 0 else 0),
                 overflow_percent=(overflow / pool_size * 100) if pool_size > 0 else 0,
             )
 
@@ -127,9 +124,7 @@ class DatabaseMonitor:
                 checked_out=checked_out,
                 overflow=overflow,
                 total_connections=total_connections,
-                utilization_percent=(
-                    (checked_out / pool_size * 100) if pool_size > 0 else 0
-                ),
+                utilization_percent=((checked_out / pool_size * 100) if pool_size > 0 else 0),
                 overflow_percent=(overflow / pool_size * 100) if pool_size > 0 else 0,
             )
 
@@ -230,10 +225,7 @@ class DatabaseMonitor:
 
         for pool_type, metric in metrics.items():
             # Pool utilization alerts
-            if (
-                metric.utilization_percent
-                >= self.alert_thresholds.pool_utilization_critical
-            ):
+            if metric.utilization_percent >= self.alert_thresholds.pool_utilization_critical:
                 alerts.append(
                     {
                         "severity": "critical",
@@ -245,10 +237,7 @@ class DatabaseMonitor:
                         "timestamp": metric.timestamp.isoformat(),
                     }
                 )
-            elif (
-                metric.utilization_percent
-                >= self.alert_thresholds.pool_utilization_warning
-            ):
+            elif metric.utilization_percent >= self.alert_thresholds.pool_utilization_warning:
                 alerts.append(
                     {
                         "severity": "warning",
@@ -312,9 +301,7 @@ class DatabaseMonitor:
 
         # Calculate recent averages (last 10 minutes)
         recent_cutoff = datetime.now(timezone.utc) - timedelta(minutes=10)
-        recent_metrics = [
-            m for m in self.metrics_history if m.timestamp >= recent_cutoff
-        ]
+        recent_metrics = [m for m in self.metrics_history if m.timestamp >= recent_cutoff]
 
         recent_averages = {}
         if recent_metrics:
@@ -343,9 +330,7 @@ class DatabaseMonitor:
 
     async def start_monitoring_loop(self, interval_seconds: int = 30) -> None:
         """Start continuous monitoring loop."""
-        logger.info(
-            f"Starting database monitoring loop with {interval_seconds}s interval"
-        )
+        logger.info(f"Starting database monitoring loop with {interval_seconds}s interval")
 
         while True:
             try:
@@ -364,9 +349,7 @@ class DatabaseMonitor:
                 # Log summary every 5 minutes (10 cycles at 30s interval)
                 if len(self.metrics_history) % 10 == 0:
                     self.get_monitoring_summary()
-                    logger.info(
-                        f"Database monitoring summary: {len(alerts)} active alerts"
-                    )
+                    logger.info(f"Database monitoring summary: {len(alerts)} active alerts")
 
                 await asyncio.sleep(interval_seconds)
 

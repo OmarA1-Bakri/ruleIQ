@@ -151,7 +151,8 @@ class TestNoEvidenceData:
         # Call with state as first parameter AND empty evidence_data (old calling convention)
         # This covers lines 77-78 and 83
         result = await node.process_evidence(
-            state_with_empty_evidence, evidence_data={},
+            state_with_empty_evidence,
+            evidence_data={},
         )
 
         # Check the result is a dict
@@ -267,10 +268,7 @@ class TestDatabaseCommitError:
         assert result["error_count"] == 1
         assert result["processing_status"] == "failed"
         assert len(result["messages"]) == 1
-        assert (
-            "Evidence processing failed: Unexpected error"
-            in result["messages"][0].content,
-        )
+        assert ("Evidence processing failed: Unexpected error" in result["messages"][0].content,)
 
 
 @pytest.mark.asyncio

@@ -1,7 +1,5 @@
 """Test Neo4j connection and setup module."""
 
-from __future__ import annotations
-
 from typing import Any
 from unittest.mock import Mock, patch
 from neo4j.exceptions import ServiceUnavailable
@@ -38,7 +36,8 @@ class TestNeo4jConnection:
 
         assert driver == mock_driver
         mock_graph_db.driver.assert_called_once_with(
-            "bolt://localhost:7687", auth=("neo4j", "please_change"),
+            "bolt://localhost:7687",
+            auth=("neo4j", "please_change"),
         )
 
     def test_get_driver_returns_existing(self) -> Any:
@@ -97,7 +96,8 @@ class TestNeo4jConnection:
 
         assert result == mock_result
         mock_session.run.assert_called_once_with(
-            "MATCH (n {name: $name}) RETURN n", params,
+            "MATCH (n {name: $name}) RETURN n",
+            params,
         )
 
 

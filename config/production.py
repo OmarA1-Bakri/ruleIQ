@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 Production Configuration
 Settings optimized for production environment
@@ -49,8 +48,7 @@ class ProductionConfig(BaseConfig):
     LOG_MAX_BYTES: int = 10 * 1024 * 1024  # 10MB
     LOG_BACKUP_COUNT: int = 5
 
-    # CORS - Restrictive for production
-    CORS_ORIGINS: list = []  # Set explicitly via environment
+    # CORS - Restrictive for production (populated by CORS_ORIGINS property below)
     CORS_ALLOW_CREDENTIALS: bool = True
     CORS_ALLOW_METHODS: list = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
     CORS_ALLOW_HEADERS: list = ["Content-Type", "Authorization"]

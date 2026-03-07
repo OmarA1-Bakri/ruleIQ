@@ -234,9 +234,7 @@ class SecurityHeadersMiddleware:
         # Cache control for sensitive content
         if response.status_code == 200:
             # Don't cache sensitive data
-            response.headers["Cache-Control"] = (
-                "no-store, no-cache, must-revalidate, private"
-            )
+            response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, private"
             response.headers["Pragma"] = "no-cache"
             response.headers["Expires"] = "0"
 
@@ -401,9 +399,7 @@ class CSPViolationHandler:
             "total": len(self.violations),
             "by_directive": by_directive,
             "by_blocked_uri": by_blocked,
-            "recent": (
-                self.violations[-10:] if len(self.violations) > 10 else self.violations
-            ),
+            "recent": (self.violations[-10:] if len(self.violations) > 10 else self.violations),
         }
 
 

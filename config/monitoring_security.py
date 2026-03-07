@@ -3,6 +3,7 @@ Monitoring security configuration for Grafana and Prometheus.
 
 This module provides secure defaults and credential management for monitoring services.
 """
+
 import os
 import secrets
 from typing import Dict, Any
@@ -26,7 +27,7 @@ def generate_secure_password(length: int = 24) -> str:
 
     # Use a mix of characters for strong passwords
     alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-="
-    password = ''.join(secrets.choice(alphabet) for _ in range(length))
+    password = "".join(secrets.choice(alphabet) for _ in range(length))
 
     # Ensure password has at least one of each type
     if not any(c.islower() for c in password):
@@ -51,22 +52,22 @@ def get_grafana_credentials() -> Dict[str, str]:
         Dict with 'username' and 'password'
     """
     # Check for production environment
-    is_production = os.getenv('ENVIRONMENT', 'development').lower() == 'production'
+    is_production = os.getenv("ENVIRONMENT", "development").lower() == "production"
 
     # Get credentials from environment
-    username = os.getenv('GRAFANA_ADMIN_USER')
-    password = os.getenv('GRAFANA_ADMIN_PASSWORD')
+    username = os.getenv("GRAFANA_ADMIN_USER")
+    password = os.getenv("GRAFANA_ADMIN_PASSWORD")
 
     # Validate credentials
-    if not username or username == 'admin':
+    if not username or username == "admin":
         if is_production:
             logger.error("CRITICAL: Grafana admin username not configured for production")
             username = f"ruleiq_admin_{secrets.token_hex(4)}"
         else:
-            username = 'ruleiq_admin'
+            username = "ruleiq_admin"
             logger.warning("Using default Grafana admin username for development")
 
-    if not password or password == 'admin':
+    if not password or password == "admin":
         if is_production:
             logger.error("CRITICAL: Grafana admin password not configured for production")
             password = generate_secure_password(32)
@@ -81,10 +82,7 @@ def get_grafana_credentials() -> Dict[str, str]:
         logger.error("Grafana password too weak, generating secure password")
         password = generate_secure_password(24)
 
-    return {
-        'username': username,
-        'password': password
-    }
+    return {"username": username, "password": password}
 
 
 def get_prometheus_credentials() -> Dict[str, Any]:
@@ -94,22 +92,22 @@ def get_prometheus_credentials() -> Dict[str, Any]:
     Returns:
         Dict with Prometheus security settings
     """
-    is_production = os.getenv('ENVIRONMENT', 'development').lower() == 'production'
+    is_production = os.getenv("ENVIRONMENT", "development").lower() == "production"
 
     config = {
-        'basic_auth_enabled': is_production,
-        'tls_enabled': is_production,
-        'web_external_url': os.getenv('PROMETHEUS_EXTERNAL_URL', 'http://localhost:9090')
+        "basic_auth_enabled": is_production,
+        "tls_enabled": is_production,
+        "web_external_url": os.getenv("PROMETHEUS_EXTERNAL_URL", "http://localhost:9090"),
     }
 
-    if config['basic_auth_enabled']:
-        config['username'] = os.getenv('PROMETHEUS_USER', f"prom_user_{secrets.token_hex(4)}")
-        config['password'] = os.getenv('PROMETHEUS_PASSWORD', generate_secure_password(24))
+    if config["basic_auth_enabled"]:
+        config["username"] = os.getenv("PROMETHEUS_USER", f"prom_user_{secrets.token_hex(4)}")
+        config["password"] = os.getenv("PROMETHEUS_PASSWORD", generate_secure_password(24))
 
     return config
 
 
-def generate_monitoring_env_file(filepath: str = '.env.monitoring') -> None:
+def generate_monitoring_env_file(filepath: str = ".env.monitoring") -> None:
     """
     Generate secure monitoring environment file.
 
@@ -123,8 +121,8 @@ def generate_monitoring_env_file(filepath: str = '.env.monitoring') -> None:
 # Generated automatically - DO NOT commit to version control
 
 # Grafana Admin Credentials
-GRAFANA_ADMIN_USER={grafana_creds['username']}
-GRAFANA_ADMIN_PASSWORD={grafana_creds['password']}
+GRAFANA_ADMIN_USER={grafana_creds["username"]}
+GRAFANA_ADMIN_PASSWORD={grafana_creds["password"]}
 
 # Grafana Security Settings
 GF_SECURITY_DISABLE_INITIAL_ADMIN_CREATION=false
@@ -147,9 +145,9 @@ GF_AUTH_DISABLE_SIGNOUT_MENU=false
 GF_AUTH_ANONYMOUS_ENABLED=false
 
 # Prometheus Configuration
-PROMETHEUS_USER={prometheus_config.get('username', '')}
-PROMETHEUS_PASSWORD={prometheus_config.get('password', '')}
-PROMETHEUS_EXTERNAL_URL={prometheus_config['web_external_url']}
+PROMETHEUS_USER={prometheus_config.get("username", "")}
+PROMETHEUS_PASSWORD={prometheus_config.get("password", "")}
+PROMETHEUS_EXTERNAL_URL={prometheus_config["web_external_url"]}
 
 # AlertManager Configuration
 ALERTMANAGER_USER=alert_admin_{secrets.token_hex(4)}
@@ -162,12 +160,13 @@ MONITORING_EVALUATION_INTERVAL=15s
 """
 
     # Write to file with restricted permissions
-    with open(filepath, 'w') as f:
+    with open(filepath, "w") as f:
         f.write(env_content)
 
     # Set restrictive file permissions (Unix-like systems)
     try:
         import stat
+
         os.chmod(filepath, stat.S_IRUSR | stat.S_IWUSR)  # 600 permissions
     except:
         pass
@@ -184,27 +183,27 @@ def validate_monitoring_security() -> Dict[str, bool]:
         Dict with validation results
     """
     results = {
-        'grafana_credentials_secure': True,
-        'prometheus_configured': True,
-        'tls_enabled': False,
-        'authentication_enabled': True
+        "grafana_credentials_secure": True,
+        "prometheus_configured": True,
+        "tls_enabled": False,
+        "authentication_enabled": True,
     }
 
     # Check Grafana credentials
     grafana_creds = get_grafana_credentials()
-    if grafana_creds['username'] == 'admin' or grafana_creds['password'] == 'admin':
-        results['grafana_credentials_secure'] = False
+    if grafana_creds["username"] == "admin" or grafana_creds["password"] == "admin":
+        results["grafana_credentials_secure"] = False
         logger.error("SECURITY RISK: Grafana using default credentials")
 
     # Check Prometheus configuration
     prometheus_config = get_prometheus_credentials()
-    if not prometheus_config.get('basic_auth_enabled'):
-        results['authentication_enabled'] = False
+    if not prometheus_config.get("basic_auth_enabled"):
+        results["authentication_enabled"] = False
         logger.warning("Prometheus basic auth not enabled")
 
     # Check TLS
-    if prometheus_config.get('tls_enabled'):
-        results['tls_enabled'] = True
+    if prometheus_config.get("tls_enabled"):
+        results["tls_enabled"] = True
 
     return results
 

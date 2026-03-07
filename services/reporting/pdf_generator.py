@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 PDF generation service using ReportLab for ComplianceGPT
 """
@@ -199,9 +198,7 @@ class PDFGenerator:
 
         return styles
 
-    async def generate_pdf(
-        self, report_data: Dict[str, Any], output_format: str = "bytes"
-    ) -> Any:
+    async def generate_pdf(self, report_data: Dict[str, Any], output_format: str = "bytes") -> Any:
         """Generate PDF from report data."""
         buffer = BytesIO()
         doc = SimpleDocTemplate(
@@ -255,12 +252,11 @@ class PDFGenerator:
     def _build_header(self, report_data: Dict) -> List:
         """Build the report header section."""
         title_text = (
-            report_data.get("report_type", "compliance_report")
-            .replace("_", " ")
-            .title(),
+            report_data.get("report_type", "compliance_report").replace("_", " ").title(),
         )
         company_name = report_data.get("business_profile", {}).get(
-            "name", "Unknown Company",
+            "name",
+            "Unknown Company",
         )
         generated_date = datetime.fromisoformat(report_data["generated_at"]).strftime(
             "%B %d, %Y at %I:%M %p",
@@ -282,15 +278,12 @@ class PDFGenerator:
 
         business_profile = report_data.get("business_profile", {})
         overview_text = f"""
-        This executive summary provides a high-level overview of compliance status for {business_profile.get(
-            "name",
-            "your organization"
-        )},
-        a {business_profile.get(
-            "industry",
-            "technology")} company with {business_profile.get("employee_count",
-            "unknown"
-        )} employees
+        This executive summary provides a high-level overview of compliance status for {
+            business_profile.get("name", "your organization")
+        },
+        a {business_profile.get("industry", "technology")} company with {
+            business_profile.get("employee_count", "unknown")
+        } employees
         based in {business_profile.get("country", "the UK")}.
         """
         story.append(Paragraph(overview_text, self.styles["ReportBodyText"]))
@@ -409,7 +402,8 @@ class PDFGenerator:
         if gaps:
             story.append(
                 Paragraph(
-                    "Identified Gaps by Framework", self.styles["SubsectionHeader"],
+                    "Identified Gaps by Framework",
+                    self.styles["SubsectionHeader"],
                 ),
             )
 
@@ -485,7 +479,8 @@ class PDFGenerator:
         if remediation_plan:
             story.append(
                 Paragraph(
-                    "Recommended Remediation Plan", self.styles["SubsectionHeader"],
+                    "Recommended Remediation Plan",
+                    self.styles["SubsectionHeader"],
                 ),
             )
 
@@ -538,7 +533,8 @@ class PDFGenerator:
                 )
 
             evidence_table = Table(
-                evidence_data, colWidths=[1.5 * inch, 1 * inch, 1.2 * inch, 1.8 * inch],
+                evidence_data,
+                colWidths=[1.5 * inch, 1 * inch, 1.2 * inch, 1.8 * inch],
             )
             evidence_table.setStyle(
                 TableStyle(
@@ -569,7 +565,8 @@ class PDFGenerator:
         if automation_opportunities:
             story.append(
                 Paragraph(
-                    "Priority Automation Opportunities", self.styles["SubsectionHeader"],
+                    "Priority Automation Opportunities",
+                    self.styles["SubsectionHeader"],
                 ),
             )
 
@@ -768,14 +765,18 @@ class PDFGenerator:
         canvas.setFont("Helvetica-Bold", 8)
         canvas.setFillColor(self.colors["medium_gray"])
         canvas.drawString(
-            doc.leftMargin, doc.height + doc.topMargin - 30, "ComplianceGPT Report",
+            doc.leftMargin,
+            doc.height + doc.topMargin - 30,
+            "ComplianceGPT Report",
         )
 
         # Footer
         canvas.setFont("Helvetica", 8)
         page_num_text = f"Page {doc.page}"
         canvas.drawRightString(
-            doc.width + doc.leftMargin, doc.bottomMargin - 20, page_num_text,
+            doc.width + doc.leftMargin,
+            doc.bottomMargin - 20,
+            page_num_text,
         )
 
         # Footer line

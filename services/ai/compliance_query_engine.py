@@ -4,7 +4,7 @@ Provides high-performance query interface for compliance data.
 """
 
 import logging
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 from neo4j import AsyncGraphDatabase
 
 logger = logging.getLogger(__name__)
@@ -13,9 +13,16 @@ logger = logging.getLogger(__name__)
 class ComplianceQueryEngine:
     """Query engine for compliance data in Neo4j."""
 
-    def __init__(self, uri: str, user: str, password: str):
+    def __init__(
+        self,
+        uri: str,
+        user: str,
+        password: str,
+        database: Optional[str] = None,
+    ) -> None:
         """Initialize query engine with Neo4j connection."""
         self.driver = AsyncGraphDatabase.driver(uri, auth=(user, password))
+        self.database = database
         self.logger = logging.getLogger(self.__class__.__name__)
 
     async def close(self):
@@ -36,7 +43,7 @@ class ComplianceQueryEngine:
         """
         query = """
         MATCH (r:Regulation)
-        WHERE 
+        WHERE
             (r.business_triggers.industry = $industry OR r.business_triggers.industry IS NULL) AND
             (r.business_triggers.processes_payments = $processes_payments OR r.business_triggers.processes_payments IS NULL) AND
             (r.business_triggers.stores_customer_data = $stores_customer_data OR r.business_triggers.stores_customer_data IS NULL) AND
@@ -45,7 +52,7 @@ class ComplianceQueryEngine:
         ORDER BY r.risk_metadata.base_risk_score DESC
         """
 
-        async with self.driver.session() as session:
+        async with self.driver.session(database=self.database) as session:
             result = await session.run(query, business_profile)
             regulations = []
             async for record in result:
@@ -69,7 +76,7 @@ class ComplianceQueryEngine:
         RETURN r, collect(e) as enforcements
         """
 
-        async with self.driver.session() as session:
+        async with self.driver.session(database=self.database) as session:
             result = await session.run(query, reg_id=regulation_id)
             record = await result.single()
             if not record:
@@ -80,9 +87,7 @@ class ComplianceQueryEngine:
 
             # Calculate adjusted risk based on enforcement
             base_risk = reg.get("risk_metadata", {}).get("base_risk_score", 5)
-            enforcement_adjustment = min(
-                len(enforcements) * 0.5, 3
-            )  # Max 3 point adjustment
+            enforcement_adjustment = min(len(enforcements) * 0.5, 3)  # Max 3 point adjustment
 
             return {
                 "base_risk_score": base_risk,
@@ -92,9 +97,7 @@ class ComplianceQueryEngine:
                 ),
                 "max_penalty": reg.get("risk_metadata", {}).get("max_penalty"),
                 "enforcement_count": len(enforcements),
-                "total_penalties": sum(
-                    e.get("penalty_amount", 0) for e in enforcements
-                ),
+                "total_penalties": sum(e.get("penalty_amount", 0) for e in enforcements),
             }
 
     async def get_suggested_controls(self, regulation_id: str) -> List[str]:
@@ -112,7 +115,7 @@ class ComplianceQueryEngine:
         RETURN r.suggested_controls as controls
         """
 
-        async with self.driver.session() as session:
+        async with self.driver.session(database=self.database) as session:
             result = await session.run(query, reg_id=regulation_id)
             record = await result.single()
             if record and record["controls"]:
@@ -129,7 +132,7 @@ class ComplianceQueryEngine:
         query = """
         MATCH (r:Regulation)
         WHERE r.automation_potential IS NOT NULL
-        RETURN 
+        RETURN
             avg(r.automation_potential) as average_potential,
             min(r.automation_potential) as min_potential,
             max(r.automation_potential) as max_potential,
@@ -137,14 +140,12 @@ class ComplianceQueryEngine:
             count(CASE WHEN r.automation_potential >= 0.7 THEN 1 END) as high_automation_count
         """
 
-        async with self.driver.session() as session:
+        async with self.driver.session(database=self.database) as session:
             result = await session.run(query)
             record = await result.single()
             return dict(record) if record else {}
 
-    async def get_regulation_dependencies(
-        self, regulation_id: str
-    ) -> List[Dict[str, Any]]:
+    async def get_regulation_dependencies(self, regulation_id: str) -> List[Dict[str, Any]]:
         """
         Get regulations that this regulation depends on.
 
@@ -159,16 +160,14 @@ class ComplianceQueryEngine:
         RETURN dep
         """
 
-        async with self.driver.session() as session:
+        async with self.driver.session(database=self.database) as session:
             result = await session.run(query, reg_id=regulation_id)
             dependencies = []
             async for record in result:
                 dependencies.append(dict(record["dep"]))
             return dependencies
 
-    async def find_equivalent_regulations(
-        self, regulation_id: str
-    ) -> List[Dict[str, Any]]:
+    async def find_equivalent_regulations(self, regulation_id: str) -> List[Dict[str, Any]]:
         """
         Find regulations equivalent to the given one.
 
@@ -183,16 +182,14 @@ class ComplianceQueryEngine:
         RETURN eq
         """
 
-        async with self.driver.session() as session:
+        async with self.driver.session(database=self.database) as session:
             result = await session.run(query, reg_id=regulation_id)
             equivalents = []
             async for record in result:
                 equivalents.append(dict(record["eq"]))
             return equivalents
 
-    async def find_conflicting_regulations(
-        self, regulation_id: str
-    ) -> List[Dict[str, Any]]:
+    async def find_conflicting_regulations(self, regulation_id: str) -> List[Dict[str, Any]]:
         """
         Find regulations that conflict with the given one.
 
@@ -207,7 +204,7 @@ class ComplianceQueryEngine:
         RETURN conf, c.conflict_type as conflict_type
         """
 
-        async with self.driver.session() as session:
+        async with self.driver.session(database=self.database) as session:
             result = await session.run(query, reg_id=regulation_id)
             conflicts = []
             async for record in result:

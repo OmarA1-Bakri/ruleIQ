@@ -39,7 +39,8 @@ export function CsrfForm({
 
     try {
       await onSubmit(formData, token);
-    } catch (error) {
+    } catch (_error) {
+      // intentionally empty - form submission error handled by caller
     }
   };
 

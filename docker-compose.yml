@@ -16,44 +16,7 @@ services:
     networks:
       - compliancegpt-network
 
-  celery_worker:
-    build: .
-    command: celery -A celery_app worker --loglevel=debug --concurrency=2 --pool=solo --queues=evidence,compliance,notifications,reports
-    env_file:
-      - .env.local
-    environment:
-      - PYTHONUNBUFFERED=1
-      - PYTHONPATH=/app:$PYTHONPATH
-    depends_on:
-      redis:
-        condition: service_healthy
-    volumes:
-      - .:/app
-    restart: unless-stopped
-    networks:
-      - compliancegpt-network
-    healthcheck:
-      test: ["CMD", "celery", "-A", "celery_app", "inspect", "ping"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  celery_beat:
-    build: .
-    command: celery -A celery_app beat --loglevel=debug
-    env_file:
-      - .env.local
-    environment:
-      - PYTHONUNBUFFERED=1
-      - PYTHONPATH=/app:$PYTHONPATH
-    depends_on:
-      redis:
-        condition: service_healthy
-    volumes:
-      - .:/app
-    restart: unless-stopped
-    networks:
-      - compliancegpt-network
+  # NOTE: celery_worker and celery_beat removed — Celery replaced by LangGraph (2025)
 
   redis:
     image: redis:7-alpine

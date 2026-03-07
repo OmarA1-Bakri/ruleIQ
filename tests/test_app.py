@@ -1,7 +1,5 @@
 """Test app creation for isolated testing."""
 
-from __future__ import annotations
-
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -68,17 +66,25 @@ def create_test_app() -> FastAPI:
         tags=["Business Profiles"],
     )
     app.include_router(
-        frameworks.router, prefix="/api/frameworks", tags=["Compliance Frameworks"],
+        frameworks.router,
+        prefix="/api/frameworks",
+        tags=["Compliance Frameworks"],
     )
     app.include_router(
-        assessments.router, prefix="/api/assessments", tags=["Assessments"],
+        assessments.router,
+        prefix="/api/assessments",
+        tags=["Assessments"],
     )
     app.include_router(
-        readiness.router, prefix="/api/readiness", tags=["Readiness Assessment"],
+        readiness.router,
+        prefix="/api/readiness",
+        tags=["Readiness Assessment"],
     )
     app.include_router(policies.router, prefix="/api/policies", tags=["Policies"])
     app.include_router(
-        implementation.router, prefix="/api/implementation", tags=["Implementation"],
+        implementation.router,
+        prefix="/api/implementation",
+        tags=["Implementation"],
     )
     app.include_router(evidence.router, prefix="/api/evidence", tags=["Evidence"])
     app.include_router(compliance.router, prefix="/api/compliance", tags=["Compliance"])
@@ -86,7 +92,9 @@ def create_test_app() -> FastAPI:
     app.include_router(security.router, prefix="/api/security", tags=["Security"])
     app.include_router(monitoring.router, prefix="/api/monitoring", tags=["Monitoring"])
     app.include_router(
-        integrations.router, prefix="/api/integrations", tags=["Integrations"],
+        integrations.router,
+        prefix="/api/integrations",
+        tags=["Integrations"],
     )
     app.include_router(
         evidence_collection.router,
@@ -100,7 +108,9 @@ def create_test_app() -> FastAPI:
     )
     app.include_router(ai_assessments.router, prefix="/api", tags=["AI Assessments"])
     app.include_router(
-        ai_optimization.router, prefix="/api/ai-optimization", tags=["AI Optimization"],
+        ai_optimization.router,
+        prefix="/api/ai-optimization",
+        tags=["AI Optimization"],
     )
     app.include_router(chat.router, prefix="/api", tags=["Chat"])
 

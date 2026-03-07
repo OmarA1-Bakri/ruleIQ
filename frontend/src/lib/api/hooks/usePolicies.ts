@@ -1,11 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient, PolicySchema } from '../client';
-import type { 
-  Policy, 
-  PoliciesResponse, 
+import type {
+  Policy,
   CreatePolicyRequest,
   UpdatePolicyRequest,
-  PaginationParams 
+  PaginationParams
 } from '../types';
 import { z } from 'zod';
 

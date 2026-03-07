@@ -21,7 +21,7 @@ interface EvidenceListProps {
 export function EvidenceList({
   evidence = [],
   onEvidenceClick,
-  onStatusChange,
+  onStatusChange: _onStatusChange,
 }: EvidenceListProps) {
   const defaultEvidence: Evidence[] = [
     {

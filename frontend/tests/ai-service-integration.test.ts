@@ -3,15 +3,27 @@
  * Tests for Phase 1.5.3: Testing & Validation
  */
 
-// Mock the environment and dependencies
+// vi.mock is hoisted by Vitest's transform above all import statements, so
+// this mock runs before any module that depends on src/config/env is evaluated.
+// This prevents the zod env-var validation from throwing during test collection.
+import { vi } from 'vitest';
+
+vi.mock('@/src/config/env', () => ({
+  env: {
+    NEXT_PUBLIC_API_URL: 'http://localhost:8000',
+    NEXT_PUBLIC_WEBSOCKET_URL: 'ws://localhost:8000/ws',
+    NEXT_PUBLIC_AUTH_DOMAIN: 'localhost',
+    NEXT_PUBLIC_JWT_EXPIRES_IN: '86400',
+    NEXT_PUBLIC_ENABLE_ANALYTICS: false,
+    NEXT_PUBLIC_ENABLE_SENTRY: false,
+    NEXT_PUBLIC_ENABLE_MOCK_DATA: false,
+    NEXT_PUBLIC_ENV: 'test',
+    NODE_ENV: 'test',
+  },
+}));
+
 process.env['NEXT_PUBLIC_API_URL'] = 'http://localhost:8000';
-process.env['NEXT_PUBLIC_WS_URL'] = 'ws://localhost:8000/ws';
-process.env['REDIS_HOST'] = 'localhost';
-process.env['JWT_EXPIRES_IN'] = '24h';
-process.env['NEXT_PUBLIC_ENABLE_AI'] = 'false';
 process.env['NEXT_PUBLIC_USE_REAL_AI'] = 'false';
-process.env['NEXT_PUBLIC_ENABLE_STREAMING'] = 'true';
-process.env['NEXT_PUBLIC_MONITORING_ENABLED'] = 'false';
 process.env['NODE_ENV'] = 'test';
 
 import { assessmentAIService } from '@/lib/api/assessments-ai.service';

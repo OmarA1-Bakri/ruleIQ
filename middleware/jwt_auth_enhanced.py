@@ -34,7 +34,6 @@ class JWTAuthMiddleware(BaseHTTPMiddleware):
         "/api/auth/refresh",
         "/api/google-auth/login",
         "/api/google-auth/callback",
-
         # Health checks
         "/health",
         "/api/health",
@@ -42,21 +41,17 @@ class JWTAuthMiddleware(BaseHTTPMiddleware):
         "/api/freemium/health",
         "/api/iq-agent/health",
         "/api/secrets-vault/status",
-
         # Public freemium endpoints
         "/api/freemium/leads",
         "/api/freemium/sessions",
-
         # Webhooks (validated differently)
         "/api/webhooks/stripe",
         "/api/webhooks/github",
         "/api/webhooks/sendgrid",
-
         # Documentation
         "/docs",
         "/redoc",
         "/openapi.json",
-
         # Static files
         "/favicon.ico",
     }
@@ -194,16 +189,12 @@ class JWTAuthMiddleware(BaseHTTPMiddleware):
                     del self.token_cache[token]
 
             # Validate token
-            payload = jwt.decode(
-                token,
-                self.secret_key,
-                algorithms=[self.algorithm]
-            )
+            payload = jwt.decode(token, self.secret_key, algorithms=[self.algorithm])
 
             # Cache valid token
             self.token_cache[token] = {
                 "payload": payload,
-                "expires": datetime.utcnow().timestamp() + self.cache_ttl
+                "expires": datetime.utcnow().timestamp() + self.cache_ttl,
             }
 
             return payload
@@ -246,10 +237,7 @@ class JWTAuthMiddleware(BaseHTTPMiddleware):
         return Response(
             content=f'{{"detail": "{detail}"}}',
             status_code=401,
-            headers={
-                "WWW-Authenticate": "Bearer",
-                "Content-Type": "application/json"
-            }
+            headers={"WWW-Authenticate": "Bearer", "Content-Type": "application/json"},
         )
 
     def _forbidden_response(self, detail: str = "Forbidden") -> Response:
@@ -257,7 +245,7 @@ class JWTAuthMiddleware(BaseHTTPMiddleware):
         return Response(
             content=f'{{"detail": "{detail}"}}',
             status_code=403,
-            headers={"Content-Type": "application/json"}
+            headers={"Content-Type": "application/json"},
         )
 
     def _log_access(self, request: Request, user: Dict, success: bool):
@@ -269,7 +257,7 @@ class JWTAuthMiddleware(BaseHTTPMiddleware):
             "path": request.url.path,
             "method": request.method,
             "success": success,
-            "ip": request.client.host if request.client else "unknown"
+            "ip": request.client.host if request.client else "unknown",
         }
 
         if success:
@@ -295,8 +283,7 @@ class JWTRateLimiter:
 
         # Remove old requests
         self.requests[user_id] = [
-            req_time for req_time in self.requests[user_id]
-            if req_time > minute_ago
+            req_time for req_time in self.requests[user_id] if req_time > minute_ago
         ]
 
         # Check limit

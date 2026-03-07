@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 Reporting nodes - migrated from Celery reporting_tasks.
 Implements report generation, distribution, and cleanup functionality.
@@ -116,9 +115,7 @@ async def generate_report_node(state: UnifiedComplianceState) -> UnifiedComplian
             }
         )
 
-        logger.info(
-            f"Report generated successfully: {state['report_data'].get('file_path')}"
-        )
+        logger.info(f"Report generated successfully: {state['report_data'].get('file_path')}")
 
     except Exception as e:
         logger.error(f"Error generating report: {e}")
@@ -174,7 +171,9 @@ async def distribute_report_node(
 
     try:
         # Prepare email content
-        subject = f"Compliance Report - {state.get('report_data', {}).get('report_type', 'Summary')}"
+        subject = (
+            f"Compliance Report - {state.get('report_data', {}).get('report_type', 'Summary')}"
+        )
         company_id = state.get("company_id", "Unknown")
 
         body = f"""
@@ -183,13 +182,13 @@ async def distribute_report_node(
         Please find attached the latest compliance report for company {company_id}.
 
         Report Details:
-        - Type: {state.get('report_data', {}).get('report_type')}
-        - Generated: {state.get('report_data', {}).get('generated_at')}
-        - Format: {state.get('report_data', {}).get('format')}
+        - Type: {state.get("report_data", {}).get("report_type")}
+        - Generated: {state.get("report_data", {}).get("generated_at")}
+        - Format: {state.get("report_data", {}).get("format")}
 
         Compliance Summary:
-        - Score: {state.get('compliance_data', {}).get('check_results', {}).get('compliance_score', 'N/A')}%
-        - Risk Level: {state.get('compliance_data', {}).get('risk_assessment', {}).get('level', 'N/A')}
+        - Score: {state.get("compliance_data", {}).get("check_results", {}).get("compliance_score", "N/A")}%
+        - Risk Level: {state.get("compliance_data", {}).get("risk_assessment", {}).get("level", "N/A")}
 
         Best regards,
         Compliance Monitoring System
@@ -338,9 +337,7 @@ async def cleanup_old_reports_node(
     return state
 
 
-def prepare_report_data(
-    compliance_data: Dict[str, Any], report_type: str
-) -> Dict[str, Any]:
+def prepare_report_data(compliance_data: Dict[str, Any], report_type: str) -> Dict[str, Any]:
     """
     Prepare report data based on report type.
 
@@ -421,15 +418,15 @@ async def generate_pdf_report(report_data: Dict[str, Any]) -> bytes:
     # In production, use reportlab or similar PDF library
 
     pdf_content = f"""
-    {report_data.get('title', 'Compliance Report')}
-    {'=' * 50}
+    {report_data.get("title", "Compliance Report")}
+    {"=" * 50}
 
-    Generated: {report_data.get('generated_at')}
+    Generated: {report_data.get("generated_at")}
 
-    {report_data.get('summary', '')}
+    {report_data.get("summary", "")}
 
     Details:
-    {json.dumps(report_data.get('details', {}), indent=2)}
+    {json.dumps(report_data.get("details", {}), indent=2)}
     """
 
     # In production, convert to actual PDF
@@ -460,7 +457,7 @@ def generate_html_report(report_data: Dict[str, Any]) -> str:
     <!DOCTYPE html>
     <html>
     <head>
-        <title>{report_data.get('title', 'Report')}</title>
+        <title>{report_data.get("title", "Report")}</title>
         <style>
             body {{ font-family: Arial, sans-serif; margin: 40px; }}
             h1 {{ color: #333; }}
@@ -471,10 +468,10 @@ def generate_html_report(report_data: Dict[str, Any]) -> str:
         </style>
     </head>
     <body>
-        <h1>{report_data.get('title', 'Report')}</h1>
-        <p><strong>Generated:</strong> {report_data.get('generated_at')}</p>
+        <h1>{report_data.get("title", "Report")}</h1>
+        <p><strong>Generated:</strong> {report_data.get("generated_at")}</p>
         <h2>Summary</h2>
-        <p>{report_data.get('summary', '')}</p>
+        <p>{report_data.get("summary", "")}</p>
         <h2>Details</h2>
         <table>
             {details_html}
@@ -585,9 +582,7 @@ async def reporting_node(state: UnifiedComplianceState) -> UnifiedComplianceStat
     Returns:
         Updated state with report data and distribution status
     """
-    logger.info(
-        f"Starting reporting workflow for workflow_id: {state.get('workflow_id')}"
-    )
+    logger.info(f"Starting reporting workflow for workflow_id: {state.get('workflow_id')}")
 
     try:
         # Step 1: Generate the report
@@ -619,9 +614,7 @@ async def reporting_node(state: UnifiedComplianceState) -> UnifiedComplianceStat
         )
         state["history"] = history
 
-        logger.info(
-            f"Reporting workflow completed for workflow_id: {state.get('workflow_id')}"
-        )
+        logger.info(f"Reporting workflow completed for workflow_id: {state.get('workflow_id')}")
 
     except Exception as e:
         logger.error(f"Error in reporting workflow: {str(e)}")

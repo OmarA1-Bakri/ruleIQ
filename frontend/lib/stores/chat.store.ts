@@ -23,6 +23,21 @@ function hasResponseStatus(e: unknown): e is { response: { status: number } } {
          typeof ((e as Record<string, unknown>).response as Record<string, unknown>).status === 'number';
 }
 
+function isChatMessage(payload: unknown): payload is ChatMessage {
+  if (!payload || typeof payload !== 'object') {
+    return false;
+  }
+  const candidate = payload as Record<string, unknown>;
+  return (
+    typeof candidate.id === 'string' &&
+    typeof candidate.conversation_id === 'string' &&
+    (candidate.role === 'user' || candidate.role === 'assistant' || candidate.role === 'system') &&
+    typeof candidate.content === 'string' &&
+    typeof candidate.sequence_number === 'number' &&
+    typeof candidate.created_at === 'string'
+  );
+}
+
 interface ChatState {
   // Conversations
   conversations: ChatConversation[];
@@ -157,10 +172,10 @@ export const useChatStore = create<ChatState>()(
       createConversation: async (title?: string, initialMessage?: string) => {
         set({ error: null });
         try {
-          const response = await chatService.createConversation({
-            title,
-            initial_message: initialMessage,
-          });
+          const createData: Record<string, string> = {};
+          if (title !== undefined) createData.title = title;
+          if (initialMessage !== undefined) createData.initial_message = initialMessage;
+          const response = await chatService.createConversation(createData);
 
           set((state) => ({
             conversations: [response.conversation, ...state.conversations],
@@ -238,18 +253,18 @@ export const useChatStore = create<ChatState>()(
             const { iqAgentService } = await import('@/lib/api/iq-agent.service');
             const { useIQAgentStore } = await import('@/lib/stores/iq-agent.store');
             
-            let response;
+            let response: ChatMessage | null = null;
             let isIQQuery = false;
-            
+            const iqStoreRef = useIQAgentStore.getState();
+
             try {
               // Check if message is a compliance query
               isIQQuery = iqAgentService.isComplianceQuery(message);
-              
+
               if (isIQQuery) {
                 try {
                   // Set initial processing state via IQ Agent store
-                  const iqStore = useIQAgentStore.getState();
-                  iqStore.clearError();
+                  iqStoreRef.clearError();
                   
                   // Note: The actual processing will be handled by queryCompliance below
                   
@@ -280,8 +295,10 @@ export const useChatStore = create<ChatState>()(
                   if (healthStatus.status === 'healthy' && healthStatus.neo4j_connected) {
                     // Use IQ Agent store's queryCompliance method which handles the full PPALE loop
                     const context = iqAgentService.extractContext(message);
+                    const responseStart = Date.now();
                     
-                    await iqStore.queryCompliance(message, { context });
+                    await iqStoreRef.queryCompliance(message, { context });
+                    const responseElapsedMs = Date.now() - responseStart;
                     
                     // Get the response from the IQ Agent store
                     const iqResponse = useIQAgentStore.getState().currentResponse;
@@ -292,16 +309,16 @@ export const useChatStore = create<ChatState>()(
                         id: `iq-${Date.now()}`,
                         conversation_id: conversationId,
                         role: 'assistant' as const,
-                        content: iqResponse.summary,
+                        content: iqResponse.llm_response || iqResponse.summary?.immediate_actions?.join('\n') || 'Analysis complete.',
                         sequence_number: (state.messages[conversationId]?.length || 0) + 2,
                         created_at: new Date().toISOString(),
                         metadata: {
                           source: 'iq_agent',
-                          confidence_score: iqResponse.confidence_score,
-                          trust_level: iqResponse.trust_level,
-                          evidence_count: iqResponse.evidence?.length || 0,
-                          graph_nodes: iqResponse.graph_analysis?.nodes_accessed,
-                          response_time: iqResponse.response_time_ms
+                          confidence_score: iqResponse.summary?.compliance_score ?? 0,
+                          trust_level: 'helper',
+                          evidence_count: iqResponse.evidence?.evidence_stored ?? 0,
+                          graph_nodes: iqResponse.graph_context?.nodes_traversed ?? 0,
+                          response_time: responseElapsedMs
                         }
                       };
                     } else {
@@ -309,12 +326,13 @@ export const useChatStore = create<ChatState>()(
                     }
                     
                     // Remove processing message and add actual response
+                    const finalResponse = response;
                     set((state) => ({
                       messages: {
                         ...state.messages,
                         [conversationId]: [
-                          ...state.messages[conversationId].filter(msg => msg.id !== processingMessage.id),
-                          response
+                          ...(state.messages[conversationId] || []).filter(msg => msg.id !== processingMessage.id),
+                          ...(finalResponse ? [finalResponse] : []),
                         ],
                       },
                     }));
@@ -327,12 +345,12 @@ export const useChatStore = create<ChatState>()(
                     set((state) => ({
                       messages: {
                         ...state.messages,
-                        [conversationId]: state.messages[conversationId].filter(msg => msg.id !== processingMessage.id),
+                        [conversationId]: (state.messages[conversationId] || []).filter(msg => msg.id !== processingMessage.id),
                       },
                     }));
                     
                     // IQ Agent unavailable, show warning and fallback to regular chat
-                    iqStore.reportError({
+                    iqStoreRef.reportError({
                       error_type: 'service_unavailable',
                       message: 'IQ Agent is temporarily unavailable. Using regular chat.',
                       correlation_id: `health-${Date.now()}`
@@ -350,13 +368,13 @@ export const useChatStore = create<ChatState>()(
                   set((state) => ({
                     messages: {
                       ...state.messages,
-                      [conversationId]: state.messages[conversationId].filter(msg => !msg.metadata?.is_processing),
+                      [conversationId]: (state.messages[conversationId] || []).filter(msg => !msg.metadata?.is_processing),
                     },
                   }));
-                  
+
                   // Update IQ Agent store with error
-                  iqStore.reportError({
-                    error_type: 'processing_error',
+                  iqStoreRef.reportError({
+                    error_type: 'processing',
                     message: iqError instanceof Error ? iqError.message : 'IQ Agent query failed',
                     correlation_id: `processing-${Date.now()}`
                   });
@@ -387,7 +405,7 @@ export const useChatStore = create<ChatState>()(
                 
                 // Update IQ Agent store with error
                 useIQAgentStore.getState().reportError({
-                  error_type: 'chat_integration_error',
+                  error_type: 'processing',
                   message: error instanceof Error ? error.message : 'IQ Agent query failed',
                   correlation_id: `chat-${Date.now()}`
                 });
@@ -495,15 +513,17 @@ export const useChatStore = create<ChatState>()(
           }
 
           const message = validation.data;
+          // Use payload from the validated message (Zod schema uses 'payload', not 'data')
+          const payload = message.payload as Record<string, unknown> | null | undefined;
 
           switch (message.type) {
-            case 'connection':
+            case 'status':
               set({
                 isConnected: !!(
-                  message.data &&
-                  typeof message.data === 'object' &&
-                  'status' in message.data &&
-                  (message.data as Record<string, unknown>).status === 'connected'
+                  payload &&
+                  typeof payload === 'object' &&
+                  'status' in payload &&
+                  payload.status === 'connected'
                 )
               });
               break;
@@ -511,15 +531,19 @@ export const useChatStore = create<ChatState>()(
             case 'message':
               // Add received message to the conversation
               if (
-                message.data &&
-                typeof message.data === 'object' &&
-                'conversation_id' in message.data &&
-                (message.data as Record<string, unknown>).conversation_id === conversationId
+                payload &&
+                typeof payload === 'object' &&
+                'conversation_id' in payload &&
+                payload.conversation_id === conversationId
               ) {
+                if (!isChatMessage(payload)) {
+                  console.warn('Invalid chat message payload received:', payload);
+                  return;
+                }
                 set((state) => ({
                   messages: {
                     ...state.messages,
-                    [conversationId]: [...(state.messages[conversationId] || []), message.data as ChatMessage],
+                    [conversationId]: [...(state.messages[conversationId] || []), payload],
                   },
                 }));
               }
@@ -528,19 +552,23 @@ export const useChatStore = create<ChatState>()(
             case 'typing':
               // Handle typing indicators
               if (
-                message.data &&
-                typeof message.data === 'object' &&
-                'action' in message.data &&
-                'user' in message.data
+                payload &&
+                typeof payload === 'object' &&
+                'action' in payload &&
+                'user' in payload
               ) {
-                const data = message.data as Record<string, unknown>;
-                if (data.action === 'start') {
+                if (typeof payload.user !== 'string') {
+                  return;
+                }
+                if (payload.action === 'start') {
                   set((state) => ({
-                    typingUsers: [...state.typingUsers, data.user as string],
+                    typingUsers: state.typingUsers.includes(payload.user as string)
+                      ? state.typingUsers
+                      : [...state.typingUsers, payload.user as string],
                   }));
-                } else if (data.action === 'stop') {
+                } else if (payload.action === 'stop') {
                   set((state) => ({
-                    typingUsers: state.typingUsers.filter((u) => u !== data.user),
+                    typingUsers: state.typingUsers.filter((u) => u !== (payload.user as string)),
                   }));
                 }
               }
@@ -549,10 +577,10 @@ export const useChatStore = create<ChatState>()(
             case 'error':
               set({
                 error:
-                  message.data &&
-                  typeof message.data === 'object' &&
-                  'message' in message.data
-                    ? (message.data as Record<string, unknown>).message as string
+                  payload &&
+                  typeof payload === 'object' &&
+                  'message' in payload
+                    ? payload.message as string
                     : 'WebSocket error occurred'
               });
               break;

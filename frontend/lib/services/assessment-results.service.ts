@@ -7,16 +7,14 @@ import { freemiumService, type AssessmentResultsResponse } from '@/lib/api/freem
 import { normalizeSectionId } from '@/lib/api/frameworks.service';
 import type {
   AssessmentResult,
-  AssessmentFramework,
   Gap,
   Recommendation
 } from '@/lib/assessment-engine/types';
 import type {
-  FreemiumSession,
   ComplianceGap,
   ComplianceRecommendation
 } from '@/types/freemium';
-import type { BusinessProfile, Assessment } from '@/types/api';
+import type { BusinessProfile } from '@/types/api';
 import type { TrendDataPoint } from '@/types/assessment-results';
 
 // ============================================================================
@@ -178,7 +176,8 @@ class AssessmentResultsService {
   private cleanExpiredCache(): void {
     const now = Date.now();
     Object.keys(this.cache).forEach(key => {
-      if (now > this.cache[key].expiresAt) {
+      const expiresAt = this.cache[key]?.expiresAt;
+      if (expiresAt !== undefined && now > expiresAt) {
         delete this.cache[key];
       }
     });
@@ -315,7 +314,7 @@ class AssessmentResultsService {
       if (typeof optionsOrFrameworkId === 'string') {
         // Second signature: (businessProfileId, frameworkId?, limit?)
         frameworkId = optionsOrFrameworkId;
-        options = { limit };
+        options = limit !== undefined ? { limit } : {};
       } else {
         // First signature: (businessProfileId, options?)
         options = optionsOrFrameworkId;
@@ -492,15 +491,15 @@ class AssessmentResultsService {
       if (!acc[gap.category]) {
         acc[gap.category] = [];
       }
-      acc[gap.category].push(gap);
+      acc[gap.category]!.push(gap);
       return acc;
     }, {} as Record<string, ComplianceGap[]>);
 
     // Calculate section scores based on gap severity
     Object.entries(gapsByCategory).forEach(([category, gaps]) => {
-      const severityWeights = { critical: 0, high: 25, medium: 50, low: 75 };
+      const severityWeights: Record<string, number> = { critical: 0, high: 25, medium: 50, low: 75 };
       const avgSeverityScore = gaps.reduce((sum, gap) => {
-        return sum + (severityWeights[gap.severity] || 50);
+        return sum + (severityWeights[gap.severity] ?? 50);
       }, 0) / gaps.length;
 
       sections[category] = Math.round(avgSeverityScore);
@@ -539,7 +538,7 @@ class AssessmentResultsService {
       if (!acc[gap.category]) {
         acc[gap.category] = [];
       }
-      acc[gap.category].push(gap);
+      acc[gap.category]!.push(gap);
       return acc;
     }, {} as Record<string, ComplianceGap[]>);
 
@@ -599,6 +598,10 @@ class AssessmentResultsService {
         strengths,
         weaknesses,
         keyFindings,
+        questionBreakdown: [],
+        sectionRecommendations: [],
+        sectionGaps: [],
+        historicalScores: [],
       };
     });
   }
@@ -701,7 +704,7 @@ class AssessmentResultsService {
 
       // Calculate change from previous assessment
       if (index < historical.length - 1) {
-        const previous = historical[index + 1];
+        const previous = historical[index + 1]!;
         dataPoint.changeFromPrevious = {
           overallScore: assessment.overallScore - previous.overallScore,
           riskScore: assessment.riskScore - previous.riskScore,
@@ -734,10 +737,10 @@ class AssessmentResultsService {
     const averageScore = scores.reduce((sum, score) => sum + score, 0) / totalAssessments;
     const bestScore = Math.max(...scores);
     const worstScore = Math.min(...scores);
-    const latestScore = scores[0]; // First item is latest (sorted desc)
-    
+    const latestScore = scores[0]!; // First item is latest (sorted desc)
+
     // Calculate improvement (latest vs oldest)
-    const oldestScore = scores[scores.length - 1];
+    const oldestScore = scores[scores.length - 1]!;
     const scoreImprovement = latestScore - oldestScore;
     
     // Determine trend
@@ -804,8 +807,8 @@ class AssessmentResultsService {
 
       if (sectionScores.length > 0) {
         const average = sectionScores.reduce((sum, score) => sum + score, 0) / sectionScores.length;
-        const latest = sectionScores[0];
-        const oldest = sectionScores[sectionScores.length - 1];
+        const latest = sectionScores[0]!;
+        const oldest = sectionScores[sectionScores.length - 1]!;
         const improvement = latest - oldest;
 
         let trend: 'improving' | 'declining' | 'stable' = 'stable';
@@ -1119,7 +1122,4 @@ export const assessmentResultsService = new AssessmentResultsService();
 // ============================================================================
 
 export default AssessmentResultsService;
-export type {
-  TrendDataPoint,
-  ServiceOptions,
-};
+export type { TrendDataPoint };

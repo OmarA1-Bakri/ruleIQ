@@ -10,8 +10,14 @@ from sqlalchemy.orm import sessionmaker
 
 # Import models after database setup
 from models.agentic_models import (
-    Agent, AgentSession, AgentDecision, TrustMetric,
-    AgentKnowledge, ConversationHistory, AgentAuditLog, Base
+    Agent,
+    AgentSession,
+    AgentDecision,
+    TrustMetric,
+    AgentKnowledge,
+    ConversationHistory,
+    AgentAuditLog,
+    Base,
 )
 
 
@@ -19,7 +25,9 @@ from models.agentic_models import (
 def test_session():
     """Create a test database session."""
     # Use test database from environment
-    DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://test_user:test_password@localhost:5433/ruleiq_test")
+    DATABASE_URL = os.getenv(
+        "DATABASE_URL", "postgresql://test_user:test_password@localhost:5433/ruleiq_test"
+    )
 
     engine = create_engine(DATABASE_URL)
     SessionLocal = sessionmaker(bind=engine)
@@ -38,7 +46,7 @@ def test_create_agent(test_session):
         name="TestAgent",
         persona_type="developer",
         capabilities={"languages": ["python"], "skills": ["testing"]},
-        config={"max_tokens": 1000}
+        config={"max_tokens": 1000},
     )
 
     test_session.add(agent)
@@ -55,11 +63,7 @@ def test_create_agent(test_session):
 def test_create_agent_session(test_session):
     """Test creating an agent session."""
     # Create agent first
-    agent = Agent(
-        name="SessionAgent",
-        persona_type="qa",
-        capabilities={}
-    )
+    agent = Agent(name="SessionAgent", persona_type="qa", capabilities={})
     test_session.add(agent)
     test_session.commit()
 
@@ -69,7 +73,7 @@ def test_create_agent_session(test_session):
         user_id=uuid4(),
         trust_level=2,
         context={"task": "testing"},
-        session_state="active"
+        session_state="active",
     )
 
     test_session.add(session)
@@ -100,7 +104,7 @@ def test_create_decision_with_feedback(test_session):
         input_context={"prompt": "Create test"},
         action_taken={"code": "def test(): pass"},
         confidence_score=Decimal("0.85"),
-        user_feedback="pending"
+        user_feedback="pending",
     )
 
     test_session.add(decision)
@@ -134,18 +138,18 @@ def test_trust_metrics_validation(test_session):
         TrustMetric(
             session_id=agent_session.session_id,
             metric_type="accuracy",
-            metric_value=Decimal("85.5")
+            metric_value=Decimal("85.5"),
         ),
         TrustMetric(
             session_id=agent_session.session_id,
             metric_type="complexity",
-            metric_value=Decimal("7.5")
+            metric_value=Decimal("7.5"),
         ),
         TrustMetric(
             session_id=agent_session.session_id,
             metric_type="efficiency",
-            metric_value=Decimal("92.0")
-        )
+            metric_value=Decimal("92.0"),
+        ),
     ]
 
     for metric in metrics:
@@ -154,9 +158,9 @@ def test_trust_metrics_validation(test_session):
     test_session.commit()
 
     # Verify
-    stored_metrics = test_session.query(TrustMetric).filter_by(
-        session_id=agent_session.session_id
-    ).all()
+    stored_metrics = (
+        test_session.query(TrustMetric).filter_by(session_id=agent_session.session_id).all()
+    )
 
     assert len(stored_metrics) == 3
     assert all(m.metric_id is not None for m in stored_metrics)
@@ -179,7 +183,7 @@ def test_conversation_history_thread(test_session):
         role="user",
         content="How do I implement this?",
         message_type="text",
-        tokens_used=10
+        tokens_used=10,
     )
     test_session.add(msg1)
     test_session.commit()
@@ -191,7 +195,7 @@ def test_conversation_history_thread(test_session):
         message_type="text",
         parent_message_id=msg1.message_id,
         tokens_used=25,
-        model_used="gpt-4"
+        model_used="gpt-4",
     )
     test_session.add(msg2)
     test_session.commit()
@@ -202,15 +206,18 @@ def test_conversation_history_thread(test_session):
         content="Can you show me an example?",
         message_type="text",
         parent_message_id=msg2.message_id,
-        tokens_used=8
+        tokens_used=8,
     )
     test_session.add(msg3)
     test_session.commit()
 
     # Verify thread
-    messages = test_session.query(ConversationHistory).filter_by(
-        session_id=agent_session.session_id
-    ).order_by(ConversationHistory.created_at).all()
+    messages = (
+        test_session.query(ConversationHistory)
+        .filter_by(session_id=agent_session.session_id)
+        .order_by(ConversationHistory.created_at)
+        .all()
+    )
 
     assert len(messages) == 3
     assert messages[0].content == "How do I implement this?"
@@ -232,10 +239,10 @@ def test_agent_knowledge_usage(test_session):
         domain="backend",
         content={
             "pattern": "repository_pattern",
-            "description": "Use repository pattern for data access"
+            "description": "Use repository pattern for data access",
         },
         usage_count=5,
-        success_rate=Decimal("0.8")
+        success_rate=Decimal("0.8"),
     )
     test_session.add(knowledge)
     test_session.commit()
@@ -271,21 +278,21 @@ def test_audit_log_creation(test_session):
             session_id=agent_session.session_id,
             action_type="file_read",
             action_details={"file": "config.py"},
-            risk_level="low"
+            risk_level="low",
         ),
         AgentAuditLog(
             agent_id=agent.agent_id,
             session_id=agent_session.session_id,
             action_type="database_write",
             action_details={"table": "users", "operation": "update"},
-            risk_level="medium"
+            risk_level="medium",
         ),
         AgentAuditLog(
             agent_id=agent.agent_id,
             action_type="admin_action",
             action_details={"action": "delete_all_data"},
-            risk_level="critical"
-        )
+            risk_level="critical",
+        ),
     ]
 
     for log in audit_logs:
@@ -294,9 +301,7 @@ def test_audit_log_creation(test_session):
     test_session.commit()
 
     # Verify
-    stored_logs = test_session.query(AgentAuditLog).filter_by(
-        agent_id=agent.agent_id
-    ).all()
+    stored_logs = test_session.query(AgentAuditLog).filter_by(agent_id=agent.agent_id).all()
 
     assert len(stored_logs) == 3
     assert any(log.risk_level == "critical" for log in stored_logs)
@@ -318,15 +323,12 @@ def test_cascade_relationships(test_session):
         session_id=agent_session.session_id,
         decision_type="review",
         input_context={},
-        action_taken={}
+        action_taken={},
     )
     test_session.add(decision)
 
     knowledge = AgentKnowledge(
-        agent_id=agent.agent_id,
-        knowledge_type="solution",
-        domain="frontend",
-        content={}
+        agent_id=agent.agent_id, knowledge_type="solution", domain="frontend", content={}
     )
     test_session.add(knowledge)
     test_session.commit()

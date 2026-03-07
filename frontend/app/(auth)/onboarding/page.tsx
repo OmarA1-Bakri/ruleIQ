@@ -78,7 +78,7 @@ export default function OnboardingPage() {
       });
       
       router.push('/dashboard');
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: 'Setup failed',
         description: 'Please try again or contact support.',

@@ -66,17 +66,13 @@ class RAGValidator:
     INVALID_THRESHOLD = 50.0  # Below this is considered invalid
 
     # Weight distribution for confidence calculation
-    WEIGHTS = {
-        "semantic_similarity": 0.40,
-        "citation_coverage": 0.30,
-        "fact_consistency": 0.30
-    }
+    WEIGHTS = {"semantic_similarity": 0.40, "citation_coverage": 0.30, "fact_consistency": 0.30}
 
     def __init__(
         self,
         knowledge_base_path: Optional[str] = None,
         cache_enabled: bool = True,
-        max_cache_size: int = 1000
+        max_cache_size: int = 1000,
     ) -> None:
         """Initialize RAG Validator."""
         self.knowledge_base_path = knowledge_base_path
@@ -105,7 +101,7 @@ class RAGValidator:
                 "content": "Personal data shall be processed lawfully, fairly and transparently",
                 "jurisdiction": "EU",
                 "date": "2018-05-25",
-                "category": "data_protection"
+                "category": "data_protection",
             },
             {
                 "id": "ISO27001_A8",
@@ -113,7 +109,7 @@ class RAGValidator:
                 "content": "Information and associated assets should be identified and protected",
                 "jurisdiction": "International",
                 "date": "2022-10-25",
-                "category": "information_security"
+                "category": "information_security",
             },
             {
                 "id": "PCI_DSS_3.2",
@@ -121,15 +117,15 @@ class RAGValidator:
                 "content": "Do not store sensitive authentication data after authorization",
                 "jurisdiction": "International",
                 "date": "2024-03-31",
-                "category": "payment_security"
-            }
+                "category": "payment_security",
+            },
         ]
 
     async def validate_response(
         self,
         response: str,
         context: Optional[Dict[str, Any]] = None,
-        response_id: Optional[str] = None
+        response_id: Optional[str] = None,
     ) -> ValidationResult:
         """
         Validate an AI response against the knowledge base.
@@ -166,9 +162,9 @@ class RAGValidator:
 
             # Calculate weighted confidence score
             confidence_score = (
-                semantic_score * self.WEIGHTS["semantic_similarity"] +
-                citation_score * self.WEIGHTS["citation_coverage"] +
-                consistency_score * self.WEIGHTS["fact_consistency"]
+                semantic_score * self.WEIGHTS["semantic_similarity"]
+                + citation_score * self.WEIGHTS["citation_coverage"]
+                + consistency_score * self.WEIGHTS["fact_consistency"]
             ) * 100
 
             # Determine validation status
@@ -198,7 +194,7 @@ class RAGValidator:
                 fact_consistency_score=consistency_score,
                 processing_time_ms=processing_time_ms,
                 matched_regulations=matched_regulations,
-                metadata=context or {}
+                metadata=context or {},
             )
 
             # Update cache
@@ -222,14 +218,14 @@ class RAGValidator:
                 citation_coverage_score=0.0,
                 fact_consistency_score=0.0,
                 processing_time_ms=(time.time() - start_time) * 1000,
-                metadata={"error": str(e)}
+                metadata={"error": str(e)},
             )
 
     async def validate_batch(
         self,
         responses: List[str],
         contexts: Optional[List[Dict[str, Any]]] = None,
-        max_parallel: int = 10
+        max_parallel: int = 10,
     ) -> List[ValidationResult]:
         """
         Validate multiple responses in batch.
@@ -257,9 +253,7 @@ class RAGValidator:
         return results
 
     async def _calculate_semantic_similarity(
-        self,
-        response: str,
-        context: Optional[Dict[str, Any]]
+        self, response: str, context: Optional[Dict[str, Any]]
     ) -> float:
         """Calculate semantic similarity between response and knowledge base."""
         # In production, this would:
@@ -278,9 +272,7 @@ class RAGValidator:
             return 0.40
 
     async def _calculate_citation_coverage(
-        self,
-        response: str,
-        context: Optional[Dict[str, Any]]
+        self, response: str, context: Optional[Dict[str, Any]]
     ) -> float:
         """Calculate how well citations cover the claims in response."""
         # In production, this would:
@@ -289,7 +281,9 @@ class RAGValidator:
         # 3. Check if citations support claims
 
         # Mock implementation
-        has_citations = any(marker in response for marker in ["Article", "Section", "Requirement", "§"])
+        has_citations = any(
+            marker in response for marker in ["Article", "Section", "Requirement", "§"]
+        )
         if has_citations:
             # Check if citations are valid
             if any(reg["id"] in response for reg in self.mock_regulations):
@@ -298,9 +292,7 @@ class RAGValidator:
         return 0.30
 
     async def _calculate_fact_consistency(
-        self,
-        response: str,
-        context: Optional[Dict[str, Any]]
+        self, response: str, context: Optional[Dict[str, Any]]
     ) -> float:
         """Check consistency of facts in response against knowledge base."""
         # In production, this would:
@@ -323,7 +315,7 @@ class RAGValidator:
         semantic_score: float,
         citation_score: float,
         consistency_score: float,
-        confidence_score: float
+        confidence_score: float,
     ) -> List[ValidationFailureReason]:
         """Identify specific reasons for validation failure."""
         reasons = []
@@ -351,17 +343,22 @@ class RAGValidator:
 
         for reg in self.mock_regulations:
             # Simple keyword matching for PoC
-            if any(keyword in response.lower() for keyword in [
-                reg["id"].lower(),
-                reg["category"].replace("_", " "),
-                reg["title"].lower().split()[0]
-            ]):
-                matched.append({
-                    "id": reg["id"],
-                    "title": reg["title"],
-                    "relevance_score": 0.8,  # Mock relevance
-                    "jurisdiction": reg["jurisdiction"]
-                })
+            if any(
+                keyword in response.lower()
+                for keyword in [
+                    reg["id"].lower(),
+                    reg["category"].replace("_", " "),
+                    reg["title"].lower().split()[0],
+                ]
+            ):
+                matched.append(
+                    {
+                        "id": reg["id"],
+                        "title": reg["title"],
+                        "relevance_score": 0.8,  # Mock relevance
+                        "jurisdiction": reg["jurisdiction"],
+                    }
+                )
 
         return matched
 
@@ -392,14 +389,14 @@ class RAGValidator:
 
         # Update rolling averages
         self.metrics.average_confidence = (
-            (self.metrics.average_confidence * (self.metrics.total_validations - 1) +
-             result.confidence_score) / self.metrics.total_validations
-        )
+            self.metrics.average_confidence * (self.metrics.total_validations - 1)
+            + result.confidence_score
+        ) / self.metrics.total_validations
 
         self.metrics.average_processing_time_ms = (
-            (self.metrics.average_processing_time_ms * (self.metrics.total_validations - 1) +
-             result.processing_time_ms) / self.metrics.total_validations
-        )
+            self.metrics.average_processing_time_ms * (self.metrics.total_validations - 1)
+            + result.processing_time_ms
+        ) / self.metrics.total_validations
 
     def get_metrics(self) -> ValidationMetrics:
         """Get current validation metrics."""
@@ -416,10 +413,7 @@ class RAGValidator:
                 "status": "healthy" if result.confidence_score > 70 else "degraded",
                 "latency_ms": result.processing_time_ms,
                 "cache_size": len(self._cache),
-                "total_validations": self.metrics.total_validations
+                "total_validations": self.metrics.total_validations,
             }
         except Exception as e:
-            return {
-                "status": "unhealthy",
-                "error": str(e)
-            }
+            return {"status": "unhealthy", "error": str(e)}

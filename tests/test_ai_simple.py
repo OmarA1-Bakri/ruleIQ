@@ -2,6 +2,7 @@
 """
 Simple test for AI functionality with Neon database
 """
+
 import asyncio
 from dotenv import load_dotenv
 
@@ -29,7 +30,6 @@ async def test_neon_and_ai():
     # 2. Test Google AI API
     print("2️⃣ Testing Google AI API...")
     try:
-        import google.generativeai as genai
         from config.ai_config import get_ai_model
 
         # Get the AI model

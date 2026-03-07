@@ -6,8 +6,6 @@ LangGraph-related metrics. The individual tracker implementations have been
 moved to the trackers subpackage for better organization.
 """
 
-from __future__ import annotations
-
 import logging
 from typing import Any, Dict, Optional
 
@@ -31,22 +29,22 @@ from .trackers import (
 # Re-export all tracker classes for backward compatibility
 __all__ = [
     # Main collector
-    'LangGraphMetricsCollector',
+    "LangGraphMetricsCollector",
     # Trackers
-    'NodeExecutionTracker',
-    'WorkflowMetricsTracker',
-    'StateTransitionTracker',
-    'CheckpointMetricsTracker',
-    'CheckpointMetrics',  # Alias
-    'MemoryUsageTracker',
-    'ErrorAnalysisTracker',
-    'ErrorMetricsCollector',  # Alias
-    'PerformanceAnalyzer',
+    "NodeExecutionTracker",
+    "WorkflowMetricsTracker",
+    "StateTransitionTracker",
+    "CheckpointMetricsTracker",
+    "CheckpointMetrics",  # Alias
+    "MemoryUsageTracker",
+    "ErrorAnalysisTracker",
+    "ErrorMetricsCollector",  # Alias
+    "PerformanceAnalyzer",
     # Types
-    'NodeStatus',
-    'WorkflowStatus',
-    'NodeExecution',
-    'WorkflowExecution',
+    "NodeStatus",
+    "WorkflowStatus",
+    "NodeExecution",
+    "WorkflowExecution",
 ]
 
 logger = logging.getLogger(__name__)
@@ -72,10 +70,7 @@ class LangGraphMetricsCollector:
         self.performance_analyzer = PerformanceAnalyzer()
 
     async def start_workflow(
-        self,
-        workflow_id: str,
-        workflow_name: str,
-        metadata: Optional[Dict[str, Any]] = None
+        self, workflow_id: str, workflow_name: str, metadata: Optional[Dict[str, Any]] = None
     ) -> None:
         """
         Start tracking a new workflow execution.
@@ -87,10 +82,7 @@ class LangGraphMetricsCollector:
         """
         # Note: The original method had an await but WorkflowMetricsTracker.start_workflow
         # is not async, so we'll call it directly
-        self.workflow_tracker.start_workflow(
-            workflow_type=workflow_name,
-            metadata=metadata
-        )
+        self.workflow_tracker.start_workflow(workflow_type=workflow_name, metadata=metadata)
 
     async def track_node_execution(
         self,
@@ -98,7 +90,7 @@ class LangGraphMetricsCollector:
         execution_time: float,
         status: str,
         workflow_id: Optional[str] = None,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
     ) -> None:
         """
         Track a node execution.
@@ -112,22 +104,17 @@ class LangGraphMetricsCollector:
         """
         # Start and complete node execution
         exec_id = self.node_tracker.start_node_execution(
-            node_name=node_name,
-            workflow_id=workflow_id,
-            metadata=metadata
+            node_name=node_name, workflow_id=workflow_id, metadata=metadata
         )
         # Complete the execution after the specified time
-        self.node_tracker.complete_node_execution(
-            node_id=exec_id,
-            status=status
-        )
+        self.node_tracker.complete_node_execution(node_id=exec_id, status=status)
 
     async def track_state_transition(
         self,
         from_state: str,
         to_state: str,
         transition_time: float,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
     ) -> None:
         """
         Track a state transition.
@@ -139,12 +126,9 @@ class LangGraphMetricsCollector:
             metadata: Optional metadata
         """
         # Create a workflow ID for the transition if not provided
-        workflow_id = metadata.get('workflow_id', 'default') if metadata else 'default'
+        workflow_id = metadata.get("workflow_id", "default") if metadata else "default"
         self.state_tracker.record_transition(
-            workflow_id=workflow_id,
-            from_state=from_state,
-            to_state=to_state,
-            metadata=metadata
+            workflow_id=workflow_id, from_state=from_state, to_state=to_state, metadata=metadata
         )
 
     async def track_checkpoint(
@@ -152,7 +136,7 @@ class LangGraphMetricsCollector:
         checkpoint_id: str,
         size_bytes: int,
         save_time: float,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
     ) -> None:
         """
         Track checkpoint metrics.
@@ -164,22 +148,15 @@ class LangGraphMetricsCollector:
             metadata: Optional metadata
         """
         # Record checkpoint save
-        workflow_id = metadata.get('workflow_id', 'default') if metadata else 'default'
+        workflow_id = metadata.get("workflow_id", "default") if metadata else "default"
         save_id = self.checkpoint_metrics.record_checkpoint_save(
-            workflow_id=workflow_id,
-            checkpoint_size_bytes=size_bytes
+            workflow_id=workflow_id, checkpoint_size_bytes=size_bytes
         )
         # Complete the save operation
-        self.checkpoint_metrics.complete_checkpoint_save(
-            checkpoint_id=save_id,
-            success=True
-        )
+        self.checkpoint_metrics.complete_checkpoint_save(checkpoint_id=save_id, success=True)
 
     async def track_memory_usage(
-        self,
-        node_name: str,
-        memory_mb: float,
-        metadata: Optional[Dict[str, Any]] = None
+        self, node_name: str, memory_mb: float, metadata: Optional[Dict[str, Any]] = None
     ) -> None:
         """
         Track memory usage for a node.
@@ -191,17 +168,14 @@ class LangGraphMetricsCollector:
         """
         # Convert MB to bytes for internal tracking
         bytes_used = int(memory_mb * 1024 * 1024)
-        self.memory_tracker.record_memory_usage(
-            component=node_name,
-            bytes_used=bytes_used
-        )
+        self.memory_tracker.record_memory_usage(component=node_name, bytes_used=bytes_used)
 
     async def track_error(
         self,
         error_type: str,
         node_name: Optional[str] = None,
         workflow_id: Optional[str] = None,
-        error_details: Optional[Dict[str, Any]] = None
+        error_details: Optional[Dict[str, Any]] = None,
     ) -> None:
         """
         Track an error occurrence.
@@ -217,14 +191,11 @@ class LangGraphMetricsCollector:
             node_name=node_name,
             workflow_id=workflow_id,
             metadata=error_details,
-            component=node_name
+            component=node_name,
         )
 
     async def complete_workflow(
-        self,
-        workflow_id: str,
-        status: str,
-        metadata: Optional[Dict[str, Any]] = None
+        self, workflow_id: str, status: str, metadata: Optional[Dict[str, Any]] = None
     ) -> None:
         """
         Complete workflow tracking.
@@ -234,10 +205,7 @@ class LangGraphMetricsCollector:
             status: Final status of workflow
             metadata: Optional metadata
         """
-        self.workflow_tracker.complete_workflow(
-            workflow_id=workflow_id,
-            status=status
-        )
+        self.workflow_tracker.complete_workflow(workflow_id=workflow_id, status=status)
 
     async def get_metrics_summary(self) -> Dict[str, Any]:
         """
@@ -249,26 +217,26 @@ class LangGraphMetricsCollector:
         summary = {}
 
         # Get node execution stats
-        summary['node_stats'] = self.node_tracker.get_execution_stats()
+        summary["node_stats"] = self.node_tracker.get_execution_stats()
 
         # Get workflow stats
-        summary['workflow_summary'] = self.workflow_tracker.get_workflow_stats()
+        summary["workflow_summary"] = self.workflow_tracker.get_workflow_stats()
 
         # Get state transition stats
-        summary['state_transitions'] = self.state_tracker.get_transition_matrix()
+        summary["state_transitions"] = self.state_tracker.get_transition_matrix()
 
         # Get checkpoint stats
-        summary['checkpoint_stats'] = self.checkpoint_metrics.get_statistics()
+        summary["checkpoint_stats"] = self.checkpoint_metrics.get_statistics()
 
         # Get memory stats
-        summary['memory_stats'] = self.memory_tracker.get_total_memory_usage()
-        summary['memory_trends'] = self.memory_tracker.get_memory_trends()
+        summary["memory_stats"] = self.memory_tracker.get_total_memory_usage()
+        summary["memory_trends"] = self.memory_tracker.get_memory_trends()
 
         # Get error stats
-        summary['error_summary'] = self.error_collector.get_error_stats()
+        summary["error_summary"] = self.error_collector.get_error_stats()
 
         # Get performance analysis
-        summary['performance_analysis'] = self.performance_analyzer.get_performance_summary()
+        summary["performance_analysis"] = self.performance_analyzer.get_performance_summary()
 
         return summary
 

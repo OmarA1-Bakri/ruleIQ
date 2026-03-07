@@ -28,8 +28,8 @@ def event_loop():
 def setup_test_environment():
     """Automatically set up test environment for all tests."""
     # Set test environment variables
-    os.environ['TESTING'] = 'true'
-    os.environ['ENVIRONMENT'] = 'testing'
+    os.environ["TESTING"] = "true"
+    os.environ["ENVIRONMENT"] = "testing"
 
     # Setup test database
     success, error = setup_test_database()
@@ -63,13 +63,7 @@ def test_db_engine():
 @pytest.fixture(scope="session")
 def SessionLocal(test_db_engine):
     """Create a session factory for tests."""
-    return scoped_session(
-        sessionmaker(
-            autocommit=False,
-            autoflush=False,
-            bind=test_db_engine
-        )
-    )
+    return scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=test_db_engine))
 
 
 @pytest.fixture
@@ -111,26 +105,20 @@ async def async_db_session() -> AsyncGenerator[AsyncSession, None]:
     db_url = manager.get_test_db_url()
 
     # Convert to async URL
-    if '+asyncpg' not in db_url:
-        if '+psycopg2' in db_url:
-            db_url = db_url.replace('+psycopg2', '+asyncpg')
-        elif 'postgresql://' in db_url and '+' not in db_url:
-            db_url = db_url.replace('postgresql://', 'postgresql+asyncpg://')
+    if "+asyncpg" not in db_url:
+        if "+psycopg2" in db_url:
+            db_url = db_url.replace("+psycopg2", "+asyncpg")
+        elif "postgresql://" in db_url and "+" not in db_url:
+            db_url = db_url.replace("postgresql://", "postgresql+asyncpg://")
 
     # Create async engine
     async_engine = create_async_engine(
-        db_url,
-        echo=False,
-        pool_size=5,
-        max_overflow=10,
-        pool_pre_ping=True
+        db_url, echo=False, pool_size=5, max_overflow=10, pool_pre_ping=True
     )
 
     # Create session
     async_session_factory = async_sessionmaker(
-        bind=async_engine,
-        class_=AsyncSession,
-        expire_on_commit=False
+        bind=async_engine, class_=AsyncSession, expire_on_commit=False
     )
 
     async with async_session_factory() as session:
@@ -148,10 +136,7 @@ def clean_db(db_session):
     Deletes all data from tables without dropping them.
     """
     # Import all models to ensure they're registered
-    from database import (
-        User, BusinessProfile, ComplianceFramework,
-        AssessmentSession, EvidenceItem
-    )
+    from database import User, BusinessProfile, ComplianceFramework, AssessmentSession, EvidenceItem
 
     # Clear data in reverse dependency order
     db_session.query(EvidenceItem).delete()
@@ -177,7 +162,7 @@ def sample_user(db_session):
         full_name="Test User",
         hashed_password=get_password_hash("TestPassword123!"),
         is_active=True,
-        is_verified=True
+        is_verified=True,
     )
     db_session.add(user)
     db_session.commit()
@@ -201,7 +186,7 @@ def sample_business_profile(db_session, sample_user):
         existing_frameworks=["ISO 27001"],
         planned_frameworks=["SOC 2", "GDPR"],
         handles_personal_data=True,
-        processes_payments=True
+        processes_payments=True,
     )
     db_session.add(profile)
     db_session.commit()
@@ -217,11 +202,7 @@ def authenticated_user(db_session, sample_user):
 
     token = create_access_token(data={"sub": sample_user.email})
 
-    return {
-        "user": sample_user,
-        "token": token,
-        "headers": {"Authorization": f"Bearer {token}"}
-    }
+    return {"user": sample_user, "token": token, "headers": {"Authorization": f"Bearer {token}"}}
 
 
 # Redis fixtures
@@ -236,7 +217,8 @@ def redis_client():
 
     # Parse URL and create client
     import re
-    pattern = r'redis://(?:([^:]+):([^@]+)@)?([^:/]+)(?::(\d+))?(?:/(\d+))?'
+
+    pattern = r"redis://(?:([^:]+):([^@]+)@)?([^:/]+)(?::(\d+))?(?:/(\d+))?"
     match = re.match(pattern, redis_url)
 
     if not match:
@@ -244,12 +226,7 @@ def redis_client():
 
     _, _, host, port, db = match.groups()
 
-    client = redis.Redis(
-        host=host,
-        port=int(port or 6379),
-        db=int(db or 0),
-        decode_responses=True
-    )
+    client = redis.Redis(host=host, port=int(port or 6379), db=int(db or 0), decode_responses=True)
 
     # Test connection
     try:

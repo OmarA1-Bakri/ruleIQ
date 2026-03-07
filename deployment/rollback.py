@@ -5,8 +5,6 @@ Monitors key metrics and triggers automatic rollback when thresholds
 are exceeded, ensuring <5 minute recovery time.
 """
 
-from __future__ import annotations
-
 import asyncio
 import subprocess
 import json
@@ -22,6 +20,7 @@ logger = logging.getLogger(__name__)
 
 class DeploymentState(str, Enum):
     """Deployment state enumeration."""
+
     STABLE = "stable"
     DEPLOYING = "deploying"
     MONITORING = "monitoring"
@@ -32,6 +31,7 @@ class DeploymentState(str, Enum):
 
 class RollbackReason(str, Enum):
     """Reasons for triggering rollback."""
+
     HIGH_ERROR_RATE = "high_error_rate"
     SLOW_RESPONSE = "slow_response"
     DB_CONNECTION_FAILURE = "db_connection_failure"
@@ -45,6 +45,7 @@ class RollbackReason(str, Enum):
 @dataclass
 class MetricThreshold:
     """Threshold configuration for a metric."""
+
     name: str
     current_value: float = 0.0
     threshold_value: float = 0.0
@@ -70,6 +71,7 @@ class MetricThreshold:
 @dataclass
 class DeploymentVersion:
     """Deployment version information."""
+
     version: str
     deployed_at: datetime
     commit_hash: str
@@ -95,40 +97,35 @@ class AutomaticRollbackSystem:
             "error_rate": MetricThreshold(
                 name="error_rate",
                 threshold_value=0.05,  # 5%
-                duration_seconds=60
+                duration_seconds=60,
             ),
             "response_time": MetricThreshold(
                 name="response_time",
                 threshold_value=2.0,  # 2x baseline
-                duration_seconds=120
+                duration_seconds=120,
             ),
             "db_connections": MetricThreshold(
                 name="db_connections",
                 threshold_value=0.8,  # 80% utilization
-                duration_seconds=60
+                duration_seconds=60,
             ),
             "auth_failures": MetricThreshold(
                 name="auth_failures",
                 threshold_value=100,  # 100 failures per minute
-                duration_seconds=60
+                duration_seconds=60,
             ),
             "ai_cost_rate": MetricThreshold(
                 name="ai_cost_rate",
                 threshold_value=10.0,  # $10 per minute
-                duration_seconds=60
-            )
+                duration_seconds=60,
+            ),
         }
 
         self.monitoring_interval = 10  # seconds
         self.monitoring_task: Optional[asyncio.Task] = None
         self.rollback_in_progress = False
 
-    async def deploy_new_version(
-        self,
-        version: str,
-        commit_hash: str,
-        docker_image: str
-    ) -> bool:
+    async def deploy_new_version(self, version: str, commit_hash: str, docker_image: str) -> bool:
         """Deploy a new version with monitoring."""
         if self.state == DeploymentState.ROLLING_BACK:
             logger.error("Cannot deploy during rollback")
@@ -152,11 +149,12 @@ class AutomaticRollbackSystem:
                 commit_hash=commit_hash,
                 docker_image=docker_image,
                 config_snapshot=await self._capture_config(),
-                metrics_baseline=baseline
+                metrics_baseline=baseline,
             )
 
             # Backup sessions before deployment
             from services.session_manager import get_session_manager
+
             session_manager = await get_session_manager()
             await session_manager.backup_all_sessions()
 
@@ -194,18 +192,15 @@ class AutomaticRollbackSystem:
 
             # Update image in compose file
             # In production, you'd use a proper YAML parser
-            subprocess.run([
-                "sed", "-i",
-                f"s|image:.*ruleiq.*|image: {docker_image}|g",
-                compose_file
-            ], check=True)
+            subprocess.run(
+                ["sed", "-i", f"s|image:.*ruleiq.*|image: {docker_image}|g", compose_file],
+                check=True,
+            )
 
             # Deploy new version to green environment
-            subprocess.run([
-                "docker-compose",
-                "-f", "docker-compose.green.yml",
-                "up", "-d"
-            ], check=True)
+            subprocess.run(
+                ["docker-compose", "-f", "docker-compose.green.yml", "up", "-d"], check=True
+            )
 
             # Wait for health check
             await asyncio.sleep(10)
@@ -213,29 +208,32 @@ class AutomaticRollbackSystem:
             # Check if green is healthy
             if await self._check_green_health():
                 # Switch traffic to green
-                subprocess.run([
-                    "docker-compose",
-                    "-f", "docker-compose.nginx.yml",
-                    "exec", "nginx",
-                    "nginx", "-s", "reload"
-                ], check=True)
+                subprocess.run(
+                    [
+                        "docker-compose",
+                        "-f",
+                        "docker-compose.nginx.yml",
+                        "exec",
+                        "nginx",
+                        "nginx",
+                        "-s",
+                        "reload",
+                    ],
+                    check=True,
+                )
 
                 # Stop blue after successful switch
                 await asyncio.sleep(5)
-                subprocess.run([
-                    "docker-compose",
-                    "-f", "docker-compose.blue.yml",
-                    "down"
-                ], check=True)
+                subprocess.run(
+                    ["docker-compose", "-f", "docker-compose.blue.yml", "down"], check=True
+                )
 
                 return True
             else:
                 # Green unhealthy, keep blue running
-                subprocess.run([
-                    "docker-compose",
-                    "-f", "docker-compose.green.yml",
-                    "down"
-                ], check=True)
+                subprocess.run(
+                    ["docker-compose", "-f", "docker-compose.green.yml", "down"], check=True
+                )
                 return False
 
         except subprocess.CalledProcessError as e:
@@ -271,12 +269,14 @@ class AutomaticRollbackSystem:
 
         try:
             # Record rollback event
-            self.rollback_history.append({
-                "triggered_at": rollback_start,
-                "reason": reason.value,
-                "from_version": self.current_version.version,
-                "to_version": self.previous_version.version
-            })
+            self.rollback_history.append(
+                {
+                    "triggered_at": rollback_start,
+                    "reason": reason.value,
+                    "from_version": self.current_version.version,
+                    "to_version": self.previous_version.version,
+                }
+            )
 
             # Stop monitoring
             if self.monitoring_task:
@@ -295,6 +295,7 @@ class AutomaticRollbackSystem:
 
                 # Restore sessions
                 from services.session_manager import get_session_manager
+
                 session_manager = await get_session_manager()
                 await session_manager.restore_all_sessions()
 
@@ -317,11 +318,18 @@ class AutomaticRollbackSystem:
         """Perform the actual rollback."""
         try:
             # Quick switch using blue-green
-            subprocess.run([
-                "docker-compose",
-                "-f", "docker-compose.backup.yml",
-                "up", "-d", "--force-recreate"
-            ], check=True, timeout=60)
+            subprocess.run(
+                [
+                    "docker-compose",
+                    "-f",
+                    "docker-compose.backup.yml",
+                    "up",
+                    "-d",
+                    "--force-recreate",
+                ],
+                check=True,
+                timeout=60,
+            )
 
             # Restore database if needed
             if await self._needs_db_rollback():
@@ -343,6 +351,7 @@ class AutomaticRollbackSystem:
         # Check for migration markers
         try:
             from database.db_setup import get_async_db
+
             async for db in get_async_db():
                 result = await db.execute(
                     "SELECT version FROM migrations ORDER BY applied_at DESC LIMIT 1"
@@ -356,9 +365,7 @@ class AutomaticRollbackSystem:
         """Rollback database migrations."""
         try:
             target_version = self.previous_version.config_snapshot.get("db_version")
-            subprocess.run([
-                "alembic", "downgrade", target_version
-            ], check=True, timeout=30)
+            subprocess.run(["alembic", "downgrade", target_version], check=True, timeout=30)
             logger.info(f"Database rolled back to version {target_version}")
         except Exception as e:
             logger.error(f"Database rollback failed: {e}")
@@ -367,6 +374,7 @@ class AutomaticRollbackSystem:
         """Clear all caches after rollback."""
         try:
             from config.cache import get_redis_client
+
             redis_client = await get_redis_client()
             await redis_client.flushdb()
             logger.info("Caches cleared")
@@ -378,6 +386,7 @@ class AutomaticRollbackSystem:
         try:
             # Check health endpoint
             import aiohttp
+
             async with aiohttp.ClientSession() as session:
                 async with session.get("http://localhost:8000/health") as response:
                     if response.status != 200:
@@ -408,7 +417,7 @@ class AutomaticRollbackSystem:
 
                     # Adjust for baseline (2x check for response time)
                     if name == "response_time" and self.current_version:
-                        baseline = self.current_version.metrics_baseline.get(name, value/2)
+                        baseline = self.current_version.metrics_baseline.get(name, value / 2)
                         value = value / baseline if baseline > 0 else 1.0
 
                     if threshold.check_threshold(value):
@@ -418,10 +427,12 @@ class AutomaticRollbackSystem:
                             "response_time": RollbackReason.SLOW_RESPONSE,
                             "db_connections": RollbackReason.DB_CONNECTION_FAILURE,
                             "auth_failures": RollbackReason.AUTH_SPIKE,
-                            "ai_cost_rate": RollbackReason.AI_COST_EXCEEDED
+                            "ai_cost_rate": RollbackReason.AI_COST_EXCEEDED,
                         }
 
-                        await self.trigger_rollback(reason_map.get(name, RollbackReason.HEALTH_CHECK_FAILED))
+                        await self.trigger_rollback(
+                            reason_map.get(name, RollbackReason.HEALTH_CHECK_FAILED)
+                        )
                         return
 
                 # Check if monitoring period is over
@@ -440,6 +451,7 @@ class AutomaticRollbackSystem:
     async def _get_current_metrics(self) -> Dict[str, float]:
         """Get current system metrics."""
         from monitoring.metrics import get_metrics_collector
+
         get_metrics_collector()
 
         # In production, you'd parse Prometheus metrics
@@ -449,7 +461,7 @@ class AutomaticRollbackSystem:
             "response_time": 0.5,  # 500ms
             "db_connections": 0.6,  # 60% utilization
             "auth_failures": 10,  # 10 failures per minute
-            "ai_cost_rate": 1.5  # $1.50 per minute
+            "ai_cost_rate": 1.5,  # $1.50 per minute
         }
 
     async def _capture_baseline_metrics(self) -> Dict[str, float]:
@@ -461,13 +473,14 @@ class AutomaticRollbackSystem:
         return {
             "db_version": await self._get_db_version(),
             "feature_flags": await self._get_feature_flags(),
-            "env_vars": self._get_safe_env_vars()
+            "env_vars": self._get_safe_env_vars(),
         }
 
     async def _get_db_version(self) -> str:
         """Get current database version."""
         try:
             from database.db_setup import get_async_db
+
             async for db in get_async_db():
                 result = await db.execute(
                     "SELECT version FROM migrations ORDER BY applied_at DESC LIMIT 1"
@@ -479,13 +492,17 @@ class AutomaticRollbackSystem:
     async def _get_feature_flags(self) -> Dict[str, bool]:
         """Get current feature flag states."""
         from config.feature_flags import feature_flags
+
         return feature_flags.get_all_flags()
 
     def _get_safe_env_vars(self) -> Dict[str, str]:
         """Get safe environment variables (no secrets)."""
         safe_vars = [
-            "ENVIRONMENT", "APP_VERSION", "LOG_LEVEL",
-            "DATABASE_POOL_SIZE", "REDIS_MAX_CONNECTIONS"
+            "ENVIRONMENT",
+            "APP_VERSION",
+            "LOG_LEVEL",
+            "DATABASE_POOL_SIZE",
+            "REDIS_MAX_CONNECTIONS",
         ]
         return {k: os.environ.get(k, "") for k in safe_vars}
 
@@ -497,7 +514,7 @@ class AutomaticRollbackSystem:
             "duration_seconds": duration,
             "from_version": self.rollback_history[-1]["from_version"],
             "to_version": self.rollback_history[-1]["to_version"],
-            "timestamp": datetime.now(timezone.utc).isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
         # In production, send to PagerDuty, Slack, etc.
@@ -515,10 +532,10 @@ class AutomaticRollbackSystem:
                 name: {
                     "current": t.current_value,
                     "threshold": t.threshold_value,
-                    "exceeded": t.exceeded_at is not None
+                    "exceeded": t.exceeded_at is not None,
                 }
                 for name, t in self.thresholds.items()
-            }
+            },
         }
 
 

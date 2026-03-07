@@ -17,16 +17,14 @@ from redis import Redis
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, Field
 
-from models.feature_flags import (
-    FeatureFlag as FeatureFlagModel,
-    FeatureFlagAudit
-)
+from models.feature_flags import FeatureFlag as FeatureFlagModel, FeatureFlagAudit
 from database.db_setup import get_db_session
 from config.base import BaseConfig
 
 
 class FeatureFlagConfig(BaseModel):
     """Feature flag configuration schema"""
+
     name: str
     enabled: bool = False
     percentage: float = Field(0.0, ge=0.0, le=100.0)
@@ -41,6 +39,7 @@ class FeatureFlagConfig(BaseModel):
 
 class EvaluationReason(str, Enum):
     """Reasons for feature flag evaluation results"""
+
     WHITELIST = "whitelist"
     BLACKLIST = "blacklist"
     PERCENTAGE = "percentage"
@@ -62,7 +61,7 @@ class EnhancedFeatureFlagService:
         self,
         redis_client: Optional[Redis] = None,
         db_session: Optional[Session] = None,
-        config: Optional[BaseConfig] = None
+        config: Optional[BaseConfig] = None,
     ) -> None:
         """Initialize the feature flag service"""
         self.config = config or BaseConfig()
@@ -72,9 +71,7 @@ class EnhancedFeatureFlagService:
             self.redis = redis_client
         else:
             pool = redis.ConnectionPool.from_url(
-                self.config.REDIS_URL,
-                max_connections=50,
-                decode_responses=True
+                self.config.REDIS_URL, max_connections=50, decode_responses=True
             )
             self.redis = redis.Redis(connection_pool=pool)
 
@@ -134,11 +131,7 @@ class EnhancedFeatureFlagService:
         """Store feature flag in Redis cache"""
         try:
             cache_key = self._get_cache_key(flag_name)
-            self.redis.setex(
-                cache_key,
-                self.cache_ttl,
-                json.dumps(flag_data, default=str)
-            )
+            self.redis.setex(cache_key, self.cache_ttl, json.dumps(flag_data, default=str))
         except Exception as e:
             # Log error but don't fail
             print(f"Cache storage error: {e}")
@@ -162,7 +155,7 @@ class EnhancedFeatureFlagService:
         flag_name: str,
         user_id: Optional[str] = None,
         environment: str = "production",
-        context: Optional[Dict[str, Any]] = None
+        context: Optional[Dict[str, Any]] = None,
     ) -> tuple[bool, str]:
         """
         Check if feature flag is enabled for a specific user
@@ -192,7 +185,9 @@ class EnhancedFeatureFlagService:
                     "blacklist": flag_model.blacklist or [],
                     "environment_overrides": flag_model.environment_overrides or {},
                     "environments": flag_model.environments or [],
-                    "expires_at": flag_model.expires_at.isoformat() if flag_model.expires_at else None,
+                    "expires_at": flag_model.expires_at.isoformat()
+                    if flag_model.expires_at
+                    else None,
                     "starts_at": flag_model.starts_at.isoformat() if flag_model.starts_at else None,
                 }
 
@@ -206,8 +201,7 @@ class EnhancedFeatureFlagService:
             if self.enable_metrics:
                 elapsed_ms = (time.perf_counter() - start_time) * 1000
                 await self._track_evaluation(
-                    flag_name, user_id, environment, result, reason,
-                    elapsed_ms, cache_hit
+                    flag_name, user_id, environment, result, reason, elapsed_ms, cache_hit
                 )
 
             return result, reason
@@ -217,10 +211,7 @@ class EnhancedFeatureFlagService:
             return False, EvaluationReason.DISABLED
 
     def _evaluate_flag(
-        self,
-        flag_data: Dict[str, Any],
-        user_id: Optional[str],
-        environment: str
+        self, flag_data: Dict[str, Any], user_id: Optional[str], environment: str
     ) -> tuple[bool, str]:
         """
         Evaluate feature flag based on configuration
@@ -291,7 +282,7 @@ class EnhancedFeatureFlagService:
         result: bool,
         reason: str,
         elapsed_ms: float,
-        cache_hit: bool
+        cache_hit: bool,
     ) -> None:
         """Track feature flag evaluation for analytics"""
         try:
@@ -319,7 +310,7 @@ class EnhancedFeatureFlagService:
         flag_name: str,
         config: FeatureFlagConfig,
         user_id: Optional[str] = None,
-        reason: Optional[str] = None
+        reason: Optional[str] = None,
     ) -> bool:
         """Update feature flag configuration"""
         try:
@@ -362,7 +353,7 @@ class EnhancedFeatureFlagService:
                     new_state=config.dict(),
                     user_id=user_id,
                     reason=reason,
-                    created_at=datetime.utcnow()
+                    created_at=datetime.utcnow(),
                 )
                 session.add(audit)
 
@@ -385,9 +376,7 @@ class EnhancedFeatureFlagService:
 
                 if environment:
                     # Filter by environment
-                    query = query.filter(
-                        FeatureFlagModel.environments.contains([environment])
-                    )
+                    query = query.filter(FeatureFlagModel.environments.contains([environment]))
 
                 flags = query.all()
 
@@ -415,33 +404,28 @@ class EnhancedFeatureFlagService:
             return []
 
 
-def feature_flag(
-    flag_name: str,
-    fallback=None,
-    raise_on_disabled: bool = False
-):
+def feature_flag(flag_name: str, fallback=None, raise_on_disabled: bool = False):
     """
     Decorator for feature flag protected functions
     Supports both sync and async functions
     """
+
     def decorator(func):
         @wraps(func)
         async def async_wrapper(*args, **kwargs):
             service = EnhancedFeatureFlagService()
 
             # Extract user_id from various sources
-            user_id = kwargs.get('user_id')
+            user_id = kwargs.get("user_id")
             if not user_id and args:
                 # Try to get from first argument if it has user_id attribute
-                if hasattr(args[0], 'user_id'):
+                if hasattr(args[0], "user_id"):
                     user_id = args[0].user_id
 
             # Get environment from context or default
-            environment = kwargs.get('environment', 'production')
+            environment = kwargs.get("environment", "production")
 
-            enabled, reason = await service.is_enabled_for_user(
-                flag_name, user_id, environment
-            )
+            enabled, reason = await service.is_enabled_for_user(flag_name, user_id, environment)
 
             if enabled:
                 return await func(*args, **kwargs)
@@ -466,11 +450,11 @@ def feature_flag(
             try:
                 service = EnhancedFeatureFlagService()
 
-                user_id = kwargs.get('user_id')
-                if not user_id and args and hasattr(args[0], 'user_id'):
+                user_id = kwargs.get("user_id")
+                if not user_id and args and hasattr(args[0], "user_id"):
                     user_id = args[0].user_id
 
-                environment = kwargs.get('environment', 'production')
+                environment = kwargs.get("environment", "production")
 
                 enabled, reason = loop.run_until_complete(
                     service.is_enabled_for_user(flag_name, user_id, environment)
@@ -501,6 +485,7 @@ def feature_flag(
 
 class FeatureNotEnabledException(Exception):
     """Exception raised when a feature flag is not enabled"""
+
     pass
 
 

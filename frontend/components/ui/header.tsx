@@ -5,7 +5,6 @@ import { usePathname } from 'next/navigation';
 import { useAuthStore } from '@/lib/stores/auth.store';
 import { cn } from '@/lib/utils';
 import { Button } from './button';
-import { ChevronRight } from 'lucide-react';
 import Image from 'next/image';
 import { useState } from 'react';
 

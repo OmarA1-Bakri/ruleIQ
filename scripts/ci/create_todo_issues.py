@@ -16,14 +16,13 @@ import json
 import requests
 import argparse
 from pathlib import Path
-from typing import List, Dict, Optional, Tuple
 from scan_todos import TodoItem, scan_file, get_tracked_files, is_scannable
 
 
 class GitHubIssueCreator:
     """Handles GitHub API interactions for issue creation."""
 
-    def __init__(self, token: str, repo: str):
+    def __init__(self, token: str, repo: str) -> None:
         """
         Initialize GitHub API client.
 
@@ -36,10 +35,10 @@ class GitHubIssueCreator:
         self.api_base = "https://api.github.com"
         self.headers = {
             "Authorization": f"token {token}",
-            "Accept": "application/vnd.github.v3+json"
+            "Accept": "application/vnd.github.v3+json",
         }
 
-    def create_issue(self, title: str, body: str, labels: List[str]) -> int:
+    def create_issue(self, title: str, body: str, labels: list[str]) -> int:
         """
         Create a GitHub issue.
 
@@ -55,16 +54,12 @@ class GitHubIssueCreator:
             requests.HTTPError: If API call fails
         """
         url = f"{self.api_base}/repos/{self.repo}/issues"
-        data = {
-            "title": title,
-            "body": body,
-            "labels": labels
-        }
+        data = {"title": title, "body": body, "labels": labels}
         response = requests.post(url, headers=self.headers, json=data)
         response.raise_for_status()
         return response.json()["number"]
 
-    def search_existing_issue(self, title: str) -> Optional[int]:
+    def search_existing_issue(self, title: str) -> int | None:
         """
         Search for existing issue with similar title to avoid duplicates.
 
@@ -89,7 +84,7 @@ class GitHubIssueCreator:
             return None
 
 
-def group_similar_todos(todos: List[TodoItem]) -> Dict[str, List[TodoItem]]:
+def group_similar_todos(todos: list[TodoItem]) -> dict[str, list[TodoItem]]:
     """
     Group similar TODOs to create batch issues.
 
@@ -125,7 +120,7 @@ def group_similar_todos(todos: List[TodoItem]) -> Dict[str, List[TodoItem]]:
     return groups
 
 
-def generate_issue_body(todos: List[TodoItem]) -> str:
+def generate_issue_body(todos: list[TodoItem]) -> str:
     """
     Generate issue body from TODO items.
 
@@ -176,7 +171,7 @@ This issue tracks {len(todos)} related TODO items that should be addressed toget
         return body
 
 
-def get_labels_for_todo(todo: TodoItem) -> List[str]:
+def get_labels_for_todo(todo: TodoItem) -> list[str]:
     """
     Determine appropriate labels for the issue.
 
@@ -199,9 +194,7 @@ def get_labels_for_todo(todo: TodoItem) -> List[str]:
         labels.append("priority: low")
 
     # Marker-specific labels
-    if todo.marker == "FIXME":
-        labels.append("bug")
-    elif todo.marker == "BUG":
+    if todo.marker in {"FIXME", "BUG"}:
         labels.append("bug")
     elif todo.marker == "HACK":
         labels.append("refactoring")
@@ -214,9 +207,7 @@ def get_labels_for_todo(todo: TodoItem) -> List[str]:
     path_str = str(todo.file_path).lower()
     if "frontend" in path_str:
         labels.append("frontend")
-    elif "api" in path_str or "routers" in path_str:
-        labels.append("backend")
-    elif "services" in path_str:
+    elif "api" in path_str or "routers" in path_str or "services" in path_str:
         labels.append("backend")
     elif "tests" in path_str or "test_" in path_str:
         labels.append("testing")
@@ -227,23 +218,33 @@ def get_labels_for_todo(todo: TodoItem) -> List[str]:
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Create GitHub issues for TODOs')
-    parser.add_argument('--token', help='GitHub personal access token (or set GITHUB_TOKEN env var)')
-    parser.add_argument('--repo', required=True, help='Repository in format owner/repo')
-    parser.add_argument('--severity', choices=['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'],
-                        help='Only create issues for this severity')
-    parser.add_argument('--dry-run', action='store_true',
-                        help='Show what would be created without creating')
-    parser.add_argument('--batch-similar', action='store_true',
-                        help='Group similar TODOs into single issues')
-    parser.add_argument('--max-issues', type=int, default=50,
-                        help='Maximum number of issues to create in one run')
+    parser = argparse.ArgumentParser(description="Create GitHub issues for TODOs")
+    parser.add_argument(
+        "--token", help="GitHub personal access token (or set GITHUB_TOKEN env var)"
+    )
+    parser.add_argument("--repo", required=True, help="Repository in format owner/repo")
+    parser.add_argument(
+        "--severity",
+        choices=["CRITICAL", "HIGH", "MEDIUM", "LOW"],
+        help="Only create issues for this severity",
+    )
+    parser.add_argument(
+        "--dry-run", action="store_true", help="Show what would be created without creating"
+    )
+    parser.add_argument(
+        "--batch-similar", action="store_true", help="Group similar TODOs into single issues"
+    )
+    parser.add_argument(
+        "--max-issues", type=int, default=50, help="Maximum number of issues to create in one run"
+    )
     args = parser.parse_args()
 
     # Get GitHub token
-    token = args.token or os.environ.get('GITHUB_TOKEN')
+    token = args.token or os.environ.get("GITHUB_TOKEN")
     if not token:
-        print("❌ Error: GitHub token required. Use --token or set GITHUB_TOKEN environment variable")
+        print(
+            "❌ Error: GitHub token required. Use --token or set GITHUB_TOKEN environment variable"
+        )
         sys.exit(1)
 
     # Scan for TODOs
@@ -278,7 +279,7 @@ def main():
     # Limit number of issues
     if len(groups) > args.max_issues:
         print(f"⚠️ Warning: Would create {len(groups)} issues, limiting to {args.max_issues}")
-        groups = dict(list(groups.items())[:args.max_issues])
+        groups = dict(list(groups.items())[: args.max_issues])
 
     # Create issues
     creator = GitHubIssueCreator(token, args.repo)
@@ -328,7 +329,7 @@ def main():
                 continue
 
     # Summary
-    print(f"\n📊 Summary:")
+    print("\n📊 Summary:")
     print(f"  Total TODOs processed: {len(todos)}")
     print(f"  Issues created: {len(created_issues)}")
     if skipped > 0:
@@ -346,11 +347,11 @@ def main():
         mapping_file = Path("issues.json")
         mapping_file.write_text(json.dumps(mapping, indent=2))
         print(f"\n💾 Saved issue mapping to {mapping_file}")
-        print(f"\n📝 Next step: Update TODO comments with issue references")
-        print(f"   Run: python scripts/ci/update_todo_references.py --mapping issues.json")
+        print("\n📝 Next step: Update TODO comments with issue references")
+        print("   Run: python scripts/ci/update_todo_references.py --mapping issues.json")
     elif created_issues and args.dry_run:
-        print(f"\n💡 This was a dry run. No issues were created.")
-        print(f"   Remove --dry-run to create issues for real")
+        print("\n💡 This was a dry run. No issues were created.")
+        print("   Remove --dry-run to create issues for real")
 
 
 if __name__ == "__main__":

@@ -1,14 +1,10 @@
 """Test validators and metrics."""
 
-from __future__ import annotations
-
 import pytest
 from datetime import date, datetime, timedelta, timezone
-from typing import List
 
 from ..schemas.common import RegCitation, SourceMeta, TemporalValidity
 from ..schemas.compliance_scenario import ComplianceScenario, ExpectedOutcome
-from ..schemas.evidence_case import EvidenceCase, EvidenceItem, FrameworkMap
 from ..golden_datasets.validators import (
     DeepValidator,
     ExternalDataValidator,
@@ -41,7 +37,8 @@ class TestDeepValidator:
                 ),
             ],
             expected_outcome=ExpectedOutcome(
-                obligations=["notify_authority"], risk_level="high",
+                obligations=["notify_authority"],
+                risk_level="high",
             ),
             temporal=TemporalValidity(effective_from=date(2018, 5, 25)),
             version="0.1.0",
@@ -75,15 +72,15 @@ class TestDeepValidator:
             temporal=TemporalValidity(effective_from=date.today()),
             version="0.1.0",
             source=SourceMeta(
-                origin="external", domain="test.com", fetched_at=datetime.now(timezone.utc),
+                origin="external",
+                domain="test.com",
+                fetched_at=datetime.now(timezone.utc),
             ),
         )
 
         results = validator.validate([scenario])
         assert results["semantic"]["valid"] is False
-        assert any(
-            "Missing triggers" in error for error in results["semantic"]["errors"]
-        )
+        assert any("Missing triggers" in error for error in results["semantic"]["errors"])
 
     def test_regulatory_accuracy_unknown_framework(self, validator: Any) -> Any:
         """Test regulatory accuracy validation warns on unknown frameworks."""
@@ -97,17 +94,16 @@ class TestDeepValidator:
             temporal=TemporalValidity(effective_from=date.today()),
             version="0.1.0",
             source=SourceMeta(
-                origin="external", domain="test.com", fetched_at=datetime.now(timezone.utc),
+                origin="external",
+                domain="test.com",
+                fetched_at=datetime.now(timezone.utc),
             ),
         )
 
         results = validator.validate([scenario])
         # Unknown framework is a warning, not an error
         assert results["regulatory"]["valid"] is True
-        assert any(
-            "Unknown framework" in warning
-            for warning in results["regulatory"]["warnings"]
-        )
+        assert any("Unknown framework" in warning for warning in results["regulatory"]["warnings"])
 
     def test_regulatory_accuracy_non_authoritative_url(self, validator: Any) -> Any:
         """Test regulatory accuracy validation catches non-authoritative URLs."""
@@ -125,16 +121,15 @@ class TestDeepValidator:
             temporal=TemporalValidity(effective_from=date.today()),
             version="0.1.0",
             source=SourceMeta(
-                origin="external", domain="test.com", fetched_at=datetime.now(timezone.utc),
+                origin="external",
+                domain="test.com",
+                fetched_at=datetime.now(timezone.utc),
             ),
         )
 
         results = validator.validate([scenario])
         assert results["regulatory"]["valid"] is False
-        assert any(
-            "Non-authoritative URL" in error
-            for error in results["regulatory"]["errors"]
-        )
+        assert any("Non-authoritative URL" in error for error in results["regulatory"]["errors"])
 
     def test_temporal_validation_expired(self, validator: Any) -> Any:
         """Test temporal validation warns on expired items."""
@@ -149,7 +144,9 @@ class TestDeepValidator:
             ),
             version="0.1.0",
             source=SourceMeta(
-                origin="external", domain="test.com", fetched_at=datetime.now(timezone.utc),
+                origin="external",
+                domain="test.com",
+                fetched_at=datetime.now(timezone.utc),
             ),
         )
 
@@ -169,16 +166,15 @@ class TestDeepValidator:
             temporal=TemporalValidity(effective_from=future_date),  # Future date
             version="0.1.0",
             source=SourceMeta(
-                origin="external", domain="test.com", fetched_at=datetime.now(timezone.utc),
+                origin="external",
+                domain="test.com",
+                fetched_at=datetime.now(timezone.utc),
             ),
         )
 
         results = validator.validate([scenario])
         assert results["temporal"]["valid"] is True
-        assert any(
-            "Not yet effective" in warning
-            for warning in results["temporal"]["warnings"]
-        )
+        assert any("Not yet effective" in warning for warning in results["temporal"]["warnings"])
 
 
 class TestExternalDataValidator:
@@ -198,15 +194,18 @@ class TestExternalDataValidator:
                 triggers=["test"],
                 regulation_refs=[RegCitation(framework="GDPR", article=f"Article {i}")],
                 expected_outcome=ExpectedOutcome(
-                    obligations=["test"], risk_level="low",
+                    obligations=["test"],
+                    risk_level="low",
                 ),
                 temporal=TemporalValidity(effective_from=date.today()),
                 version="0.1.0",
                 source=SourceMeta(
-                    origin="external", domain="ico.org.uk", fetched_at=datetime.now(timezone.utc),
+                    origin="external",
+                    domain="ico.org.uk",
+                    fetched_at=datetime.now(timezone.utc),
                 ),
             )
-            for i in range(1, 6),
+            for i in range(1, 6)
         ]
 
     def test_source_reputation_authoritative(self, validator: Any) -> Any:
@@ -277,15 +276,18 @@ class TestExternalDataValidator:
                 triggers=["test"],
                 regulation_refs=[],
                 expected_outcome=ExpectedOutcome(
-                    obligations=["test"], risk_level="low",
+                    obligations=["test"],
+                    risk_level="low",
                 ),
                 temporal=TemporalValidity(effective_from=date.today()),
                 version="0.1.0",
                 source=SourceMeta(
-                    origin="external", domain="test.com", fetched_at=datetime.now(timezone.utc),
+                    origin="external",
+                    domain="test.com",
+                    fetched_at=datetime.now(timezone.utc),
                 ),
             )
-            for _ in range(3),
+            for _ in range(3)
         ]
 
         score = validator._check_consistency(dataset)
@@ -301,15 +303,18 @@ class TestExternalDataValidator:
                 triggers=["test"],
                 regulation_refs=[RegCitation(framework=framework, article="Test")],
                 expected_outcome=ExpectedOutcome(
-                    obligations=["test"], risk_level="low",
+                    obligations=["test"],
+                    risk_level="low",
                 ),
                 temporal=TemporalValidity(effective_from=date.today()),
                 version="0.1.0",
                 source=SourceMeta(
-                    origin="external", domain="test.com", fetched_at=datetime.now(timezone.utc),
+                    origin="external",
+                    domain="test.com",
+                    fetched_at=datetime.now(timezone.utc),
                 ),
             )
-            for i, framework in enumerate(["GDPR", "HIPAA", "SOX", "UK GDPR", "CCPA"]),
+            for i, framework in enumerate(["GDPR", "HIPAA", "SOX", "UK GDPR", "CCPA"])
         ]
 
         score = validator._check_coverage(dataset)
@@ -350,15 +355,18 @@ class TestQualityMetrics:
                 triggers=["test"],
                 regulation_refs=[RegCitation(framework="GDPR", article="Test")],
                 expected_outcome=ExpectedOutcome(
-                    obligations=["test"], risk_level="low",
+                    obligations=["test"],
+                    risk_level="low",
                 ),
                 temporal=TemporalValidity(effective_from=date.today()),
                 version="0.1.0",
                 source=SourceMeta(
-                    origin="external", domain="test.com", fetched_at=datetime.now(timezone.utc),
+                    origin="external",
+                    domain="test.com",
+                    fetched_at=datetime.now(timezone.utc),
                 ),
             )
-            for i in range(10),
+            for i in range(10)
         ]
 
         metrics = dataset_quality_summary(dataset)
@@ -376,15 +384,18 @@ class TestQualityMetrics:
                 triggers=["test"],
                 regulation_refs=[],
                 expected_outcome=ExpectedOutcome(
-                    obligations=["test"], risk_level="low",
+                    obligations=["test"],
+                    risk_level="low",
                 ),
                 temporal=TemporalValidity(effective_from=date.today()),
                 version="0.1.0",
                 source=SourceMeta(
-                    origin="external", domain="test.com", fetched_at=datetime.now(timezone.utc),
+                    origin="external",
+                    domain="test.com",
+                    fetched_at=datetime.now(timezone.utc),
                 ),
             )
-            for i in range(5),
+            for i in range(5)
         ]
 
         metrics = dataset_quality_summary(dataset)
@@ -421,15 +432,18 @@ class TestCoverageMetrics:
                     else [RegCitation(framework="GDPR", article="Test")],
                 ),
                 expected_outcome=ExpectedOutcome(
-                    obligations=["test"], risk_level="low",
+                    obligations=["test"],
+                    risk_level="low",
                 ),
                 temporal=TemporalValidity(effective_from=date.today()),
                 version="0.1.0",
                 source=SourceMeta(
-                    origin="external", domain="test.com", fetched_at=datetime.now(timezone.utc),
+                    origin="external",
+                    domain="test.com",
+                    fetched_at=datetime.now(timezone.utc),
                 ),
             )
-            for i in range(5),
+            for i in range(5)
         ]
 
         metrics = coverage_summary(dataset)
@@ -447,17 +461,20 @@ class TestCoverageMetrics:
                 triggers=["test"],
                 regulation_refs=[RegCitation(framework=framework, article="Test")],
                 expected_outcome=ExpectedOutcome(
-                    obligations=["test"], risk_level="low",
+                    obligations=["test"],
+                    risk_level="low",
                 ),
                 temporal=TemporalValidity(effective_from=date.today()),
                 version="0.1.0",
                 source=SourceMeta(
-                    origin="external", domain="test.com", fetched_at=datetime.now(timezone.utc),
+                    origin="external",
+                    domain="test.com",
+                    fetched_at=datetime.now(timezone.utc),
                 ),
             )
             for i, framework in enumerate(
                 ["GDPR", "UK GDPR", "HIPAA", "SOX", "ISO27001", "CCPA"],
-            ),
+            )
         ]
 
         metrics = coverage_summary(dataset)
@@ -475,15 +492,18 @@ class TestCoverageMetrics:
                 triggers=["data_breach", "user_request"] if i < 2 else ["data_breach"],
                 regulation_refs=[],
                 expected_outcome=ExpectedOutcome(
-                    obligations=["test"], risk_level="low",
+                    obligations=["test"],
+                    risk_level="low",
                 ),
                 temporal=TemporalValidity(effective_from=date.today()),
                 version="0.1.0",
                 source=SourceMeta(
-                    origin="external", domain="test.com", fetched_at=datetime.now(timezone.utc),
+                    origin="external",
+                    domain="test.com",
+                    fetched_at=datetime.now(timezone.utc),
                 ),
             )
-            for i in range(5),
+            for i in range(5)
         ]
 
         metrics = coverage_summary(dataset)

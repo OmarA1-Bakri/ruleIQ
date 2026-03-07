@@ -11,16 +11,19 @@ from pathlib import Path
 from typing import Tuple
 from datetime import datetime
 
+
 class Colors:
     """Terminal colors for output formatting"""
-    RED = '\033[0;31m'
-    GREEN = '\033[0;32m'
-    YELLOW = '\033[1;33m'
-    BLUE = '\033[0;34m'
-    MAGENTA = '\033[0;35m'
-    CYAN = '\033[0;36m'
-    NC = '\033[0m'  # No Color
-    BOLD = '\033[1m'
+
+    RED = "\033[0;31m"
+    GREEN = "\033[0;32m"
+    YELLOW = "\033[1;33m"
+    BLUE = "\033[0;34m"
+    MAGENTA = "\033[0;35m"
+    CYAN = "\033[0;36m"
+    NC = "\033[0m"  # No Color
+    BOLD = "\033[1m"
+
 
 class OrganizationDeploymentSetup:
     def __init__(self) -> None:
@@ -33,14 +36,14 @@ class OrganizationDeploymentSetup:
             "organization": self.org_name,
             "repository": self.repo_name,
             "checks": {},
-            "recommendations": []
+            "recommendations": [],
         }
 
     def print_header(self, message: str):
         """Print formatted section header"""
-        print(f"\n{Colors.BLUE}{'='*60}{Colors.NC}")
+        print(f"\n{Colors.BLUE}{'=' * 60}{Colors.NC}")
         print(f"{Colors.BOLD}{Colors.CYAN}{message}{Colors.NC}")
-        print(f"{Colors.BLUE}{'='*60}{Colors.NC}\n")
+        print(f"{Colors.BLUE}{'=' * 60}{Colors.NC}\n")
 
     def print_success(self, message: str):
         """Print success message"""
@@ -62,11 +65,7 @@ class OrganizationDeploymentSetup:
         """Run shell command and return result"""
         try:
             result = subprocess.run(
-                command,
-                shell=True,
-                check=check,
-                capture_output=True,
-                text=True
+                command, shell=True, check=check, capture_output=True, text=True
             )
             return True, result.stdout
         except subprocess.CalledProcessError as e:
@@ -112,7 +111,7 @@ class OrganizationDeploymentSetup:
             "VERCEL_PROJECT_ID": "Project ID after transfer to organization",
             "DATABASE_URL": "Neon organization database URL with connection pooling",
             "JWT_SECRET": "Secure 32+ character secret for JWT tokens",
-            "SECRET_KEY": "Secure 32+ character secret for encryption"
+            "SECRET_KEY": "Secure 32+ character secret for encryption",
         }
 
         optional_secrets = {
@@ -121,7 +120,7 @@ class OrganizationDeploymentSetup:
             "REDIS_URL": "Redis URL for enhanced caching",
             "SENTRY_DSN": "Sentry DSN for error tracking",
             "SONAR_TOKEN": "SonarCloud token for code quality",
-            "SONAR_HOST_URL": "SonarCloud URL for analysis"
+            "SONAR_HOST_URL": "SonarCloud URL for analysis",
         }
 
         print(f"{Colors.BOLD}Required Secrets:{Colors.NC}")
@@ -133,7 +132,9 @@ class OrganizationDeploymentSetup:
             print(f"  {Colors.CYAN}{secret:<20}{Colors.NC} - {description}")
 
         print(f"\n{Colors.MAGENTA}🔗 Configure secrets at:{Colors.NC}")
-        print(f"   {Colors.BLUE}https://github.com/{self.org_name}/{self.repo_name}/settings/secrets/actions{Colors.NC}")
+        print(
+            f"   {Colors.BLUE}https://github.com/{self.org_name}/{self.repo_name}/settings/secrets/actions{Colors.NC}"
+        )
 
         self.report["checks"]["secrets_documented"] = "passed"
         self.report["recommendations"].append(
@@ -180,14 +181,16 @@ class OrganizationDeploymentSetup:
             "✅ Database Branching - Separate databases for environments",
             "✅ Point-in-time Recovery - Enhanced backup capabilities",
             "✅ Team Access - Multiple developers can access",
-            "✅ Advanced Monitoring - Real-time performance insights"
+            "✅ Advanced Monitoring - Real-time performance insights",
         ]
 
         for feature in features:
             print(f"  {feature}")
 
         print(f"\n{Colors.BOLD}Database URL Format:{Colors.NC}")
-        print(f"  {Colors.CYAN}postgresql://[user]:[password]@[host]/ruleiq?sslmode=require&pgbouncer=true{Colors.NC}")
+        print(
+            f"  {Colors.CYAN}postgresql://[user]:[password]@[host]/ruleiq?sslmode=require&pgbouncer=true{Colors.NC}"
+        )
 
         print(f"\n{Colors.YELLOW}Important Configuration:{Colors.NC}")
         print("  1. Use organization-level Neon project")
@@ -211,7 +214,7 @@ class OrganizationDeploymentSetup:
             ".github/workflows/deploy-vercel.yml": "GitHub Actions deployment workflow",
             "main.py": "Main application entry point",
             "api/main.py": "FastAPI application",
-            "config/settings.py": "Application settings"
+            "config/settings.py": "Application settings",
         }
 
         all_present = True
@@ -247,7 +250,7 @@ class OrganizationDeploymentSetup:
                 "VERCEL_ORG_ID": "Organization ID reference",
                 "VERCEL_PROJECT_ID": "Project ID reference",
                 "VERCEL_TOKEN": "Vercel token reference",
-                "DATABASE_URL": "Database URL reference"
+                "DATABASE_URL": "Database URL reference",
             }
 
             for key, description in checks.items():
@@ -261,9 +264,7 @@ class OrganizationDeploymentSetup:
         else:
             self.print_error("Deployment workflow not found")
             self.report["checks"]["deployment_workflow"] = "failed"
-            self.report["recommendations"].append(
-                "Create GitHub Actions deployment workflow"
-            )
+            self.report["recommendations"].append("Create GitHub Actions deployment workflow")
             return False
 
     def generate_deployment_commands(self):
@@ -273,10 +274,14 @@ class OrganizationDeploymentSetup:
         print(f"{Colors.BOLD}Option A: Automatic Deployment (Recommended){Colors.NC}")
         print(f"{Colors.GREEN}# Push to main branch triggers automatic deployment{Colors.NC}")
         print(f"  {Colors.CYAN}git push origin main{Colors.NC}")
-        print(f"  {Colors.BLUE}# Monitor at: https://github.com/{self.org_name}/{self.repo_name}/actions{Colors.NC}")
+        print(
+            f"  {Colors.BLUE}# Monitor at: https://github.com/{self.org_name}/{self.repo_name}/actions{Colors.NC}"
+        )
 
         print(f"\n{Colors.BOLD}Option B: Manual GitHub Actions{Colors.NC}")
-        print(f"  1. Go to: {Colors.BLUE}https://github.com/{self.org_name}/{self.repo_name}/actions{Colors.NC}")
+        print(
+            f"  1. Go to: {Colors.BLUE}https://github.com/{self.org_name}/{self.repo_name}/actions{Colors.NC}"
+        )
         print("  2. Select 'Vercel Deployment' workflow")
         print("  3. Click 'Run workflow'")
         print("  4. Select 'production' environment")
@@ -288,7 +293,7 @@ class OrganizationDeploymentSetup:
         self.report["deployment_commands"] = {
             "automatic": "git push origin main",
             "manual_github": f"https://github.com/{self.org_name}/{self.repo_name}/actions",
-            "vercel_cli": "vercel --prod"
+            "vercel_cli": "vercel --prod",
         }
 
     def verify_team_access(self):
@@ -296,8 +301,12 @@ class OrganizationDeploymentSetup:
         self.print_header("8. TEAM ACCESS CONFIGURATION")
 
         print(f"{Colors.BOLD}GitHub Organization Access:{Colors.NC}")
-        print(f"  • Add team members: {Colors.BLUE}https://github.com/{self.org_name}/people{Colors.NC}")
-        print(f"  • Repository access: {Colors.BLUE}https://github.com/{self.org_name}/{self.repo_name}/settings/access{Colors.NC}")
+        print(
+            f"  • Add team members: {Colors.BLUE}https://github.com/{self.org_name}/people{Colors.NC}"
+        )
+        print(
+            f"  • Repository access: {Colors.BLUE}https://github.com/{self.org_name}/{self.repo_name}/settings/access{Colors.NC}"
+        )
 
         print(f"\n{Colors.BOLD}Vercel Organization Access:{Colors.NC}")
         print("  • Team settings in Vercel dashboard")
@@ -353,14 +362,16 @@ echo "✅ Validation complete"
         validation_file.chmod(0o755)
 
         self.print_success(f"Validation script created: {validation_file}")
-        print(f"  Run after deployment: {Colors.CYAN}./scripts/deploy/validate-deployment.sh [URL]{Colors.NC}")
+        print(
+            f"  Run after deployment: {Colors.CYAN}./scripts/deploy/validate-deployment.sh [URL]{Colors.NC}"
+        )
 
         self.report["validation_script"] = str(validation_file)
 
     def save_report(self):
         """Save deployment readiness report"""
         report_file = Path("organization_deployment_report.json")
-        with open(report_file, 'w') as f:
+        with open(report_file, "w") as f:
             json.dump(self.report, f, indent=2)
 
         self.print_success(f"Report saved: {report_file}")
@@ -378,7 +389,7 @@ echo "✅ Validation complete"
             self.verify_vercel_cli(),
             self.verify_neon_database_config(),
             self.verify_environment_files(),
-            self.verify_deployment_workflow()
+            self.verify_deployment_workflow(),
         ]
 
         # Generate deployment resources
@@ -412,6 +423,7 @@ echo "✅ Validation complete"
         print(f"   {Colors.CYAN}git push origin main{Colors.NC}")
 
         return 0 if all_passed else 1
+
 
 if __name__ == "__main__":
     setup = OrganizationDeploymentSetup()

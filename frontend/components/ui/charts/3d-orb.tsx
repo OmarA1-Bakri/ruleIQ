@@ -2,7 +2,7 @@
 
 import React, { useRef, useState, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, Sphere, MeshDistortMaterial, Float, Trail } from '@react-three/drei';
+import { OrbitControls, Sphere, MeshDistortMaterial, Float } from '@react-three/drei';
 import * as THREE from 'three';
 
 // 3D DATA ORB - Morphing data visualization

@@ -2,7 +2,6 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import * as echarts from 'echarts';
-import { motion } from 'framer-motion';
 
 // Purple theme for ECharts
 const purpleTheme = {

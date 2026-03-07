@@ -7,6 +7,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 """
+
 from typing import Optional
 from uuid import UUID
 import json
@@ -39,26 +40,25 @@ async def extract_token_from_headers(websocket: WebSocket) -> Optional[str]:
     headers = dict(websocket.headers)
 
     # Check Authorization header (preferred)
-    auth_header = headers.get('authorization', '')
-    if auth_header.startswith('Bearer '):
-        return auth_header.replace('Bearer ', '', 1)
+    auth_header = headers.get("authorization", "")
+    if auth_header.startswith("Bearer "):
+        return auth_header.replace("Bearer ", "", 1)
 
     # Check X-Auth-Token header
-    if 'x-auth-token' in headers:
-        return headers['x-auth-token']
+    if "x-auth-token" in headers:
+        return headers["x-auth-token"]
 
     # Check Sec-WebSocket-Protocol for token (browser compatibility)
     # Some browsers allow passing auth info via subprotocol
-    protocol = headers.get('sec-websocket-protocol', '')
-    if protocol.startswith('token.'):
-        return protocol.replace('token.', '', 1)
+    protocol = headers.get("sec-websocket-protocol", "")
+    if protocol.startswith("token."):
+        return protocol.replace("token.", "", 1)
 
     return None
 
 
 async def verify_websocket_token_from_headers(
-    websocket: WebSocket,
-    accept_connection: bool = False
+    websocket: WebSocket, accept_connection: bool = False
 ) -> Optional[User]:
     """
     Verify JWT token from WebSocket headers.
@@ -84,8 +84,7 @@ async def verify_websocket_token_from_headers(
             if accept_connection and websocket.client_state.value == 0:
                 await websocket.accept()
             await websocket.close(
-                code=status.WS_1008_POLICY_VIOLATION,
-                reason="Authentication required"
+                code=status.WS_1008_POLICY_VIOLATION, reason="Authentication required"
             )
             return None
 
@@ -97,8 +96,7 @@ async def verify_websocket_token_from_headers(
             if accept_connection and websocket.client_state.value == 0:
                 await websocket.accept()
             await websocket.close(
-                code=status.WS_1008_POLICY_VIOLATION,
-                reason="Invalid authentication token"
+                code=status.WS_1008_POLICY_VIOLATION, reason="Invalid authentication token"
             )
             return None
 
@@ -108,8 +106,7 @@ async def verify_websocket_token_from_headers(
             if accept_connection and websocket.client_state.value == 0:
                 await websocket.accept()
             await websocket.close(
-                code=status.WS_1008_POLICY_VIOLATION,
-                reason="Invalid token payload"
+                code=status.WS_1008_POLICY_VIOLATION, reason="Invalid token payload"
             )
             return None
 
@@ -119,16 +116,13 @@ async def verify_websocket_token_from_headers(
             if accept_connection and websocket.client_state.value == 0:
                 await websocket.accept()
             await websocket.close(
-                code=status.WS_1008_POLICY_VIOLATION,
-                reason="Token has been revoked"
+                code=status.WS_1008_POLICY_VIOLATION, reason="Token has been revoked"
             )
             return None
 
         # Get user from database
         async for session in get_async_db():
-            result = await session.execute(
-                select(User).where(User.id == UUID(user_id))
-            )
+            result = await session.execute(select(User).where(User.id == UUID(user_id)))
             user = result.scalars().first()
             break
 
@@ -136,10 +130,7 @@ async def verify_websocket_token_from_headers(
             logger.warning(f"User not found for WebSocket: user_id={user_id}")
             if accept_connection and websocket.client_state.value == 0:
                 await websocket.accept()
-            await websocket.close(
-                code=status.WS_1008_POLICY_VIOLATION,
-                reason="User not found"
-            )
+            await websocket.close(code=status.WS_1008_POLICY_VIOLATION, reason="User not found")
             return None
 
         if not user.is_active:
@@ -147,8 +138,7 @@ async def verify_websocket_token_from_headers(
             if accept_connection and websocket.client_state.value == 0:
                 await websocket.accept()
             await websocket.close(
-                code=status.WS_1008_POLICY_VIOLATION,
-                reason="Account is inactive"
+                code=status.WS_1008_POLICY_VIOLATION, reason="Account is inactive"
             )
             return None
 
@@ -159,10 +149,7 @@ async def verify_websocket_token_from_headers(
         logger.error(f"WebSocket authentication error: {e}")
         if accept_connection and websocket.client_state.value == 0:
             await websocket.accept()
-        await websocket.close(
-            code=status.WS_1011_INTERNAL_ERROR,
-            reason="Authentication error"
-        )
+        await websocket.close(code=status.WS_1011_INTERNAL_ERROR, reason="Authentication error")
         return None
 
 
@@ -182,15 +169,12 @@ async def send_auth_required_message(websocket: WebSocket) -> None:
         "headers_accepted": [
             "Authorization: Bearer <token>",
             "X-Auth-Token: <token>",
-            "Sec-WebSocket-Protocol: token.<token>"
-        ]
+            "Sec-WebSocket-Protocol: token.<token>",
+        ],
     }
 
     await websocket.send_text(json.dumps(auth_message))
-    await websocket.close(
-        code=status.WS_1008_POLICY_VIOLATION,
-        reason="Authentication required"
-    )
+    await websocket.close(code=status.WS_1008_POLICY_VIOLATION, reason="Authentication required")
 
 
 class WebSocketAuthMiddleware:
@@ -208,9 +192,7 @@ class WebSocketAuthMiddleware:
         self.require_auth = require_auth
 
     async def __call__(
-        self,
-        websocket: WebSocket,
-        accept_connection: bool = False
+        self, websocket: WebSocket, accept_connection: bool = False
     ) -> Optional[User]:
         """
         Authenticate WebSocket connection.
@@ -226,8 +208,7 @@ class WebSocketAuthMiddleware:
             return None
 
         user = await verify_websocket_token_from_headers(
-            websocket,
-            accept_connection=accept_connection
+            websocket, accept_connection=accept_connection
         )
 
         if not user:
@@ -239,8 +220,7 @@ class WebSocketAuthMiddleware:
 
 # Backward compatibility function for gradual migration
 async def verify_websocket_token_with_fallback(
-    websocket: WebSocket,
-    token_from_query: Optional[str] = None
+    websocket: WebSocket, token_from_query: Optional[str] = None
 ) -> Optional[User]:
     """
     Verify WebSocket token with fallback to query parameter.
@@ -270,6 +250,7 @@ async def verify_websocket_token_with_fallback(
 
         try:
             from .auth import verify_websocket_token
+
             # Use the old function for backward compatibility
             user = await verify_websocket_token(websocket, token_from_query)
             return user

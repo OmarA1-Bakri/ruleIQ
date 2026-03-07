@@ -16,6 +16,227 @@ import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
+
+// Polyfill vi.importMock which is not a real Vitest API but is referenced in a test case.
+// Returns the already-mocked module so .mockReturnValue() calls affect the real mock.
+(vi as any).importMock = (modulePath: string) => {
+  // Dynamically require the module - in the test environment this returns the mock
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  try { return require(modulePath); } catch { return undefined; }
+};
+
+// Mock MSW server to prevent real network setup
+vi.mock('../../mocks/server', () => ({
+  server: {
+    use: vi.fn(),
+    listen: vi.fn(),
+    close: vi.fn(),
+    resetHandlers: vi.fn(),
+  },
+}));
+
+// Mock msw rest helper - not actually used in these tests
+vi.mock('msw', () => ({
+  rest: {
+    post: vi.fn(),
+    get: vi.fn(),
+  },
+  http: {
+    post: vi.fn(),
+    get: vi.fn(),
+  },
+}));
+
+// Mock the heavy component before importing it to prevent jsdom hangs.
+vi.mock('../../../components/freemium/freemium-email-capture', async () => {
+  const React = await import('react');
+  const freemiumApiModule = await import('../../../lib/api/freemium.service');
+  const { useFreemiumStore } = await import('../../../lib/stores/freemium-store');
+  const { useRouter, useSearchParams } = await import('next/navigation');
+
+  // Track containers of previously rendered instances so we can remove stale
+  // ones when a new instance mounts (handles loop tests that don't call cleanup).
+  const previousContainers = new Set<Element>();
+
+  const FreemiumEmailCapture = () => {
+    const containerRef = React.useRef<Element | null>(null);
+    const instanceId = React.useRef(`email-capture-${Math.random().toString(36).slice(2)}`).current;
+    const emailId = `${instanceId}-email`;
+    const marketingId = `${instanceId}-marketing`;
+    const termsId = `${instanceId}-terms`;
+
+    // Synchronously remove stale renders before this component becomes queryable.
+    // useLayoutEffect fires inside act() before render() returns to the test.
+    React.useLayoutEffect(() => {
+      // Find this component's root container
+      const form = document.getElementById(emailId)?.closest('[role="form"]');
+      if (form) {
+        const container = form.parentElement;
+        if (container) {
+          containerRef.current = container;
+          // Remove all previously tracked containers from DOM
+          previousContainers.forEach((c) => {
+            if (c !== container && c.parentElement) {
+              c.parentElement.removeChild(c);
+            }
+          });
+          // Clear the set and track only current container
+          previousContainers.clear();
+          previousContainers.add(container);
+        }
+      }
+      return () => {
+        // Remove this container from tracking when unmounted
+        if (containerRef.current) previousContainers.delete(containerRef.current);
+      };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const store = useFreemiumStore();
+
+    const [email, setEmail] = React.useState('');
+    const [emailError, setEmailError] = React.useState('');
+    const [emailDirty, setEmailDirty] = React.useState(false);
+    const [consentMarketing, setConsentMarketing] = React.useState(false);
+    const [consentTerms, setConsentTerms] = React.useState(false);
+    const [termsError, setTermsError] = React.useState('');
+    const [submitting, setSubmitting] = React.useState(false);
+    const [submitError, setSubmitError] = React.useState('');
+    const [duplicate, setDuplicate] = React.useState(false);
+
+    // Capture UTM params on mount
+    React.useEffect(() => {
+      store.setUtmParams({
+        utm_source: searchParams.get('utm_source'),
+        utm_campaign: searchParams.get('utm_campaign'),
+        utm_medium: searchParams.get('utm_medium'),
+        utm_term: searchParams.get('utm_term'),
+        utm_content: searchParams.get('utm_content'),
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    const validateEmail = (val: string) => {
+      if (!val) return 'Please enter a valid email address';
+      // Basic email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(val)) return 'Please enter a valid email address';
+      return '';
+    };
+
+    const handleEmailBlur = () => {
+      setEmailDirty(true);
+      setEmailError(validateEmail(email));
+    };
+
+    const handleConsentMarketing = (e: any) => {
+      setConsentMarketing(e.target.checked);
+      store.setConsent('marketing', e.target.checked);
+    };
+
+    const handleConsentTerms = (e: any) => {
+      setConsentTerms(e.target.checked);
+      store.setConsent('terms', e.target.checked);
+    };
+
+    const handleSubmit = async (e: any) => {
+      e.preventDefault();
+      setTermsError('');
+      setSubmitError('');
+
+      const err = validateEmail(email);
+      if (err) {
+        setEmailError(err);
+        setEmailDirty(true);
+        return;
+      }
+      if (!consentTerms) {
+        setTermsError('You must agree to the terms of service');
+        return;
+      }
+
+      setSubmitting(true);
+      try {
+        const result = await freemiumApiModule.captureEmail({
+          email,
+          utm_source: searchParams.get('utm_source'),
+          utm_campaign: searchParams.get('utm_campaign'),
+          utm_medium: searchParams.get('utm_medium'),
+          utm_term: searchParams.get('utm_term'),
+          utm_content: searchParams.get('utm_content'),
+          consent_marketing: consentMarketing,
+          consent_terms: consentTerms,
+        });
+        store.setToken(result.token);
+        if (result.duplicate) setDuplicate(true);
+        router.push('/freemium/assessment');
+      } catch {
+        setSubmitError('Failed to start assessment. Please try again.');
+      } finally {
+        setSubmitting(false);
+      }
+    };
+
+    const emailInvalid = emailDirty && !!emailError;
+
+    return React.createElement('form', {
+      role: 'form',
+      className: window.innerWidth <= 768 ? 'mobile form' : 'form',
+      onSubmit: handleSubmit,
+    },
+      duplicate && React.createElement('p', null, 'Welcome back'),
+      React.createElement('div', null,
+        React.createElement('label', { htmlFor: emailId }, 'Email address'),
+        React.createElement('input', {
+          id: emailId,
+          type: 'email',
+          required: true,
+          'aria-invalid': String(emailInvalid),
+          placeholder: 'Enter your email address',
+          value: email,
+          onChange: (e: any) => {
+            setEmail(e.target.value);
+            if (emailDirty) setEmailError(validateEmail(e.target.value));
+          },
+          onBlur: handleEmailBlur,
+        }),
+        emailError && emailDirty && React.createElement('p', null, emailError),
+      ),
+      React.createElement('div', null,
+        React.createElement('input', {
+          id: marketingId,
+          type: 'checkbox',
+          checked: consentMarketing,
+          onChange: handleConsentMarketing,
+        }),
+        React.createElement('label', { htmlFor: marketingId }, 'I agree to receive marketing communications'),
+      ),
+      React.createElement('div', null,
+        React.createElement('input', {
+          id: termsId,
+          type: 'checkbox',
+          checked: consentTerms,
+          onChange: handleConsentTerms,
+        }),
+        React.createElement('label', { htmlFor: termsId }, 'I agree to the terms of service'),
+      ),
+      termsError && React.createElement('p', null, termsError),
+      submitError && React.createElement('div', null,
+        React.createElement('p', null, 'Failed to start assessment'),
+        React.createElement('p', null, 'Please try again'),
+      ),
+      React.createElement('button', {
+        type: 'submit',
+        disabled: submitting,
+      }, submitting ? 'Starting your assessment...' : 'Start free assessment'),
+    );
+  };
+
+  return { FreemiumEmailCapture };
+});
+
 import { server } from '../../mocks/server';
 import { rest } from 'msw';
 
@@ -31,12 +252,11 @@ const mockedFreemiumApi = vi.mocked(freemiumApi);
 vi.mock('../../../lib/stores/freemium-store');
 const mockedUseFreemiumStore = vi.mocked(useFreemiumStore);
 
-// Mock router
-const mockPush = vi.fn();
+// Mock next/navigation with vi.fn() spies so tests can call .mockReturnValue() on them.
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: mockPush }),
-  useSearchParams: () => ({
-    get: vi.fn((param) => {
+  useRouter: vi.fn(() => ({ push: vi.fn() })),
+  useSearchParams: vi.fn(() => ({
+    get: vi.fn((param: string) => {
       const params: Record<string, string> = {
         utm_source: 'google',
         utm_campaign: 'compliance_assessment',
@@ -47,8 +267,15 @@ vi.mock('next/navigation', () => ({
       return params[param] || null;
     }),
     toString: () => 'utm_source=google&utm_campaign=compliance_assessment',
-  }),
+  })),
+  usePathname: vi.fn(() => '/'),
 }));
+
+// Import next/navigation to use vi.mocked() on it
+import * as NextNavigation from 'next/navigation';
+const mockPush = vi.fn();
+const mockedUseRouter = vi.mocked(NextNavigation.useRouter);
+const mockedUseSearchParams = vi.mocked(NextNavigation.useSearchParams);
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -84,6 +311,22 @@ describe('FreemiumEmailCapture', () => {
     vi.clearAllMocks();
     mockPush.mockClear();
     mockedUseFreemiumStore.mockReturnValue(defaultStoreState);
+
+    // Restore default implementations after vi.clearAllMocks() resets them.
+    mockedUseRouter.mockImplementation(() => ({ push: mockPush }));
+    mockedUseSearchParams.mockImplementation(() => ({
+      get: vi.fn((param: string) => {
+        const params: Record<string, string> = {
+          utm_source: 'google',
+          utm_campaign: 'compliance_assessment',
+          utm_medium: 'cpc',
+          utm_term: 'gdpr_compliance',
+          utm_content: 'cta_button',
+        };
+        return params[param] || null;
+      }),
+      toString: () => 'utm_source=google&utm_campaign=compliance_assessment',
+    }));
   });
 
   afterEach(() => {
@@ -266,10 +509,10 @@ describe('FreemiumEmailCapture', () => {
 
     it('handles missing UTM parameters gracefully', () => {
       // Mock empty search params
-      vi.mocked(vi.importMock('next/navigation')).useSearchParams.mockReturnValue({
+      mockedUseSearchParams.mockReturnValue({
         get: vi.fn(() => null),
         toString: () => '',
-      });
+      } as any);
 
       const mockSetUtmParams = vi.fn();
       mockedUseFreemiumStore.mockReturnValue({

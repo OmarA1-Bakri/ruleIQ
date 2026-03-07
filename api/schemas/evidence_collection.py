@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 Evidence Collection Plan Schemas
 
@@ -17,10 +16,14 @@ class CollectionPlanCreate(BaseModel):
 
     framework: str = Field(..., description="Compliance framework (ISO27001, GDPR, SOC2, etc.)")
     target_completion_weeks: Optional[int] = Field(
-        12, ge=1, le=52, description="Target completion timeframe in weeks",
+        12,
+        ge=1,
+        le=52,
+        description="Target completion timeframe in weeks",
     )
     include_existing_evidence: Optional[bool] = Field(
-        False, description="Include analysis of existing evidence",
+        False,
+        description="Include analysis of existing evidence",
     )
 
 

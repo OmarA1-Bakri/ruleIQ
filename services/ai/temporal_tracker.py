@@ -145,7 +145,8 @@ class TemporalTracker:
         """Establish connection to Neo4j"""
         try:
             self.driver = AsyncGraphDatabase.driver(
-                self.neo4j_uri, auth=(self.neo4j_user, self.neo4j_password),
+                self.neo4j_uri,
+                auth=(self.neo4j_user, self.neo4j_password),
             )
             # Verify connectivity
             async with self.driver.session() as session:
@@ -185,9 +186,7 @@ class TemporalTracker:
             },
         }
 
-    async def extract_temporal_requirements(
-        self, regulation_id: str
-    ) -> List[ComplianceEvent]:
+    async def extract_temporal_requirements(self, regulation_id: str) -> List[ComplianceEvent]:
         """
         Extract temporal requirements from regulation metadata.
 
@@ -277,13 +276,12 @@ class TemporalTracker:
 
         # Parse month-based timelines
         month_match = re.search(
-            r"(\d+)[-\s]*(?:to[-\s]*)?(\d+)?\s*month", timeline_lower,
+            r"(\d+)[-\s]*(?:to[-\s]*)?(\d+)?\s*month",
+            timeline_lower,
         )
         if month_match:
             min_months = int(month_match.group(1))
-            max_months = (
-                int(month_match.group(2)) if month_match.group(2) else min_months,
-            )
+            max_months = (int(month_match.group(2)) if month_match.group(2) else min_months,)
             avg_months = (min_months + max_months) / 2
             return int(avg_months * 30)
 
@@ -357,7 +355,8 @@ class TemporalTracker:
         async with self.driver.session() as session:
             # Get applicable regulations
             regulations = await self._get_applicable_regulations(
-                business_profile, session,
+                business_profile,
+                session,
             )
 
             # Extract all temporal events
@@ -368,23 +367,17 @@ class TemporalTracker:
 
             # Add enforcement-based events
             enforcement_events = await self._get_enforcement_events(
-                business_profile, session, horizon_date,
+                business_profile,
+                session,
+                horizon_date,
             )
             all_events.extend(enforcement_events)
 
             # Categorize events by timeline
-            events_30 = [
-                e for e in all_events if 0 <= (e.event_date - current_date).days <= 30
-            ]
-            events_90 = [
-                e for e in all_events if 30 < (e.event_date - current_date).days <= 90
-            ]
-            events_180 = [
-                e for e in all_events if 90 < (e.event_date - current_date).days <= 180
-            ]
-            events_365 = [
-                e for e in all_events if 180 < (e.event_date - current_date).days <= 365
-            ]
+            events_30 = [e for e in all_events if 0 <= (e.event_date - current_date).days <= 30]
+            events_90 = [e for e in all_events if 30 < (e.event_date - current_date).days <= 90]
+            events_180 = [e for e in all_events if 90 < (e.event_date - current_date).days <= 180]
+            events_365 = [e for e in all_events if 180 < (e.event_date - current_date).days <= 365]
             overdue = [e for e in all_events if (e.event_date - current_date).days < 0]
 
             # Sort by date
@@ -393,7 +386,8 @@ class TemporalTracker:
 
             # Get upcoming amendments
             amendments = await self._get_upcoming_amendments(
-                [reg["id"] for reg in regulations], session,
+                [reg["id"] for reg in regulations],
+                session,
             )
 
             # Analyze seasonal patterns
@@ -401,7 +395,8 @@ class TemporalTracker:
 
             # Generate resource forecast
             resource_forecast = self._generate_resource_forecast(
-                all_events, horizon_days,
+                all_events,
+                horizon_days,
             )
 
             return ComplianceTimeline(
@@ -453,7 +448,8 @@ class TemporalTracker:
         """
 
         result = await session.run(
-            query, start_date=(datetime.now() - timedelta(days=365)).isoformat(),
+            query,
+            start_date=(datetime.now() - timedelta(days=365)).isoformat(),
         )
 
         events = []
@@ -513,9 +509,7 @@ class TemporalTracker:
         if month_counts:
             avg_count = np.mean(list(month_counts.values()))
             peak_months = [
-                month
-                for month, count in month_counts.items()
-                if count > avg_count * 1.2
+                month for month, count in month_counts.items() if count > avg_count * 1.2
             ]
         else:
             peak_months = []
@@ -605,7 +599,8 @@ class TemporalTracker:
             "constrained_months": constrained_months,
             "average_utilization": avg_utilization,
             "recommendation": self._generate_resource_recommendation(
-                avg_utilization, constrained_months,
+                avg_utilization,
+                constrained_months,
             ),
         }
 
@@ -642,7 +637,8 @@ class TemporalTracker:
         async with self.driver.session():
             # Simulate amendment history (in production, would query real data)
             amendment_history = self._simulate_amendment_history(
-                regulation_id, lookback_years,
+                regulation_id,
+                lookback_years,
             )
 
             # Analyze patterns
@@ -678,16 +674,14 @@ class TemporalTracker:
                 {
                     "date": amendment_date,
                     "type": np.random.choice(["major", "minor", "clarification"]),
-                    "description": f"Amendment {i+1} for {regulation_id}",
+                    "description": f"Amendment {i + 1} for {regulation_id}",
                 },
             )
 
         history.sort(key=lambda x: x["date"])
         return history
 
-    def _calculate_avg_days_between(
-        self, amendment_history: List[Dict[str, Any]]
-    ) -> float:
+    def _calculate_avg_days_between(self, amendment_history: List[Dict[str, Any]]) -> float:
         """Calculate average days between amendments"""
 
         if len(amendment_history) < 2:
@@ -695,9 +689,7 @@ class TemporalTracker:
 
         days_between = []
         for i in range(1, len(amendment_history)):
-            days = (
-                amendment_history[i]["date"] - amendment_history[i - 1]["date"]
-            ).days
+            days = (amendment_history[i]["date"] - amendment_history[i - 1]["date"]).days
             days_between.append(days)
 
         return np.mean(days_between) if days_between else 0
@@ -743,9 +735,7 @@ class TemporalTracker:
 
         return None
 
-    def _calculate_stability_score(
-        self, amendment_history: List[Dict[str, Any]]
-    ) -> float:
+    def _calculate_stability_score(self, amendment_history: List[Dict[str, Any]]) -> float:
         """Calculate regulation stability score (0-1, higher is more stable)"""
 
         if not amendment_history:
@@ -775,7 +765,8 @@ class TemporalTracker:
             Calendar organized by month
         """
         timeline = await self.generate_compliance_timeline(
-            business_profile, horizon_days=months_ahead * 30,
+            business_profile,
+            horizon_days=months_ahead * 30,
         )
 
         # Organize events by month
@@ -814,7 +805,6 @@ async def main():
         raise ValueError("NEO4J_PASSWORD environment variable not set. Configure via Doppler.")
 
     async with TemporalTracker(neo4j_uri, neo4j_user, neo4j_password) as tracker:
-
         # Test business profile
         business_profile = {
             "industry": "finance",
@@ -902,7 +892,8 @@ async def main():
         logger.info("\n📆 Compliance Calendar (Next 3 Months):")
 
         calendar = await tracker.generate_compliance_calendar(
-            business_profile, months_ahead=3,
+            business_profile,
+            months_ahead=3,
         )
 
         for month_key in sorted(list(calendar.keys()))[:3]:

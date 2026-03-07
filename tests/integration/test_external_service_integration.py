@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 External Service Integration Tests
 
@@ -78,15 +77,15 @@ class TestAIServiceIntegration:
         }
 
         response = await async_client.post(
-            "/assessments", json=assessment_data, headers=auth_headers,
+            "/assessments",
+            json=assessment_data,
+            headers=auth_headers,
         )
         assert response.status_code == 201
         assessment_id = response.json()["id"]
 
         # Test 1: Successful Gemini API call
-        with patch(
-            "services.ai.assistant.ComplianceAssistant._call_gemini_api"
-        ) as mock_gemini:
+        with patch("services.ai.assistant.ComplianceAssistant._call_gemini_api") as mock_gemini:
             mock_gemini.return_value = {
                 "compliance_score": 0.85,
                 "risk_level": "LOW",
@@ -95,7 +94,8 @@ class TestAIServiceIntegration:
             }
 
             response = await async_client.post(
-                f"/assessments/{assessment_id}/analyze", headers=auth_headers,
+                f"/assessments/{assessment_id}/analyze",
+                headers=auth_headers,
             )
 
             assert response.status_code == 200
@@ -114,7 +114,9 @@ class TestAIServiceIntegration:
 
         assessment_data = {"name": "Circuit Breaker Test", "framework": "GDPR"}
         response = await async_client.post(
-            "/assessments", json=assessment_data, headers=auth_headers,
+            "/assessments",
+            json=assessment_data,
+            headers=auth_headers,
         )
         assessment_id = response.json()["id"]
 
@@ -128,7 +130,8 @@ class TestAIServiceIntegration:
             mock_cb_class.return_value = mock_cb
 
             response = await async_client.post(
-                f"/assessments/{assessment_id}/analyze", headers=auth_headers,
+                f"/assessments/{assessment_id}/analyze",
+                headers=auth_headers,
             )
 
             assert response.status_code == 200
@@ -136,16 +139,15 @@ class TestAIServiceIntegration:
             assert result["compliance_score"] == 0.8
 
         # Test circuit breaker OPEN state (failures trigger fallback)
-        with patch(
-            "services.ai.assistant.ComplianceAssistant._call_gemini_api"
-        ) as mock_gemini:
+        with patch("services.ai.assistant.ComplianceAssistant._call_gemini_api") as mock_gemini:
             # Simulate repeated failures
             mock_gemini.side_effect = Exception("API timeout")
 
             # Multiple failed requests should eventually trigger fallback
             for attempt in range(3):
                 response = await async_client.post(
-                    f"/assessments/{assessment_id}/analyze", headers=auth_headers,
+                    f"/assessments/{assessment_id}/analyze",
+                    headers=auth_headers,
                 )
 
                 # Should still return 200 due to fallback mechanism
@@ -169,13 +171,13 @@ class TestAIServiceIntegration:
 
         assessment_data = {"name": "Timeout Test", "framework": "GDPR"}
         response = await async_client.post(
-            "/assessments", json=assessment_data, headers=auth_headers,
+            "/assessments",
+            json=assessment_data,
+            headers=auth_headers,
         )
         assessment_id = response.json()["id"]
 
-        with patch(
-            "services.ai.assistant.ComplianceAssistant._call_gemini_api"
-        ) as mock_gemini:
+        with patch("services.ai.assistant.ComplianceAssistant._call_gemini_api") as mock_gemini:
             # Simulate timeout
             async def slow_response(*args, **kwargs):
                 await asyncio.sleep(2)  # Longer than circuit breaker timeout
@@ -185,15 +187,14 @@ class TestAIServiceIntegration:
 
             start_time = time.time()
             response = await async_client.post(
-                f"/assessments/{assessment_id}/analyze", headers=auth_headers,
+                f"/assessments/{assessment_id}/analyze",
+                headers=auth_headers,
             )
             end_time = time.time()
 
             # Should timeout and use fallback within reasonable time
             assert response.status_code == 200
-            assert (
-                end_time - start_time
-            ) < 5  # Should not wait full 2 seconds due to timeout
+            assert (end_time - start_time) < 5  # Should not wait full 2 seconds due to timeout
 
             result = response.json()
             # Should either be fallback response or successful with timeout handling
@@ -207,16 +208,16 @@ class TestAIServiceIntegration:
 
         assessment_data = {"name": "Multi-Provider Test", "framework": "GDPR"}
         response = await async_client.post(
-            "/assessments", json=assessment_data, headers=auth_headers,
+            "/assessments",
+            json=assessment_data,
+            headers=auth_headers,
         )
         assessment_id = response.json()["id"]
 
-        with patch(
-            "services.ai.assistant.ComplianceAssistant._call_gemini_api"
-        ) as mock_gemini, patch(
-            "services.ai.assistant.ComplianceAssistant._call_openai_api"
-        ) as mock_openai:
-
+        with (
+            patch("services.ai.assistant.ComplianceAssistant._call_gemini_api") as mock_gemini,
+            patch("services.ai.assistant.ComplianceAssistant._call_openai_api") as mock_openai,
+        ):
             # Gemini fails
             mock_gemini.side_effect = Exception("Gemini API unavailable")
 
@@ -228,7 +229,8 @@ class TestAIServiceIntegration:
             }
 
             response = await async_client.post(
-                f"/assessments/{assessment_id}/analyze", headers=auth_headers,
+                f"/assessments/{assessment_id}/analyze",
+                headers=auth_headers,
             )
 
             assert response.status_code == 200
@@ -275,7 +277,9 @@ class TestDatabaseIntegration:
                 "framework": "GDPR",
             }
             return await async_client.post(
-                "/assessments", json=assessment_data, headers=auth_headers,
+                "/assessments",
+                json=assessment_data,
+                headers=auth_headers,
             )
 
         # Create multiple assessments concurrently
@@ -284,15 +288,13 @@ class TestDatabaseIntegration:
 
         # Count successful responses
         successful_responses = [
-            r
-            for r in responses
-            if not isinstance(r, Exception) and r.status_code == 201
+            r for r in responses if not isinstance(r, Exception) and r.status_code == 201
         ]
 
         # Most requests should succeed (allowing for some connection pool limits)
-        assert (
-            len(successful_responses) >= 8
-        ), f"Only {len(successful_responses)}/10 requests succeeded"
+        assert len(successful_responses) >= 8, (
+            f"Only {len(successful_responses)}/10 requests succeeded"
+        )
 
     @pytest.mark.asyncio
     async def test_database_transaction_consistency(
@@ -308,7 +310,9 @@ class TestDatabaseIntegration:
         }
 
         response = await async_client.post(
-            "/assessments", json=assessment_data, headers=auth_headers,
+            "/assessments",
+            json=assessment_data,
+            headers=auth_headers,
         )
         assert response.status_code == 201
         assessment_id = response.json()["id"]
@@ -318,7 +322,10 @@ class TestDatabaseIntegration:
         metadata = {"title": "Transaction Test Evidence", "framework": "GDPR"}
 
         response = await async_client.post(
-            "/evidence/upload", files=files, data=metadata, headers=auth_headers,
+            "/evidence/upload",
+            files=files,
+            data=metadata,
+            headers=auth_headers,
         )
         assert response.status_code == 201
         evidence_id = response.json()["id"]
@@ -326,19 +333,23 @@ class TestDatabaseIntegration:
         # Link evidence to assessment (should maintain referential integrity)
         update_data = {"evidence_ids": [evidence_id]}
         response = await async_client.patch(
-            f"/assessments/{assessment_id}", json=update_data, headers=auth_headers,
+            f"/assessments/{assessment_id}",
+            json=update_data,
+            headers=auth_headers,
         )
         assert response.status_code == 200
 
         # Verify consistency - both assessment and evidence should exist and be linked
         response = await async_client.get(
-            f"/assessments/{assessment_id}", headers=auth_headers,
+            f"/assessments/{assessment_id}",
+            headers=auth_headers,
         )
         assessment = response.json()
         assert evidence_id in assessment["evidence_ids"]
 
         response = await async_client.get(
-            f"/evidence/{evidence_id}", headers=auth_headers,
+            f"/evidence/{evidence_id}",
+            headers=auth_headers,
         )
         assert response.status_code == 200
 
@@ -362,7 +373,9 @@ class TestDatabaseIntegration:
 
             # Should handle database connection errors gracefully
             response = await async_client.post(
-                "/assessments", json=assessment_data, headers=auth_headers,
+                "/assessments",
+                json=assessment_data,
+                headers=auth_headers,
             )
 
             # Either succeeds with retry or returns appropriate error
@@ -470,7 +483,9 @@ class TestRedisIntegration:
 
         # Create new assessment
         response = await async_client.post(
-            "/assessments", json=assessment_data, headers=auth_headers,
+            "/assessments",
+            json=assessment_data,
+            headers=auth_headers,
         )
         assert response.status_code == 201
 
@@ -486,9 +501,7 @@ class TestRedisIntegration:
         try:
             # Test direct Redis connection
             redis_client = (
-                redis.from_url(settings.REDIS_URL)
-                if hasattr(settings, "REDIS_URL")
-                else None,
+                redis.from_url(settings.REDIS_URL) if hasattr(settings, "REDIS_URL") else None,
             )
 
             if redis_client:
@@ -519,9 +532,7 @@ class TestEmailServiceIntegration:
             yield client
 
     @pytest.mark.asyncio
-    async def test_password_reset_email_integration(
-        self, async_client: httpx.AsyncClient
-    ):
+    async def test_password_reset_email_integration(self, async_client: httpx.AsyncClient):
         """Test password reset email functionality"""
 
         # Register user first
@@ -548,7 +559,8 @@ class TestEmailServiceIntegration:
             # Email service should be called
             if response.status_code == 200:
                 mock_email.assert_called_once_with(
-                    registration_data["email"], reset_token=str,
+                    registration_data["email"],
+                    reset_token=str,
                 )
 
     @pytest.mark.asyncio
@@ -557,22 +569,24 @@ class TestEmailServiceIntegration:
     ):
         """Test email notifications for assessment completion"""
 
-        with patch(
-            "services.email_service.send_assessment_completion_email"
-        ) as mock_email:
+        with patch("services.email_service.send_assessment_completion_email") as mock_email:
             mock_email.return_value = True
 
             # Create and complete assessment
             assessment_data = {"name": "Email Notification Test", "framework": "GDPR"}
             response = await async_client.post(
-                "/assessments", json=assessment_data, headers=auth_headers,
+                "/assessments",
+                json=assessment_data,
+                headers=auth_headers,
             )
             assessment_id = response.json()["id"]
 
             # Mark as completed (trigger email)
             update_data = {"status": "completed"}
             response = await async_client.patch(
-                f"/assessments/{assessment_id}", json=update_data, headers=auth_headers,
+                f"/assessments/{assessment_id}",
+                json=update_data,
+                headers=auth_headers,
             )
 
             assert response.status_code == 200
@@ -616,11 +630,14 @@ class TestFileStorageIntegration:
         metadata = {
             "title": "Storage Integration Test",
             "description": "Test file for storage integration",
-            "evidence_type": "policy_document"
+            "evidence_type": "policy_document",
         }
 
         response = await async_client.post(
-            "/evidence/upload", files=files, data=metadata, headers=auth_headers,
+            "/evidence/upload",
+            files=files,
+            data=metadata,
+            headers=auth_headers,
         )
 
         assert response.status_code == 201
@@ -633,7 +650,8 @@ class TestFileStorageIntegration:
         # Test file retrieval
         evidence_id = evidence["id"]
         response = await async_client.get(
-            f"/evidence/{evidence_id}/download", headers=auth_headers,
+            f"/evidence/{evidence_id}/download",
+            headers=auth_headers,
         )
 
         # Should either return file or redirect to file location
@@ -660,7 +678,10 @@ class TestFileStorageIntegration:
         }
 
         response = await async_client.post(
-            "/evidence/upload", files=files, data=metadata, headers=auth_headers,
+            "/evidence/upload",
+            files=files,
+            data=metadata,
+            headers=auth_headers,
         )
 
         assert response.status_code == 201
@@ -676,7 +697,8 @@ class TestFileStorageIntegration:
             }
 
             response = await async_client.post(
-                f"/evidence/{evidence_id}/process", headers=auth_headers,
+                f"/evidence/{evidence_id}/process",
+                headers=auth_headers,
             )
 
             assert response.status_code == 200
@@ -717,9 +739,7 @@ class TestThirdPartyAPIIntegration:
     ):
         """Test Companies House API integration for company verification"""
 
-        with patch(
-            "services.companies_house.CompaniesHouseAPI.lookup_company"
-        ) as mock_ch:
+        with patch("services.companies_house.CompaniesHouseAPI.lookup_company") as mock_ch:
             mock_ch.return_value = {
                 "company_number": "12345678",
                 "company_name": "Test Company Ltd",
@@ -756,7 +776,8 @@ class TestThirdPartyAPIIntegration:
 
             # Try to use an external integration
             response = await async_client.get(
-                "/integrations/health-check", headers=auth_headers,
+                "/integrations/health-check",
+                headers=auth_headers,
             )
 
             if response.status_code == 404:

@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 Authentication utilities for testing.
 """
@@ -44,9 +43,7 @@ class TestAuthManager:
         self.test_users[user_id] = user
         return user
 
-    def create_test_token(
-        self, user: User, expires_delta: Optional[timedelta] = None
-    ) -> str:
+    def create_test_token(self, user: User, expires_delta: Optional[timedelta] = None) -> str:
         """Create a test JWT token."""
         if expires_delta is None:
             expires_delta = timedelta(minutes=30)
@@ -110,9 +107,7 @@ class GlobalTestAuthManager:
         self.test_users[user_id] = user
         return user
 
-    def create_test_token(
-        self, user: User, expires_delta: Optional[timedelta] = None
-    ) -> str:
+    def create_test_token(self, user: User, expires_delta: Optional[timedelta] = None) -> str:
         """Create a test JWT token."""
         if expires_delta is None:
             expires_delta = timedelta(minutes=30)
@@ -206,6 +201,8 @@ def setup_auth_mocks():
 
     sys.modules["google.generativeai"] = mock_genai
     sys.modules["google.generativeai.types"] = unittest.mock.MagicMock()
+    sys.modules["google.genai"] = mock_genai
+    sys.modules["google.genai.types"] = unittest.mock.MagicMock()
 
     return mock_genai
 

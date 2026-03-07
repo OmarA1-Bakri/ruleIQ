@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 export const LiquidDataVisualization = ({ data = [] }: { data?: number[] }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationRef = useRef<number | null>(null);
-  const [particles, setParticles] = useState<any[]>([]);
+  const [_particles, _setParticles] = useState<any[]>([]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -35,7 +35,7 @@ export const LiquidDataVisualization = ({ data = [] }: { data?: number[] }) => {
       });
     }
 
-    setParticles(liquidParticles);
+    _setParticles(liquidParticles);
 
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);

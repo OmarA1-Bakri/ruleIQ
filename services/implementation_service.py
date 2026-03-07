@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 from uuid import UUID
@@ -47,7 +45,8 @@ async def generate_implementation_plan(
     # Get policy if provided
     if policy_id:
         policy_stmt = select(GeneratedPolicy).where(
-            GeneratedPolicy.id == policy_id, GeneratedPolicy.user_id == user.id,
+            GeneratedPolicy.id == policy_id,
+            GeneratedPolicy.user_id == user.id,
         )
         policy_result = await db.execute(policy_stmt)
         policy_result.scalars().first()
@@ -67,7 +66,8 @@ async def generate_implementation_plan(
         business_profile_id=profile.id,
         framework_id=framework.id,
         title=plan_data.get(
-            "title", f"Implementation Plan for {framework.display_name}",
+            "title",
+            f"Implementation Plan for {framework.display_name}",
         ),
         phases=plan_data.get("phases", []),
         planned_start_date=start_date,
@@ -87,15 +87,14 @@ async def get_implementation_plan(
 ) -> Optional[ImplementationPlan]:
     """Get a specific implementation plan by its ID."""
     stmt = select(ImplementationPlan).where(
-        ImplementationPlan.id == plan_id, ImplementationPlan.user_id == user.id,
+        ImplementationPlan.id == plan_id,
+        ImplementationPlan.user_id == user.id,
     )
     result = await db.execute(stmt)
     return result.scalars().first()
 
 
-async def list_implementation_plans(
-    db: AsyncSession, user: User
-) -> List[ImplementationPlan]:
+async def list_implementation_plans(db: AsyncSession, user: User) -> List[ImplementationPlan]:
     """List all implementation plans for a user."""
     stmt = select(ImplementationPlan).where(ImplementationPlan.user_id == user.id)
     result = await db.execute(stmt)
@@ -147,9 +146,7 @@ async def get_plan_dashboard(
             if task.get("status") == "completed":
                 completed_tasks += 1
 
-    completion_percentage = (
-        (completed_tasks / total_tasks * 100) if total_tasks > 0 else 0,
-    )
+    completion_percentage = ((completed_tasks / total_tasks * 100) if total_tasks > 0 else 0,)
 
     # Calculate timeline status
     days_elapsed = (datetime.now(timezone.utc) - plan.created_at).days

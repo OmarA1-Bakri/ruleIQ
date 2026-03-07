@@ -17,13 +17,13 @@ class AssessmentSession(Base):
     id = Column(PG_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(PG_UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     business_profile_id = Column(
-        PG_UUID(as_uuid=True), ForeignKey("business_profiles.id"), nullable=True,
+        PG_UUID(as_uuid=True),
+        ForeignKey("business_profiles.id"),
+        nullable=True,
     )
 
     # Session metadata
-    session_type = Column(
-        String, default="compliance_scoping"
-    )  # scoping, readiness, etc.
+    session_type = Column(String, default="compliance_scoping")  # scoping, readiness, etc.
     status = Column(String, default="in_progress")  # in_progress, completed, abandoned
 
     # Assessment progress
@@ -35,9 +35,7 @@ class AssessmentSession(Base):
     # Assessment data
     responses = Column(PG_JSONB, default=dict)  # Question ID -> Answer mapping
     calculated_scores = Column(PG_JSONB, default=dict)
-    recommendations = Column(
-        PG_JSONB, default=list
-    )  # Recommended frameworks with scores
+    recommendations = Column(PG_JSONB, default=list)  # Recommended frameworks with scores
 
     # Session state
     started_at = Column(DateTime, default=datetime.utcnow)
@@ -54,5 +52,7 @@ class AssessmentSession(Base):
 
     # Relationships
     questions = relationship(
-        "AssessmentQuestion", back_populates="session", cascade="all, delete-orphan",
+        "AssessmentQuestion",
+        back_populates="session",
+        cascade="all, delete-orphan",
     )

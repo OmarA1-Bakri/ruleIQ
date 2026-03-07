@@ -58,7 +58,8 @@ const safeStorage = {
       if (typeof window !== 'undefined' && window.localStorage) {
         return window.localStorage.getItem(key);
       }
-    } catch (error) {
+    } catch (_error) {
+      // intentionally empty - localStorage unavailable
     }
     return null;
   },
@@ -67,7 +68,8 @@ const safeStorage = {
       if (typeof window !== 'undefined' && window.localStorage) {
         window.localStorage.setItem(key, value);
       }
-    } catch (error) {
+    } catch (_error) {
+      // intentionally empty - localStorage unavailable
     }
   },
   removeItem: (key: string): void => {
@@ -75,7 +77,8 @@ const safeStorage = {
       if (typeof window !== 'undefined' && window.localStorage) {
         window.localStorage.removeItem(key);
       }
-    } catch (error) {
+    } catch (_error) {
+      // intentionally empty - localStorage unavailable
     }
   },
 };

@@ -39,11 +39,11 @@ class MemoryUsageTracker:
         memory_percent = self._process.memory_percent()
 
         sample = {
-            'timestamp': current_time,
-            'rss_bytes': memory_info.rss,
-            'vms_bytes': memory_info.vms,
-            'memory_percent': memory_percent,
-            'available_mb': psutil.virtual_memory().available / (1024 * 1024)
+            "timestamp": current_time,
+            "rss_bytes": memory_info.rss,
+            "vms_bytes": memory_info.vms,
+            "memory_percent": memory_percent,
+            "available_mb": psutil.virtual_memory().available / (1024 * 1024),
         }
 
         self._samples.append(sample)
@@ -58,10 +58,7 @@ class MemoryUsageTracker:
             component_name: Name of the component
             size_bytes: Memory usage in bytes
         """
-        entry = {
-            'timestamp': time.time(),
-            'bytes_used': size_bytes
-        }
+        entry = {"timestamp": time.time(), "bytes_used": size_bytes}
         self._component_memory[component_name].append(entry)
 
         # Keep only last 100 entries per component
@@ -83,13 +80,13 @@ class MemoryUsageTracker:
         trends = {}
 
         if recent_samples:
-            recent_avg = sum(s['rss_bytes'] for s in recent_samples) / len(recent_samples)
-            trends['current_rss_mb'] = recent_avg / (1024 * 1024)
+            recent_avg = sum(s["rss_bytes"] for s in recent_samples) / len(recent_samples)
+            trends["current_rss_mb"] = recent_avg / (1024 * 1024)
 
         if older_samples:
-            older_avg = sum(s['rss_bytes'] for s in older_samples) / len(older_samples)
-            trends['previous_rss_mb'] = older_avg / (1024 * 1024)
-            trends['growth_rate'] = (recent_avg - older_avg) / older_avg if older_avg > 0 else 0
+            older_avg = sum(s["rss_bytes"] for s in older_samples) / len(older_samples)
+            trends["previous_rss_mb"] = older_avg / (1024 * 1024)
+            trends["growth_rate"] = (recent_avg - older_avg) / older_avg if older_avg > 0 else 0
 
         return trends
 
@@ -106,7 +103,7 @@ class MemoryUsageTracker:
             return False
 
         samples = list(self._samples)[-10:]
-        rss_values = [s['rss_bytes'] for s in samples]
+        rss_values = [s["rss_bytes"] for s in samples]
 
         # Check if memory is consistently growing
         is_growing = all(rss_values[i] > rss_values[i - 1] for i in range(1, len(rss_values)))
@@ -115,8 +112,7 @@ class MemoryUsageTracker:
         return is_growing and total_growth > threshold_mb
 
     def detect_memory_leaks(
-        self,
-        growth_threshold_mb_per_hour: float = 10.0
+        self, growth_threshold_mb_per_hour: float = 10.0
     ) -> Dict[str, Dict[str, Any]]:
         """Detect potential memory leaks across all components.
 
@@ -135,12 +131,12 @@ class MemoryUsageTracker:
             first = entries[0]
             last = entries[-1]
 
-            time_diff_seconds = last['timestamp'] - first['timestamp']
+            time_diff_seconds = last["timestamp"] - first["timestamp"]
             if time_diff_seconds <= 0:
                 continue
 
             time_diff_hours = time_diff_seconds / 3600.0
-            growth_bytes = last['bytes_used'] - first['bytes_used']
+            growth_bytes = last["bytes_used"] - first["bytes_used"]
             growth_mb = growth_bytes / (1024 * 1024)
             growth_rate_mb_per_hour = growth_mb / time_diff_hours if time_diff_hours > 0 else 0
 
@@ -148,17 +144,17 @@ class MemoryUsageTracker:
 
             if suspected_leak or growth_mb > 0:
                 leaks[component] = {
-                    'suspected_leak': suspected_leak,
-                    'growth_rate_mb_per_hour': growth_rate_mb_per_hour,
-                    'total_growth_mb': growth_mb,
-                    'time_window_hours': time_diff_hours,
-                    'initial_mb': first['bytes_used'] / (1024 * 1024),
-                    'current_mb': last['bytes_used'] / (1024 * 1024)
+                    "suspected_leak": suspected_leak,
+                    "growth_rate_mb_per_hour": growth_rate_mb_per_hour,
+                    "total_growth_mb": growth_mb,
+                    "time_window_hours": time_diff_hours,
+                    "initial_mb": first["bytes_used"] / (1024 * 1024),
+                    "current_mb": last["bytes_used"] / (1024 * 1024),
                 }
 
         return leaks
 
-    def get_component_stats(self, component: str = None) -> Dict[str, Any]:
+    def get_component_stats(self, component: Optional[str] = None) -> Dict[str, Any]:
         """Get memory statistics for a specific component or all components.
 
         Args:
@@ -170,40 +166,40 @@ class MemoryUsageTracker:
         if component:
             if component not in self._component_memory:
                 return {
-                    'current_bytes': 0,
-                    'allocated_bytes': 0,
-                    'usage_ratio': 0.0,
-                    'current_mb': 0.0,
-                    'average_mb': 0.0,
-                    'peak_mb': 0.0,
-                    'min_mb': 0.0
+                    "current_bytes": 0,
+                    "allocated_bytes": 0,
+                    "usage_ratio": 0.0,
+                    "current_mb": 0.0,
+                    "average_mb": 0.0,
+                    "peak_mb": 0.0,
+                    "min_mb": 0.0,
                 }
 
             entries = self._component_memory[component]
             if not entries:
                 return {
-                    'current_bytes': 0,
-                    'allocated_bytes': 0,
-                    'usage_ratio': 0.0,
-                    'current_mb': 0.0,
-                    'average_mb': 0.0,
-                    'peak_mb': 0.0,
-                    'min_mb': 0.0
+                    "current_bytes": 0,
+                    "allocated_bytes": 0,
+                    "usage_ratio": 0.0,
+                    "current_mb": 0.0,
+                    "average_mb": 0.0,
+                    "peak_mb": 0.0,
+                    "min_mb": 0.0,
                 }
 
             latest = entries[-1]
-            current_bytes = latest['bytes_used']
-            allocated_bytes = latest.get('bytes_allocated', current_bytes)
-            bytes_used_values = [e['bytes_used'] for e in entries]
+            current_bytes = latest["bytes_used"]
+            allocated_bytes = latest.get("bytes_allocated", current_bytes)
+            bytes_used_values = [e["bytes_used"] for e in entries]
 
             return {
-                'current_bytes': current_bytes,
-                'allocated_bytes': allocated_bytes,
-                'usage_ratio': current_bytes / allocated_bytes if allocated_bytes > 0 else 0.0,
-                'current_mb': current_bytes / (1024 * 1024),
-                'average_mb': sum(bytes_used_values) / len(bytes_used_values) / (1024 * 1024),
-                'peak_mb': max(bytes_used_values) / (1024 * 1024),
-                'min_mb': min(bytes_used_values) / (1024 * 1024)
+                "current_bytes": current_bytes,
+                "allocated_bytes": allocated_bytes,
+                "usage_ratio": current_bytes / allocated_bytes if allocated_bytes > 0 else 0.0,
+                "current_mb": current_bytes / (1024 * 1024),
+                "average_mb": sum(bytes_used_values) / len(bytes_used_values) / (1024 * 1024),
+                "peak_mb": max(bytes_used_values) / (1024 * 1024),
+                "min_mb": min(bytes_used_values) / (1024 * 1024),
             }
         else:
             all_stats = {}
@@ -223,15 +219,15 @@ class MemoryUsageTracker:
         for _component, entries in self._component_memory.items():
             if entries:
                 latest = entries[-1]
-                total_used += latest['bytes_used']
-                total_allocated += latest.get('bytes_allocated', latest['bytes_used'])
+                total_used += latest["bytes_used"]
+                total_allocated += latest.get("bytes_allocated", latest["bytes_used"])
 
         return {
-            'total_used_bytes': total_used,
-            'total_allocated_bytes': total_allocated,
-            'usage_ratio': total_used / total_allocated if total_allocated > 0 else 0.0,
-            'total_used_mb': total_used / (1024 * 1024),
-            'total_allocated_mb': total_allocated / (1024 * 1024)
+            "total_used_bytes": total_used,
+            "total_allocated_bytes": total_allocated,
+            "usage_ratio": total_used / total_allocated if total_allocated > 0 else 0.0,
+            "total_used_mb": total_used / (1024 * 1024),
+            "total_allocated_mb": total_allocated / (1024 * 1024),
         }
 
     def analyze_memory_growth(self, component: str) -> Dict[str, Any]:
@@ -245,25 +241,25 @@ class MemoryUsageTracker:
         """
         if component not in self._component_memory or len(self._component_memory[component]) < 1:
             return {
-                'initial_bytes': 0,
-                'current_bytes': 0,
-                'growth_bytes': 0,
-                'growth_rate_bytes_per_second': 0.0,
-                'growth_rate_mb_per_sec': 0.0,
-                'total_growth_mb': 0.0,
-                'growth_percentage': 0.0,
-                'is_growing': False
+                "initial_bytes": 0,
+                "current_bytes": 0,
+                "growth_bytes": 0,
+                "growth_rate_bytes_per_second": 0.0,
+                "growth_rate_mb_per_sec": 0.0,
+                "total_growth_mb": 0.0,
+                "growth_percentage": 0.0,
+                "is_growing": False,
             }
 
         entries = self._component_memory[component]
         first_entry = entries[0]
         last_entry = entries[-1]
 
-        first_bytes = first_entry['bytes_used']
-        last_bytes = last_entry['bytes_used']
+        first_bytes = first_entry["bytes_used"]
+        last_bytes = last_entry["bytes_used"]
 
         if len(entries) > 1:
-            time_diff = last_entry['timestamp'] - first_entry['timestamp']
+            time_diff = last_entry["timestamp"] - first_entry["timestamp"]
             if time_diff <= 0:
                 time_diff = 1
         else:
@@ -276,14 +272,14 @@ class MemoryUsageTracker:
         growth_percentage = (last_bytes - first_bytes) / first_bytes * 100 if first_bytes > 0 else 0
 
         return {
-            'initial_bytes': first_bytes,
-            'current_bytes': last_bytes,
-            'growth_bytes': growth_bytes,
-            'growth_rate_bytes_per_second': growth_rate_bytes,
-            'growth_rate_mb_per_sec': growth_rate_mb,
-            'total_growth_mb': growth_mb,
-            'growth_percentage': growth_percentage,
-            'is_growing': growth_bytes > 0
+            "initial_bytes": first_bytes,
+            "current_bytes": last_bytes,
+            "growth_bytes": growth_bytes,
+            "growth_rate_bytes_per_second": growth_rate_bytes,
+            "growth_rate_mb_per_sec": growth_rate_mb,
+            "total_growth_mb": growth_mb,
+            "growth_percentage": growth_percentage,
+            "is_growing": growth_bytes > 0,
         }
 
     def set_memory_limit(self, component: str, max_bytes: int) -> None:
@@ -295,11 +291,7 @@ class MemoryUsageTracker:
         """
         self._memory_limits[component] = max_bytes
 
-    def check_memory_limit(
-        self,
-        component: str,
-        current_bytes: int = None
-    ) -> bool:
+    def check_memory_limit(self, component: str, current_bytes: Optional[int] = None) -> bool:
         """Check if a component is within its memory limit.
 
         Args:
@@ -316,7 +308,7 @@ class MemoryUsageTracker:
 
         if current_bytes is None:
             if component in self._component_memory and self._component_memory[component]:
-                current_bytes = self._component_memory[component][-1]['bytes_used']
+                current_bytes = self._component_memory[component][-1]["bytes_used"]
             else:
                 current_bytes = 0
 
@@ -333,23 +325,20 @@ class MemoryUsageTracker:
         for component, limit in self._memory_limits.items():
             current_bytes = 0
             if component in self._component_memory and self._component_memory[component]:
-                current_bytes = self._component_memory[component][-1]['bytes_used']
+                current_bytes = self._component_memory[component][-1]["bytes_used"]
 
             if current_bytes > limit:
                 violations[component] = {
-                    'current_bytes': current_bytes,
-                    'limit_bytes': limit,
-                    'over_limit_bytes': current_bytes - limit,
-                    'usage_ratio': current_bytes / limit if limit > 0 else 0
+                    "current_bytes": current_bytes,
+                    "limit_bytes": limit,
+                    "over_limit_bytes": current_bytes - limit,
+                    "usage_ratio": current_bytes / limit if limit > 0 else 0,
                 }
 
         return violations
 
     def record_memory_usage(
-        self,
-        component: str,
-        bytes_used: int,
-        bytes_allocated: int = None
+        self, component: str, bytes_used: int, bytes_allocated: Optional[int] = None
     ) -> None:
         """Record memory usage for a component.
 
@@ -362,9 +351,9 @@ class MemoryUsageTracker:
             self._component_memory[component] = []
 
         entry = {
-            'timestamp': time.time(),
-            'bytes_used': bytes_used,
-            'bytes_allocated': bytes_allocated or bytes_used
+            "timestamp": time.time(),
+            "bytes_used": bytes_used,
+            "bytes_allocated": bytes_allocated or bytes_used,
         }
 
         self._component_memory[component].append(entry)

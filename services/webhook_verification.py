@@ -110,19 +110,31 @@ class WebhookVerificationService:
             # Verify based on format
             if config["format"] == "timestamp_signature":
                 return await self._verify_timestamp_signature(
-                    payload, signature_header, secret, config,
+                    payload,
+                    signature_header,
+                    secret,
+                    config,
                 )
             elif config["format"] == "sha_signature":
                 return await self._verify_sha_signature(
-                    payload, signature_header, secret, config,
+                    payload,
+                    signature_header,
+                    secret,
+                    config,
                 )
             elif config["format"] == "base64_signature":
                 return await self._verify_base64_signature(
-                    payload, signature_header, secret, config,
+                    payload,
+                    signature_header,
+                    secret,
+                    config,
                 )
             elif config["format"] == "hmac_signature":
                 return await self._verify_hmac_signature(
-                    payload, signature_header, secret, config,
+                    payload,
+                    signature_header,
+                    secret,
+                    config,
                 )
             else:
                 return False, f"Unknown signature format: {config['format']}"
@@ -382,7 +394,9 @@ class WebhookVerificationService:
             # Store in Redis with expiration
             log_key = f"webhook_log:{provider}:{int(time.time())}"
             await self.redis_client.setex(
-                log_key, 86400, json.dumps(log_entry)  # 24 hours,
+                log_key,
+                86400,
+                json.dumps(log_entry),  # 24 hours,
             )
 
             # Update metrics
@@ -418,7 +432,9 @@ async def verify_webhook_signature(
         service = WebhookVerificationService(redis_client)
 
         is_valid, error = await service.verify_webhook(
-            request=request, provider=provider, secret=secret,
+            request=request,
+            provider=provider,
+            secret=secret,
         )
 
         # Log the attempt

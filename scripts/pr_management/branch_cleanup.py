@@ -10,7 +10,7 @@ from datetime import datetime
 import logging
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -20,16 +20,16 @@ class BranchCleanup:
     def __init__(self, dry_run: bool = True) -> None:
         """Initialize branch cleanup"""
         self.dry_run = dry_run
-        self.protected_branches = ['main', 'master', 'develop', 'staging', 'production']
+        self.protected_branches = ["main", "master", "develop", "staging", "production"]
 
     def cleanup_merged_branches(self) -> Dict:
         """Clean up merged branches"""
         results = {
-            'timestamp': datetime.now().isoformat(),
-            'local_deleted': [],
-            'remote_deleted': [],
-            'skipped': [],
-            'errors': []
+            "timestamp": datetime.now().isoformat(),
+            "local_deleted": [],
+            "remote_deleted": [],
+            "skipped": [],
+            "errors": [],
         }
 
         # Get merged branches
@@ -40,19 +40,19 @@ class BranchCleanup:
         for branch in merged_local:
             if branch not in self.protected_branches:
                 if self._delete_local_branch(branch):
-                    results['local_deleted'].append(branch)
+                    results["local_deleted"].append(branch)
                 else:
-                    results['errors'].append(f"Failed to delete local branch: {branch}")
+                    results["errors"].append(f"Failed to delete local branch: {branch}")
             else:
-                results['skipped'].append(f"Protected branch: {branch}")
+                results["skipped"].append(f"Protected branch: {branch}")
 
         # Clean remote branches
         for branch in merged_remote:
             if branch not in self.protected_branches:
                 if self._delete_remote_branch(branch):
-                    results['remote_deleted'].append(branch)
+                    results["remote_deleted"].append(branch)
                 else:
-                    results['errors'].append(f"Failed to delete remote branch: {branch}")
+                    results["errors"].append(f"Failed to delete remote branch: {branch}")
 
         return results
 
@@ -60,13 +60,16 @@ class BranchCleanup:
         """Get list of merged branches"""
         try:
             if remote:
-                cmd = ['git', 'branch', '-r', '--merged', 'origin/main']
+                cmd = ["git", "branch", "-r", "--merged", "origin/main"]
             else:
-                cmd = ['git', 'branch', '--merged', 'main']
+                cmd = ["git", "branch", "--merged", "main"]
 
             result = subprocess.run(cmd, capture_output=True, text=True, check=True)
-            branches = [b.strip().replace('origin/', '') for b in result.stdout.splitlines()
-                        if b.strip() and not b.strip().startswith('*')]
+            branches = [
+                b.strip().replace("origin/", "")
+                for b in result.stdout.splitlines()
+                if b.strip() and not b.strip().startswith("*")
+            ]
             return branches
         except subprocess.CalledProcessError as e:
             logger.error(f"Error getting merged branches: {e}")
@@ -79,12 +82,12 @@ class BranchCleanup:
             return True
 
         try:
-            subprocess.run(['git', 'branch', '-d', branch], check=True, capture_output=True)
+            subprocess.run(["git", "branch", "-d", branch], check=True, capture_output=True)
             logger.info(f"Deleted local branch: {branch}")
             return True
         except subprocess.CalledProcessError:
             try:
-                subprocess.run(['git', 'branch', '-D', branch], check=True, capture_output=True)
+                subprocess.run(["git", "branch", "-D", branch], check=True, capture_output=True)
                 logger.info(f"Force deleted local branch: {branch}")
                 return True
             except subprocess.CalledProcessError as e:
@@ -98,8 +101,9 @@ class BranchCleanup:
             return True
 
         try:
-            subprocess.run(['git', 'push', 'origin', '--delete', branch],
-                           check=True, capture_output=True)
+            subprocess.run(
+                ["git", "push", "origin", "--delete", branch], check=True, capture_output=True
+            )
             logger.info(f"Deleted remote branch: {branch}")
             return True
         except subprocess.CalledProcessError as e:
@@ -113,7 +117,7 @@ class BranchCleanup:
             return True
 
         try:
-            subprocess.run(['git', 'remote', 'prune', 'origin'], check=True)
+            subprocess.run(["git", "remote", "prune", "origin"], check=True)
             logger.info("Pruned stale remote references")
             return True
         except subprocess.CalledProcessError as e:
@@ -128,10 +132,10 @@ class BranchCleanup:
 
         try:
             # Checkout main
-            subprocess.run(['git', 'checkout', 'main'], check=True)
+            subprocess.run(["git", "checkout", "main"], check=True)
 
             # Pull latest changes
-            subprocess.run(['git', 'pull', 'origin', 'main'], check=True)
+            subprocess.run(["git", "pull", "origin", "main"], check=True)
 
             logger.info("Updated main branch")
             return True
@@ -144,27 +148,27 @@ class BranchCleanup:
         report = ["# Branch Cleanup Report\n"]
         report.append(f"Generated: {results['timestamp']}\n\n")
 
-        if results['local_deleted']:
+        if results["local_deleted"]:
             report.append("## Local Branches Deleted\n")
-            for branch in results['local_deleted']:
+            for branch in results["local_deleted"]:
                 report.append(f"- {branch}\n")
 
-        if results['remote_deleted']:
+        if results["remote_deleted"]:
             report.append("\n## Remote Branches Deleted\n")
-            for branch in results['remote_deleted']:
+            for branch in results["remote_deleted"]:
                 report.append(f"- origin/{branch}\n")
 
-        if results['skipped']:
+        if results["skipped"]:
             report.append("\n## Skipped\n")
-            for item in results['skipped']:
+            for item in results["skipped"]:
                 report.append(f"- {item}\n")
 
-        if results['errors']:
+        if results["errors"]:
             report.append("\n## Errors\n")
-            for error in results['errors']:
+            for error in results["errors"]:
                 report.append(f"- {error}\n")
 
-        return ''.join(report)
+        return "".join(report)
 
 
 def main():
@@ -184,10 +188,10 @@ def main():
     report = cleanup.generate_report(results)
     print(report)
 
-    with open('branch_cleanup_report.md', 'w') as f:
+    with open("branch_cleanup_report.md", "w") as f:
         f.write(report)
 
-    with open('branch_cleanup_results.json', 'w') as f:
+    with open("branch_cleanup_results.json", "w") as f:
         json.dump(results, f, indent=2)
 
 

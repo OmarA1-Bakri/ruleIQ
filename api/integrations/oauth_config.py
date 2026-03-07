@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 OAuth2 configuration for integrations
 """

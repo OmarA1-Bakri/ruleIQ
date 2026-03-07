@@ -20,9 +20,7 @@ class TestCompleteComplianceJourney:
         self, client, authenticated_headers, mock_ai_client
     ):
         """Test complete GDPR compliance journey for a new business"""
-        mock_ai_client.generate_content.return_value.text = (
-            "Generated compliance content",
-        )
+        mock_ai_client.generate_content.return_value.text = ("Generated compliance content",)
 
         # 1. Business registration and profile creation
         business_profile = {
@@ -86,7 +84,8 @@ class TestCompleteComplianceJourney:
 
         recommendations = recommendations_response.json()["recommendations"]
         gdpr_recommendation = next(
-            (r for r in recommendations if "GDPR" in r["framework"]["name"]), None,
+            (r for r in recommendations if "GDPR" in r["framework"]["name"]),
+            None,
         )
         assert gdpr_recommendation is not None, "GDPR should be recommended"
         assert gdpr_recommendation["priority"] == "High"
@@ -123,7 +122,8 @@ class TestCompleteComplianceJourney:
 
         # 7. Start implementation - complete first few tasks
         plan_details = client.get(
-            f"/api/implementation/plans/{plan_id}", headers=authenticated_headers,
+            f"/api/implementation/plans/{plan_id}",
+            headers=authenticated_headers,
         )
         tasks = plan_details.json()["tasks"]
 
@@ -167,7 +167,8 @@ class TestCompleteComplianceJourney:
 
         # 9. Check readiness assessment
         readiness_response = client.get(
-            "/api/readiness/assessment", headers=authenticated_headers,
+            "/api/readiness/assessment",
+            headers=authenticated_headers,
         )
         assert readiness_response.status_code == 200
 
@@ -176,9 +177,7 @@ class TestCompleteComplianceJourney:
         assert readiness_data["risk_level"] in ["Low", "Medium", "High", "Critical"]
 
         # Initial score should be low-medium for new business
-        assert (
-            readiness_data["overall_score"] < 80
-        ), "New business should have room for improvement"
+        assert readiness_data["overall_score"] < 80, "New business should have room for improvement"
 
         # 10. Generate compliance report
         report_response = client.post(
@@ -287,7 +286,8 @@ class TestErrorStateHandling:
 
         # Verify session state is recoverable
         recovery_response = client.get(
-            f"/api/assessments/{session_id}", headers=authenticated_headers,
+            f"/api/assessments/{session_id}",
+            headers=authenticated_headers,
         )
         assert recovery_response.status_code == 200
 
@@ -338,7 +338,9 @@ class TestErrorStateHandling:
         }
 
         profile_response = client.post(
-            "/api/business-profiles", headers=authenticated_headers, json=business_data,
+            "/api/business-profiles",
+            headers=authenticated_headers,
+            json=business_data,
         )
         profile_id = profile_response.json()["id"]
 
@@ -366,15 +368,11 @@ class TestErrorStateHandling:
         assert 200 in status_codes, "At least one update should succeed"
 
         if 409 in status_codes:  # Conflict detected
-            conflict_response = (
-                response_1 if response_1.status_code == 409 else response_2,
-            )
+            conflict_response = (response_1 if response_1.status_code == 409 else response_2,)
             conflict_data = conflict_response.json()
             assert "conflict" in conflict_data["error"]["message"].lower()
 
-    def test_external_service_failure_fallback(
-        self, client, authenticated_headers, mock_ai_client
-    ):
+    def test_external_service_failure_fallback(self, client, authenticated_headers, mock_ai_client):
         """Test fallback behavior when external services fail"""
         # Mock AI service failure
         mock_ai_client.generate_content.side_effect = Exception(
@@ -382,7 +380,8 @@ class TestErrorStateHandling:
         )
 
         frameworks_response = client.get(
-            "/api/frameworks", headers=authenticated_headers,
+            "/api/frameworks",
+            headers=authenticated_headers,
         )
         if frameworks_response.status_code == 200:
             frameworks_data = frameworks_response.json()
@@ -412,18 +411,14 @@ class TestErrorStateHandling:
                     # Should provide template-based fallback
                     policy_data = policy_response.json()
                     assert "content" in policy_data
-                    assert (
-                        "template" in policy_data.get("generation_method", "").lower(),
-                    )
+                    assert ("template" in policy_data.get("generation_method", "").lower(),)
 
 
 @pytest.mark.e2e
 class TestAuditWorkflows:
     """Test audit trail and compliance reporting workflows"""
 
-    def test_comprehensive_audit_trail(
-        self, client, authenticated_headers, mock_ai_client
-    ):
+    def test_comprehensive_audit_trail(self, client, authenticated_headers, mock_ai_client):
         """Test that all user actions are properly audited"""
         mock_ai_client.generate_content.return_value.text = "Audit test content"
 
@@ -447,7 +442,8 @@ class TestAuditWorkflows:
 
         # 2. Generate policy
         frameworks_response = client.get(
-            "/api/frameworks", headers=authenticated_headers,
+            "/api/frameworks",
+            headers=authenticated_headers,
         )
         if frameworks_response.status_code == 200:
             frameworks_data = frameworks_response.json()
@@ -488,9 +484,9 @@ class TestAuditWorkflows:
             # Verify all actions are recorded
             recorded_actions = [entry["action"] for entry in audit_trail]
             for action_type, _resource_id in auditable_actions:
-                assert any(
-                    action_type in action for action in recorded_actions
-                ), f"Action {action_type} should be in audit trail"
+                assert any(action_type in action for action in recorded_actions), (
+                    f"Action {action_type} should be in audit trail"
+                )
 
             # Verify audit entries have required fields
             for entry in audit_trail:
@@ -502,9 +498,7 @@ class TestAuditWorkflows:
                     "resource_id",
                 ]
                 for field in required_fields:
-                    assert (
-                        field in entry
-                    ), f"Audit entry missing required field: {field}"
+                    assert field in entry, f"Audit entry missing required field: {field}"
 
                 # Verify timestamp format
                 assert "T" in entry["timestamp"], "Timestamp should be in ISO format"
@@ -573,17 +567,11 @@ class TestAuditWorkflows:
                     202,
                 ], "Report should be accessible"
 
-        assert (
-            len(generated_reports) >= 2
-        ), "Should successfully generate multiple report types"
+        assert len(generated_reports) >= 2, "Should successfully generate multiple report types"
 
-    def test_regulatory_submission_preparation(
-        self, client, authenticated_headers, mock_ai_client
-    ):
+    def test_regulatory_submission_preparation(self, client, authenticated_headers, mock_ai_client):
         """Test preparation of materials for regulatory submissions"""
-        mock_ai_client.generate_content.return_value.text = (
-            "Regulatory submission content",
-        )
+        mock_ai_client.generate_content.return_value.text = ("Regulatory submission content",)
 
         # Create comprehensive business setup
         business_profile = {
@@ -634,9 +622,9 @@ class TestAuditWorkflows:
             ]
 
             for doc_type in required_doc_types:
-                assert any(
-                    doc_type in doc["type"] for doc in included_docs
-                ), f"Submission should include {doc_type}"
+                assert any(doc_type in doc["type"] for doc in included_docs), (
+                    f"Submission should include {doc_type}"
+                )
 
 
 @pytest.mark.e2e
@@ -709,21 +697,18 @@ class TestBusinessContinuityWorkflows:
         if deadline_response.status_code == 201:
             # Check deadline alerts
             alerts_response = client.get(
-                "/api/compliance/alerts", headers=authenticated_headers,
+                "/api/compliance/alerts",
+                headers=authenticated_headers,
             )
 
             if alerts_response.status_code == 200:
                 alerts = alerts_response.json()["alerts"]
 
                 # Should have upcoming deadline alert
-                deadline_alerts = [
-                    alert for alert in alerts if "deadline" in alert["type"]
-                ]
+                deadline_alerts = [alert for alert in alerts if "deadline" in alert["type"]]
                 assert len(deadline_alerts) > 0, "Should alert about upcoming deadlines"
 
-    def test_multi_framework_coordination(
-        self, client, authenticated_headers, mock_ai_client
-    ):
+    def test_multi_framework_coordination(self, client, authenticated_headers, mock_ai_client):
         """Test coordination across multiple compliance frameworks"""
         mock_ai_client.generate_content.return_value.text = (
             "Multi-framework coordination content",
@@ -773,6 +758,6 @@ class TestBusinessContinuityWorkflows:
 
             # Verify suggests implementation sequence
             sequence = coordination_plan["implementation_sequence"]
-            assert len(sequence) == len(
-                complex_business["planned_frameworks"]
-            ), "Should provide sequence for all frameworks"
+            assert len(sequence) == len(complex_business["planned_frameworks"]), (
+                "Should provide sequence for all frameworks"
+            )

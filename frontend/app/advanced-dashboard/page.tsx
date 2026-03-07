@@ -9,7 +9,6 @@ import {
   Layers,
   Activity,
   RefreshCw,
-  Maximize2,
   Download,
   Settings,
 } from 'lucide-react';

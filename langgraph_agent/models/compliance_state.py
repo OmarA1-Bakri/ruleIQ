@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 ComplianceState Pydantic model for LangGraph state management.
 
@@ -239,9 +238,7 @@ class ComplianceState(BaseModel):
             if isinstance(item, dict):
                 # Ensure required fields
                 if "id" not in item or "action" not in item:
-                    raise ValueError(
-                        "Decision items must have 'id' and 'action' fields"
-                    )
+                    raise ValueError("Decision items must have 'id' and 'action' fields")
                 if "actor" not in item:
                     item["actor"] = "System"
                 if "timestamp" not in item:
@@ -311,10 +308,7 @@ class ComplianceState(BaseModel):
             WorkflowStatus.CANCELLED: [],
         }
 
-        if (
-            new_status not in valid_transitions.get(old_status, [])
-            and new_status != old_status
-        ):
+        if new_status not in valid_transitions.get(old_status, []) and new_status != old_status:
             raise ValueError(f"Invalid transition from {old_status} to {new_status}")
 
         # Track transition

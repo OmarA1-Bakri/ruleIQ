@@ -37,9 +37,7 @@ class TestAssessmentOwnership:
         mock_session.recommendations = []
 
         # Mock the AssessmentService
-        with patch.object(
-            AssessmentService, "get_assessment_session"
-        ) as mock_get_session:
+        with patch.object(AssessmentService, "get_assessment_session") as mock_get_session:
             service = AssessmentService()
 
             # Test owner can access their session
@@ -48,7 +46,9 @@ class TestAssessmentOwnership:
 
             # This should work - owner accessing their session
             result = await service.get_assessment_session(
-                mock_db, mock_user, session_id,
+                mock_db,
+                mock_user,
+                session_id,
             )
             assert result == mock_session
 
@@ -77,7 +77,10 @@ class TestAssessmentOwnership:
 
             mock_db = AsyncMock()
             result = await service.start_assessment_session(
-                mock_db, mock_user, "initial", str(business_profile_id),
+                mock_db,
+                mock_user,
+                "initial",
+                str(business_profile_id),
             )
 
             assert result == mock_session
@@ -85,7 +88,10 @@ class TestAssessmentOwnership:
 
             # Verify the service was called correctly
             mock_start.assert_called_with(
-                mock_db, mock_user, "initial", str(business_profile_id),
+                mock_db,
+                mock_user,
+                "initial",
+                str(business_profile_id),
             )
 
     def test_assessment_questions_require_user(self):
@@ -117,20 +123,26 @@ class TestAssessmentOwnership:
         mock_session.user_id = user_id
         mock_session.responses = {}
 
-        with patch.object(
-            AssessmentService, "update_assessment_response"
-        ) as mock_update:
+        with patch.object(AssessmentService, "update_assessment_response") as mock_update:
             mock_update.return_value = mock_session
             service = AssessmentService()
 
             mock_db = AsyncMock()
             result = await service.update_assessment_response(
-                mock_db, mock_user, session_id, "q1", "response1",
+                mock_db,
+                mock_user,
+                session_id,
+                "q1",
+                "response1",
             )
 
             assert result == mock_session
             mock_update.assert_called_with(
-                mock_db, mock_user, session_id, "q1", "response1",
+                mock_db,
+                mock_user,
+                session_id,
+                "q1",
+                "response1",
             )
 
     @pytest.mark.asyncio
@@ -148,15 +160,15 @@ class TestAssessmentOwnership:
         mock_session.user_id = user_id
         mock_session.status = "completed"
 
-        with patch.object(
-            AssessmentService, "complete_assessment_session"
-        ) as mock_complete:
+        with patch.object(AssessmentService, "complete_assessment_session") as mock_complete:
             mock_complete.return_value = mock_session
             service = AssessmentService()
 
             mock_db = AsyncMock()
             result = await service.complete_assessment_session(
-                mock_db, mock_user, session_id,
+                mock_db,
+                mock_user,
+                session_id,
             )
 
             assert result == mock_session

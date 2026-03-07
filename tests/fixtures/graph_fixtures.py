@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 Graph fixtures for LangGraph testing.
 
@@ -159,7 +158,9 @@ def create_conditional_graph() -> tuple[StateGraph, Dict[str, TestNode]]:
 
     # Conditional routing
     graph.add_conditional_edges(
-        "evaluate", route_decision, {"path_a": "path_a", "path_b": "path_b"},
+        "evaluate",
+        route_decision,
+        {"path_a": "path_a", "path_b": "path_b"},
     )
 
     graph.add_edge("path_a", "merge")
@@ -207,7 +208,9 @@ def create_cycle_graph() -> tuple[StateGraph, Dict[str, TestNode]]:
 
     # Conditional with cycle
     graph.add_conditional_edges(
-        "check", check_retry, {"retry": "retry", "success": "success"},
+        "check",
+        check_retry,
+        {"retry": "retry", "success": "success"},
     )
 
     graph.add_edge("retry", "attempt")  # Create cycle
@@ -337,9 +340,7 @@ class GraphTestHarness:
                 "initial_state": initial_state,
                 "final_state": final_state,
                 "config": config,
-                "node_calls": {
-                    name: node.call_count for name, node in self.nodes.items()
-                },
+                "node_calls": {name: node.call_count for name, node in self.nodes.items()},
             },
         )
 
@@ -362,16 +363,14 @@ class GraphTestHarness:
     def assert_path(self, expected_path: List[str]):
         """Assert the execution followed expected path."""
         actual_path = self.get_execution_path()
-        assert (
-            actual_path == expected_path
-        ), f"Expected path {expected_path}, got {actual_path}"
+        assert actual_path == expected_path, f"Expected path {expected_path}, got {actual_path}"
 
     def assert_node_called(self, node_name: str, times: int = 1):
         """Assert a node was called specific number of times."""
         actual_calls = self.nodes[node_name].call_count
-        assert (
-            actual_calls == times
-        ), f"Expected {node_name} called {times} times, got {actual_calls}"
+        assert actual_calls == times, (
+            f"Expected {node_name} called {times} times, got {actual_calls}"
+        )
 
     def assert_no_errors(self, final_state: EnhancedComplianceState):
         """Assert no errors in final state."""

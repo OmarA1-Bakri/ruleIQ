@@ -43,7 +43,7 @@ export default function CheckoutPage() {
     window.location.href = `/dashboard?payment=success&session_id=${sessionId}`;
   };
 
-  const handleError = (error: string) => {
+  const handleError = (_error: string) => {
   };
 
   return (

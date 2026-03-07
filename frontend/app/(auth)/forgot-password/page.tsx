@@ -43,7 +43,7 @@ export default function ForgotPasswordPage() {
         title: 'Password reset email sent',
         description: 'Please check your email for password reset instructions.',
       });
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: 'Error',
         description: 'Failed to send password reset email. Please try again.',

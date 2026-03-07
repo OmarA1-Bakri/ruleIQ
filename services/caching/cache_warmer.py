@@ -106,9 +106,7 @@ class CacheWarmer:
         return warmed_count
 
     async def schedule_background_warming(
-        self,
-        warming_config: Dict[str, Any],
-        interval_seconds: int = 300
+        self, warming_config: Dict[str, Any], interval_seconds: int = 300
     ) -> asyncio.Task:
         """
         Schedule periodic background cache warming.
@@ -120,6 +118,7 @@ class CacheWarmer:
         Returns:
             Asyncio task handle for the background warming
         """
+
         async def _warming_loop():
             """Internal warming loop."""
             while True:
@@ -200,7 +199,11 @@ class CacheWarmer:
 
         # Simplified data fetchers for demonstration
         data_fetchers = {
-            key: lambda k=key: {"cached": True, "key": k, "timestamp": datetime.utcnow().isoformat()}
+            key: lambda k=key: {
+                "cached": True,
+                "key": k,
+                "timestamp": datetime.utcnow().isoformat(),
+            }
             for key in keys
         }
 
@@ -222,7 +225,11 @@ class CacheWarmer:
 
         # Simplified data fetchers for demonstration
         data_fetchers = {
-            key: lambda k=key: {"cached": True, "key": k, "timestamp": datetime.utcnow().isoformat()}
+            key: lambda k=key: {
+                "cached": True,
+                "key": k,
+                "timestamp": datetime.utcnow().isoformat(),
+            }
             for key in keys
         }
 

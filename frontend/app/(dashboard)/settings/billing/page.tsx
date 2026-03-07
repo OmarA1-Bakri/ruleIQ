@@ -53,7 +53,8 @@ export default function BillingPage() {
     try {
       const response = await paymentService.createPortalSession(window.location.href);
       window.location.href = response.url;
-    } catch (error) {
+    } catch (_error) {
+      // intentionally empty - silently fail on portal redirect
     }
   };
 
@@ -69,7 +70,8 @@ export default function BillingPage() {
     try {
       await paymentService.cancelSubscription(true);
       await fetchBillingData();
-    } catch (error) {
+    } catch (_error) {
+      // intentionally empty - silently fail on subscription cancellation
     }
   };
 
@@ -77,7 +79,8 @@ export default function BillingPage() {
     try {
       await paymentService.reactivateSubscription();
       await fetchBillingData();
-    } catch (error) {
+    } catch (_error) {
+      // intentionally empty - silently fail on subscription reactivation
     }
   };
 

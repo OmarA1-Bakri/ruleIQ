@@ -17,6 +17,7 @@ from datetime import datetime
 
 class TaskStatus(Enum):
     """Enumeration of possible task states."""
+
     PENDING = "pending"
     RUNNING = "running"
     COMPLETED = "completed"
@@ -26,12 +27,14 @@ class TaskStatus(Enum):
 
 class CoordinationError(Exception):
     """Exception raised for coordination-related errors."""
+
     pass
 
 
 @dataclass
 class TaskInfo:
     """Information about a coordination task."""
+
     task_id: str
     config: Dict[str, Any]
     status: TaskStatus
@@ -60,7 +63,7 @@ class TaskInfo:
         return data
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'TaskInfo':
+    def from_dict(cls, data: Dict[str, Any]) -> "TaskInfo":
         """Create TaskInfo from dictionary."""
         # Convert back from serialized format
         data["status"] = TaskStatus(data["status"])
@@ -75,6 +78,7 @@ class TaskInfo:
 @dataclass
 class CoordinationStatus:
     """Overall status of a coordination session."""
+
     session_id: str
     tasks: Dict[str, TaskInfo]
     created_at: datetime
@@ -86,18 +90,20 @@ class CoordinationStatus:
             "session_id": self.session_id,
             "tasks": {task_id: task.to_dict() for task_id, task in self.tasks.items()},
             "created_at": self.created_at.isoformat(),
-            "updated_at": self.updated_at.isoformat()
+            "updated_at": self.updated_at.isoformat(),
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'CoordinationStatus':
+    def from_dict(cls, data: Dict[str, Any]) -> "CoordinationStatus":
         """Create CoordinationStatus from dictionary."""
         return cls(
             session_id=data["session_id"],
-            tasks={task_id: TaskInfo.from_dict(task_data)
-                  for task_id, task_data in data["tasks"].items()},
+            tasks={
+                task_id: TaskInfo.from_dict(task_data)
+                for task_id, task_data in data["tasks"].items()
+            },
             created_at=datetime.fromisoformat(data["created_at"]),
-            updated_at=datetime.fromisoformat(data["updated_at"])
+            updated_at=datetime.fromisoformat(data["updated_at"]),
         )
 
 
@@ -128,7 +134,7 @@ class CoordinationManager:
                 session_id=session_id,
                 tasks={},
                 created_at=datetime.now(),
-                updated_at=datetime.now()
+                updated_at=datetime.now(),
             )
             self._save_status()
 
@@ -139,7 +145,7 @@ class CoordinationManager:
     def _load_status(self) -> None:
         """Load coordination status from file."""
         try:
-            with open(self.status_file, 'r') as f:
+            with open(self.status_file, "r") as f:
                 data = json.load(f)
             self.status = CoordinationStatus.from_dict(data)
         except (json.JSONDecodeError, KeyError) as e:
@@ -149,7 +155,7 @@ class CoordinationManager:
         """Save coordination status to file."""
         try:
             self.status.updated_at = datetime.now()
-            with open(self.status_file, 'w') as f:
+            with open(self.status_file, "w") as f:
                 json.dump(self.status.to_dict(), f, indent=2)
         except Exception as e:
             raise CoordinationError(f"Failed to save coordination status: {e}")
@@ -157,7 +163,7 @@ class CoordinationManager:
     def _load_results(self) -> List[Dict[str, Any]]:
         """Load results from file."""
         try:
-            with open(self.results_file, 'r') as f:
+            with open(self.results_file, "r") as f:
                 return json.load(f)
         except (json.JSONDecodeError, FileNotFoundError):
             return []
@@ -165,7 +171,7 @@ class CoordinationManager:
     def _save_results(self, results: List[Dict[str, Any]]) -> None:
         """Save results to file."""
         try:
-            with open(self.results_file, 'w') as f:
+            with open(self.results_file, "w") as f:
                 json.dump(results, f, indent=2)
         except Exception as e:
             raise CoordinationError(f"Failed to save results: {e}")
@@ -187,7 +193,7 @@ class CoordinationManager:
             config=config,
             status=TaskStatus.PENDING,
             created_at=datetime.now(),
-            dependencies=dependencies
+            dependencies=dependencies,
         )
 
         self.status.tasks[task_id] = task
@@ -198,7 +204,7 @@ class CoordinationManager:
         task_id: str,
         status: TaskStatus,
         result: Optional[Any] = None,
-        error: Optional[str] = None
+        error: Optional[str] = None,
     ) -> None:
         """Update the status of a task.
 
@@ -260,9 +266,12 @@ class CoordinationManager:
             List of task IDs that can start execution
         """
         return [
-            task_id for task_id in self.status.tasks
-            if (self.status.tasks[task_id].status == TaskStatus.PENDING and
-                self.can_task_start(task_id))
+            task_id
+            for task_id in self.status.tasks
+            if (
+                self.status.tasks[task_id].status == TaskStatus.PENDING
+                and self.can_task_start(task_id)
+            )
         ]
 
     def aggregate_results(self) -> List[Dict[str, Any]]:
@@ -272,7 +281,8 @@ class CoordinationManager:
             List of task results in dependency order
         """
         completed_tasks = [
-            (task_id, task) for task_id, task in self.status.tasks.items()
+            (task_id, task)
+            for task_id, task in self.status.tasks.items()
             if task.status == TaskStatus.COMPLETED
         ]
 
@@ -285,7 +295,7 @@ class CoordinationManager:
                 "task_id": task_id,
                 "config": task.config,
                 "result": task.result,
-                "completed_at": task.completed_at.isoformat() if task.completed_at else None
+                "completed_at": task.completed_at.isoformat() if task.completed_at else None,
             }
             results.append(result_entry)
 
@@ -308,10 +318,11 @@ class CoordinationManager:
 
 # Utility functions for easier usage
 
+
 def create_coordination_session(
     session_id: Optional[str] = None,
     tasks_config: Optional[Dict[str, Dict[str, Any]]] = None,
-    base_dir: Union[str, Path] = ".coordination"
+    base_dir: Union[str, Path] = ".coordination",
 ) -> CoordinationManager:
     """Create a new coordination session with initial tasks.
 
@@ -341,7 +352,7 @@ def update_task_status(
     status: TaskStatus,
     result: Optional[Any] = None,
     error: Optional[str] = None,
-    base_dir: Union[str, Path] = ".coordination"
+    base_dir: Union[str, Path] = ".coordination",
 ) -> None:
     """Update task status in a coordination session.
 
@@ -358,8 +369,7 @@ def update_task_status(
 
 
 def aggregate_results(
-    session_id: str,
-    base_dir: Union[str, Path] = ".coordination"
+    session_id: str, base_dir: Union[str, Path] = ".coordination"
 ) -> List[Dict[str, Any]]:
     """Aggregate results from a coordination session.
 
@@ -379,7 +389,7 @@ def wait_for_task_completion(
     task_id: str,
     timeout: float = 300.0,
     poll_interval: float = 1.0,
-    base_dir: Union[str, Path] = ".coordination"
+    base_dir: Union[str, Path] = ".coordination",
 ) -> Dict[str, Any]:
     """Wait for a task to complete.
 
@@ -410,7 +420,7 @@ def wait_for_task_completion(
                 "status": task.status.value,
                 "result": task.result,
                 "error": task.error,
-                "completed_at": task.completed_at.isoformat() if task.completed_at else None
+                "completed_at": task.completed_at.isoformat() if task.completed_at else None,
             }
 
         time.sleep(poll_interval)

@@ -3,6 +3,7 @@ Comprehensive tests for JWT Validation (Story 1.1)
 
 Tests JWT token validation, refresh tokens, blacklisting, and performance.
 """
+
 import pytest
 import asyncio
 import time
@@ -17,8 +18,9 @@ from services.token_blacklist_service import TokenBlacklistService, get_blacklis
 from api.dependencies.auth import SECRET_KEY, ALGORITHM
 
 
-
 logger = logging.getLogger(__name__)
+
+
 class TestJWTValidation:
     """Test suite for JWT validation enhancements."""
 
@@ -33,7 +35,7 @@ class TestJWTValidation:
             "iss": "ruleiq-api",
             "aud": "ruleiq-client",
             "type": "access",
-            "roles": ["user"]
+            "roles": ["user"],
         }
 
     @pytest.fixture
@@ -51,7 +53,7 @@ class TestJWTValidation:
             "jti": "expired-token-id",
             "iss": "ruleiq-api",
             "aud": "ruleiq-client",
-            "type": "access"
+            "type": "access",
         }
 
     @pytest.fixture
@@ -87,7 +89,7 @@ class TestJWTValidation:
         wrong_secret_token = jwt.encode(
             {"sub": "user123", "exp": datetime.now(timezone.utc) + timedelta(hours=1)},
             "wrong-secret",
-            algorithm=ALGORITHM
+            algorithm=ALGORITHM,
         )
 
         # Should fail validation
@@ -108,10 +110,10 @@ class TestJWTValidation:
             {
                 "sub": "user123",
                 "exp": datetime.now(timezone.utc) + timedelta(hours=1),
-                "aud": "ruleiq-client"
+                "aud": "ruleiq-client",
             },
             SECRET_KEY,
-            algorithm=ALGORITHM
+            algorithm=ALGORITHM,
         )
 
         middleware = jwt_middleware
@@ -124,10 +126,10 @@ class TestJWTValidation:
                 "sub": "user123",
                 "exp": datetime.now(timezone.utc) + timedelta(hours=1),
                 "iss": "wrong-issuer",
-                "aud": "ruleiq-client"
+                "aud": "ruleiq-client",
             },
             SECRET_KEY,
-            algorithm=ALGORITHM
+            algorithm=ALGORITHM,
         )
 
         payload = jwt.decode(token_wrong_iss, SECRET_KEY, algorithms=[ALGORITHM])
@@ -138,10 +140,10 @@ class TestJWTValidation:
             {
                 "exp": datetime.now(timezone.utc) + timedelta(hours=1),
                 "iss": "ruleiq-api",
-                "aud": "ruleiq-client"
+                "aud": "ruleiq-client",
             },
             SECRET_KEY,
-            algorithm=ALGORITHM
+            algorithm=ALGORITHM,
         )
 
         payload = jwt.decode(token_no_sub, SECRET_KEY, algorithms=[ALGORITHM])
@@ -157,7 +159,7 @@ class TestJWTValidation:
             "jti": "refresh-token-id",
             "iss": "ruleiq-api",
             "aud": "ruleiq-client",
-            "type": "refresh"
+            "type": "refresh",
         }
 
         refresh_token = jwt.encode(refresh_payload, SECRET_KEY, algorithm=ALGORITHM)
@@ -176,7 +178,7 @@ class TestJWTValidation:
             "jti": "refresh-token-id",
             "iss": "ruleiq-api",
             "aud": "ruleiq-client",
-            "type": "refresh"
+            "type": "refresh",
         }
 
         # Validate claims should reject refresh token
@@ -189,10 +191,7 @@ class TestJWTValidation:
         expiry = datetime.now(timezone.utc) + timedelta(hours=1)
 
         result = blacklist_service.add_to_blacklist(
-            token_jti,
-            expiry,
-            user_id="user123",
-            reason="logout"
+            token_jti, expiry, user_id="user123", reason="logout"
         )
 
         assert result is True
@@ -221,7 +220,7 @@ class TestJWTValidation:
         blacklist_service.redis_client.smembers.return_value = {
             "expired-token-1",
             "expired-token-2",
-            "valid-token"
+            "valid-token",
         }
 
         # Mock exists check (only valid-token exists)
@@ -284,7 +283,7 @@ class TestJWTValidation:
             "sub": "user123",
             "exp": datetime.now(timezone.utc) + timedelta(days=7),
             "jti": original_jti,
-            "type": "refresh"
+            "type": "refresh",
         }
 
         # New token should have different JTI
@@ -299,10 +298,7 @@ class TestJWTValidation:
     async def test_concurrent_validation(self, jwt_middleware, valid_token):
         """Test handling concurrent token validations."""
         # Create multiple validation tasks
-        tasks = [
-            jwt_middleware.validate_jwt_token(valid_token)
-            for _ in range(10)
-        ]
+        tasks = [jwt_middleware.validate_jwt_token(valid_token) for _ in range(10)]
 
         # Run concurrently
         results = await asyncio.gather(*tasks)
@@ -314,13 +310,9 @@ class TestJWTValidation:
     def test_token_without_expiry(self, jwt_middleware):
         """Test handling of tokens without expiry."""
         token_no_exp = jwt.encode(
-            {
-                "sub": "user123",
-                "iss": "ruleiq-api",
-                "aud": "ruleiq-client"
-            },
+            {"sub": "user123", "iss": "ruleiq-api", "aud": "ruleiq-client"},
             SECRET_KEY,
-            algorithm=ALGORITHM
+            algorithm=ALGORITHM,
         )
 
         # Should be rejected (no expiry)
@@ -335,7 +327,7 @@ class TestJWTValidation:
         assert result is None
 
     # Test 11: Audit Logging
-    @patch('middleware.jwt_auth_v2.logger')
+    @patch("middleware.jwt_auth_v2.logger")
     def test_audit_logging(self, mock_logger, jwt_middleware, expired_token):
         """Test that authentication events are logged."""
         # Try with expired token
@@ -348,10 +340,10 @@ class TestJWTValidation:
     def test_feature_flag_rollout(self, jwt_middleware):
         """Test feature flag controlled rollout."""
         # Mock feature flag check
-        with patch('middleware.jwt_auth_v2.settings.FEATURE_FLAGS', {'jwt_validation_v2': True}):
+        with patch("middleware.jwt_auth_v2.settings.FEATURE_FLAGS", {"jwt_validation_v2": True}):
             assert jwt_middleware.is_enabled()
 
-        with patch('middleware.jwt_auth_v2.settings.FEATURE_FLAGS', {'jwt_validation_v2': False}):
+        with patch("middleware.jwt_auth_v2.settings.FEATURE_FLAGS", {"jwt_validation_v2": False}):
             # Would use v1 validation
             pass
 
@@ -370,7 +362,7 @@ class TestRefreshTokenFlow:
             "iss": "ruleiq-api",
             "aud": "ruleiq-client",
             "type": "refresh",
-            "token_family": "family-123"
+            "token_family": "family-123",
         }
 
     def test_refresh_token_exchange(self, refresh_token_payload):
@@ -388,7 +380,7 @@ class TestRefreshTokenFlow:
             "jti": "new-access-token",
             "iss": "ruleiq-api",
             "aud": "ruleiq-client",
-            "type": "access"
+            "type": "access",
         }
 
         access_token = jwt.encode(access_payload, SECRET_KEY, algorithm=ALGORITHM)

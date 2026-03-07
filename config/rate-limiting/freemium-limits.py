@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 Enhanced Rate Limiting Configuration for AI Assessment Freemium Strategy
 Implements multi-tier rate limiting for public and authenticated endpoints

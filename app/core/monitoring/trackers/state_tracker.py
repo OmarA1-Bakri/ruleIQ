@@ -6,8 +6,6 @@ import time
 from collections import defaultdict, deque
 from typing import Any, Deque, Dict, List, Optional, Tuple
 
-from .types import NodeStatus
-
 
 class StateTransitionTracker:
     """Tracks state transitions in LangGraph workflows."""
@@ -62,24 +60,24 @@ class StateTransitionTracker:
 
             initial_state = states[0] if states else None
             converted_machine = {
-                'initial': initial_state,
-                'states': states,
-                'transitions': state_machine
+                "initial": initial_state,
+                "states": states,
+                "transitions": state_machine,
             }
             state_machine = converted_machine
 
-        self._state_machines['default'] = state_machine
+        self._state_machines["default"] = state_machine
 
-        if 'initial' not in state_machine or state_machine['initial'] is None:
-            raise ValueError('State machine must define an initial state')
-        if 'states' not in state_machine:
-            raise ValueError('State machine must define available states')
-        if 'transitions' not in state_machine:
-            raise ValueError('State machine must define valid transitions')
+        if "initial" not in state_machine or state_machine["initial"] is None:
+            raise ValueError("State machine must define an initial state")
+        if "states" not in state_machine:
+            raise ValueError("State machine must define available states")
+        if "transitions" not in state_machine:
+            raise ValueError("State machine must define valid transitions")
 
-        self._valid_states = set(state_machine['states'])
-        self._valid_transitions = state_machine['transitions']
-        self._initial_state = state_machine['initial']
+        self._valid_states = set(state_machine["states"])
+        self._valid_transitions = state_machine["transitions"]
+        self._initial_state = state_machine["initial"]
 
     def is_valid_transition(self, from_state: str, to_state: str) -> bool:
         """Check if a transition from one state to another is valid.
@@ -105,7 +103,7 @@ class StateTransitionTracker:
         from_state: str,
         to_state: str,
         metadata: Dict[str, Any] = None,
-        transition_trigger: Optional[str] = None
+        transition_trigger: Optional[str] = None,
     ) -> str:
         """Record a state transition.
 
@@ -120,7 +118,7 @@ class StateTransitionTracker:
             Transition ID
         """
         transition_time = time.time()
-        transition_id = f'{workflow_id}_{from_state}_{to_state}_{int(transition_time * 1000)}'
+        transition_id = f"{workflow_id}_{from_state}_{to_state}_{int(transition_time * 1000)}"
 
         # Track state duration
         if workflow_id in self._current_states:
@@ -131,13 +129,13 @@ class StateTransitionTracker:
         self._current_states[workflow_id] = (to_state, transition_time)
 
         transition = {
-            'id': transition_id,
-            'workflow_id': workflow_id,
-            'from_state': from_state,
-            'to_state': to_state,
-            'timestamp': transition_time,
-            'metadata': metadata or {},
-            'trigger': transition_trigger
+            "id": transition_id,
+            "workflow_id": workflow_id,
+            "from_state": from_state,
+            "to_state": to_state,
+            "timestamp": transition_time,
+            "metadata": metadata or {},
+            "trigger": transition_trigger,
         }
 
         self._transitions.append(transition)
@@ -145,12 +143,7 @@ class StateTransitionTracker:
 
         return transition_id
 
-    def enter_state(
-        self,
-        workflow_id: str,
-        state: str,
-        metadata: Dict[str, Any] = None
-    ) -> str:
+    def enter_state(self, workflow_id: str, state: str, metadata: Dict[str, Any] = None) -> str:
         """Enter a new state (convenience method for initial state or simple transitions).
 
         Args:
@@ -164,25 +157,22 @@ class StateTransitionTracker:
         if workflow_id in self._current_states:
             current_state, _ = self._current_states[workflow_id]
             return self.record_transition(
-                workflow_id=workflow_id,
-                from_state=current_state,
-                to_state=state,
-                metadata=metadata
+                workflow_id=workflow_id, from_state=current_state, to_state=state, metadata=metadata
             )
 
         # Initial state entry
         entry_time = time.time()
-        entry_id = f'{workflow_id}_{state}_{int(entry_time * 1000)}'
+        entry_id = f"{workflow_id}_{state}_{int(entry_time * 1000)}"
         self._current_states[workflow_id] = (state, entry_time)
 
         transition = {
-            'id': entry_id,
-            'workflow_id': workflow_id,
-            'from_state': None,
-            'to_state': state,
-            'timestamp': entry_time,
-            'metadata': metadata or {},
-            'trigger': 'initial'
+            "id": entry_id,
+            "workflow_id": workflow_id,
+            "from_state": None,
+            "to_state": state,
+            "timestamp": entry_time,
+            "metadata": metadata or {},
+            "trigger": "initial",
         }
 
         self._transitions.append(transition)
@@ -209,14 +199,14 @@ class StateTransitionTracker:
             Dictionary with transition details or None if not found
         """
         for transition in self._transitions:
-            if transition['id'] == transition_id:
+            if transition["id"] == transition_id:
                 return {
-                    'from_state': transition['from_state'],
-                    'to_state': transition['to_state'],
-                    'transition_trigger': transition.get('trigger'),
-                    'timestamp': transition['timestamp'],
-                    'workflow_id': transition['workflow_id'],
-                    'metadata': transition.get('metadata', {})
+                    "from_state": transition["from_state"],
+                    "to_state": transition["to_state"],
+                    "transition_trigger": transition.get("trigger"),
+                    "timestamp": transition["timestamp"],
+                    "workflow_id": transition["workflow_id"],
+                    "metadata": transition.get("metadata", {}),
                 }
         return None
 
@@ -232,17 +222,16 @@ class StateTransitionTracker:
         if workflow_id:
             workflow_durations = {}
             workflow_transitions = [
-                t for t in self._transitions
-                if t.get('workflow_id') == workflow_id
+                t for t in self._transitions if t.get("workflow_id") == workflow_id
             ]
-            workflow_transitions.sort(key=lambda x: x['timestamp'])
+            workflow_transitions.sort(key=lambda x: x["timestamp"])
 
             for i in range(len(workflow_transitions) - 1):
                 current = workflow_transitions[i]
                 next_trans = workflow_transitions[i + 1]
-                state = current.get('to_state')
+                state = current.get("to_state")
                 if state:
-                    duration_ms = (next_trans['timestamp'] - current['timestamp']) * 1000
+                    duration_ms = (next_trans["timestamp"] - current["timestamp"]) * 1000
                     workflow_durations[state] = duration_ms
 
             return workflow_durations
@@ -256,10 +245,7 @@ class StateTransitionTracker:
         return result
 
     def validate_transition(
-        self,
-        from_state: str,
-        to_state: str,
-        allowed_transitions: Dict[str, List[str]]
+        self, from_state: str, to_state: str, allowed_transitions: Dict[str, List[str]]
     ) -> bool:
         """Validate if a transition is allowed.
 
@@ -276,9 +262,7 @@ class StateTransitionTracker:
         return to_state in allowed_transitions[from_state]
 
     def get_transition_history(
-        self,
-        workflow_id: Optional[str] = None,
-        limit: int = 100
+        self, workflow_id: Optional[str] = None, limit: int = 100
     ) -> List[Dict[str, Any]]:
         """Get transition history.
 
@@ -290,10 +274,7 @@ class StateTransitionTracker:
             List of transitions
         """
         if workflow_id:
-            transitions = [
-                t for t in self._transitions
-                if t['workflow_id'] == workflow_id
-            ]
+            transitions = [t for t in self._transitions if t["workflow_id"] == workflow_id]
         else:
             transitions = list(self._transitions)
 
@@ -310,20 +291,19 @@ class StateTransitionTracker:
         """
         workflow_sequences = defaultdict(list)
         for transition in self._transitions:
-            workflow_sequences[transition['workflow_id']].append(
-                (transition['from_state'], transition['to_state'])
+            workflow_sequences[transition["workflow_id"]].append(
+                (transition["from_state"], transition["to_state"])
             )
 
         pattern_counts = defaultdict(int)
         for sequence in workflow_sequences.values():
             for length in range(2, min(6, len(sequence) + 1)):
                 for i in range(len(sequence) - length + 1):
-                    pattern = tuple(sequence[i:i + length])
+                    pattern = tuple(sequence[i : i + length])
                     pattern_counts[pattern] += 1
 
         common_patterns = [
-            list(pattern) for pattern, count in pattern_counts.items()
-            if count >= min_count
+            list(pattern) for pattern, count in pattern_counts.items() if count >= min_count
         ]
         common_patterns.sort(key=lambda p: pattern_counts[tuple(p)], reverse=True)
 
@@ -340,21 +320,21 @@ class StateTransitionTracker:
         """
         history = []
         for transition in self._transitions:
-            if transition['workflow_id'] == workflow_id:
-                history.append({
-                    'from_state': transition['from_state'],
-                    'to_state': transition['to_state'],
-                    'timestamp': transition['timestamp'],
-                    'trigger': transition.get('trigger'),
-                    'metadata': transition.get('metadata', {})
-                })
+            if transition["workflow_id"] == workflow_id:
+                history.append(
+                    {
+                        "from_state": transition["from_state"],
+                        "to_state": transition["to_state"],
+                        "timestamp": transition["timestamp"],
+                        "trigger": transition.get("trigger"),
+                        "metadata": transition.get("metadata", {}),
+                    }
+                )
 
-        return sorted(history, key=lambda x: x['timestamp'])
+        return sorted(history, key=lambda x: x["timestamp"])
 
     def analyze_transition_patterns(
-        self,
-        workflow_id: str = None,
-        min_frequency: int = 1
+        self, workflow_id: str = None, min_frequency: int = 1
     ) -> Dict[str, Any]:
         """Analyze state transition patterns.
 
@@ -366,10 +346,7 @@ class StateTransitionTracker:
             Analysis of transition patterns including most common paths
         """
         if workflow_id:
-            transitions = [
-                t for t in self._transitions
-                if t['workflow_id'] == workflow_id
-            ]
+            transitions = [t for t in self._transitions if t["workflow_id"] == workflow_id]
         else:
             transitions = list(self._transitions)
 
@@ -380,21 +357,21 @@ class StateTransitionTracker:
         from_state_counts = defaultdict(int)
 
         for transition in transitions:
-            from_state = transition.get('from_state')
-            to_state = transition.get('to_state')
+            from_state = transition.get("from_state")
+            to_state = transition.get("to_state")
             if from_state and to_state:
-                pattern_key = f'{from_state}->{to_state}'
+                pattern_key = f"{from_state}->{to_state}"
                 pattern_counts[pattern_key] += 1
                 from_state_counts[from_state] += 1
 
         result = {}
         for pattern, count in pattern_counts.items():
             if count >= min_frequency:
-                from_state = pattern.split('->')[0]
+                from_state = pattern.split("->")[0]
                 total_from_state = from_state_counts[from_state]
                 result[pattern] = {
-                    'count': count,
-                    'probability': count / total_from_state if total_from_state > 0 else 0
+                    "count": count,
+                    "probability": count / total_from_state if total_from_state > 0 else 0,
                 }
 
         return result

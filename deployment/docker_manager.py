@@ -51,13 +51,7 @@ class DockerManager:
             message: Message to log
             level: Log level (info, success, warning, error)
         """
-        symbols = {
-            "info": "ℹ️",
-            "success": "✅",
-            "warning": "⚠️",
-            "error": "❌",
-            "docker": "🐳"
-        }
+        symbols = {"info": "ℹ️", "success": "✅", "warning": "⚠️", "error": "❌", "docker": "🐳"}
 
         colors = {
             "info": "\033[94m",
@@ -65,7 +59,7 @@ class DockerManager:
             "warning": "\033[93m",
             "error": "\033[91m",
             "docker": "\033[96m",
-            "reset": "\033[0m"
+            "reset": "\033[0m",
         }
 
         symbol = symbols.get(level, "ℹ️")
@@ -85,12 +79,7 @@ class DockerManager:
         self.log(f"Executing: {description}", "docker")
 
         try:
-            result = subprocess.run(
-                command,
-                shell=True,
-                capture_output=True,
-                text=True
-            )
+            result = subprocess.run(command, shell=True, capture_output=True, text=True)
 
             if result.returncode == 0:
                 self.log(f"✅ {description} completed", "success")
@@ -141,8 +130,7 @@ class DockerManager:
 
         # Validate compose file syntax
         success, output = self.run_command(
-            f"docker-compose -f {self.compose_file} config",
-            "Compose file validation"
+            f"docker-compose -f {self.compose_file} config", "Compose file validation"
         )
 
         if not success:
@@ -167,7 +155,7 @@ class DockerManager:
 
         dockerfiles = [
             ("Dockerfile", "Backend Dockerfile"),
-            ("frontend/Dockerfile", "Frontend Dockerfile")
+            ("frontend/Dockerfile", "Frontend Dockerfile"),
         ]
 
         all_valid = True
@@ -176,7 +164,7 @@ class DockerManager:
                 # Validate Dockerfile syntax using hadolint if available
                 success, output = self.run_command(
                     f"docker run --rm -i hadolint/hadolint < {dockerfile_path}",
-                    f"Linting {description}"
+                    f"Linting {description}",
                 )
                 if not success:
                     self.log(f"{description} has linting warnings", "warning")
@@ -205,7 +193,7 @@ class DockerManager:
         # List built images
         success, output = self.run_command(
             "docker images --format 'table {{.Repository}}:{{.Tag}}\t{{.Size}}' | grep ruleiq",
-            "Listing built images"
+            "Listing built images",
         )
 
         return True
@@ -233,8 +221,7 @@ class DockerManager:
         self.log("Checking container health...")
 
         success, output = self.run_command(
-            f"docker-compose -f {self.compose_file} ps",
-            "Container status check"
+            f"docker-compose -f {self.compose_file} ps", "Container status check"
         )
 
         if not success:
@@ -244,8 +231,7 @@ class DockerManager:
         all_healthy = True
         for service in self.containers:
             success, output = self.run_command(
-                f"docker-compose -f {self.compose_file} ps {service}",
-                f"Checking {service}"
+                f"docker-compose -f {self.compose_file} ps {service}", f"Checking {service}"
             )
 
             if not success or "Exit" in output:
@@ -255,7 +241,7 @@ class DockerManager:
                 # Get logs for debugging
                 self.run_command(
                     f"docker-compose -f {self.compose_file} logs --tail=20 {service}",
-                    f"Logs for {service}"
+                    f"Logs for {service}",
                 )
 
         return all_healthy
@@ -267,14 +253,13 @@ class DockerManager:
         health_checks = [
             ("http://localhost:8000/health", "Backend health check"),
             ("http://localhost:3000", "Frontend health check"),
-            ("http://localhost:8000/api/v1/docs", "API documentation check")
+            ("http://localhost:8000/api/v1/docs", "API documentation check"),
         ]
 
         all_healthy = True
         for url, description in health_checks:
             success, output = self.run_command(
-                f"curl -f -s -o /dev/null -w '%{{http_code}}' {url}",
-                description
+                f"curl -f -s -o /dev/null -w '%{{http_code}}' {url}", description
             )
 
             if success and "200" in output:
@@ -292,8 +277,8 @@ class DockerManager:
         # Test database connection from backend
         success, output = self.run_command(
             f"docker-compose -f {self.compose_file} exec -T backend python -c "
-            "\"from database.db_setup import engine; engine.connect()\"",
-            "Database connectivity from backend"
+            '"from database.db_setup import engine; engine.connect()"',
+            "Database connectivity from backend",
         )
 
         if not success:
@@ -304,7 +289,7 @@ class DockerManager:
         if "redis" in self.containers:
             success, output = self.run_command(
                 f"docker-compose -f {self.compose_file} exec -T redis redis-cli ping",
-                "Redis connectivity"
+                "Redis connectivity",
             )
 
             if not success:
@@ -319,14 +304,14 @@ class DockerManager:
         # Check if alembic is available
         success, output = self.run_command(
             f"docker-compose -f {self.compose_file} exec -T backend alembic current",
-            "Checking migration status"
+            "Checking migration status",
         )
 
         if success:
             # Run migrations
             success, output = self.run_command(
                 f"docker-compose -f {self.compose_file} exec -T backend alembic upgrade head",
-                "Running migrations"
+                "Running migrations",
             )
 
             if not success:
@@ -343,16 +328,14 @@ class DockerManager:
 
         # Check volume configuration
         success, output = self.run_command(
-            "docker volume ls --format 'table {{.Name}}\t{{.Driver}}'",
-            "Listing Docker volumes"
+            "docker volume ls --format 'table {{.Name}}\t{{.Driver}}'", "Listing Docker volumes"
         )
 
         # Create necessary volumes if not exist
         volumes = ["ruleiq_postgres_data", "ruleiq_redis_data"]
         for volume in volumes:
             success, output = self.run_command(
-                f"docker volume create {volume}",
-                f"Creating volume {volume}"
+                f"docker volume create {volume}", f"Creating volume {volume}"
             )
 
         return True
@@ -362,23 +345,14 @@ class DockerManager:
         self.log("Cleaning up old containers and images...")
 
         # Stop old containers
-        self.run_command(
-            f"docker-compose -f {self.compose_file} down",
-            "Stopping old containers"
-        )
+        self.run_command(f"docker-compose -f {self.compose_file} down", "Stopping old containers")
 
         # Remove dangling images
-        self.run_command(
-            "docker image prune -f",
-            "Removing dangling images"
-        )
+        self.run_command("docker image prune -f", "Removing dangling images")
 
         # Remove unused volumes (careful with this)
         if self.environment != "production":
-            self.run_command(
-                "docker volume prune -f",
-                "Removing unused volumes"
-            )
+            self.run_command("docker volume prune -f", "Removing unused volumes")
 
         return True
 
@@ -438,10 +412,7 @@ class DockerManager:
         self.log("=" * 60)
 
         # Show running containers
-        self.run_command(
-            f"docker-compose -f {self.compose_file} ps",
-            "Final container status"
-        )
+        self.run_command(f"docker-compose -f {self.compose_file} ps", "Final container status")
 
         return True
 
@@ -450,8 +421,7 @@ class DockerManager:
         self.log("Stopping containers...")
 
         success, output = self.run_command(
-            f"docker-compose -f {self.compose_file} stop",
-            "Stopping containers"
+            f"docker-compose -f {self.compose_file} stop", "Stopping containers"
         )
 
         return success
@@ -461,8 +431,7 @@ class DockerManager:
         self.log("Restarting containers...")
 
         success, output = self.run_command(
-            f"docker-compose -f {self.compose_file} restart",
-            "Restarting containers"
+            f"docker-compose -f {self.compose_file} restart", "Restarting containers"
         )
 
         time.sleep(10)
@@ -509,7 +478,7 @@ class DockerManager:
 
         success, output = self.run_command(
             f"docker-compose -f {self.compose_file} up -d --scale {service}={replicas}",
-            f"Scaling {service}"
+            f"Scaling {service}",
         )
 
         return success
@@ -522,27 +491,17 @@ def main():
         "--action",
         choices=["deploy", "stop", "restart", "logs", "status", "clean"],
         default="deploy",
-        help="Action to perform"
+        help="Action to perform",
     )
     parser.add_argument(
         "--env",
         choices=["staging", "production", "test"],
         default="staging",
-        help="Target environment"
+        help="Target environment",
     )
-    parser.add_argument(
-        "--compose-file",
-        help="Path to Docker Compose file"
-    )
-    parser.add_argument(
-        "--service",
-        help="Specific service for actions"
-    )
-    parser.add_argument(
-        "--scale",
-        type=int,
-        help="Number of replicas for scaling"
-    )
+    parser.add_argument("--compose-file", help="Path to Docker Compose file")
+    parser.add_argument("--service", help="Specific service for actions")
+    parser.add_argument("--scale", type=int, help="Number of replicas for scaling")
 
     args = parser.parse_args()
 

@@ -13,7 +13,7 @@ import { useAuthStore } from '@/lib/stores/auth.store';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const _router = useRouter();
-  const { isAuthenticated, isLoading, checkAuthStatus } = useAuthStore();
+  const { isAuthenticated: _isAuthenticated, isLoading: _isLoading, checkAuthStatus } = useAuthStore();
 
   useEffect(() => {
     checkAuthStatus();

@@ -385,10 +385,10 @@ class AssessmentAIService {
 
       // Development fallback
       return mockAIResponses.analysis;
-    } catch (error) {
+    } catch (_error) {
 
 
-      if (this.useProductionEndpoints && error instanceof Error) {
+      if (this.useProductionEndpoints && _error instanceof Error) {
         return mockAIResponses.analysis;
       }
 
@@ -448,10 +448,10 @@ class AssessmentAIService {
           'Zero retention-related compliance incidents',
         ],
       };
-    } catch (error) {
+    } catch (_error) {
 
 
-      if (this.useProductionEndpoints && error instanceof Error) {
+      if (this.useProductionEndpoints && _error instanceof Error) {
         return {
           recommendations: mockAIResponses.analysis.recommendations,
           implementation_plan: {
@@ -526,8 +526,9 @@ Can you provide guidance on how to answer this question correctly?`;
           ...feedback,
         });
       } else {
+        // intentionally empty - dev mode feedback is a no-op
       }
-    } catch (error) {
+    } catch (_error) {
       // Non-blocking - don't throw error for feedback submission
     }
   }
@@ -549,7 +550,7 @@ Can you provide guidance on how to answer this question correctly?`;
         total_interactions: number;
       }>('/ai/assessments/metrics');
       return response;
-    } catch (error) {
+    } catch (_error) {
 
       throw new Error('Unable to retrieve AI performance metrics.');
     }
@@ -858,11 +859,11 @@ Can you provide guidance on how to answer this question correctly?`;
     try {
       const result = await Promise.race([aiRequest, timeoutPromise]);
       return result;
-    } catch (error) {
-      if (error instanceof Error && error.message.includes('timed out')) {
+    } catch (_error) {
+      if (_error instanceof Error && _error.message.includes('timed out')) {
         throw new Error(`${operation} is taking longer than expected. Please try again.`);
       }
-      throw error;
+      throw _error;
     }
   }
 
@@ -926,7 +927,7 @@ Can you provide guidance on how to answer this question correctly?`;
       const response = await this.executeWithTimeout(aiRequest, timeoutMs, 'Enhanced AI analysis');
 
       return response;
-    } catch (error) {
+    } catch (_error) {
 
 
       // Fallback response with basic recommendations
@@ -993,7 +994,7 @@ Can you provide guidance on how to answer this question correctly?`;
               eventSource.close();
               break;
           }
-        } catch (error) {
+        } catch (_error) {
 
           options.onError?.('Error parsing response data');
         }
@@ -1003,7 +1004,7 @@ Can you provide guidance on how to answer this question correctly?`;
         options.onError?.('Connection error occurred');
         eventSource.close();
       };
-    } catch (error) {
+    } catch (_error) {
 
       options.onError?.('Failed to start analysis stream');
     }
@@ -1044,7 +1045,7 @@ Can you provide guidance on how to answer this question correctly?`;
               eventSource.close();
               break;
           }
-        } catch (error) {
+        } catch (_error) {
 
           options.onError?.('Error parsing response data');
         }
@@ -1054,7 +1055,7 @@ Can you provide guidance on how to answer this question correctly?`;
         options.onError?.('Connection error occurred');
         eventSource.close();
       };
-    } catch (error) {
+    } catch (_error) {
 
       options.onError?.('Failed to start recommendations stream');
     }
@@ -1096,7 +1097,7 @@ Can you provide guidance on how to answer this question correctly?`;
               eventSource.close();
               break;
           }
-        } catch (error) {
+        } catch (_error) {
 
           options.onError?.('Error parsing response data');
         }
@@ -1106,7 +1107,7 @@ Can you provide guidance on how to answer this question correctly?`;
         options.onError?.('Connection error occurred');
         eventSource.close();
       };
-    } catch (error) {
+    } catch (_error) {
 
       options.onError?.('Failed to start help stream');
     }

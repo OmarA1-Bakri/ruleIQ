@@ -15,19 +15,28 @@ from typing import Optional, Tuple
 from datetime import datetime
 import argparse
 
+
 class Colors:
     """Terminal colors for output formatting"""
-    RED = '\033[0;31m'
-    GREEN = '\033[0;32m'
-    YELLOW = '\033[1;33m'
-    BLUE = '\033[0;34m'
-    MAGENTA = '\033[0;35m'
-    CYAN = '\033[0;36m'
-    NC = '\033[0m'  # No Color
-    BOLD = '\033[1m'
+
+    RED = "\033[0;31m"
+    GREEN = "\033[0;32m"
+    YELLOW = "\033[1;33m"
+    BLUE = "\033[0;34m"
+    MAGENTA = "\033[0;35m"
+    CYAN = "\033[0;36m"
+    NC = "\033[0m"  # No Color
+    BOLD = "\033[1m"
+
 
 class DeploymentExecutor:
-    def __init__(self, environment: str = "production", non_interactive: bool = False, strict_validation: bool = False, require_org_remote: bool = False) -> None:
+    def __init__(
+        self,
+        environment: str = "production",
+        non_interactive: bool = False,
+        strict_validation: bool = False,
+        require_org_remote: bool = False,
+    ) -> None:
         self.environment = environment
         self.non_interactive = non_interactive
         self.strict_validation = strict_validation
@@ -49,14 +58,14 @@ class DeploymentExecutor:
             "metrics": {},
             "errors": [],
             "warnings": [],
-            "doppler_enabled": False  # Track if Doppler was used
+            "doppler_enabled": False,  # Track if Doppler was used
         }
 
     def print_header(self, message: str):
         """Print formatted section header"""
-        print(f"\n{Colors.BLUE}{'='*60}{Colors.NC}")
+        print(f"\n{Colors.BLUE}{'=' * 60}{Colors.NC}")
         print(f"{Colors.BOLD}{Colors.CYAN}{message}{Colors.NC}")
-        print(f"{Colors.BLUE}{'='*60}{Colors.NC}\n")
+        print(f"{Colors.BLUE}{'=' * 60}{Colors.NC}\n")
 
     def print_success(self, message: str):
         """Print success message"""
@@ -84,7 +93,7 @@ class DeploymentExecutor:
     def run_command(self, command: str, check: bool = True) -> Tuple[bool, str]:
         """Run shell command and return result"""
         result = subprocess.run(command, shell=True, capture_output=True, text=True, check=False)
-        output = (result.stdout or '') + (('\n' + result.stderr) if result.stderr else '')
+        output = (result.stdout or "") + (("\n" + result.stderr) if result.stderr else "")
         if check and result.returncode != 0:
             return False, output
         return result.returncode == 0, output
@@ -138,13 +147,17 @@ class DeploymentExecutor:
             print(f" {Colors.RED}[INCORRECT]{Colors.NC}")
             self.print_error("Not connected to organization repository")
             self.print_info(f"Expected: https://github.com/{self.org_name}/{self.repo_name}.git")
-            self.print_info("Run scripts/deploy/update-git-remote.sh to update your remote to the organization repository")
+            self.print_info(
+                "Run scripts/deploy/update-git-remote.sh to update your remote to the organization repository"
+            )
             checks.append(False)
         else:
             print(f" {Colors.YELLOW}[WARNING]{Colors.NC}")
             self.print_warning("Not connected to organization repository")
             self.print_info(f"Expected: https://github.com/{self.org_name}/{self.repo_name}.git")
-            self.print_info("Run scripts/deploy/update-git-remote.sh to update your remote to the organization repository")
+            self.print_info(
+                "Run scripts/deploy/update-git-remote.sh to update your remote to the organization repository"
+            )
             # Still append True to not block deployment for non-standard remotes
             checks.append(True)
 
@@ -163,7 +176,7 @@ class DeploymentExecutor:
 
         # Check Doppler integration
         self.print_progress("Checking Doppler integration")
-        doppler_token = os.environ.get('DOPPLER_TOKEN')
+        doppler_token = os.environ.get("DOPPLER_TOKEN")
         if doppler_token:
             print(f" {Colors.GREEN}[CONFIGURED]{Colors.NC}")
             self.print_success("Doppler is configured for secrets management")
@@ -207,7 +220,9 @@ class DeploymentExecutor:
 
             self.report["deployment_method"] = "github_actions"
             self.report["monitoring_url"] = actions_url
-            self.report["workflow_used"] = "deploy-vercel-doppler.yml" if self.doppler_available else "deploy-vercel.yml"
+            self.report["workflow_used"] = (
+                "deploy-vercel-doppler.yml" if self.doppler_available else "deploy-vercel.yml"
+            )
             self.deployment_method = "github"
 
             return True
@@ -228,18 +243,18 @@ class DeploymentExecutor:
         self.deployment_method = "vercel"
 
         # Get environment variables for proper scoping
-        vercel_org_id = os.environ.get('VERCEL_ORG_ID')
-        vercel_project_id = os.environ.get('VERCEL_PROJECT_ID')
-        vercel_token = os.environ.get('VERCEL_TOKEN')
+        vercel_org_id = os.environ.get("VERCEL_ORG_ID")
+        vercel_project_id = os.environ.get("VERCEL_PROJECT_ID")
+        vercel_token = os.environ.get("VERCEL_TOKEN")
 
         # Check for .vercel/project.json to ensure correct project/org
         vercel_config_path = Path(".vercel/project.json")
         if vercel_config_path.exists():
             try:
-                with open(vercel_config_path, 'r') as f:
+                with open(vercel_config_path, "r") as f:
                     vercel_config = json.load(f)
-                    configured_org = vercel_config.get('orgId', '')
-                    configured_project = vercel_config.get('projectId', '')
+                    configured_org = vercel_config.get("orgId", "")
+                    configured_project = vercel_config.get("projectId", "")
 
                     # Use config values if env vars not set
                     if not vercel_org_id:
@@ -247,7 +262,9 @@ class DeploymentExecutor:
                     if not vercel_project_id:
                         vercel_project_id = configured_project
 
-                    self.print_info(f"Using Vercel project: {configured_project} (org: {configured_org})")
+                    self.print_info(
+                        f"Using Vercel project: {configured_project} (org: {configured_org})"
+                    )
             except Exception as e:
                 self.print_warning(f"Could not read Vercel config: {str(e)}")
 
@@ -297,7 +314,7 @@ class DeploymentExecutor:
 
             # Try to extract deployment URL from output first
             if "https://" in output:
-                for line in output.split('\n'):
+                for line in output.split("\n"):
                     if "https://" in line and "vercel.app" in line:
                         self.deployment_url = line.strip()
                         break
@@ -316,14 +333,14 @@ class DeploymentExecutor:
                 if success_ls:
                     try:
                         deployments = json.loads(ls_output)
-                        if deployments.get('deployments'):
-                            deployment_url = deployments['deployments'][0].get('url')
+                        if deployments.get("deployments"):
+                            deployment_url = deployments["deployments"][0].get("url")
                             if deployment_url:
                                 self.deployment_url = f"https://{deployment_url}"
                     except json.JSONDecodeError:
                         # Fallback: parse text output
                         if "https://" in ls_output:
-                            for line in ls_output.split('\n'):
+                            for line in ls_output.split("\n"):
                                 if "https://" in line and "vercel.app" in line:
                                     self.deployment_url = line.strip()
                                     break
@@ -350,7 +367,7 @@ class DeploymentExecutor:
         dots = 0
 
         # Try to use GitHub API if token is available
-        github_token = os.environ.get('GITHUB_TOKEN')
+        github_token = os.environ.get("GITHUB_TOKEN")
 
         # Different monitoring strategy based on deployment method
         if self.deployment_method == "github":
@@ -359,7 +376,9 @@ class DeploymentExecutor:
             if github_token:
                 # Poll GitHub API for deployment status
                 self.print_info("Monitoring deployment via GitHub API...")
-                api_url = f"https://api.github.com/repos/{self.org_name}/{self.repo_name}/deployments"
+                api_url = (
+                    f"https://api.github.com/repos/{self.org_name}/{self.repo_name}/deployments"
+                )
                 headers = {"Authorization": f"token {github_token}"}
 
                 # Exponential backoff settings
@@ -369,12 +388,16 @@ class DeploymentExecutor:
                 while time.time() - start < timeout:
                     try:
                         # Check for rate limiting
-                        response = requests.get(api_url, headers=headers, params={"environment": "production", "per_page": 5})
+                        response = requests.get(
+                            api_url,
+                            headers=headers,
+                            params={"environment": "production", "per_page": 5},
+                        )
 
                         # Handle rate limiting
                         if response.status_code == 403:
-                            remaining = response.headers.get('X-RateLimit-Remaining', '0')
-                            if remaining == '0':
+                            remaining = response.headers.get("X-RateLimit-Remaining", "0")
+                            if remaining == "0":
                                 self.print_warning("GitHub API rate limit reached. Backing off...")
                                 time.sleep(60)  # Wait a minute
                                 continue
@@ -384,40 +407,56 @@ class DeploymentExecutor:
 
                             # Check each deployment (most recent first)
                             for deployment in deployments:
-                                deployment_id = deployment['id']
+                                deployment_id = deployment["id"]
                                 # Get deployment status
                                 status_url = f"{api_url}/{deployment_id}/statuses"
-                                status_response = requests.get(status_url, headers=headers, params={"per_page": 1})
+                                status_response = requests.get(
+                                    status_url, headers=headers, params={"per_page": 1}
+                                )
 
                                 if status_response.status_code == 200:
                                     statuses = status_response.json()
                                     if statuses:
                                         latest_status = statuses[0]
-                                        if latest_status['state'] == 'success':
-                                            self.deployment_url = latest_status.get('environment_url')
+                                        if latest_status["state"] == "success":
+                                            self.deployment_url = latest_status.get(
+                                                "environment_url"
+                                            )
                                             if self.deployment_url:
-                                                self.print_success(f"Deployment successful! URL: {self.deployment_url}")
-                                                self.report['deployment_url'] = self.deployment_url
+                                                self.print_success(
+                                                    f"Deployment successful! URL: {self.deployment_url}"
+                                                )
+                                                self.report["deployment_url"] = self.deployment_url
                                                 return True
-                                        elif latest_status['state'] in ['error', 'failure']:
-                                            self.print_error(f"Deployment failed: {latest_status.get('description', 'Unknown error')}")
+                                        elif latest_status["state"] in ["error", "failure"]:
+                                            self.print_error(
+                                                f"Deployment failed: {latest_status.get('description', 'Unknown error')}"
+                                            )
                                             return False
                                         # If in_progress or queued, continue monitoring
 
                         # Fallback to Workflow Runs API if Deployments API lacks info
                         if not self.deployment_url:
                             workflow_url = f"https://api.github.com/repos/{self.org_name}/{self.repo_name}/actions/runs"
-                            workflow_response = requests.get(workflow_url, headers=headers, params={"per_page": 1})
+                            workflow_response = requests.get(
+                                workflow_url, headers=headers, params={"per_page": 1}
+                            )
                             if workflow_response.status_code == 200:
-                                runs = workflow_response.json().get('workflow_runs', [])
+                                runs = workflow_response.json().get("workflow_runs", [])
                                 if runs:
                                     latest_run = runs[0]
-                                    if latest_run['status'] == 'completed':
-                                        if latest_run['conclusion'] == 'success':
-                                            self.print_info("Workflow completed successfully but deployment URL not found in API")
-                                            self.print_info("Check GitHub Actions logs for deployment URL")
+                                    if latest_run["status"] == "completed":
+                                        if latest_run["conclusion"] == "success":
+                                            self.print_info(
+                                                "Workflow completed successfully but deployment URL not found in API"
+                                            )
+                                            self.print_info(
+                                                "Check GitHub Actions logs for deployment URL"
+                                            )
                                         else:
-                                            self.print_error(f"Workflow failed: {latest_run['conclusion']}")
+                                            self.print_error(
+                                                f"Workflow failed: {latest_run['conclusion']}"
+                                            )
                                             return False
 
                     except requests.exceptions.RequestException as e:
@@ -439,43 +478,59 @@ class DeploymentExecutor:
 
             else:
                 # No GitHub token - check if we can use scoped CLI fallback
-                vercel_token = os.environ.get('VERCEL_TOKEN')
-                vercel_org_id = os.environ.get('VERCEL_ORG_ID')
+                vercel_token = os.environ.get("VERCEL_TOKEN")
+                vercel_org_id = os.environ.get("VERCEL_ORG_ID")
 
                 if not vercel_token or not vercel_org_id:
                     # Cannot use CLI fallback without proper scoping - return manual instructions
-                    self.print_warning("No GitHub token found. Set GITHUB_TOKEN environment variable for automatic monitoring.")
-                    self.report['warnings'].append("GitHub API monitoring unavailable - no token provided")
+                    self.print_warning(
+                        "No GitHub token found. Set GITHUB_TOKEN environment variable for automatic monitoring."
+                    )
+                    self.report["warnings"].append(
+                        "GitHub API monitoring unavailable - no token provided"
+                    )
                     if not vercel_token:
-                        self.report['warnings'].append("Vercel CLI fallback unavailable - no VERCEL_TOKEN")
+                        self.report["warnings"].append(
+                            "Vercel CLI fallback unavailable - no VERCEL_TOKEN"
+                        )
                     if not vercel_org_id:
-                        self.report['warnings'].append("Vercel CLI fallback unavailable - no VERCEL_ORG_ID")
+                        self.report["warnings"].append(
+                            "Vercel CLI fallback unavailable - no VERCEL_ORG_ID"
+                        )
 
                     print(f"{Colors.CYAN}Monitor deployment at: {actions_url}{Colors.NC}")
                     print(f"\n{Colors.YELLOW}Manual monitoring required:{Colors.NC}")
                     print(f"1. Check deployment status at: {actions_url}")
                     print("2. Get deployment URL from GitHub Actions logs")
-                    print(f"3. Or check Vercel dashboard: https://vercel.com/{self.org_name.lower()}")
+                    print(
+                        f"3. Or check Vercel dashboard: https://vercel.com/{self.org_name.lower()}"
+                    )
                     return False
 
                 # We have both token and org ID - attempt scoped CLI fallback
-                self.print_info("GitHub token not available, attempting scoped Vercel CLI fallback...")
+                self.print_info(
+                    "GitHub token not available, attempting scoped Vercel CLI fallback..."
+                )
 
                 # Check for project ID from .vercel/project.json
-                expected_project_id = os.environ.get('VERCEL_PROJECT_ID')
+                expected_project_id = os.environ.get("VERCEL_PROJECT_ID")
                 vercel_config_path = Path(".vercel/project.json")
 
                 if vercel_config_path.exists():
                     try:
-                        with open(vercel_config_path, 'r') as f:
+                        with open(vercel_config_path, "r") as f:
                             vercel_config = json.load(f)
                             if not expected_project_id:
-                                expected_project_id = vercel_config.get('projectId')
+                                expected_project_id = vercel_config.get("projectId")
                     except Exception as e:
                         self.print_warning(f"Could not read Vercel config: {str(e)}")
 
                 # Monitor with scoped CLI
-                print(f"{Colors.YELLOW}Monitoring deployment via scoped Vercel CLI{Colors.NC}", end="", flush=True)
+                print(
+                    f"{Colors.YELLOW}Monitoring deployment via scoped Vercel CLI{Colors.NC}",
+                    end="",
+                    flush=True,
+                )
                 start = time.time()
                 dots = 0
                 timeout = 300  # 5 minutes for CLI fallback
@@ -489,18 +544,24 @@ class DeploymentExecutor:
                     time.sleep(5)
 
                     # Build properly scoped command
-                    ls_cmd = f"vercel ls --limit 5 --json --token={vercel_token} --scope {vercel_org_id}"
+                    ls_cmd = (
+                        f"vercel ls --limit 5 --json --token={vercel_token} --scope {vercel_org_id}"
+                    )
                     success, output = self.run_command(ls_cmd, check=False)
 
                     if success:
                         try:
                             deployments_data = json.loads(output)
-                            deployments = deployments_data.get('deployments', [])
+                            deployments = deployments_data.get("deployments", [])
 
                             # Find deployment matching our project
                             for deployment in deployments:
-                                deployment_project = deployment.get('projectId') or deployment.get('project')
-                                deployment_org = deployment.get('ownerId') or deployment.get('orgId')
+                                deployment_project = deployment.get("projectId") or deployment.get(
+                                    "project"
+                                )
+                                deployment_org = deployment.get("ownerId") or deployment.get(
+                                    "orgId"
+                                )
 
                                 # Verify this deployment belongs to our project and org
                                 if deployment_org == vercel_org_id:
@@ -508,15 +569,21 @@ class DeploymentExecutor:
                                         # We have a project ID - match exactly
                                         if deployment_project == expected_project_id:
                                             self.deployment_url = f"https://{deployment['url']}"
-                                            self.print_success(f"\nDeployment detected via scoped CLI: {self.deployment_url}")
-                                            self.report['deployment_url'] = self.deployment_url
+                                            self.print_success(
+                                                f"\nDeployment detected via scoped CLI: {self.deployment_url}"
+                                            )
+                                            self.report["deployment_url"] = self.deployment_url
                                             return True
                                     else:
                                         # No project ID but org matches - take first matching deployment
                                         self.deployment_url = f"https://{deployment['url']}"
-                                        self.print_warning(f"\nDeployment detected (org-scoped only): {self.deployment_url}")
-                                        self.report['deployment_url'] = self.deployment_url
-                                        self.report['warnings'].append("Project ID not available for exact matching")
+                                        self.print_warning(
+                                            f"\nDeployment detected (org-scoped only): {self.deployment_url}"
+                                        )
+                                        self.report["deployment_url"] = self.deployment_url
+                                        self.report["warnings"].append(
+                                            "Project ID not available for exact matching"
+                                        )
                                         return True
 
                         except json.JSONDecodeError:
@@ -528,15 +595,17 @@ class DeploymentExecutor:
                 print(f"\n{Colors.YELLOW}Manual monitoring required:{Colors.NC}")
                 print(f"1. Check deployment status at: {actions_url}")
                 print("2. Get deployment URL from GitHub Actions logs")
-                print(f"3. Or check Vercel dashboard: https://vercel.com/{vercel_org_id or self.org_name.lower()}")
+                print(
+                    f"3. Or check Vercel dashboard: https://vercel.com/{vercel_org_id or self.org_name.lower()}"
+                )
                 return False
 
         # Vercel CLI deployment method
         elif self.deployment_method == "vercel":
             # Get environment variables for proper scoping
-            vercel_token = os.environ.get('VERCEL_TOKEN')
-            vercel_org_id = os.environ.get('VERCEL_ORG_ID')
-            vercel_project_id = os.environ.get('VERCEL_PROJECT_ID')
+            vercel_token = os.environ.get("VERCEL_TOKEN")
+            vercel_org_id = os.environ.get("VERCEL_ORG_ID")
+            vercel_project_id = os.environ.get("VERCEL_PROJECT_ID")
 
             # Check for .vercel/project.json to get project info
             expected_project_id = vercel_project_id
@@ -545,10 +614,10 @@ class DeploymentExecutor:
             vercel_config_path = Path(".vercel/project.json")
             if vercel_config_path.exists():
                 try:
-                    with open(vercel_config_path, 'r') as f:
+                    with open(vercel_config_path, "r") as f:
                         vercel_config = json.load(f)
-                        config_org_id = vercel_config.get('orgId')
-                        config_project_id = vercel_config.get('projectId')
+                        config_org_id = vercel_config.get("orgId")
+                        config_project_id = vercel_config.get("projectId")
 
                         # Use config values if env vars not set
                         if not expected_org_id:
@@ -556,12 +625,16 @@ class DeploymentExecutor:
                         if not expected_project_id:
                             expected_project_id = config_project_id
 
-                        self.print_info(f"Monitoring project: {config_project_id} (org: {config_org_id})")
+                        self.print_info(
+                            f"Monitoring project: {config_project_id} (org: {config_org_id})"
+                        )
                 except Exception as e:
                     self.print_warning(f"Could not read Vercel config: {str(e)}")
 
             if not expected_org_id:
-                self.print_warning("No VERCEL_ORG_ID found. Deployment monitoring may target wrong organization.")
+                self.print_warning(
+                    "No VERCEL_ORG_ID found. Deployment monitoring may target wrong organization."
+                )
                 self.print_info("Set VERCEL_ORG_ID environment variable for proper scoping.")
                 return False
 
@@ -588,13 +661,17 @@ class DeploymentExecutor:
                     if success:
                         try:
                             deployments_data = json.loads(output)
-                            deployments = deployments_data.get('deployments', [])
+                            deployments = deployments_data.get("deployments", [])
 
                             # Find deployment matching our project
                             for deployment in deployments:
                                 # Check if deployment belongs to expected project
-                                deployment_project = deployment.get('projectId') or deployment.get('project')
-                                deployment_org = deployment.get('ownerId') or deployment.get('orgId')
+                                deployment_project = deployment.get("projectId") or deployment.get(
+                                    "project"
+                                )
+                                deployment_org = deployment.get("ownerId") or deployment.get(
+                                    "orgId"
+                                )
 
                                 # Verify this deployment belongs to our project
                                 if expected_project_id:
@@ -609,27 +686,36 @@ class DeploymentExecutor:
                                 else:
                                     # Last resort - take first deployment but warn
                                     self.deployment_url = f"https://{deployment['url']}"
-                                    self.print_warning("Deployment URL detected but could not verify project/org ownership")
+                                    self.print_warning(
+                                        "Deployment URL detected but could not verify project/org ownership"
+                                    )
                                     break
 
                         except json.JSONDecodeError:
                             self.print_warning("Could not parse Vercel CLI output")
 
                 if self.deployment_url:
-                    print(f"\n{Colors.GREEN}✅ Deployment URL detected: {self.deployment_url}{Colors.NC}")
+                    print(
+                        f"\n{Colors.GREEN}✅ Deployment URL detected: {self.deployment_url}{Colors.NC}"
+                    )
                     break
 
             if self.deployment_url:
                 self.report["deployment_url"] = self.deployment_url
                 return True
             else:
-                print(f"\n{Colors.YELLOW}⚠️  Could not detect deployment URL automatically{Colors.NC}")
-                print(f"Check Vercel dashboard: https://vercel.com/{expected_org_id or self.org_name.lower()}")
+                print(
+                    f"\n{Colors.YELLOW}⚠️  Could not detect deployment URL automatically{Colors.NC}"
+                )
+                print(
+                    f"Check Vercel dashboard: https://vercel.com/{expected_org_id or self.org_name.lower()}"
+                )
                 return False
 
         # Default case - shouldn't normally reach here
         print(f"\n{Colors.YELLOW}⚠️  Unknown deployment method: {self.deployment_method}{Colors.NC}")
         return False
+
     def validate_deployment(self, url: Optional[str] = None) -> bool:
         """Validate the deployed application"""
         self.print_header("POST-DEPLOYMENT VALIDATION")
@@ -650,7 +736,7 @@ class DeploymentExecutor:
             "/health": "Basic health check",
             "/ready": "Readiness check",
             "/api/v1/health/detailed": "Detailed health status",
-            "/api/v1/health/database": "Database connectivity"
+            "/api/v1/health/database": "Database connectivity",
         }
 
         for endpoint, description in endpoints.items():
@@ -660,7 +746,7 @@ class DeploymentExecutor:
                 "description": description,
                 "status": "unknown",
                 "http_status": None,
-                "error": None
+                "error": None,
             }
 
             try:
@@ -692,7 +778,7 @@ class DeploymentExecutor:
             "description": "API documentation",
             "status": "unknown",
             "http_status": None,
-            "error": None
+            "error": None,
         }
 
         try:
@@ -747,7 +833,7 @@ class DeploymentExecutor:
 
         # Save report
         report_file = Path(f"deployment_report_{self.start_time.strftime('%Y%m%d_%H%M%S')}.json")
-        with open(report_file, 'w') as f:
+        with open(report_file, "w") as f:
             json.dump(self.report, f, indent=2)
 
         self.print_success(f"Report saved: {report_file}")
@@ -793,7 +879,7 @@ class DeploymentExecutor:
                 self.print_error("Exiting due to validation failure in non-interactive mode")
                 return 1
             resp = input("\nContinue anyway? (y/N): ").strip().lower()
-            if resp != 'y':
+            if resp != "y":
                 return 1
 
         # Execute deployment based on method
@@ -822,13 +908,17 @@ class DeploymentExecutor:
             if self.deployment_url:
                 validation_ok = self.validate_deployment(self.deployment_url)
             else:
-                self.print_info("No deployment URL detected - skipping validation in non-interactive mode")
+                self.print_info(
+                    "No deployment URL detected - skipping validation in non-interactive mode"
+                )
                 self.print_info("Check deployment status at GitHub Actions or Vercel dashboard")
                 validation_ok = None  # No validation performed
         else:
             # Fix double-prompt bug: capture once and reuse value
             if not self.deployment_url:
-                entered = input("\nEnter deployment URL for validation (or press Enter to skip): ").strip()
+                entered = input(
+                    "\nEnter deployment URL for validation (or press Enter to skip): "
+                ).strip()
                 validation_url = entered
             else:
                 validation_url = self.deployment_url
@@ -837,10 +927,14 @@ class DeploymentExecutor:
                 # Check if validate-deployment.sh exists and offer to use it
                 validate_script = Path("scripts/deploy/validate-deployment.sh")
                 if validate_script.exists() and validate_script.is_file():
-                    use_script = input("\nUse validate-deployment.sh script? (y/N): ").lower() == 'y'
+                    use_script = (
+                        input("\nUse validate-deployment.sh script? (y/N): ").lower() == "y"
+                    )
                     if use_script:
                         self.print_info(f"Running validation script: {validate_script}")
-                        success, output = self.run_command(f"bash {validate_script} '{validation_url}'", check=False)
+                        success, output = self.run_command(
+                            f"bash {validate_script} '{validation_url}'", check=False
+                        )
                         print(output)
                         if success:
                             self.print_success("Validation script completed successfully")
@@ -858,9 +952,9 @@ class DeploymentExecutor:
         # Enforce strict validation mode before generating report
         if self.strict_validation:
             # Prefer explicit boolean; fall back to report aggregation
-            failed = (validation_ok is False) or (self.report.get('validation') == 'failed')
+            failed = (validation_ok is False) or (self.report.get("validation") == "failed")
             if failed:
-                self.print_error('Strict validation enabled: failing due to validation errors')
+                self.print_error("Strict validation enabled: failing due to validation errors")
                 self.generate_deployment_report()
                 return 1
 
@@ -882,34 +976,36 @@ class DeploymentExecutor:
 
         return 0
 
+
 def main():
     parser = argparse.ArgumentParser(description="Execute ruleIQ organization deployment")
     parser.add_argument(
         "--environment",
         choices=["production", "preview"],
         default="production",
-        help="Deployment environment"
+        help="Deployment environment",
     )
     parser.add_argument(
         "--method",
         choices=["auto", "github", "vercel"],
         default="auto",
-        help="Deployment method (auto will try GitHub Actions first)"
+        help="Deployment method (auto will try GitHub Actions first)",
     )
     parser.add_argument(
-        "--yes", "-y",
+        "--yes",
+        "-y",
         action="store_true",
-        help="Non-interactive mode - skip all prompts and proceed with defaults"
+        help="Non-interactive mode - skip all prompts and proceed with defaults",
     )
     parser.add_argument(
         "--strict-validation",
         action="store_true",
-        help="Exit with non-zero code if validation fails"
+        help="Exit with non-zero code if validation fails",
     )
     parser.add_argument(
         "--require-org-remote",
         action="store_true",
-        help="Require connection to organization repository (for CI)"
+        help="Require connection to organization repository (for CI)",
     )
 
     args = parser.parse_args()
@@ -918,9 +1014,10 @@ def main():
         environment=args.environment,
         non_interactive=args.yes,
         strict_validation=args.strict_validation,
-        require_org_remote=args.require_org_remote
+        require_org_remote=args.require_org_remote,
     )
     sys.exit(executor.run(method=args.method))
+
 
 if __name__ == "__main__":
     main()

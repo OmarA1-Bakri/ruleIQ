@@ -19,7 +19,6 @@ import { Button } from '@/components/ui/button';
 import { IQComplianceResponse } from './IQComplianceResponse';
 import { IQTrustIndicator } from './IQTrustIndicator';
 import { useIQAgentStore } from '@/lib/stores/iq-agent.store';
-import type { IQComplianceQueryResponse } from '@/types/iq-agent';
 
 interface IQEnhancedMessageProps {
   message: ChatMessage;

@@ -7,7 +7,6 @@ import {
   ChatMessage,
   StreamingMessagePayload,
   StreamingState,
-  TrustLevel
 } from '../websocket/types';
 
 interface UseStreamingChatProps {

@@ -3,7 +3,6 @@
 import { motion, useScroll, useTransform } from 'framer-motion';
 import {
   ArrowRight,
-  Sparkles,
   Shield,
   Zap,
   BarChart3,
@@ -14,14 +13,11 @@ import {
   TrendingUp,
   Users,
   FileCheck,
-  ChevronRight,
   Crown,
-  Gem,
-  Award,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useRef } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/lib/stores/auth.store';

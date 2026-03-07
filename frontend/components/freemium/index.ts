@@ -34,5 +34,4 @@ export {
   useFreemiumStore,
   useFreemiumSession,
   useFreemiumProgress,
-  useFreemiumConversion,
 } from '../../lib/stores/freemium-store';

@@ -2,6 +2,7 @@
 """
 Quick AI test without running the full API server
 """
+
 import asyncio
 import os
 from dotenv import load_dotenv
@@ -22,15 +23,15 @@ async def test_ai_direct():
             print("❌ GOOGLE_AI_API_KEY not found in .env.local")
             return
 
-        import google.generativeai as genai
+        import google.genai as genai
 
-        genai.configure(api_key=api_key)
-
-        # Create model
-        model = genai.GenerativeModel("gemini-1.5-flash")
+        client = genai.Client(api_key=api_key)
 
         # Test prompt
-        response = model.generate_content("Say 'AI is working with Neon database!'")
+        response = client.models.generate_content(
+            model="gemini-1.5-flash",
+            contents="Say 'AI is working with Neon database!'",
+        )
 
         print(f"✅ Google AI Response: {response.text}")
         print("   Model: gemini-1.5-flash")

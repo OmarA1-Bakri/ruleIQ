@@ -198,8 +198,8 @@ describe('SecureStorage', () => {
       // Mock crypto to throw an error
       mockCrypto.subtle.encrypt.mockRejectedValueOnce(new Error('Encryption failed'));
 
-      // Should not throw when handling errors
-      await expect(SecureStorage.setAccessToken('test')).resolves.not.toThrow();
+      // Should throw when encryption fails (this is expected behavior)
+      await expect(SecureStorage.setAccessToken('test')).rejects.toThrow('Failed to encrypt data');
     });
   });
 });

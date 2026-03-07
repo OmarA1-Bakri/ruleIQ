@@ -102,9 +102,7 @@ class TestAIErrorHandling:
             # Should handle content filtering appropriately
             assert response.status_code in [400, 422]
 
-    def test_ai_model_error_fallback(
-        self, client, authenticated_headers, sample_business_profile
-    ):
+    def test_ai_model_error_fallback(self, client, authenticated_headers, sample_business_profile):
         """Test fallback when AI model encounters errors"""
         request_data = {
             "question_id": "model-error-test",
@@ -115,7 +113,8 @@ class TestAIErrorHandling:
 
         with patch.object(ComplianceAssistant, "get_assessment_help") as mock_help:
             mock_help.side_effect = AIModelException(
-                model_name="gemini-pro", model_error="Model inference failed",
+                model_name="gemini-pro",
+                model_error="Model inference failed",
             )
 
             response = client.post(
@@ -154,9 +153,7 @@ class TestAIErrorHandling:
             # Should handle parsing errors gracefully
             assert response.status_code in [500, 502]
 
-    def test_network_error_fallback(
-        self, client, authenticated_headers, sample_business_profile
-    ):
+    def test_network_error_fallback(self, client, authenticated_headers, sample_business_profile):
         """Test fallback when network errors occur"""
         request_data = {
             "question_id": "network-test",
@@ -209,11 +206,10 @@ class TestAIErrorHandling:
             },
         }
 
-        with patch.object(
-            ComplianceAssistant, "get_assessment_help"
-        ) as mock_help, patch.object(
-            ComplianceAssistant, "generate_assessment_followup"
-        ) as mock_followup:
+        with (
+            patch.object(ComplianceAssistant, "get_assessment_help") as mock_help,
+            patch.object(ComplianceAssistant, "generate_assessment_followup") as mock_followup,
+        ):
             # All AI services fail
             mock_help.side_effect = AIServiceException("Service unavailable")
             mock_followup.side_effect = AIServiceException("Service unavailable")
@@ -379,14 +375,12 @@ class TestAIErrorHandling:
             )
 
             # Mock the fallback mechanism
-            with patch(
-                "api.routers.ai_assessments._get_mock_help_response"
-            ) as mock_fallback:
+            with patch("api.routers.ai_assessments._get_mock_help_response") as mock_fallback:
                 mock_fallback.return_value = {
                     "guidance": "Mock guidance for GDPR compliance",
                     "confidence_score": 0.7,
                     "request_id": "mock-request-123",
-                    "generated_at": "2024-01-01T00:00:00Z"
+                    "generated_at": "2024-01-01T00:00:00Z",
                 }
 
                 response = client.post(
@@ -421,7 +415,8 @@ class TestAIErrorHandling:
 
             mock_assistant.return_value.get_assessment_help = AsyncMock(
                 side_effect=AIServiceException(
-                    "Service error with context", context=error_context,
+                    "Service error with context",
+                    context=error_context,
                 ),
             )
 
@@ -486,9 +481,7 @@ class TestAIErrorHandling:
                     framework_id="gdpr",
                 )
 
-    def test_ai_error_rate_monitoring(
-        self, client, authenticated_headers, sample_business_profile
-    ):
+    def test_ai_error_rate_monitoring(self, client, authenticated_headers, sample_business_profile):
         """Test monitoring of AI error rates"""
         request_data = {
             "question_id": "error-rate-test",

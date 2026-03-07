@@ -1,8 +1,8 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 
 import { monitoringService } from '@/lib/api/monitoring.service';
 
-import { createQueryKey, type BaseQueryOptions, type BaseMutationOptions } from './base';
+import { createQueryKey, type BaseQueryOptions } from './base';
 
 // Query keys
 const MONITORING_KEY = 'monitoring';

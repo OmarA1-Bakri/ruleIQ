@@ -10,9 +10,6 @@ import type {
   CreatePolicyRequest, 
   UpdatePolicyRequest,
   PaginatedResponse,
-  PolicyCategory,
-  PolicyStatus,
-  RiskLevel
 } from './types';
 
 // Zod schemas for validation
@@ -158,7 +155,7 @@ export class PoliciesService {
     try {
       PolicyListItemSchema.parse(policy);
       return true;
-    } catch (error) {
+    } catch (_error) {
       return false;
     }
   }

@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from typing import Any, Dict, List
 from uuid import UUID
 
@@ -15,7 +13,7 @@ from api.schemas.models import (
     AssessmentQuestion,
     AssessmentResponseUpdate,
     AssessmentSessionCreate,
-    AssessmentSessionResponse
+    AssessmentSessionResponse,
 )
 from database.user import User
 from services.assessment_service import AssessmentService
@@ -108,7 +106,9 @@ async def create_assessment(
     return session
 
 
-@router.post("/start", response_model=AssessmentSessionResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/start", response_model=AssessmentSessionResponse, status_code=status.HTTP_201_CREATED
+)
 @require_auth
 async def start_assessment(
     session_data: AssessmentSessionCreate,
@@ -130,7 +130,9 @@ async def get_current_session(
     assessment_service = AssessmentService()
     session = await assessment_service.get_current_assessment_session(db, current_user)
     if not session:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No active assessment session")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="No active assessment session"
+        )
     return session
 
 
@@ -170,28 +172,38 @@ async def update_responses(
     question_id = response_data.get("question_id")
     response = response_data.get("response")
     if not question_id:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="question_id is required")
-    session = await assessment_service.update_assessment_response(db, current_user, session_id, question_id, response)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="question_id is required"
+        )
+    session = await assessment_service.update_assessment_response(
+        db, current_user, session_id, question_id, response
+    )
     return session
 
 
 @router.get("/{id}", response_model=AssessmentSessionResponse)
 @require_auth
 async def get_assessment_session(
-    session_id: UUID, current_user: User = Depends(get_current_active_user), db: AsyncSession = Depends(get_async_db)
+    session_id: UUID,
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_async_db),
 ) -> Any:
     """Get a specific assessment session by ID."""
     assessment_service = AssessmentService()
     session = await assessment_service.get_assessment_session(db, current_user, session_id)
     if not session:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Assessment session not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Assessment session not found"
+        )
     return session
 
 
 @router.get("/{id}/recommendations")
 @require_auth
 async def get_assessment_recommendations(
-    session_id: UUID, current_user: User = Depends(get_current_active_user), db: AsyncSession = Depends(get_async_db)
+    session_id: UUID,
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_async_db),
 ) -> Dict[str, Any]:
     """Get recommendations for an assessment session."""
     from sqlalchemy import select
@@ -201,8 +213,12 @@ async def get_assessment_recommendations(
     assessment_service = AssessmentService()
     session = await assessment_service.get_assessment_session(db, current_user, session_id)
     if not session:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Assessment session not found")
-    frameworks_result = await db.execute(select(ComplianceFramework).where(ComplianceFramework.is_active))
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Assessment session not found"
+        )
+    frameworks_result = await db.execute(
+        select(ComplianceFramework).where(ComplianceFramework.is_active)
+    )
     frameworks = frameworks_result.scalars().all()
     if session.recommendations:
         recommendations = session.recommendations
@@ -228,7 +244,9 @@ async def get_assessment_recommendations(
 @router.post("/{id}/complete", response_model=AssessmentSessionResponse)
 @require_auth
 async def complete_assessment(
-    session_id: UUID, current_user: User = Depends(get_current_active_user), db: AsyncSession = Depends(get_async_db)
+    session_id: UUID,
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_async_db),
 ) -> Any:
     assessment_service = AssessmentService()
     session = await assessment_service.complete_assessment_session(db, current_user, session_id)
@@ -247,27 +265,37 @@ async def update_assessment(
     assessment_service = AssessmentService()
     session = await assessment_service.get_assessment_session(db, current_user, id)
     if not session:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Assessment session not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Assessment session not found"
+        )
     return session
 
 
 @router.get("/{id}/results", response_model=dict)
 @require_auth
 async def get_assessment_results(
-    id: UUID, current_user: User = Depends(get_current_active_user), db: AsyncSession = Depends(get_async_db)
+    id: UUID,
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_async_db),
 ) -> Dict[str, Any]:
     """Get detailed results for a completed assessment."""
     assessment_service = AssessmentService()
     session = await assessment_service.get_assessment_session(db, current_user, id)
     if not session:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Assessment session not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Assessment session not found"
+        )
     return {
         "assessment_id": str(id),
         "status": "completed",
         "score": 85,
         "risk_level": "low",
         "recommendations": [
-            {"framework": "GDPR", "compliance_level": 90, "gaps": ["Data retention policy", "User consent mechanism"]},
+            {
+                "framework": "GDPR",
+                "compliance_level": 90,
+                "gaps": ["Data retention policy", "User consent mechanism"],
+            },
             {
                 "framework": "ISO 27001",
                 "compliance_level": 75,
@@ -280,6 +308,8 @@ async def get_assessment_results(
             "Schedule security training",
         ],
         "completed_at": (
-            session.completed_at.isoformat() if hasattr(session, "completed_at") and session.completed_at else None
+            session.completed_at.isoformat()
+            if hasattr(session, "completed_at") and session.completed_at
+            else None
         ),
     }

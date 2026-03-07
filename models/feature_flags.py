@@ -7,9 +7,7 @@ import uuid
 from datetime import datetime
 from enum import Enum
 
-from sqlalchemy import (
-    Column, String, Boolean, Float, DateTime, Text, ForeignKey, Integer
-)
+from sqlalchemy import Column, String, Boolean, Float, DateTime, Text, ForeignKey, Integer
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship
 
@@ -18,6 +16,7 @@ from database.db_setup import Base
 
 class FeatureFlagStatus(str, Enum):
     """Feature flag status enumeration"""
+
     ENABLED = "enabled"
     DISABLED = "disabled"
     PERCENTAGE_ROLLOUT = "percentage_rollout"
@@ -29,6 +28,7 @@ class FeatureFlag(Base):
     Feature Flag Model with comprehensive configuration
     Stores feature flags with environment-specific overrides and user targeting
     """
+
     __tablename__ = "feature_flags"
 
     # Primary key
@@ -71,10 +71,12 @@ class FeatureFlag(Base):
     version = Column(Integer, default=1, nullable=False)
 
     # Relationships
-    audit_logs = relationship("FeatureFlagAudit", back_populates="feature_flag",
-                            cascade="all, delete-orphan")
-    evaluations = relationship("FeatureFlagEvaluation", back_populates="feature_flag",
-                             cascade="all, delete-orphan")
+    audit_logs = relationship(
+        "FeatureFlagAudit", back_populates="feature_flag", cascade="all, delete-orphan"
+    )
+    evaluations = relationship(
+        "FeatureFlagEvaluation", back_populates="feature_flag", cascade="all, delete-orphan"
+    )
 
 
 class FeatureFlagAudit(Base):
@@ -82,6 +84,7 @@ class FeatureFlagAudit(Base):
     Audit trail for feature flag changes
     Tracks all modifications to feature flags for compliance and debugging
     """
+
     __tablename__ = "feature_flag_audits"
 
     # Primary key
@@ -122,6 +125,7 @@ class FeatureFlagEvaluation(Base):
     Feature flag evaluation cache and analytics
     Stores evaluation results for performance and analytics
     """
+
     __tablename__ = "feature_flag_evaluations"
 
     # Primary key
@@ -160,6 +164,7 @@ class FeatureFlagGroup(Base):
     Feature flag groups for organized management
     Groups related feature flags together
     """
+
     __tablename__ = "feature_flag_groups"
 
     # Primary key

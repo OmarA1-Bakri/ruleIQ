@@ -95,7 +95,9 @@ class TestUKComplianceManifest(unittest.TestCase):
         """Test obligations are properly indexed"""
         # Should have at least 108 obligations as per requirements
         self.assertGreaterEqual(
-            len(self.manifest.obligations), 108, "Should have at least 108 obligations",
+            len(self.manifest.obligations),
+            108,
+            "Should have at least 108 obligations",
         )
 
         # Check obligation structure
@@ -148,8 +150,7 @@ class TestUKComplianceManifest(unittest.TestCase):
             (
                 m
                 for m in self.manifest.cross_mappings
-                if "UK_GDPR" in m["regulations"]
-                and "DATA_PROTECTION_ACT" in m["regulations"]
+                if "UK_GDPR" in m["regulations"] and "DATA_PROTECTION_ACT" in m["regulations"]
             ),
             None,
         )
@@ -174,7 +175,9 @@ class TestUKComplianceAssessmentEngine(unittest.IsolatedAsyncioTestCase):
     async def test_assess_compliance_basic(self):
         """Test basic compliance assessment"""
         result = await self.engine.assess_compliance(
-            self.test_organization, "UK_GDPR", "full",
+            self.test_organization,
+            "UK_GDPR",
+            "full",
         )
 
         self.assertIsNotNone(result)
@@ -220,7 +223,8 @@ class TestUKComplianceAssessmentEngine(unittest.IsolatedAsyncioTestCase):
         # Check prioritization (lower score = higher priority)
         if len(recommendations) > 1:
             self.assertLessEqual(
-                recommendations[0]["priority"], recommendations[-1]["priority"],
+                recommendations[0]["priority"],
+                recommendations[-1]["priority"],
             )
 
     async def test_assessment_prompts_loaded(self):
@@ -246,7 +250,9 @@ class TestGraphRAGResearchEngine(unittest.IsolatedAsyncioTestCase):
 
         with patch("services.compliance.graphrag_research_engine.AsyncGraphDatabase"):
             self.engine = GraphRAGResearchEngine(
-                "bolt://localhost:7687", ("neo4j", "password"), self.mock_llm,
+                "bolt://localhost:7687",
+                ("neo4j", "password"),
+                self.mock_llm,
             )
 
     async def test_research_query_creation(self):
@@ -422,7 +428,9 @@ class TestPerformance(unittest.TestCase):
 
         # Should load in under 2 seconds
         self.assertLess(
-            load_time, 2.0, f"Manifest load took {load_time:.2f}s, expected < 2s",
+            load_time,
+            2.0,
+            f"Manifest load took {load_time:.2f}s, expected < 2s",
         )
 
     def test_large_obligation_search(self):
@@ -441,7 +449,9 @@ class TestPerformance(unittest.TestCase):
 
         # Should complete 100 searches in under 1 second
         self.assertLess(
-            search_time, 1.0, f"100 searches took {search_time:.2f}s, expected < 1s",
+            search_time,
+            1.0,
+            f"100 searches took {search_time:.2f}s, expected < 1s",
         )
 
 

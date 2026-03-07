@@ -11,7 +11,7 @@ from config.ai_config import get_ai_model
 from services.ai.circuit_breaker import AICircuitBreaker
 from services.ai.instruction_integration import get_instruction_manager, InstructionManager
 from services.ai.exceptions import ModelUnavailableException
-from .base import AIProvider, ProviderConfig
+from .base import AIProvider
 from .gemini_provider import GeminiProvider
 from .openai_provider import OpenAIProvider
 from .anthropic_provider import AnthropicProvider
@@ -21,16 +21,16 @@ logger = logging.getLogger(__name__)
 
 # Task type to complexity mapping
 TASK_COMPLEXITY_MAP = {
-    'help': ('simple', True),  # (complexity, prefer_speed)
-    'guidance': ('simple', True),
-    'analysis': ('complex', False),
-    'assessment': ('complex', False),
-    'gap_analysis': ('complex', False),
-    'recommendations': ('medium', False),
-    'followup': ('medium', False),
-    'policy_generation': ('complex', False),
-    'workflow_generation': ('medium', False),
-    'general': ('simple', True),
+    "help": ("simple", True),  # (complexity, prefer_speed)
+    "guidance": ("simple", True),
+    "analysis": ("complex", False),
+    "assessment": ("complex", False),
+    "gap_analysis": ("complex", False),
+    "recommendations": ("medium", False),
+    "followup": ("medium", False),
+    "policy_generation": ("complex", False),
+    "workflow_generation": ("medium", False),
+    "general": ("simple", True),
 }
 
 
@@ -40,8 +40,8 @@ class ProviderFactory:
     def __init__(
         self,
         instruction_manager: Optional[InstructionManager] = None,
-        circuit_breaker: Optional[AICircuitBreaker] = None
-    ):
+        circuit_breaker: Optional[AICircuitBreaker] = None,
+    ) -> None:
         """
         Initialize the provider factory.
 
@@ -62,7 +62,7 @@ class ProviderFactory:
         task_type: str,
         context: Optional[Dict] = None,
         tools: Optional[List] = None,
-        cached_content = None
+        cached_content=None,
     ) -> Tuple[Any, str]:
         """
         Get the appropriate provider and model for a task.
@@ -80,10 +80,7 @@ class ProviderFactory:
             ModelUnavailableException: If no models are available
         """
         # Get complexity and speed preference for task
-        complexity, prefer_speed = TASK_COMPLEXITY_MAP.get(
-            task_type,
-            ('auto', False)
-        )
+        complexity, prefer_speed = TASK_COMPLEXITY_MAP.get(task_type, ("auto", False))
 
         logger.debug(
             f"Getting provider for task: {task_type} "
@@ -94,11 +91,11 @@ class ProviderFactory:
             # Get model with system instruction
             model, instruction_id = self.instruction_manager.get_model_with_instruction(
                 instruction_type=task_type,
-                framework=context.get('framework') if context else None,
-                business_profile=context.get('business_context', {}) if context else None,
+                framework=context.get("framework") if context else None,
+                business_profile=context.get("business_context", {}) if context else None,
                 task_complexity=complexity,
                 tools=tools,
-                prefer_speed=prefer_speed
+                prefer_speed=prefer_speed,
             )
 
             # Attach cached content if provided
@@ -107,29 +104,28 @@ class ProviderFactory:
                 logger.debug(f"Attached cached content to model for {task_type}")
 
             # Check circuit breaker for model availability
-            model_name = getattr(model, 'model_name', 'unknown')
+            model_name = getattr(model, "model_name", "unknown")
             if not self.circuit_breaker.is_model_available(model_name):
                 logger.warning(f"Model {model_name} unavailable, trying fallback")
 
                 # Try fallback model
                 fallback_model = get_ai_model()
-                fallback_model_name = getattr(fallback_model, 'model_name', 'unknown')
+                fallback_model_name = getattr(fallback_model, "model_name", "unknown")
 
                 if not self.circuit_breaker.is_model_available(fallback_model_name):
                     raise ModelUnavailableException(
                         model_name=fallback_model_name,
-                        reason='All models unavailable due to circuit breaker'
+                        reason="All models unavailable due to circuit breaker",
                     )
 
-                return fallback_model, 'fallback_default'
+                return fallback_model, "fallback_default"
 
             return model, instruction_id
 
         except Exception as e:
             logger.error(f"Failed to get model for {task_type}: {e}")
             raise ModelUnavailableException(
-                model_name='unknown',
-                reason=f'Model selection failed: {str(e)}'
+                model_name="unknown", reason=f"Model selection failed: {str(e)}"
             )
 
     def get_provider_by_name(self, provider_name: str) -> AIProvider:
@@ -145,15 +141,15 @@ class ProviderFactory:
         Raises:
             ValueError: If provider name is invalid
         """
-        if provider_name == 'gemini':
+        if provider_name == "gemini":
             if not self._gemini_provider:
                 self._gemini_provider = GeminiProvider(self.circuit_breaker)
             return self._gemini_provider
-        elif provider_name == 'openai':
+        elif provider_name == "openai":
             if not self._openai_provider:
                 self._openai_provider = OpenAIProvider(self.circuit_breaker)
             return self._openai_provider
-        elif provider_name == 'anthropic':
+        elif provider_name == "anthropic":
             if not self._anthropic_provider:
                 self._anthropic_provider = AnthropicProvider(self.circuit_breaker)
             return self._anthropic_provider
@@ -170,8 +166,8 @@ class ProviderFactory:
         available = []
 
         # Check Gemini availability
-        if self.circuit_breaker.is_model_available('gemini-1.5-flash'):
-            available.append('gemini')
+        if self.circuit_breaker.is_model_available("gemini-1.5-flash"):
+            available.append("gemini")
 
         # OpenAI and Anthropic would be checked here when implemented
         # For now, they're not available

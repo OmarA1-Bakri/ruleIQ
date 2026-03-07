@@ -12,24 +12,16 @@ import {
   FileText,
   Database,
   Globe,
-  Lock,
   Play,
   Pause,
   Settings,
   Info,
-  Star,
   CheckCircle
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import {
   Dialog,
   DialogContent,

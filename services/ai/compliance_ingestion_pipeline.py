@@ -28,7 +28,8 @@ from tenacity import (
 
 # Production logging configuration
 logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
 
@@ -101,9 +102,7 @@ class IngestionMetrics:
             "error_count": len(self.errors),
             "warning_count": len(self.warnings),
             "data_quality_avg": (
-                np.mean(list(self.data_quality_scores.values()))
-                if self.data_quality_scores
-                else 0,
+                np.mean(list(self.data_quality_scores.values())) if self.data_quality_scores else 0,
             ),
         }
 
@@ -536,7 +535,8 @@ class Neo4jComplianceIngestion:
                     async with session.begin_transaction() as tx:
                         try:
                             success_count = await self._ingest_regulation_batch(
-                                session, batch,
+                                session,
+                                batch,
                             )
                             await tx.commit()
                             self.metrics.successful_items += success_count
@@ -554,15 +554,14 @@ class Neo4jComplianceIngestion:
             # Retry failed items once
             if self._failed_ids:
                 logger.info(f"Retrying {len(self._failed_ids)} failed items")
-                retry_items = [
-                    item for item in items if item.get("id") in self._failed_ids
-                ]
+                retry_items = [item for item in items if item.get("id") in self._failed_ids]
 
                 async with self.driver.session(database=self.database) as session:
                     for item in retry_items:
                         try:
                             success = await self._ingest_regulation_batch(
-                                session, [item],
+                                session,
+                                [item],
                             )
                             if success:
                                 self.metrics.successful_items += 1
@@ -617,7 +616,8 @@ class Neo4jComplianceIngestion:
                 relationships_data = json.load(f)
 
             regulatory_relationships = relationships_data.get(
-                "regulatory_relationships", {},
+                "regulatory_relationships",
+                {},
             )
 
             # Cypher query for creating relationships
@@ -652,7 +652,8 @@ class Neo4jComplianceIngestion:
                             }
 
                             result = await session.run(
-                                relationship_query, relationships=[rel_data],
+                                relationship_query,
+                                relationships=[rel_data],
                             )
                             await result.consume()
                             metrics.relationships_created += 1
@@ -842,7 +843,8 @@ class IQComplianceIntegration:
             "industry": business_profile.get("industry", ""),
             "jurisdiction": business_profile.get("jurisdiction", "UK"),
             "handles_personal_data": business_profile.get(
-                "handles_personal_data", False,
+                "handles_personal_data",
+                False,
             ),
             "processes_payments": business_profile.get("processes_payments", False),
             "risk_threshold": risk_threshold,
@@ -854,9 +856,7 @@ class IQComplianceIntegration:
 
         return [record["regulation"] for record in regulations]
 
-    async def calculate_control_overlap(
-        self, regulation_ids: List[str]
-    ) -> Dict[str, Any]:
+    async def calculate_control_overlap(self, regulation_ids: List[str]) -> Dict[str, Any]:
         """
         Calculate control overlap between regulations
 
@@ -885,7 +885,7 @@ class IQComplianceIntegration:
 
         return {
             "overlapping_controls": [record["overlap"] for record in overlaps],
-            "deduplication_potential": len(overlaps) / max(len(regulation_ids), 1)
+            "deduplication_potential": len(overlaps) / max(len(regulation_ids), 1),
         }
 
     async def get_enforcement_evidence(
@@ -945,7 +945,6 @@ if __name__ == "__main__":
         async with Neo4jComplianceIngestion(
             neo4j_uri=neo4j_uri, neo4j_user=neo4j_user, neo4j_password=neo4j_password
         ) as pipeline:
-
             # Ingest enhanced manifest
             manifest_path = Path("data/manifests/compliance_ml_manifest_enhanced.json")
             if manifest_path.exists():

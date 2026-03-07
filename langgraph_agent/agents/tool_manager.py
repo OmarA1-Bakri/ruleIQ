@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 Advanced tool implementation with validation, async execution, and composition.
 Production-ready tool management with error handling and performance optimization.
@@ -79,9 +78,7 @@ class ToolError(Exception):
     message: str
     details: Dict[str, Any] = field(default_factory=dict)
 
-    def to_fallback_response(
-        self, company_id: UUID, thread_id: str
-    ) -> SafeFallbackResponse:
+    def to_fallback_response(self, company_id: UUID, thread_id: str) -> SafeFallbackResponse:
         """Convert to SafeFallbackResponse."""
         return SafeFallbackResponse(
             error_message=f"Tool '{self.tool_name}' failed: {self.message}",
@@ -176,9 +173,7 @@ class BaseComplianceTool(BaseTool, ABC):
                 self._execute(*args, **kwargs), timeout=self.max_execution_time_seconds
             )
 
-            execution_time = int(
-                (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
-            )
+            execution_time = int((datetime.now(timezone.utc) - start_time).total_seconds() * 1000)
 
             return ToolResult(
                 tool_name=self.name,
@@ -194,9 +189,7 @@ class BaseComplianceTool(BaseTool, ABC):
                 message=f"Tool execution timed out after {self.max_execution_time_seconds}s",
             )
         except (Exception, ValueError) as e:
-            execution_time = int(
-                (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
-            )
+            execution_time = int((datetime.now(timezone.utc) - start_time).total_seconds() * 1000)
 
             return ToolResult(
                 tool_name=self.name,
@@ -215,9 +208,7 @@ class ComplianceAnalysisTool(BaseComplianceTool):
     """Tool for analyzing compliance requirements."""
 
     name: str = "compliance_analysis"
-    description: str = (
-        "Analyze business compliance requirements and applicable frameworks"
-    )
+    description: str = "Analyze business compliance requirements and applicable frameworks"
     category: ToolCategory = ToolCategory.COMPLIANCE_ANALYSIS
     priority: ToolPriority = ToolPriority.HIGH
 
@@ -253,14 +244,10 @@ class DocumentRetrievalTool(BaseComplianceTool):
     """Tool for retrieving relevant documents and templates."""
 
     name: str = "document_retrieval"
-    description: str = (
-        "Retrieve compliance documents, templates, and guidance materials"
-    )
+    description: str = "Retrieve compliance documents, templates, and guidance materials"
     category: ToolCategory = ToolCategory.DOCUMENT_RETRIEVAL
 
-    async def _execute(
-        self, query: str, framework: str, doc_type: str
-    ) -> Dict[str, Any]:
+    async def _execute(self, query: str, framework: str, doc_type: str) -> Dict[str, Any]:
         """Retrieve relevant documents."""
         # Implementation would integrate with document storage
         documents = {
@@ -521,9 +508,7 @@ class ToolManager:
                     if key in context:
                         kwargs[key] = context[key]
 
-            result = await self.execute_tool(
-                tool_name, company_id, thread_id, *args, **kwargs
-            )
+            result = await self.execute_tool(tool_name, company_id, thread_id, *args, **kwargs)
 
             results.append(result)
 
@@ -606,8 +591,7 @@ class ToolManager:
             "status": "healthy",
             "total_tools": len(self.tools),
             "tools_by_category": {
-                category.value: len(tools)
-                for category, tools in self.tool_categories.items()
+                category.value: len(tools) for category, tools in self.tool_categories.items()
             },
             "tool_statuses": {},
         }
@@ -622,9 +606,7 @@ class ToolManager:
 
         return health
 
-    def validate_tool_request(
-        self, tool_name: str, signature: str, request_data: str
-    ) -> bool:
+    def validate_tool_request(self, tool_name: str, signature: str, request_data: str) -> bool:
         """Validate tool request with HMAC signature."""
         if tool_name not in self.tools:
             return False

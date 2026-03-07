@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Union
 from uuid import UUID
@@ -84,9 +82,7 @@ class EvidenceService:
         }
 
     @staticmethod
-    async def create_evidence(
-        user_id: UUID, evidence_data: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    async def create_evidence(user_id: UUID, evidence_data: Dict[str, Any]) -> Dict[str, Any]:
         """Placeholder for creating evidence. Mocked in tests."""
         pass
 
@@ -141,9 +137,7 @@ class EvidenceService:
         pass
 
     @staticmethod
-    def identify_requirements(
-        framework_id: UUID, control_ids: List[str]
-    ) -> List[Dict[str, Any]]:
+    def identify_requirements(framework_id: UUID, control_ids: List[str]) -> List[Dict[str, Any]]:
         """Placeholder for identifying evidence requirements. Mocked in tests."""
         pass
 
@@ -155,9 +149,7 @@ class EvidenceService:
         pass
 
     @staticmethod
-    def update_status(
-        evidence_id: UUID, new_status: str, reason: str
-    ) -> Dict[str, Any]:
+    def update_status(evidence_id: UUID, new_status: str, reason: str) -> Dict[str, Any]:
         """Placeholder for updating evidence status. Mocked in tests."""
         pass
 
@@ -194,10 +186,12 @@ class EvidenceService:
     ) -> List[EvidenceItem]:
         """Generate a comprehensive evidence checklist for a compliance framework asynchronously."""
         existing_items_stmt = select(EvidenceItem).where(
-            EvidenceItem.user_id == user.id, EvidenceItem.framework_id == framework_id,
+            EvidenceItem.user_id == user.id,
+            EvidenceItem.framework_id == framework_id,
         )
         existing_items_res = await EvidenceService._execute_query(
-            db, existing_items_stmt,
+            db,
+            existing_items_stmt,
         )
         existing_items = existing_items_res.scalars().all()
         if existing_items:
@@ -220,7 +214,8 @@ class EvidenceService:
         policy = None
         if policy_id:
             policy_stmt = select(GeneratedPolicy).where(
-                GeneratedPolicy.id == policy_id, GeneratedPolicy.user_id == user.id,
+                GeneratedPolicy.id == policy_id,
+                GeneratedPolicy.user_id == user.id,
             )
             policy_res = await EvidenceService._execute_query(db, policy_stmt)
             policy = policy_res.scalars().first()
@@ -372,7 +367,9 @@ class EvidenceService:
             return None, f"validation_error: {str(e)}"
 
         item, status = await EvidenceService.get_evidence_item_with_auth_check(
-            db, evidence_id, user.id,
+            db,
+            evidence_id,
+            user.id,
         )
         if status != "found":
             return None, status
@@ -410,7 +407,9 @@ class EvidenceService:
         - 'unauthorized': Evidence exists but user doesn't have access
         """
         item, status = await EvidenceService.get_evidence_item_with_auth_check(
-            db, evidence_id, user.id,
+            db,
+            evidence_id,
+            user.id,
         )
         if status != "found":
             return False, status
@@ -420,9 +419,7 @@ class EvidenceService:
         return True, "deleted"
 
     @staticmethod
-    async def get_evidence_summary(
-        db: Union[AsyncSession, Session], user: User
-    ) -> Dict[str, Any]:
+    async def get_evidence_summary(db: Union[AsyncSession, Session], user: User) -> Dict[str, Any]:
         """Get a summary of evidence status asynchronously."""
         stmt = select(EvidenceItem).where(EvidenceItem.user_id == user.id)
         result = await EvidenceService._execute_query(db, stmt)
@@ -491,7 +488,11 @@ class EvidenceService:
         for evidence_id in evidence_ids:
             try:
                 item = await EvidenceService.update_evidence_status(
-                    db, user, evidence_id, status, notes,
+                    db,
+                    user,
+                    evidence_id,
+                    status,
+                    notes,
                 )
                 if item:
                     updated_items.append(item)
@@ -635,7 +636,8 @@ class EvidenceService:
         # Try to get from cache first
         cache = await get_cache_manager()
         cached_dashboard = await cache.get_evidence_dashboard(
-            str(user.id), str(framework_id),
+            str(user.id),
+            str(framework_id),
         )
         if cached_dashboard:
             return cached_dashboard
@@ -645,7 +647,10 @@ class EvidenceService:
             dashboard_data = {"message": "No evidence items found for this framework."}
             # Cache empty result for shorter time
             await cache.set_evidence_dashboard(
-                str(user.id), str(framework_id), dashboard_data, ttl=60,
+                str(user.id),
+                str(framework_id),
+                dashboard_data,
+                ttl=60,
             )
             return dashboard_data
 
@@ -674,9 +679,7 @@ class EvidenceService:
                     "id": str(item.id),
                     "title": item.evidence_name,
                     "status": item.status,
-                    "updated_at": (
-                        item.updated_at.isoformat() if item.updated_at else None
-                    ),
+                    "updated_at": (item.updated_at.isoformat() if item.updated_at else None),
                 }
                 for item in sorted(items, key=lambda x: x.updated_at, reverse=True)[:5]
             ],
@@ -684,7 +687,10 @@ class EvidenceService:
 
         # Cache the dashboard data for 5 minutes
         await cache.set_evidence_dashboard(
-            str(user.id), str(framework_id), dashboard_data, ttl=300,
+            str(user.id),
+            str(framework_id),
+            dashboard_data,
+            ttl=300,
         )
 
         return dashboard_data

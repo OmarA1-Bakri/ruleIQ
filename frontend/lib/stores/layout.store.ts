@@ -6,7 +6,6 @@ import {
   LayoutHistoryItem,
   DragOperation,
   WidgetPosition,
-  RuleOrderConfig,
   AccessibilityAnnouncement,
   DragState,
   LayoutPreferences,
@@ -68,7 +67,7 @@ interface LayoutState {
 }
 
 // Debounce helper
-const debounce = <T extends (...args: any[]) => any>(
+const _debounce = <T extends (...args: any[]) => any>(
   func: T,
   delay: number
 ): T => {
@@ -98,7 +97,7 @@ const compressHistory = (history: LayoutHistoryItem[], maxSize: number): LayoutH
 const createOperationDescription = (
   type: DragOperationType,
   item: DragOperation['item'],
-  details?: any
+  _details?: any
 ): string => {
   switch (type) {
     case 'widget-reorder':
@@ -320,7 +319,7 @@ export const useLayoutStore = create<LayoutState>()(
         }),
 
         // Rule actions
-        moveRule: (ruleId, newOrder, groupId) => set((state) => {
+        moveRule: (ruleId, newOrder, _groupId) => set((state) => {
           if (!state.currentLayout) return;
 
           const previousState = { ruleOrder: [...state.currentLayout.ruleOrder] };
@@ -521,7 +520,7 @@ export const useLayoutStore = create<LayoutState>()(
 
         // Drag state
         setDragState: (newState) => set((state) => {
-          state.dragState = { ...state.dragState, ...newState };
+          Object.assign(state.dragState, newState);
         }),
 
         clearDragState: () => set((state) => {

@@ -22,7 +22,7 @@ export const SigmaNetworkGraph = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState(true);
   const [graphData, setGraphData] = useState<any>(null);
-  const sigmaRef = useRef<Sigma | null>(null);
+  const sigmaRef = useRef<any>(null);
 
   useEffect(() => {
     fetchGraphData();
@@ -98,7 +98,7 @@ export const SigmaNetworkGraph = () => {
           color: edge.color || 'var(--purple-500)40',
           size: edge.weight || 1
         });
-      } catch (e) {
+      } catch (_e) {
         // Ignore duplicate edges or missing nodes
       }
     });
@@ -115,7 +115,7 @@ export const SigmaNetworkGraph = () => {
     });
 
     // Update node positions
-    graph.updateEachNodeAttributes((node, attr) => ({
+    graph.updateEachNodeAttributes((node: any, attr: any) => ({
       ...attr,
       ...positions[node]
     }));
@@ -128,14 +128,14 @@ export const SigmaNetworkGraph = () => {
       renderEdgeLabels: false,
       defaultNodeColor: 'var(--purple-500)',
       defaultEdgeColor: 'var(--purple-500)40',
-      nodeReducer: (node, data) => {
+      nodeReducer: (node: any, data: any) => {
         const res = { ...data };
         if (data.highlighted) {
           res.color = 'var(--purple-600)';
         }
         return res;
       },
-      edgeReducer: (edge, data) => {
+      edgeReducer: (edge: any, data: any) => {
         const res = { ...data };
         if (data.highlighted) {
           res.color = 'var(--purple-600)';
@@ -147,13 +147,13 @@ export const SigmaNetworkGraph = () => {
     // Add hover effects
     let hoveredNode: string | null = null;
     
-    sigmaRef.current.on('enterNode', ({ node }) => {
+    sigmaRef.current.on('enterNode', ({ node }: { node: any }) => {
       hoveredNode = node;
       graph.setNodeAttribute(node, 'highlighted', true);
-      graph.neighbors(node).forEach(neighbor => {
+      graph.neighbors(node).forEach((neighbor: any) => {
         graph.setNodeAttribute(neighbor, 'highlighted', true);
       });
-      graph.edges(node).forEach(edge => {
+      graph.edges(node).forEach((edge: any) => {
         graph.setEdgeAttribute(edge, 'highlighted', true);
       });
       sigmaRef.current?.refresh();
@@ -162,10 +162,10 @@ export const SigmaNetworkGraph = () => {
     sigmaRef.current.on('leaveNode', () => {
       if (hoveredNode) {
         graph.setNodeAttribute(hoveredNode, 'highlighted', false);
-        graph.neighbors(hoveredNode).forEach(neighbor => {
+        graph.neighbors(hoveredNode).forEach((neighbor: any) => {
           graph.setNodeAttribute(neighbor, 'highlighted', false);
         });
-        graph.edges(hoveredNode).forEach(edge => {
+        graph.edges(hoveredNode).forEach((edge: any) => {
           graph.setEdgeAttribute(edge, 'highlighted', false);
         });
         hoveredNode = null;

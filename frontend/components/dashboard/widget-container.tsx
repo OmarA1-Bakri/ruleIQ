@@ -13,7 +13,6 @@ import {
   type DragOverEvent,
   type UniqueIdentifier,
   MeasuringStrategy,
-  type ClientRect,
   type Announcements,
 } from '@dnd-kit/core';
 import {
@@ -25,11 +24,9 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import {
-  restrictToVerticalAxis,
   restrictToWindowEdges,
-  restrictToParentElement,
 } from '@dnd-kit/modifiers';
-import { GripVertical, X, Settings, Maximize2, Minimize2, Undo, Redo } from 'lucide-react';
+import { GripVertical, X, Settings, Maximize2, Minimize2 } from 'lucide-react';
 import React, { useCallback, useState, useEffect, useMemo } from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -38,9 +35,8 @@ import { cn } from '@/lib/utils';
 import { useLayoutStore } from '@/lib/stores/layout.store';
 import { useLayoutPersistence } from '@/lib/hooks/use-layout-persistence';
 import { useKeyboardShortcuts } from '@/lib/hooks/use-keyboard-shortcuts';
-import { WidgetPosition, DragState } from '@/types/layout';
+import { WidgetPosition } from '@/types/layout';
 import { generateAccessibilityAnnouncements } from '@/lib/utils/accessibility-announcements';
-import { DragPreview } from './layout/DragPreview';
 import { toast } from '@/hooks/use-toast';
 
 export interface WidgetConfig {
@@ -205,7 +201,7 @@ export function WidgetContainer({
     currentLayout,
     moveWidget,
     removeWidget,
-    addWidget,
+    addWidget: _addWidget,
     undo,
     redo,
     setDragState,
@@ -261,7 +257,7 @@ export function WidgetContainer({
   };
 
   // Accessibility announcements
-  const announcements: Announcements = useMemo(
+  const _announcements: Announcements = useMemo(
     () => generateAccessibilityAnnouncements(dragContextType),
     [dragContextType]
   );
@@ -372,7 +368,7 @@ export function WidgetContainer({
 
   const handleDragOver = useCallback(
     (event: DragOverEvent) => {
-      const { active, over } = event;
+      const { active: _active, over } = event;
 
       if (over) {
         setDragState({
@@ -516,8 +512,8 @@ export function WidgetContainer({
   );
 
   const activeWidget = widgets.find(w => w.id === activeId);
-  const canUndo = historyIndex >= 0 && history.length > 0;
-  const canRedo = historyIndex < history.length - 1;
+  const _canUndo = historyIndex >= 0 && history.length > 0;
+  const _canRedo = historyIndex < history.length - 1;
 
   return (
     <div className="relative">

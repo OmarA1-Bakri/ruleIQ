@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 Phase 4: Celery Task Migration to LangGraph Nodes
 Migrates all 16 Celery tasks to LangGraph workflow nodes
@@ -55,17 +54,13 @@ class ComplianceTaskNode:
         self.name = "compliance_task_node"
         self.error_handler = ErrorHandlerNode()
 
-    async def update_all_compliance_scores(
-        self, state: TaskMigrationState
-    ) -> TaskMigrationState:
+    async def update_all_compliance_scores(self, state: TaskMigrationState) -> TaskMigrationState:
         """
         Migrated from: update_all_compliance_scores
         Original: workers/compliance_tasks.py
         """
         try:
-            logger.info(
-                f"Executing update_all_compliance_scores for company {state['company_id']}"
-            )
+            logger.info(f"Executing update_all_compliance_scores for company {state['company_id']}")
 
             # Simulate async compliance score update
             # In production, this would connect to the actual compliance service
@@ -89,22 +84,16 @@ class ComplianceTaskNode:
 
             # Add success message
             state["messages"].append(
-                AIMessage(
-                    content="Successfully updated compliance scores for all frameworks"
-                )
+                AIMessage(content="Successfully updated compliance scores for all frameworks")
             )
 
             return state
 
         except Exception as e:
             logger.error(f"Error in update_all_compliance_scores: {str(e)}")
-            return await self.error_handler.handle_error(
-                state, e, "update_all_compliance_scores"
-            )
+            return await self.error_handler.handle_error(state, e, "update_all_compliance_scores")
 
-    async def check_compliance_alerts(
-        self, state: TaskMigrationState
-    ) -> TaskMigrationState:
+    async def check_compliance_alerts(self, state: TaskMigrationState) -> TaskMigrationState:
         """
         Migrated from: check_compliance_alerts
         Original: workers/compliance_tasks.py
@@ -142,9 +131,7 @@ class ComplianceTaskNode:
 
         except Exception as e:
             logger.error(f"Error in check_compliance_alerts: {str(e)}")
-            return await self.error_handler.handle_error(
-                state, e, "check_compliance_alerts"
-            )
+            return await self.error_handler.handle_error(state, e, "check_compliance_alerts")
 
     async def process(self, state: TaskMigrationState) -> TaskMigrationState:
         """Route to appropriate compliance task"""
@@ -177,9 +164,7 @@ class EvidenceTaskNode:
         self.name = "evidence_task_node"
         self.error_handler = ErrorHandlerNode()
 
-    async def process_evidence_item(
-        self, state: TaskMigrationState
-    ) -> TaskMigrationState:
+    async def process_evidence_item(self, state: TaskMigrationState) -> TaskMigrationState:
         """
         Migrated from: process_evidence_item
         Original: workers/evidence_tasks.py
@@ -214,13 +199,9 @@ class EvidenceTaskNode:
 
         except Exception as e:
             logger.error(f"Error in process_evidence_item: {str(e)}")
-            return await self.error_handler.handle_error(
-                state, e, "process_evidence_item"
-            )
+            return await self.error_handler.handle_error(state, e, "process_evidence_item")
 
-    async def sync_evidence_status(
-        self, state: TaskMigrationState
-    ) -> TaskMigrationState:
+    async def sync_evidence_status(self, state: TaskMigrationState) -> TaskMigrationState:
         """
         Migrated from: sync_evidence_status
         Original: workers/evidence_tasks.py
@@ -250,9 +231,7 @@ class EvidenceTaskNode:
 
         except Exception as e:
             logger.error(f"Error in sync_evidence_status: {str(e)}")
-            return await self.error_handler.handle_error(
-                state, e, "sync_evidence_status"
-            )
+            return await self.error_handler.handle_error(state, e, "sync_evidence_status")
 
     async def process(self, state: TaskMigrationState) -> TaskMigrationState:
         """Route to appropriate evidence task"""
@@ -279,9 +258,7 @@ class NotificationTaskNode:
         self.name = "notification_task_node"
         self.error_handler = ErrorHandlerNode()
 
-    async def send_compliance_alert(
-        self, state: TaskMigrationState
-    ) -> TaskMigrationState:
+    async def send_compliance_alert(self, state: TaskMigrationState) -> TaskMigrationState:
         """
         Migrated from: send_compliance_alert
         Original: workers/notification_tasks.py
@@ -314,13 +291,9 @@ class NotificationTaskNode:
 
         except Exception as e:
             logger.error(f"Error in send_compliance_alert: {str(e)}")
-            return await self.error_handler.handle_error(
-                state, e, "send_compliance_alert"
-            )
+            return await self.error_handler.handle_error(state, e, "send_compliance_alert")
 
-    async def send_weekly_summary(
-        self, state: TaskMigrationState
-    ) -> TaskMigrationState:
+    async def send_weekly_summary(self, state: TaskMigrationState) -> TaskMigrationState:
         """
         Migrated from: send_weekly_summary
         Original: workers/notification_tasks.py
@@ -350,13 +323,9 @@ class NotificationTaskNode:
 
         except Exception as e:
             logger.error(f"Error in send_weekly_summary: {str(e)}")
-            return await self.error_handler.handle_error(
-                state, e, "send_weekly_summary"
-            )
+            return await self.error_handler.handle_error(state, e, "send_weekly_summary")
 
-    async def broadcast_notification(
-        self, state: TaskMigrationState
-    ) -> TaskMigrationState:
+    async def broadcast_notification(self, state: TaskMigrationState) -> TaskMigrationState:
         """
         Migrated from: broadcast_notification
         Original: workers/notification_tasks.py
@@ -389,9 +358,7 @@ class NotificationTaskNode:
 
         except Exception as e:
             logger.error(f"Error in broadcast_notification: {str(e)}")
-            return await self.error_handler.handle_error(
-                state, e, "broadcast_notification"
-            )
+            return await self.error_handler.handle_error(state, e, "broadcast_notification")
 
     async def process(self, state: TaskMigrationState) -> TaskMigrationState:
         """Route to appropriate notification task"""
@@ -420,9 +387,7 @@ class ReportingTaskNode:
         self.name = "reporting_task_node"
         self.error_handler = ErrorHandlerNode()
 
-    async def generate_and_distribute_report(
-        self, state: TaskMigrationState
-    ) -> TaskMigrationState:
+    async def generate_and_distribute_report(self, state: TaskMigrationState) -> TaskMigrationState:
         """
         Migrated from: generate_and_distribute_report
         Original: workers/reporting_tasks.py
@@ -465,13 +430,9 @@ class ReportingTaskNode:
 
         except Exception as e:
             logger.error(f"Error in generate_and_distribute_report: {str(e)}")
-            return await self.error_handler.handle_error(
-                state, e, "generate_and_distribute_report"
-            )
+            return await self.error_handler.handle_error(state, e, "generate_and_distribute_report")
 
-    async def generate_report_on_demand(
-        self, state: TaskMigrationState
-    ) -> TaskMigrationState:
+    async def generate_report_on_demand(self, state: TaskMigrationState) -> TaskMigrationState:
         """
         Migrated from: generate_report_on_demand
         Original: workers/reporting_tasks.py
@@ -497,13 +458,9 @@ class ReportingTaskNode:
 
         except Exception as e:
             logger.error(f"Error in generate_report_on_demand: {str(e)}")
-            return await self.error_handler.handle_error(
-                state, e, "generate_report_on_demand"
-            )
+            return await self.error_handler.handle_error(state, e, "generate_report_on_demand")
 
-    async def cleanup_old_reports(
-        self, state: TaskMigrationState
-    ) -> TaskMigrationState:
+    async def cleanup_old_reports(self, state: TaskMigrationState) -> TaskMigrationState:
         """
         Migrated from: cleanup_old_reports
         Original: workers/reporting_tasks.py
@@ -533,9 +490,7 @@ class ReportingTaskNode:
 
         except Exception as e:
             logger.error(f"Error in cleanup_old_reports: {str(e)}")
-            return await self.error_handler.handle_error(
-                state, e, "cleanup_old_reports"
-            )
+            return await self.error_handler.handle_error(state, e, "cleanup_old_reports")
 
     async def send_report_summary_notifications(
         self, state: TaskMigrationState
@@ -597,9 +552,7 @@ class MonitoringTaskNode:
         self.name = "monitoring_task_node"
         self.error_handler = ErrorHandlerNode()
 
-    async def collect_database_metrics(
-        self, state: TaskMigrationState
-    ) -> TaskMigrationState:
+    async def collect_database_metrics(self, state: TaskMigrationState) -> TaskMigrationState:
         """
         Migrated from: collect_database_metrics
         Original: workers/monitoring_tasks.py
@@ -635,13 +588,9 @@ class MonitoringTaskNode:
 
         except Exception as e:
             logger.error(f"Error in collect_database_metrics: {str(e)}")
-            return await self.error_handler.handle_error(
-                state, e, "collect_database_metrics"
-            )
+            return await self.error_handler.handle_error(state, e, "collect_database_metrics")
 
-    async def database_health_check(
-        self, state: TaskMigrationState
-    ) -> TaskMigrationState:
+    async def database_health_check(self, state: TaskMigrationState) -> TaskMigrationState:
         """
         Migrated from: database_health_check
         Original: workers/monitoring_tasks.py
@@ -671,13 +620,9 @@ class MonitoringTaskNode:
 
         except Exception as e:
             logger.error(f"Error in database_health_check: {str(e)}")
-            return await self.error_handler.handle_error(
-                state, e, "database_health_check"
-            )
+            return await self.error_handler.handle_error(state, e, "database_health_check")
 
-    async def cleanup_monitoring_data(
-        self, state: TaskMigrationState
-    ) -> TaskMigrationState:
+    async def cleanup_monitoring_data(self, state: TaskMigrationState) -> TaskMigrationState:
         """
         Migrated from: cleanup_monitoring_data
         Original: workers/monitoring_tasks.py
@@ -685,9 +630,7 @@ class MonitoringTaskNode:
         try:
             retention_hours = state.get("task_params", {}).get("retention_hours", 168)
 
-            logger.info(
-                f"Cleaning up monitoring data older than {retention_hours} hours"
-            )
+            logger.info(f"Cleaning up monitoring data older than {retention_hours} hours")
 
             # Simulate cleanup
             await asyncio.sleep(0.03)
@@ -711,13 +654,9 @@ class MonitoringTaskNode:
 
         except Exception as e:
             logger.error(f"Error in cleanup_monitoring_data: {str(e)}")
-            return await self.error_handler.handle_error(
-                state, e, "cleanup_monitoring_data"
-            )
+            return await self.error_handler.handle_error(state, e, "cleanup_monitoring_data")
 
-    async def system_metrics_collection(
-        self, state: TaskMigrationState
-    ) -> TaskMigrationState:
+    async def system_metrics_collection(self, state: TaskMigrationState) -> TaskMigrationState:
         """
         Migrated from: system_metrics_collection
         Original: workers/monitoring_tasks.py
@@ -750,13 +689,9 @@ class MonitoringTaskNode:
 
         except Exception as e:
             logger.error(f"Error in system_metrics_collection: {str(e)}")
-            return await self.error_handler.handle_error(
-                state, e, "system_metrics_collection"
-            )
+            return await self.error_handler.handle_error(state, e, "system_metrics_collection")
 
-    async def register_monitoring_tasks(
-        self, state: TaskMigrationState
-    ) -> TaskMigrationState:
+    async def register_monitoring_tasks(self, state: TaskMigrationState) -> TaskMigrationState:
         """
         Migrated from: register_monitoring_tasks (scheduler registration)
         Original: workers/monitoring_tasks.py
@@ -785,9 +720,7 @@ class MonitoringTaskNode:
 
         except Exception as e:
             logger.error(f"Error in register_monitoring_tasks: {str(e)}")
-            return await self.error_handler.handle_error(
-                state, e, "register_monitoring_tasks"
-            )
+            return await self.error_handler.handle_error(state, e, "register_monitoring_tasks")
 
     async def process(self, state: TaskMigrationState) -> TaskMigrationState:
         """Route to appropriate monitoring task"""

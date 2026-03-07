@@ -4,7 +4,6 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  LayoutDashboard,
   FileText,
   BarChart3,
   FolderOpen,
@@ -73,7 +72,7 @@ export function EnhancedSidebar({
   const pathname = usePathname();
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
   const [focusedIndex, setFocusedIndex] = useState(0);
-  const [expandedItems, setExpandedItems] = useState<string[]>([]);
+  const [_expandedItems, _setExpandedItems] = useState<string[]>([]);
   const menuRef = useRef<HTMLUListElement>(null);
   const itemRefs = useRef<(HTMLAnchorElement | null)[]>([]);
 

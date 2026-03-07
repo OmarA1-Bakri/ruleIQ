@@ -16,7 +16,7 @@ export const freemiumKeys = {
  */
 export const useFreemiumEmailCapture = () => {
   const router = useRouter();
-  const { setEmail, setToken, utmSource, utmCampaign } = useFreemiumStore();
+  const { setEmail, setToken, utmSource: _utmSource, utmCampaign: _utmCampaign } = useFreemiumStore();
 
   return useMutation({
     mutationFn: (data: freemiumApi.FreemiumEmailCaptureRequest) => freemiumApi.captureEmail(data),
@@ -77,7 +77,7 @@ export const useFreemiumAnswerQuestion = () => {
     onSuccess: (response) => {
       // incrementProgress doesn't exist in the store
 
-      if (response.assessment_complete || response.redirect_to_results) {
+      if (response.is_complete) {
         markAssessmentCompleted();
         router.push(`/freemium/results?token=${token}`);
       } else if (response.next_question_id) {

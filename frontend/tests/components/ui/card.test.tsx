@@ -53,7 +53,12 @@ describe('Card Components', () => {
     const content = screen.getByTestId('content');
     const footer = screen.getByTestId('footer');
 
-    expect(card).toHaveClass('rounded-lg', 'border', 'bg-card');
+    // Card uses rounded-xl (not rounded-lg) and includes transition and overflow utilities.
+    // Note: the test environment's clsx mock does not fully expand nested arrays, so only
+    // classes defined as direct string arguments to cn() are reliably present here.
+    expect(card).toHaveClass('rounded-xl');
+    expect(card).toHaveClass('relative');
+    expect(card).toHaveClass('overflow-hidden');
     expect(header).toHaveClass('flex', 'flex-col', 'space-y-1.5', 'p-6');
     expect(title).toHaveClass('text-2xl', 'font-semibold');
     expect(description).toHaveClass('text-sm', 'text-muted-foreground');

@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 Test suite for LangGraph execution patterns.
 
@@ -62,9 +61,7 @@ class TestNodeExecutionOrder:
 
         # Verify timestamps are sequential
         timestamps = [entry["timestamp"] for entry in result.execution_history]
-        assert all(
-            (timestamps[i] <= timestamps[i + 1] for i in range(len(timestamps) - 1))
-        )
+        assert all((timestamps[i] <= timestamps[i + 1] for i in range(len(timestamps) - 1)))
 
     def test_parallel_execution_order(self, graph_test_harness):
         """Test parallel nodes can execute simultaneously."""
@@ -345,7 +342,10 @@ class TestRetryMechanisms:
 
         # Act
         result = graph_test_harness.execute(
-            graph, initial_state, max_retries=4, backoff_strategy="exponential",
+            graph,
+            initial_state,
+            max_retries=4,
+            backoff_strategy="exponential",
         )
 
         # Assert
@@ -377,9 +377,7 @@ class TestRetryMechanisms:
             retry_times.append(graph_test_harness.get_retry_delays("process")[0])
 
         # Assert - retry times should vary due to jitter
-        assert (
-            len(set(retry_times)) > 5
-        ), "Jitter should create variation in retry delays"
+        assert len(set(retry_times)) > 5, "Jitter should create variation in retry delays"
         assert max(retry_times) - min(retry_times) > 0.1  # At least 100ms variation
 
     def test_retry_budget_exhaustion(self, graph_test_harness):
@@ -498,8 +496,7 @@ class TestGraphIntegration:
 
         # Act
         tasks = [
-            graph_test_harness.execute_async(graph, state)
-            for graph, state in zip(graphs, states)
+            graph_test_harness.execute_async(graph, state) for graph, state in zip(graphs, states)
         ]
         results = await asyncio.gather(*tasks)
 
@@ -533,7 +530,8 @@ class TestGraphIntegration:
         # Act - Resume from checkpoint
         graph_test_harness.reset_failures()
         result2 = graph_test_harness.resume_from_checkpoint(
-            graph, checkpoint_dir / f"{initial_state.workflow_id}.checkpoint",
+            graph,
+            checkpoint_dir / f"{initial_state.workflow_id}.checkpoint",
         )
 
         # Assert

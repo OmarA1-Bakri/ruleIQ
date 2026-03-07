@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 Sentry Integration for Proactive Monitoring
 
@@ -30,39 +29,59 @@ def init_sentry() -> None:
             """Filter sensitive data before sending to Sentry."""
             # List of sensitive keys to filter
             sensitive_keys = [
-                'password', 'passwd', 'pwd', 'secret', 'token', 'api_key',
-                'apikey', 'auth', 'authorization', 'private_key', 'privatekey',
-                'access_token', 'refresh_token', 'bearer', 'jwt', 'session',
-                'cookie', 'csrf', 'credit_card', 'card_number', 'cvv', 'ssn'
+                "password",
+                "passwd",
+                "pwd",
+                "secret",
+                "token",
+                "api_key",
+                "apikey",
+                "auth",
+                "authorization",
+                "private_key",
+                "privatekey",
+                "access_token",
+                "refresh_token",
+                "bearer",
+                "jwt",
+                "session",
+                "cookie",
+                "csrf",
+                "credit_card",
+                "card_number",
+                "cvv",
+                "ssn",
             ]
 
             # Recursively filter sensitive data from the event
             def filter_dict(data):
                 if isinstance(data, dict):
                     return {
-                        k: '[FILTERED]' if any(s in k.lower() for s in sensitive_keys) else filter_dict(v)
+                        k: "[FILTERED]"
+                        if any(s in k.lower() for s in sensitive_keys)
+                        else filter_dict(v)
                         for k, v in data.items()
                     }
                 elif isinstance(data, list):
                     return [filter_dict(item) for item in data]
                 elif isinstance(data, str):
                     # Filter URLs with potential secrets
-                    if 'http' in data and any(s in data.lower() for s in sensitive_keys):
-                        return '[FILTERED_URL]'
+                    if "http" in data and any(s in data.lower() for s in sensitive_keys):
+                        return "[FILTERED_URL]"
                 return data
 
             # Apply filtering to various event data
-            if 'extra' in event:
-                event['extra'] = filter_dict(event['extra'])
-            if 'contexts' in event:
-                event['contexts'] = filter_dict(event['contexts'])
-            if 'request' in event:
-                if 'data' in event['request']:
-                    event['request']['data'] = filter_dict(event['request']['data'])
-                if 'headers' in event['request']:
-                    event['request']['headers'] = filter_dict(event['request']['headers'])
-                if 'cookies' in event['request']:
-                    event['request']['cookies'] = filter_dict(event['request']['cookies'])
+            if "extra" in event:
+                event["extra"] = filter_dict(event["extra"])
+            if "contexts" in event:
+                event["contexts"] = filter_dict(event["contexts"])
+            if "request" in event:
+                if "data" in event["request"]:
+                    event["request"]["data"] = filter_dict(event["request"]["data"])
+                if "headers" in event["request"]:
+                    event["request"]["headers"] = filter_dict(event["request"]["headers"])
+                if "cookies" in event["request"]:
+                    event["request"]["cookies"] = filter_dict(event["request"]["cookies"])
 
             return event
 
@@ -75,8 +94,6 @@ def init_sentry() -> None:
             before_send=before_send,  # Apply sensitive data filtering
             send_default_pii=False,  # Don't send personally identifiable information
         )
-        logger.info(
-            f"Sentry initialized for environment: {settings.sentry_environment}"
-        )
+        logger.info(f"Sentry initialized for environment: {settings.sentry_environment}")
     except Exception as e:
         logger.error(f"Failed to initialize Sentry: {e}", exc_info=True)

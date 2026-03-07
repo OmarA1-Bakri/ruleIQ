@@ -5,15 +5,11 @@ import { cn } from '@/lib/utils';
 import {
   Settings,
   Save,
-  RefreshCw,
   Trash2,
   Plus,
   Search,
   Clock,
   Tag,
-  FileJson,
-  ChevronDown,
-  ChevronRight,
   Copy,
   Download
 } from 'lucide-react';
@@ -109,7 +105,7 @@ export function ContextPanel({
           : editValue;
         onUpdateContext(editingKey, parsed);
         setEditingKey(null);
-      } catch (e) {
+      } catch (_e) {
         // If JSON parse fails, save as string
         onUpdateContext(editingKey, editValue);
         setEditingKey(null);
@@ -127,7 +123,7 @@ export function ContextPanel({
         onUpdateContext(newKey, parsed);
         setNewKey('');
         setNewValue('');
-      } catch (e) {
+      } catch (_e) {
         onUpdateContext(newKey, newValue);
         setNewKey('');
         setNewValue('');

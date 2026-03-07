@@ -15,51 +15,52 @@ TEST_MODES = {
         "description": "Fast unit tests only",
         "markers": "unit and not slow",
         "parallel": True,
-        "workers": "auto"
+        "workers": "auto",
     },
     "integration": {
         "description": "Integration tests",
         "markers": "integration",
         "parallel": True,
-        "workers": 4
+        "workers": 4,
     },
     "performance": {
         "description": "Performance tests",
         "markers": "performance or benchmark",
         "parallel": False,
-        "workers": 1
+        "workers": 1,
     },
     "ai": {
         "description": "AI and compliance tests",
         "markers": "ai or compliance or llm",
         "parallel": True,
-        "workers": 2
+        "workers": 2,
     },
     "security": {
         "description": "Security and auth tests",
         "markers": "security or auth",
         "parallel": True,
-        "workers": 2
+        "workers": 2,
     },
     "e2e": {
         "description": "End-to-end workflow tests",
         "markers": "e2e",
         "parallel": False,
-        "workers": 1
+        "workers": 1,
     },
     "full": {
         "description": "Complete test suite",
         "markers": "",
         "parallel": True,
-        "workers": "auto"
+        "workers": "auto",
     },
     "ci": {
         "description": "CI-optimized test run",
         "markers": "not slow and not performance",
         "parallel": True,
-        "workers": 4
-    }
+        "workers": 4,
+    },
 }
+
 
 def run_pytest(mode_config, verbose=False):
     """Run pytest with specified configuration."""
@@ -87,6 +88,7 @@ def run_pytest(mode_config, verbose=False):
     result = subprocess.run(cmd, cwd=Path(__file__).parent.parent)
     return result.returncode
 
+
 def list_modes():
     """List all available test modes."""
     print("Available test modes:")
@@ -95,14 +97,12 @@ def list_modes():
         print(f"  {mode:15} - {config['description']}")
     print("-" * 50)
 
+
 def main():
     parser = argparse.ArgumentParser(description="Run tests in chunked mode")
-    parser.add_argument("--mode", choices=list(TEST_MODES.keys()),
-                       help="Test mode to run")
-    parser.add_argument("--list-modes", action="store_true",
-                       help="List all available test modes")
-    parser.add_argument("--verbose", "-v", action="store_true",
-                       help="Verbose output")
+    parser.add_argument("--mode", choices=list(TEST_MODES.keys()), help="Test mode to run")
+    parser.add_argument("--list-modes", action="store_true", help="List all available test modes")
+    parser.add_argument("--verbose", "-v", action="store_true", help="Verbose output")
 
     args = parser.parse_args()
 
@@ -119,6 +119,7 @@ def main():
     print(f"Running {args.mode} tests: {mode_config['description']}")
 
     return run_pytest(mode_config, args.verbose)
+
 
 if __name__ == "__main__":
     sys.exit(main())

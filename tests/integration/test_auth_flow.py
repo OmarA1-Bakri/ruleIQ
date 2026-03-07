@@ -17,7 +17,9 @@ import requests
 class TestCompleteAuthenticationFlow:
     """Test complete authentication workflows."""
 
-    def test_full_registration_to_login_flow(self, integration_client, integration_db_session, mock_all_external_services):
+    def test_full_registration_to_login_flow(
+        self, integration_client, integration_db_session, mock_all_external_services
+    ):
         """Test complete flow from registration to successful login."""
         # Step 1: Register new user
         registration_data = {
@@ -25,31 +27,29 @@ class TestCompleteAuthenticationFlow:
             "password": "SecurePass123!@#",
             "full_name": "Flow Test User",
             "company": "Flow Corp",
-            "role": "compliance_manager"
+            "role": "compliance_manager",
         }
 
-        reg_response = integration_client.post(
-            "/api/v1/auth/register",
-            json=registration_data
-        )
+        reg_response = integration_client.post("/api/v1/auth/register", json=registration_data)
         assert reg_response.status_code == 201
         user_data = reg_response.json()
 
         # Step 2: Verify email was sent (mocked)
-        assert mock_all_external_services['sendgrid'].return_value.send.called
+        assert mock_all_external_services["sendgrid"].return_value.send.called
 
         # Step 3: Simulate email verification
         from database import User
         from utils.auth import create_verification_token
 
-        user = integration_db_session.query(User).filter_by(email=registration_data["email"]).first()
+        user = (
+            integration_db_session.query(User).filter_by(email=registration_data["email"]).first()
+        )
         assert user is not None
         assert user.is_verified is False
 
         verification_token = create_verification_token(user.email)
         verify_response = integration_client.post(
-            "/api/v1/auth/verify-email",
-            json={"token": verification_token}
+            "/api/v1/auth/verify-email", json={"token": verification_token}
         )
         assert verify_response.status_code == 200
 
@@ -58,9 +58,9 @@ class TestCompleteAuthenticationFlow:
             "/api/v1/auth/login",
             data={
                 "username": registration_data["email"],
-                "password": registration_data["password"]
+                "password": registration_data["password"],
             },
-            headers={"Content-Type": "application/x-www-form-urlencoded"}
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
         )
         assert login_response.status_code == 200
         token_data = login_response.json()
@@ -72,30 +72,32 @@ class TestCompleteAuthenticationFlow:
         assert me_response.status_code == 200
         assert me_response.json()["email"] == registration_data["email"]
 
-    def test_password_reset_complete_flow(self, integration_client, integration_db_session, sample_integration_data, mock_all_external_services):
+    def test_password_reset_complete_flow(
+        self,
+        integration_client,
+        integration_db_session,
+        sample_integration_data,
+        mock_all_external_services,
+    ):
         """Test complete password reset flow."""
-        user = sample_integration_data['users'][0]
+        user = sample_integration_data["users"][0]
         old_password = "Password0123!"
         new_password = "NewSecurePass456!@#"
 
         # Step 1: Request password reset
         reset_request = integration_client.post(
-            "/api/v1/auth/forgot-password",
-            json={"email": user.email}
+            "/api/v1/auth/forgot-password", json={"email": user.email}
         )
         assert reset_request.status_code == 200
 
         # Step 2: Generate reset token (simulating email link)
         from utils.auth import create_password_reset_token
+
         reset_token = create_password_reset_token(user.email)
 
         # Step 3: Reset password with token
         reset_response = integration_client.post(
-            "/api/v1/auth/reset-password",
-            json={
-                "token": reset_token,
-                "new_password": new_password
-            }
+            "/api/v1/auth/reset-password", json={"token": reset_token, "new_password": new_password}
         )
         assert reset_response.status_code == 200
 
@@ -103,7 +105,7 @@ class TestCompleteAuthenticationFlow:
         old_login = integration_client.post(
             "/api/v1/auth/login",
             data={"username": user.email, "password": old_password},
-            headers={"Content-Type": "application/x-www-form-urlencoded"}
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
         )
         assert old_login.status_code == 401
 
@@ -111,7 +113,7 @@ class TestCompleteAuthenticationFlow:
         new_login = integration_client.post(
             "/api/v1/auth/login",
             data={"username": user.email, "password": new_password},
-            headers={"Content-Type": "application/x-www-form-urlencoded"}
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
         )
         assert new_login.status_code == 200
         assert "access_token" in new_login.json()
@@ -126,22 +128,16 @@ class TestJWTSecurityValidation:
         # Login to get token
         login_response = integration_client.post(
             "/api/v1/auth/login",
-            data={
-                "username": "user0@integration.test",
-                "password": "Password0123!"
-            },
-            headers={"Content-Type": "application/x-www-form-urlencoded"}
+            data={"username": "user0@integration.test", "password": "Password0123!"},
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
         )
 
         token = login_response.json()["access_token"]
 
         # Decode token (without verification for inspection)
         from config.settings import settings
-        decoded = jwt.decode(
-            token,
-            settings.JWT_SECRET_KEY,
-            algorithms=[settings.JWT_ALGORITHM]
-        )
+
+        decoded = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
 
         # Validate required claims
         assert "sub" in decoded  # Subject (user email)
@@ -168,7 +164,7 @@ class TestJWTSecurityValidation:
             full_name="Expired Token User",
             hashed_password="hashed",
             is_active=True,
-            is_verified=True
+            is_verified=True,
         )
         integration_db_session.add(user)
         integration_db_session.commit()
@@ -176,13 +172,12 @@ class TestJWTSecurityValidation:
         # Create an expired token
         expired_token = create_access_token(
             data={"sub": user.email},
-            expires_delta=timedelta(seconds=-1)  # Already expired
+            expires_delta=timedelta(seconds=-1),  # Already expired
         )
 
         # Try to use expired token
         response = integration_client.get(
-            "/api/v1/users/me",
-            headers={"Authorization": f"Bearer {expired_token}"}
+            "/api/v1/users/me", headers={"Authorization": f"Bearer {expired_token}"}
         )
 
         assert response.status_code == 401
@@ -193,50 +188,47 @@ class TestJWTSecurityValidation:
         # Get valid token
         login_response = integration_client.post(
             "/api/v1/auth/login",
-            data={
-                "username": "user0@integration.test",
-                "password": "Password0123!"
-            },
-            headers={"Content-Type": "application/x-www-form-urlencoded"}
+            data={"username": "user0@integration.test", "password": "Password0123!"},
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
         )
 
         token = login_response.json()["access_token"]
 
         # Tamper with token (change last character)
-        tampered_token = token[:-1] + ('a' if token[-1] != 'a' else 'b')
+        tampered_token = token[:-1] + ("a" if token[-1] != "a" else "b")
 
         # Try to use tampered token
         response = integration_client.get(
-            "/api/v1/users/me",
-            headers={"Authorization": f"Bearer {tampered_token}"}
+            "/api/v1/users/me", headers={"Authorization": f"Bearer {tampered_token}"}
         )
 
         assert response.status_code == 401
-        assert "Invalid" in response.json()["detail"] or "could not be validated" in response.json()["detail"]
+        assert (
+            "Invalid" in response.json()["detail"]
+            or "could not be validated" in response.json()["detail"]
+        )
 
-    def test_token_blacklisting(self, integration_client, integration_auth_headers, mock_all_external_services):
+    def test_token_blacklisting(
+        self, integration_client, integration_auth_headers, mock_all_external_services
+    ):
         """Test token blacklisting after logout."""
         # Use token successfully
-        response = integration_client.get(
-            "/api/v1/users/me",
-            headers=integration_auth_headers
-        )
+        response = integration_client.get("/api/v1/users/me", headers=integration_auth_headers)
         assert response.status_code == 200
 
         # Logout (should blacklist token)
         logout_response = integration_client.post(
-            "/api/v1/auth/logout",
-            headers=integration_auth_headers
+            "/api/v1/auth/logout", headers=integration_auth_headers
         )
         assert logout_response.status_code == 200
 
         # Try to use same token after logout
-        response = integration_client.get(
-            "/api/v1/users/me",
-            headers=integration_auth_headers
-        )
+        response = integration_client.get("/api/v1/users/me", headers=integration_auth_headers)
         assert response.status_code == 401
-        assert "Token has been revoked" in response.json()["detail"] or "Invalid" in response.json()["detail"]
+        assert (
+            "Token has been revoked" in response.json()["detail"]
+            or "Invalid" in response.json()["detail"]
+        )
 
 
 @pytest.mark.integration
@@ -254,7 +246,7 @@ class TestSessionManagement:
             response = integration_client.post(
                 "/api/v1/auth/login",
                 data={"username": user_email, "password": password},
-                headers={"Content-Type": "application/x-www-form-urlencoded"}
+                headers={"Content-Type": "application/x-www-form-urlencoded"},
             )
             if response.status_code == 200:
                 sessions.append(response.json()["access_token"])
@@ -263,34 +255,36 @@ class TestSessionManagement:
         if len(sessions) > 3:
             # First session should be invalid
             response = integration_client.get(
-                "/api/v1/users/me",
-                headers={"Authorization": f"Bearer {sessions[0]}"}
+                "/api/v1/users/me", headers={"Authorization": f"Bearer {sessions[0]}"}
             )
             assert response.status_code == 401
 
             # Latest session should be valid
             response = integration_client.get(
-                "/api/v1/users/me",
-                headers={"Authorization": f"Bearer {sessions[-1]}"}
+                "/api/v1/users/me", headers={"Authorization": f"Bearer {sessions[-1]}"}
             )
             assert response.status_code == 200
 
-    def test_session_activity_tracking(self, integration_client, integration_auth_headers, integration_db_session):
+    def test_session_activity_tracking(
+        self, integration_client, integration_auth_headers, integration_db_session
+    ):
         """Test that session activity is tracked."""
         # Make several API calls
         for _ in range(3):
-            response = integration_client.get(
-                "/api/v1/users/me",
-                headers=integration_auth_headers
-            )
+            response = integration_client.get("/api/v1/users/me", headers=integration_auth_headers)
             assert response.status_code == 200
             time.sleep(0.5)
 
         # Check session activity in database
         from database import UserSession
-        session = integration_db_session.query(UserSession).filter_by(
-            user_id=1  # Assuming first user
-        ).first()
+
+        session = (
+            integration_db_session.query(UserSession)
+            .filter_by(
+                user_id=1  # Assuming first user
+            )
+            .first()
+        )
 
         if session:  # If session tracking is implemented
             assert session.last_activity is not None
@@ -311,8 +305,7 @@ class TestMultiFactorAuthentication:
         """Test TOTP-based MFA setup and verification."""
         # Enable MFA
         mfa_setup = integration_client.post(
-            "/api/v1/auth/mfa/setup",
-            headers=integration_auth_headers
+            "/api/v1/auth/mfa/setup", headers=integration_auth_headers
         )
 
         if mfa_setup.status_code == 200:
@@ -337,8 +330,7 @@ class TestMultiFactorAuthentication:
     def test_backup_codes_generation(self, integration_client, integration_auth_headers):
         """Test backup codes for MFA recovery."""
         response = integration_client.post(
-            "/api/v1/auth/mfa/backup-codes",
-            headers=integration_auth_headers
+            "/api/v1/auth/mfa/backup-codes", headers=integration_auth_headers
         )
 
         if response.status_code == 200:
@@ -357,9 +349,7 @@ class TestOAuth2Integration:
     def test_google_oauth_flow(self, integration_client, mock_all_external_services):
         """Test Google OAuth2 authentication flow."""
         # Step 1: Get authorization URL
-        auth_url_response = integration_client.get(
-            "/api/v1/auth/oauth/google/authorize"
-        )
+        auth_url_response = integration_client.get("/api/v1/auth/oauth/google/authorize")
 
         if auth_url_response.status_code == 200:
             data = auth_url_response.json()
@@ -373,8 +363,7 @@ class TestOAuth2Integration:
             state = data["state"]
 
             callback_response = integration_client.get(
-                "/api/v1/auth/oauth/google/callback",
-                params={"code": mock_code, "state": state}
+                "/api/v1/auth/oauth/google/callback", params={"code": mock_code, "state": state}
             )
 
             if callback_response.status_code == 200:
@@ -407,7 +396,7 @@ class TestRoleBasedAccessControl:
             ("admin", ["read", "write", "delete", "admin"]),
             ("manager", ["read", "write", "delete"]),
             ("user", ["read", "write"]),
-            ("viewer", ["read"])
+            ("viewer", ["read"]),
         ]
 
         users = {}
@@ -419,35 +408,23 @@ class TestRoleBasedAccessControl:
                 hashed_password=get_password_hash("Password123!"),
                 is_active=True,
                 is_verified=True,
-                role=role_name
+                role=role_name,
             )
             integration_db_session.add(user)
             integration_db_session.commit()
 
             # Create token
-            token = create_access_token(
-                data={"sub": user.email, "role": role_name}
-            )
-            users[role_name] = {
-                "user": user,
-                "token": token,
-                "permissions": permissions
-            }
+            token = create_access_token(data={"sub": user.email, "role": role_name})
+            users[role_name] = {"user": user, "token": token, "permissions": permissions}
 
         # Test admin-only endpoint
         admin_headers = {"Authorization": f"Bearer {users['admin']['token']}"}
-        response = integration_client.get(
-            "/api/v1/admin/users",
-            headers=admin_headers
-        )
+        response = integration_client.get("/api/v1/admin/users", headers=admin_headers)
         assert response.status_code in [200, 404]  # 404 if endpoint doesn't exist
 
         # Test non-admin access to admin endpoint
         user_headers = {"Authorization": f"Bearer {users['user']['token']}"}
-        response = integration_client.get(
-            "/api/v1/admin/users",
-            headers=user_headers
-        )
+        response = integration_client.get("/api/v1/admin/users", headers=user_headers)
         assert response.status_code in [403, 404]  # 403 Forbidden or 404
 
     def test_permission_inheritance(self, integration_client, integration_db_session):
@@ -470,7 +447,7 @@ class TestSecurityHeaders:
         response = integration_client.post(
             "/api/v1/auth/login",
             data={"username": "test@test.com", "password": "wrong"},
-            headers={"Content-Type": "application/x-www-form-urlencoded"}
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
         )
 
         # Check security headers
@@ -478,7 +455,7 @@ class TestSecurityHeaders:
             "X-Content-Type-Options",
             "X-Frame-Options",
             "X-XSS-Protection",
-            "Strict-Transport-Security"
+            "Strict-Transport-Security",
         ]
 
         for header in expected_headers:
@@ -492,8 +469,8 @@ class TestSecurityHeaders:
             headers={
                 "Origin": "https://example.com",
                 "Access-Control-Request-Method": "POST",
-                "Access-Control-Request-Headers": "Content-Type"
-            }
+                "Access-Control-Request-Headers": "Content-Type",
+            },
         )
 
         if "Access-Control-Allow-Origin" in response.headers:
@@ -517,11 +494,8 @@ class TestBruteForceProtection:
         for i in range(10):  # Try 10 failed attempts
             response = integration_client.post(
                 "/api/v1/auth/login",
-                data={
-                    "username": user_email,
-                    "password": f"WrongPassword{i}!"
-                },
-                headers={"Content-Type": "application/x-www-form-urlencoded"}
+                data={"username": user_email, "password": f"WrongPassword{i}!"},
+                headers={"Content-Type": "application/x-www-form-urlencoded"},
             )
 
             if response.status_code == 429:  # Too Many Requests
@@ -537,9 +511,9 @@ class TestBruteForceProtection:
                 "/api/v1/auth/login",
                 data={
                     "username": user_email,
-                    "password": "Password0123!"  # Even correct password
+                    "password": "Password0123!",  # Even correct password
                 },
-                headers={"Content-Type": "application/x-www-form-urlencoded"}
+                headers={"Content-Type": "application/x-www-form-urlencoded"},
             )
 
             # Should still be locked

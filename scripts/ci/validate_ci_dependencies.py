@@ -21,27 +21,22 @@ def check_python_packages() -> Tuple[bool, List[str]]:
         ("fastapi", "FastAPI"),
         ("uvicorn", "Uvicorn"),
         ("pydantic", "Pydantic"),
-
         # Database
         ("sqlalchemy", "SQLAlchemy"),
         ("alembic", "Alembic"),
         ("psycopg", "psycopg3"),  # Try psycopg3 first
         ("redis", "redis-py"),
-
         # API dependencies
         ("httpx", "HTTPX"),
         ("python-multipart", "python-multipart"),
         ("python-jose", "python-jose[cryptography]"),
         ("passlib", "Passlib"),
-
         # AI/ML
         ("langchain", "LangChain"),
         ("openai", "OpenAI"),
-
         # Testing
         ("pytest", "pytest"),
         ("pytest_asyncio", "pytest-asyncio"),
-
         # Utilities
         ("python-dotenv", "python-dotenv"),
         ("pyyaml", "PyYAML"),
@@ -94,6 +89,7 @@ def check_database_connectivity() -> Tuple[bool, List[str]]:
             try:
                 # Extract host and port from URL
                 import urllib.parse
+
                 parsed = urllib.parse.urlparse(database_url)
                 host = parsed.hostname or "localhost"
                 port = parsed.port or 5432
@@ -123,6 +119,7 @@ def check_database_connectivity() -> Tuple[bool, List[str]]:
         try:
             # Extract host and port from URL
             import urllib.parse
+
             parsed = urllib.parse.urlparse(redis_url)
             host = parsed.hostname or "localhost"
             port = parsed.port or 6379
@@ -151,13 +148,7 @@ def check_database_connectivity() -> Tuple[bool, List[str]]:
 
 def check_environment_variables() -> Tuple[bool, List[str]]:
     """Validate required environment variables are set."""
-    required_vars = [
-        "DATABASE_URL",
-        "REDIS_URL",
-        "SECRET_KEY",
-        "JWT_SECRET_KEY",
-        "ENVIRONMENT"
-    ]
+    required_vars = ["DATABASE_URL", "REDIS_URL", "SECRET_KEY", "JWT_SECRET_KEY", "ENVIRONMENT"]
 
     optional_vars = [
         "OPENAI_API_KEY",
@@ -166,7 +157,7 @@ def check_environment_variables() -> Tuple[bool, List[str]]:
         "NEO4J_USERNAME",
         "NEO4J_PASSWORD",
         "SENTRY_DSN",
-        "SONAR_TOKEN"
+        "SONAR_TOKEN",
     ]
 
     errors = []
@@ -199,11 +190,7 @@ def check_environment_variables() -> Tuple[bool, List[str]]:
 
 def check_port_availability() -> Tuple[bool, List[str]]:
     """Check if required ports are not already in use."""
-    ports_to_check = [
-        (5432, "PostgreSQL"),
-        (6379, "Redis"),
-        (8000, "FastAPI")
-    ]
+    ports_to_check = [(5432, "PostgreSQL"), (6379, "Redis"), (8000, "FastAPI")]
 
     errors = []
     success = True
@@ -235,18 +222,16 @@ def check_requirements_file() -> Tuple[bool, List[str]]:
 
     print("\n📄 Checking requirements files...")
 
-    requirements_files = [
-        "requirements.txt",
-        "requirements-dev.txt",
-        "requirements-test.txt"
-    ]
+    requirements_files = ["requirements.txt", "requirements-dev.txt", "requirements-test.txt"]
 
     for req_file in requirements_files:
         if os.path.exists(req_file):
             try:
-                with open(req_file, 'r') as f:
+                with open(req_file, "r") as f:
                     lines = f.readlines()
-                    package_count = sum(1 for l in lines if l.strip() and not l.strip().startswith('#'))
+                    package_count = sum(
+                        1 for l in lines if l.strip() and not l.strip().startswith("#")
+                    )
                     print(f"  ✅ {req_file}: {package_count} packages")
             except Exception as e:
                 errors.append(f"Cannot read {req_file}: {e}")

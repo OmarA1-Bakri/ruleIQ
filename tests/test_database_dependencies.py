@@ -4,6 +4,7 @@ Unit tests for database/dependencies.py
 Tests the FastAPI dependency injection functions and container
 management for database services.
 """
+
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 from typing import Dict, Any, Optional
@@ -16,7 +17,7 @@ from database.dependencies import (
     get_neo4j_provider,
     get_database_health,
     DatabaseContainer,
-    DependencyConfig
+    DependencyConfig,
 )
 
 
@@ -136,7 +137,7 @@ class TestDependencyConfig:
         """Test provider initialization."""
         config = DependencyConfig()
 
-        with patch.object(config.container, 'register_provider') as mock_register:
+        with patch.object(config.container, "register_provider") as mock_register:
             await config.initialize_providers()
             # Verify that providers are registered (exact calls depend on implementation)
             assert mock_register.called
@@ -146,7 +147,7 @@ class TestDependencyConfig:
         """Test provider cleanup."""
         config = DependencyConfig()
 
-        with patch.object(config.container, 'close_all') as mock_close:
+        with patch.object(config.container, "close_all") as mock_close:
             await config.close_providers()
             mock_close.assert_called_once()
 
@@ -169,7 +170,7 @@ class TestDependencyFunctions:
     @pytest.mark.asyncio
     async def test_get_database_provider(self, mock_request, mock_container):
         """Test getting database provider dependency."""
-        with patch('database.dependencies.get_container', return_value=mock_container):
+        with patch("database.dependencies.get_container", return_value=mock_container):
             mock_provider = AsyncMock()
             mock_container.get_provider.return_value = mock_provider
 
@@ -181,7 +182,7 @@ class TestDependencyFunctions:
     @pytest.mark.asyncio
     async def test_get_database_provider_error(self, mock_request, mock_container):
         """Test database provider dependency error handling."""
-        with patch('database.dependencies.get_container', return_value=mock_container):
+        with patch("database.dependencies.get_container", return_value=mock_container):
             mock_container.get_provider.side_effect = ValueError("Provider not found")
 
             with pytest.raises(HTTPException) as exc_info:
@@ -193,7 +194,7 @@ class TestDependencyFunctions:
     @pytest.mark.asyncio
     async def test_get_postgres_provider(self, mock_request):
         """Test PostgreSQL provider dependency."""
-        with patch('database.dependencies.get_database_provider') as mock_get_provider:
+        with patch("database.dependencies.get_database_provider") as mock_get_provider:
             mock_provider = AsyncMock()
             mock_get_provider.return_value = mock_provider
 
@@ -205,7 +206,7 @@ class TestDependencyFunctions:
     @pytest.mark.asyncio
     async def test_get_neo4j_provider(self, mock_request):
         """Test Neo4j provider dependency."""
-        with patch('database.dependencies.get_database_provider') as mock_get_provider:
+        with patch("database.dependencies.get_database_provider") as mock_get_provider:
             mock_provider = AsyncMock()
             mock_get_provider.return_value = mock_provider
 
@@ -217,7 +218,7 @@ class TestDependencyFunctions:
     @pytest.mark.asyncio
     async def test_get_database_health(self, mock_request, mock_container):
         """Test database health dependency."""
-        with patch('database.dependencies.get_container', return_value=mock_container):
+        with patch("database.dependencies.get_container", return_value=mock_container):
             health_data = {"status": "healthy", "response_time": 0.1}
             mock_container.get_health_status.return_value = health_data
 
@@ -229,7 +230,7 @@ class TestDependencyFunctions:
     @pytest.mark.asyncio
     async def test_get_database_health_error(self, mock_request, mock_container):
         """Test database health dependency error handling."""
-        with patch('database.dependencies.get_container', return_value=mock_container):
+        with patch("database.dependencies.get_container", return_value=mock_container):
             mock_container.get_health_status.side_effect = ValueError("Monitor not found")
 
             with pytest.raises(HTTPException) as exc_info:
@@ -265,7 +266,7 @@ class TestGlobalContainer:
         """Test global container initialization."""
         from database.dependencies import initialize_global_container
 
-        with patch('database.dependencies.DependencyConfig') as mock_config_class:
+        with patch("database.dependencies.DependencyConfig") as mock_config_class:
             mock_config = AsyncMock()
             mock_config_class.return_value = mock_config
 
@@ -278,7 +279,7 @@ class TestGlobalContainer:
         """Test global container cleanup."""
         from database.dependencies import close_global_container
 
-        with patch('database.dependencies.get_container') as mock_get_container:
+        with patch("database.dependencies.get_container") as mock_get_container:
             mock_container = AsyncMock()
             mock_get_container.return_value = mock_container
 
@@ -295,7 +296,7 @@ class TestLifespanManagement:
         """Test lifespan startup event."""
         from database.dependencies import lifespan
 
-        with patch('database.dependencies.initialize_global_container') as mock_init:
+        with patch("database.dependencies.initialize_global_container") as mock_init:
             async with lifespan():
                 pass
 
@@ -306,7 +307,7 @@ class TestLifespanManagement:
         """Test lifespan shutdown event."""
         from database.dependencies import lifespan
 
-        with patch('database.dependencies.close_global_container') as mock_close:
+        with patch("database.dependencies.close_global_container") as mock_close:
             async with lifespan():
                 pass
 
@@ -321,7 +322,9 @@ class TestErrorHandling:
         config = DependencyConfig()
 
         # Test that errors during provider registration are handled
-        with patch.object(config.container, 'register_provider', side_effect=Exception("Registration failed")):
+        with patch.object(
+            config.container, "register_provider", side_effect=Exception("Registration failed")
+        ):
             # Should not raise exception during initialization
             # (This depends on implementation - may log warnings instead)
             pass
@@ -329,8 +332,9 @@ class TestErrorHandling:
     @pytest.mark.asyncio
     async def test_provider_dependency_timeout(self, mock_request):
         """Test handling of timeouts in provider dependencies."""
-        with patch('database.dependencies.get_database_provider') as mock_get_provider:
+        with patch("database.dependencies.get_database_provider") as mock_get_provider:
             import asyncio
+
             mock_get_provider.side_effect = asyncio.TimeoutError("Operation timed out")
 
             with pytest.raises(HTTPException) as exc_info:
@@ -341,7 +345,7 @@ class TestErrorHandling:
     @pytest.mark.asyncio
     async def test_health_dependency_circuit_breaker(self, mock_request):
         """Test circuit breaker behavior in health dependencies."""
-        with patch('database.dependencies.get_container') as mock_get_container:
+        with patch("database.dependencies.get_container") as mock_get_container:
             mock_container = AsyncMock()
             mock_container.get_health_status.side_effect = Exception("Circuit breaker open")
             mock_get_container.return_value = mock_container

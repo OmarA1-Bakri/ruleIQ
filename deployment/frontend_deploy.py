@@ -17,9 +17,16 @@ class FrontendDeployer:
 
     def log(self, message: str, level: str = "info"):
         symbols = {"info": "ℹ️", "success": "✅", "warning": "⚠️", "error": "❌"}
-        colors = {"info": "\033[94m", "success": "\033[92m", "warning": "\033[93m",
-                 "error": "\033[91m", "reset": "\033[0m"}
-        print(f"{colors.get(level, colors['info'])}{symbols.get(level, 'ℹ️')} {message}{colors['reset']}")
+        colors = {
+            "info": "\033[94m",
+            "success": "\033[92m",
+            "warning": "\033[93m",
+            "error": "\033[91m",
+            "reset": "\033[0m",
+        }
+        print(
+            f"{colors.get(level, colors['info'])}{symbols.get(level, 'ℹ️')} {message}{colors['reset']}"
+        )
 
     def run_command(self, command: str, description: str, cwd=None) -> Tuple[bool, str]:
         self.log(f"Running: {description}")
@@ -42,17 +49,16 @@ class FrontendDeployer:
             return False
 
         self.log("Installing frontend dependencies...")
-        success, _ = self.run_command("pnpm install", "Dependency installation", cwd=self.frontend_dir)
+        success, _ = self.run_command(
+            "pnpm install", "Dependency installation", cwd=self.frontend_dir
+        )
         return success
 
     def run_linting(self) -> bool:
         """Run ESLint and Prettier checks."""
         self.log("Running linting checks...")
 
-        commands = [
-            ("pnpm run lint", "ESLint check"),
-            ("pnpm run format:check", "Prettier check")
-        ]
+        commands = [("pnpm run lint", "ESLint check"), ("pnpm run format:check", "Prettier check")]
 
         for cmd, desc in commands:
             success, _ = self.run_command(cmd, desc, cwd=self.frontend_dir)
@@ -64,7 +70,9 @@ class FrontendDeployer:
     def run_type_checking(self) -> bool:
         """Run TypeScript type checking."""
         self.log("Running TypeScript type checking...")
-        success, _ = self.run_command("pnpm run type-check", "TypeScript validation", cwd=self.frontend_dir)
+        success, _ = self.run_command(
+            "pnpm run type-check", "TypeScript validation", cwd=self.frontend_dir
+        )
         return success
 
     def run_tests(self) -> bool:
@@ -102,9 +110,7 @@ class FrontendDeployer:
 
         if (self.frontend_dir / "lighthouserc.js").exists():
             success, _ = self.run_command(
-                "npx lighthouse-ci autorun",
-                "Lighthouse audit",
-                cwd=self.frontend_dir
+                "npx lighthouse-ci autorun", "Lighthouse audit", cwd=self.frontend_dir
             )
             if not success:
                 self.log("Lighthouse audit failed - non-critical", "warning")
@@ -145,7 +151,7 @@ class FrontendDeployer:
             (self.run_tests, "Tests"),
             (self.build_production, "Production Build"),
             (self.run_lighthouse_audit, "Performance Audit"),
-            (self.deploy_to_vercel, "Vercel Deployment")
+            (self.deploy_to_vercel, "Vercel Deployment"),
         ]
 
         for func, name in steps:

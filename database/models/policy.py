@@ -19,7 +19,9 @@ class Policy(Base):
     id = Column(PG_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(PG_UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     business_profile_id = Column(
-        PG_UUID(as_uuid=True), ForeignKey("business_profiles.id"), nullable=False,
+        PG_UUID(as_uuid=True),
+        ForeignKey("business_profiles.id"),
+        nullable=False,
     )
     framework_name = Column(String(100), nullable=False)
     policy_title = Column(String(255), nullable=False)

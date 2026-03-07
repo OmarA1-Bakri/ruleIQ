@@ -34,7 +34,7 @@ export default [
     },
     rules: {
       // Critical TypeScript Rules Only - Production Ready
-      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_|^error$|^loading$|^data$' }],
+      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_|^error$|^loading$|^data$', caughtErrorsIgnorePattern: '^_' }],
       '@typescript-eslint/no-explicit-any': 'off', // Allow for development flexibility
       '@typescript-eslint/consistent-type-imports': 'off',
 

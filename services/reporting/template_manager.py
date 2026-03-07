@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 Template manager for report customization
 """
@@ -28,7 +27,7 @@ class TemplateManager:
                 "formatting": {
                     "include_charts": True,
                     "include_details": False,
-                    "max_recommendations": 5
+                    "max_recommendations": 5,
                 },
             },
             "detailed_gap_analysis": {
@@ -73,7 +72,7 @@ class TemplateManager:
                 "formatting": {
                     "include_charts": True,
                     "include_details": True,
-                    "highlight_critical": True
+                    "highlight_critical": True,
                 },
             },
         }
@@ -90,12 +89,10 @@ class TemplateManager:
                 "display_name": template["name"],
                 "description": template["description"],
             }
-            for name, template in self.templates.items(),
+            for name, template in self.templates.items()
         ]
 
-    def customize_template(
-        self, template_name: str, customizations: Dict[str, Any]
-    ) -> Dict:
+    def customize_template(self, template_name: str, customizations: Dict[str, Any]) -> Dict:
         """Apply customizations to a template"""
         template = self.get_template(template_name)
         if not template:
@@ -124,9 +121,7 @@ class TemplateManager:
 
         return customized
 
-    def get_section_content(
-        self, section_name: str, report_data: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def get_section_content(self, section_name: str, report_data: Dict[str, Any]) -> Dict[str, Any]:
         """Get content for a specific report section"""
         section_builders = {
             "executive_overview": self._build_executive_overview,
@@ -182,7 +177,7 @@ class TemplateManager:
         return {
             "title": "Priority Recommendations",
             "content": "Recommended actions for improvement",
-            "data": report_data.get("recommendations", [])
+            "data": report_data.get("recommendations", []),
         }
 
     def _build_gap_summary(self, report_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -206,7 +201,7 @@ class TemplateManager:
         return {
             "title": "Remediation Plan",
             "content": "Prioritized plan for addressing gaps",
-            "data": report_data.get("remediation_plan", [])
+            "data": report_data.get("remediation_plan", []),
         }
 
     def _build_collection_summary(self, report_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -217,9 +212,7 @@ class TemplateManager:
             "data": report_data.get("evidence_summary", {}),
         }
 
-    def _build_automation_opportunities(
-        self, report_data: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _build_automation_opportunities(self, report_data: Dict[str, Any]) -> Dict[str, Any]:
         """Build automation opportunities section"""
         return {
             "title": "Automation Opportunities",

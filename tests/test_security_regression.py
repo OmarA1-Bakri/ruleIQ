@@ -34,8 +34,12 @@ from middleware.rate_limiter import RateLimiter, UserTier
 from middleware.audit_logging import AuditLoggingMiddleware, AuditLogger
 from services.auth_service import AuthService, SessionManager
 from utils.input_validation import (
-    FieldValidator, WhitelistValidator, SecurityValidator,
-    ValidationError, validate_evidence_update, validate_business_profile_update
+    FieldValidator,
+    WhitelistValidator,
+    SecurityValidator,
+    ValidationError,
+    validate_evidence_update,
+    validate_business_profile_update,
 )
 from database.rbac import Role, Permission, UserRole, RolePermission
 from config.settings import settings
@@ -74,7 +78,7 @@ class TestAuthenticationSecurityRegression:
         payload = {
             "sub": str(uuid4()),
             "type": "access",
-            "exp": datetime.now(timezone.utc) + timedelta(hours=1)
+            "exp": datetime.now(timezone.utc) + timedelta(hours=1),
         }
         token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
@@ -82,7 +86,7 @@ class TestAuthenticationSecurityRegression:
         mock_request.headers["Authorization"] = f"Bearer {token}"
 
         # Mock validation to return payload
-        with patch.object(jwt_middleware, 'validate_jwt_token', return_value=payload):
+        with patch.object(jwt_middleware, "validate_jwt_token", return_value=payload):
             result = await jwt_middleware.validate_jwt_token(token)
             assert result is not None
             assert result["sub"] == payload["sub"]
@@ -97,7 +101,7 @@ class TestAuthenticationSecurityRegression:
         payload = {
             "sub": str(uuid4()),
             "type": "access",
-            "exp": datetime.now(timezone.utc) - timedelta(hours=1)  # Expired
+            "exp": datetime.now(timezone.utc) - timedelta(hours=1),  # Expired
         }
         token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
@@ -115,14 +119,14 @@ class TestAuthenticationSecurityRegression:
         payload = {
             "sub": str(uuid4()),
             "type": "access",
-            "exp": datetime.now(timezone.utc) + timedelta(hours=1)
+            "exp": datetime.now(timezone.utc) + timedelta(hours=1),
         }
         token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
         mock_request.headers["Authorization"] = f"Bearer {token}"
 
         # Mock blacklist check to return True
-        with patch('middleware.jwt_auth.is_token_blacklisted', return_value=True):
+        with patch("middleware.jwt_auth.is_token_blacklisted", return_value=True):
             result = await jwt_middleware.validate_jwt_token(token)
             assert result is None
 
@@ -135,7 +139,7 @@ class TestAuthenticationSecurityRegression:
         payload = {
             "sub": str(uuid4()),
             "type": "refresh",  # Invalid type for access
-            "exp": datetime.now(timezone.utc) + timedelta(hours=1)
+            "exp": datetime.now(timezone.utc) + timedelta(hours=1),
         }
         token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
@@ -151,7 +155,7 @@ class TestAuthenticationSecurityRegression:
             "not-a-jwt-token",
             "Bearer invalid",
             "",
-            "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.invalid.signature"
+            "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.invalid.signature",
         ]
 
         for token in malformed_tokens:
@@ -169,7 +173,7 @@ class TestAuthenticationSecurityRegression:
         payload = {
             "sub": str(uuid4()),
             "type": "access",
-            "exp": datetime.now(timezone.utc) + timedelta(hours=1)
+            "exp": datetime.now(timezone.utc) + timedelta(hours=1),
         }
         token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
@@ -188,12 +192,7 @@ class TestAuthenticationSecurityRegression:
     @pytest.mark.asyncio
     async def test_public_paths_allow_unauthenticated_access(self, jwt_middleware, mock_request):
         """Test that public paths allow unauthenticated access."""
-        public_paths = [
-            "/docs",
-            "/health",
-            "/api/v1/auth/login",
-            "/api/v1/auth/register"
-        ]
+        public_paths = ["/docs", "/health", "/api/v1/auth/login", "/api/v1/auth/register"]
 
         for path in public_paths:
             mock_request.url.path = path
@@ -206,7 +205,7 @@ class TestAuthenticationSecurityRegression:
             "/api/v1/users",
             "/api/v1/admin",
             "/api/v1/assessments",
-            "/api/v1/compliance"
+            "/api/v1/compliance",
         ]
 
         for path in critical_paths:
@@ -273,7 +272,9 @@ class TestSessionSecurityRegression:
         # Create multiple sessions
         session_ids = []
         for i in range(max_sessions + 2):  # Create more than limit
-            session_ids.append(await auth_service.session_manager.create_session(user_id, f"token-{i}"))
+            session_ids.append(
+                await auth_service.session_manager.create_session(user_id, f"token-{i}")
+            )
 
         # Enforce limits (should remove oldest sessions)
         removed_count = await auth_service.enforce_session_limits(user_id, max_sessions)
@@ -329,7 +330,9 @@ class TestSessionSecurityRegression:
         # Create multiple sessions
         session_ids = []
         for i in range(3):
-            session_ids.append(await auth_service.session_manager.create_session(user_id, f"token-{i}"))
+            session_ids.append(
+                await auth_service.session_manager.create_session(user_id, f"token-{i}")
+            )
 
         # Verify all exist
         for session_id in session_ids:
@@ -358,7 +361,7 @@ class TestAuthorizationSecurityRegression:
         valid_data = {
             "evidence_name": "Test Evidence",
             "description": "Test description",
-            "status": "approved"
+            "status": "approved",
         }
 
         result = whitelist_validator.validate_update_data(valid_data)
@@ -370,7 +373,7 @@ class TestAuthorizationSecurityRegression:
         invalid_data = {
             "evidence_name": "Test Evidence",
             "admin_only_field": "should not be allowed",  # Not in whitelist
-            "secret_data": "classified"
+            "secret_data": "classified",
         }
 
         with pytest.raises(ValidationError, match="not allowed for updates"):
@@ -394,7 +397,7 @@ class TestAuthorizationSecurityRegression:
         valid_data = {
             "evidence_name": "Test Evidence",  # string
             "status": "pending",  # enum
-            "tags": ["tag1", "tag2"]  # list
+            "tags": ["tag1", "tag2"],  # list
         }
         result = whitelist_validator.validate_update_data(valid_data)
         assert isinstance(result["evidence_name"], str)
@@ -430,7 +433,7 @@ class TestInputValidationSecurityRegression:
             "' OR '1'='1",
             "admin'--",
             "'; SELECT * FROM users; --",
-            "UNION SELECT password FROM users"
+            "UNION SELECT password FROM users",
         ]
 
         for dangerous_input in dangerous_inputs:
@@ -448,7 +451,7 @@ class TestInputValidationSecurityRegression:
             "javascript:alert('XSS')",
             "<img src=x onerror=alert('XSS')>",
             "<iframe src='javascript:alert(\"XSS\")'>",
-            "onclick=alert('XSS')"
+            "onclick=alert('XSS')",
         ]
 
         for payload in xss_payloads:
@@ -466,7 +469,7 @@ class TestInputValidationSecurityRegression:
             "| cat /etc/passwd",
             "`whoami`",
             "$(rm -rf /)",
-            "&& echo 'hacked'"
+            "&& echo 'hacked'",
         ]
 
         for injection in command_injections:
@@ -480,7 +483,7 @@ class TestInputValidationSecurityRegression:
             "test@example.com",
             "Valid description with numbers 123",
             "Multi-word title: The Quick Brown Fox",
-            "Evidence-001"
+            "Evidence-001",
         ]
 
         for safe_input in safe_inputs:
@@ -496,7 +499,7 @@ class TestInputValidationSecurityRegression:
         valid_emails = [
             "user@example.com",
             "test.email+tag@domain.co.uk",
-            "user_name@subdomain.example.org"
+            "user_name@subdomain.example.org",
         ]
 
         invalid_emails = [
@@ -504,7 +507,7 @@ class TestInputValidationSecurityRegression:
             "user@",
             "@example.com",
             "user@.com",
-            "<script>alert('XSS')</script>@evil.com"
+            "<script>alert('XSS')</script>@evil.com",
         ]
 
         for email in valid_emails:
@@ -520,14 +523,14 @@ class TestInputValidationSecurityRegression:
         valid_urls = [
             "https://example.com",
             "http://subdomain.example.com/path",
-            "https://example.com:8080/path?query=value"
+            "https://example.com:8080/path?query=value",
         ]
 
         invalid_urls = [
             "javascript:alert('XSS')",
             "data:text/html,<script>alert('XSS')</script>",
             "vbscript:msgbox('XSS')",
-            "not-a-url"
+            "not-a-url",
         ]
 
         for url in valid_urls:
@@ -552,7 +555,7 @@ class TestInputValidationSecurityRegression:
             "not-a-uuid",
             "12345",
             "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-            "<script>alert('XSS')</script>"
+            "<script>alert('XSS')</script>",
         ]
 
         for invalid_uuid in invalid_uuids:
@@ -566,7 +569,7 @@ class TestInputValidationSecurityRegression:
             "evidence_name": "Security Audit Report",
             "description": "Comprehensive security assessment",
             "status": "approved",
-            "tags": ["security", "audit"]
+            "tags": ["security", "audit"],
         }
 
         result = validate_evidence_update(valid_update)
@@ -575,7 +578,7 @@ class TestInputValidationSecurityRegression:
         # Invalid update with SQL injection
         invalid_update = {
             "evidence_name": "'; DROP TABLE evidence; --",
-            "description": "<script>alert('XSS')</script>"
+            "description": "<script>alert('XSS')</script>",
         }
 
         with pytest.raises(ValidationError, match="dangerous content"):
@@ -588,7 +591,7 @@ class TestInputValidationSecurityRegression:
             "company_name": "SecureTech Solutions",
             "industry": "Information Technology",
             "employee_count": 150,
-            "data_sensitivity": "High"
+            "data_sensitivity": "High",
         }
 
         result = validate_business_profile_update(valid_update)
@@ -597,7 +600,7 @@ class TestInputValidationSecurityRegression:
         # Invalid update
         invalid_update = {
             "company_name": "<script>alert('XSS')</script>",
-            "employee_count": "not-a-number"
+            "employee_count": "not-a-number",
         }
 
         with pytest.raises(ValidationError):
@@ -613,7 +616,7 @@ class TestSecurityHeadersRegression:
         return SecurityHeadersMiddleware(
             app=None,  # Not needed for header testing
             csp_enabled=True,
-            cors_enabled=True
+            cors_enabled=True,
         )
 
     def test_csp_header_generation(self, security_headers_middleware):
@@ -651,7 +654,7 @@ class TestSecurityHeadersRegression:
             "X-Content-Type-Options",
             "X-Frame-Options",
             "X-XSS-Protection",
-            "Strict-Transport-Security"
+            "Strict-Transport-Security",
         ]
 
         # Verify headers would be added (in real usage)
@@ -661,7 +664,7 @@ class TestSecurityHeadersRegression:
                 "X-Content-Type-Options",
                 "X-Frame-Options",
                 "X-XSS-Protection",
-                "Strict-Transport-Security"
+                "Strict-Transport-Security",
             ]
 
     def test_hsts_configuration(self, security_headers_middleware):
@@ -808,7 +811,7 @@ class TestAuditLoggingSecurityRegression:
             user_id="test-user",
             action="LOGIN",
             result="DENIED",
-            details={"reason": "invalid_credentials"}
+            details={"reason": "invalid_credentials"},
         )
 
         # Should be in buffer
@@ -823,13 +826,10 @@ class TestAuditLoggingSecurityRegression:
             "password": "secret123",
             "token": "jwt-token-here",
             "api_key": "sk-123456789",
-            "safe_field": "this is safe"
+            "safe_field": "this is safe",
         }
 
-        audit_logger.log_event(
-            event_type="TEST_EVENT",
-            details=sensitive_details
-        )
+        audit_logger.log_event(event_type="TEST_EVENT", details=sensitive_details)
 
         event = audit_logger.buffer[-1]
         redacted_details = event["details"]
@@ -847,11 +847,7 @@ class TestAuditLoggingSecurityRegression:
         # This would normally trigger immediate file logging
         # In test environment, we verify the event is marked as critical
 
-        audit_logger.log_event(
-            event_type="AUTH_FAILED",
-            user_id="test-user",
-            action="LOGIN"
-        )
+        audit_logger.log_event(event_type="AUTH_FAILED", user_id="test-user", action="LOGIN")
 
         event = audit_logger.buffer[-1]
         # Critical events should be in buffer
@@ -865,10 +861,7 @@ class TestAuditLoggingSecurityRegression:
         test_request_id = str(uuid4())
         test_session_id = str(uuid4())
 
-        audit_context.set({
-            "request_id": test_request_id,
-            "session_id": test_session_id
-        })
+        audit_context.set({"request_id": test_request_id, "session_id": test_session_id})
 
         # Verify context is accessible
         current_context = audit_context.get()
@@ -887,21 +880,17 @@ class TestVulnerabilityRegression:
             ("' OR '1'='1", "SQL injection bypass"),
             ("; DROP TABLE users;", "SQL injection drop table"),
             ("UNION SELECT * FROM users", "SQL injection union"),
-
             # XSS variants
             ("<script>alert('xss')</script>", "Basic XSS"),
             ("javascript:alert('xss')", "JavaScript URL XSS"),
             ("<img src=x onerror=alert('xss')>", "Image onerror XSS"),
-
             # Command injection
             ("; rm -rf /", "Command injection rm"),
             ("| cat /etc/passwd", "Command injection cat"),
             ("`whoami`", "Command injection backticks"),
-
             # Path traversal
             ("../../../etc/passwd", "Path traversal"),
             ("..\\..\\..\\windows\\system32", "Windows path traversal"),
-
             # Template injection
             ("{{7*7}}", "Template injection"),
             ("${7*7}", "Expression injection"),
@@ -909,8 +898,9 @@ class TestVulnerabilityRegression:
 
         for payload, description in injection_patterns:
             # All should be detected as dangerous
-            assert SecurityValidator.scan_for_dangerous_patterns(payload), \
+            assert SecurityValidator.scan_for_dangerous_patterns(payload), (
                 f"Should detect dangerous pattern: {description}"
+            )
 
             # Should be rejected by input validation
             with pytest.raises(ValidationError):
@@ -920,6 +910,7 @@ class TestVulnerabilityRegression:
         """Test that secure defaults are enforced."""
         # Test CSP defaults
         from middleware.security_headers import SecurityHeadersMiddleware
+
         middleware = SecurityHeadersMiddleware(app=None)
 
         csp = middleware.default_csp

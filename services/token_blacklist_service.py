@@ -4,7 +4,6 @@ Token Blacklist Service for JWT Invalidation
 Story 1.1: JWT Validation - Task 3: Token Blacklisting
 Provides Redis-based token blacklisting for logout and token invalidation.
 """
-from __future__ import annotations
 
 import json
 from typing import Optional, Dict, Any
@@ -47,7 +46,7 @@ class TokenBlacklistService:
             socket_connect_timeout=5,
             socket_timeout=5,
             retry_on_timeout=True,
-            health_check_interval=30
+            health_check_interval=30,
         )
         return redis.Redis(connection_pool=pool, decode_responses=True)
 
@@ -56,7 +55,7 @@ class TokenBlacklistService:
         token_jti: str,
         expiry: datetime,
         user_id: Optional[str] = None,
-        reason: str = "logout"
+        reason: str = "logout",
     ) -> bool:
         """
         Add a token to the blacklist.
@@ -83,7 +82,7 @@ class TokenBlacklistService:
                 "blacklisted_at": datetime.now(timezone.utc).isoformat(),
                 "expiry": expiry.isoformat(),
                 "user_id": user_id,
-                "reason": reason
+                "reason": reason,
             }
 
             # Use pipeline for atomic operations
@@ -149,7 +148,11 @@ class TokenBlacklistService:
         except redis.RedisError as e:
             logger.error(f"Redis error checking blacklist for {token_jti}: {e}")
             # Fail open for availability (configurable)
-            return settings.BLACKLIST_FAIL_CLOSED if hasattr(settings, 'BLACKLIST_FAIL_CLOSED') else False
+            return (
+                settings.BLACKLIST_FAIL_CLOSED
+                if hasattr(settings, "BLACKLIST_FAIL_CLOSED")
+                else False
+            )
         except Exception as e:
             logger.error(f"Unexpected error checking blacklist for {token_jti}: {e}")
             return False
@@ -231,7 +234,7 @@ class TokenBlacklistService:
         try:
             stats = self.redis_client.hgetall(self.stats_key)
             stats["active_count"] = self.redis_client.scard(self.blacklist_set_key)
-            return {k: int(v) if v.isdigit() else v for k, v in stats.items()}
+            return {k: int(v) if isinstance(v, str) and v.isdigit() else v for k, v in stats.items()}
         except redis.RedisError:
             return {}
 

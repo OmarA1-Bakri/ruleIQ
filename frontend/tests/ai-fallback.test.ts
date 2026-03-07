@@ -180,7 +180,7 @@ describe('AI Fallback Tests', () => {
         } catch (error) {
           // Development logging - consider proper logger
 
-          console.error('Enhanced AI response failed:', _error);
+          console.error('Enhanced AI response failed:', error);
           return fallbackResponse;
         }
       };
@@ -224,7 +224,7 @@ describe('AI Fallback Tests', () => {
         } catch (error) {
           // Development logging - consider proper logger
 
-          console.error('Network error:', _error);
+          console.error('Network error:', error);
 
           // Return fallback response
           return {

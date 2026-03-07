@@ -40,15 +40,11 @@ class AgenticIntegrationService:
         self.active_sessions = {}
 
         # Configuration
-        self.auto_process_docs = (
-            os.getenv("AUTO_PROCESS_DOCS", "true").lower() == "true",
-        )
+        self.auto_process_docs = (os.getenv("AUTO_PROCESS_DOCS", "true").lower() == "true",)
 
         # Initialize fact-checker and self-critic system
         self.fact_checker = None
-        self.self_critic_enabled = (
-            os.getenv("ENABLE_RAG_SELF_CRITIC", "true").lower() == "true",
-        )
+        self.self_critic_enabled = (os.getenv("ENABLE_RAG_SELF_CRITIC", "true").lower() == "true",)
 
     async def initialize(self) -> None:
         """Initialize the service and process documentation if needed"""
@@ -65,7 +61,8 @@ class AgenticIntegrationService:
                 await self.rag_system.process_documentation_files()
                 logger.info("Documentation processing completed")
             else:
-                logger.info(f"Found {stats.get('total_chunks', 0)} documentation chunks and {stats.get('total_code_examples', 0)} code examples",
+                logger.info(
+                    f"Found {stats.get('total_chunks', 0)} documentation chunks and {stats.get('total_code_examples', 0)} code examples",
                 )
 
             # Initialize fact-checker if enabled
@@ -194,9 +191,7 @@ class AgenticIntegrationService:
                 "query_type": query_type,
             }
 
-    async def get_implementation_guidance(
-        self, topic: str, framework: str = "langgraph"
-    ) -> str:
+    async def get_implementation_guidance(self, topic: str, framework: str = "langgraph") -> str:
         """
         Get specific implementation guidance for LangGraph or Pydantic AI
 
@@ -328,7 +323,8 @@ class AgenticIntegrationService:
             if quick_check:
                 # Quick fact-check for real-time usage
                 is_reliable = await self.fact_checker.quick_fact_check(
-                    response_text=response_text, sources=sources,
+                    response_text=response_text,
+                    sources=sources,
                 )
 
                 return {
@@ -367,7 +363,7 @@ class AgenticIntegrationService:
                 "confidence": 0.5,
                 "fact_check_available": False,
                 "error": str(e),
-                "message": "Fact-checking failed, proceeding with caution"
+                "message": "Fact-checking failed, proceeding with caution",
             }
 
     async def query_documentation_with_validation(
@@ -394,7 +390,9 @@ class AgenticIntegrationService:
         try:
             # Get standard RAG response
             rag_result = await self.query_documentation(
-                query=query, source_filter=source_filter, query_type=query_type,
+                query=query,
+                source_filter=source_filter,
+                query_type=query_type,
             )
 
             # Add validation if enabled and fact-checker available

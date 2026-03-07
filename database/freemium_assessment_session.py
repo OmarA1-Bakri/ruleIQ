@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 FreemiumAssessmentSession model for managing AI-driven assessment sessions.
 Stores session data, AI responses, and user interactions for freemium flow.
@@ -12,26 +11,30 @@ from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, T
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID, JSONB
 from .db_setup import Base
 
+
 class FreemiumAssessmentSession(Base):
     """
     Model for managing freemium assessment sessions with AI integration.
     Stores session state, AI responses, and user answers with secure tokens.
     """
-    __tablename__ = 'freemium_assessment_sessions'
+
+    __tablename__ = "freemium_assessment_sessions"
     id = Column(PG_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    lead_id = Column(PG_UUID(as_uuid=True), ForeignKey('assessment_leads.id', ondelete='CASCADE'), nullable=False)
+    lead_id = Column(
+        PG_UUID(as_uuid=True), ForeignKey("assessment_leads.id", ondelete="CASCADE"), nullable=False
+    )
     session_token = Column(String(64), nullable=False, unique=True, index=True)
     expires_at = Column(DateTime, nullable=False)
     status = Column(String(50), nullable=True)
     current_question_id = Column(String(100), nullable=True)
     total_questions = Column(Integer, nullable=True)
     questions_answered = Column(Integer, nullable=True)
-    progress_percentage = Column('progress_percentage', Integer, nullable=True)
+    progress_percentage = Column("progress_percentage", Integer, nullable=True)
     assessment_type = Column(String(50), nullable=True)
     questions_data = Column(JSONB, nullable=True)
     ai_responses = Column(JSONB, nullable=True)
     personalization_data = Column(JSONB, nullable=True)
-    compliance_score = Column('compliance_score', Integer, nullable=True)
+    compliance_score = Column("compliance_score", Integer, nullable=True)
     risk_assessment = Column(JSONB, nullable=True)
     recommendations = Column(JSONB, nullable=True)
     gaps_identified = Column(JSONB, nullable=True)
@@ -68,18 +71,20 @@ class FreemiumAssessmentSession(Base):
 
     def is_active(self) -> bool:
         """Check if session is active (not expired and not completed)."""
-        return not self.is_expired() and self.status not in ['completed', 'expired']
+        return not self.is_expired() and self.status not in ["completed", "expired"]
 
     def mark_completed(self) -> None:
         """Mark session as completed and set completion timestamp."""
-        self.status = 'completed'
+        self.status = "completed"
         from datetime import timezone
+
         self.completed_at = datetime.now(timezone.utc)
 
-    def extend_expiry(self, hours: int=2) -> None:
+    def extend_expiry(self, hours: int = 2) -> None:
         """Extend session expiry by specified hours."""
         if self.is_active():
             from datetime import timezone
+
             self.expires_at = datetime.now(timezone.utc) + timedelta(hours=hours)
 
     @property

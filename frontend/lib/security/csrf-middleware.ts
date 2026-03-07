@@ -48,7 +48,7 @@ export async function withCSRFProtection(
 
     // CSRF validation passed, proceed with the request
     return handler(request);
-  } catch (error) {
+  } catch (_error) {
 
     return NextResponse.json(
       {

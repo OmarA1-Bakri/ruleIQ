@@ -266,7 +266,7 @@ export function FreemiumEmailCaptureInline({ className = '' }: { className?: str
 
   const emailCaptureMutation = useFreemiumEmailCapture();
   const { captureUtmParams } = useFreemiumUtmCapture();
-  const { setEmail: setStoreEmail, setToken, setConsent } = useFreemiumStore();
+  const { setEmail: _setStoreEmail, setToken, setConsent: _setConsent } = useFreemiumStore();
 
   useEffect(() => {
     captureUtmParams();

@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Session, TrustLevel } from '@/lib/websocket/types';
 import { cn } from '@/lib/utils';
-import { format, formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow } from 'date-fns';
 import {
   Clock,
   MessageSquare,
@@ -15,7 +15,6 @@ import {
   PauseCircle,
   ChevronRight,
   Search,
-  Filter,
   BarChart3,
   Shield
 } from 'lucide-react';
@@ -37,15 +36,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import { Progress } from '@/components/ui/progress';
 
 interface SessionManagerProps {
   sessions: Session[];

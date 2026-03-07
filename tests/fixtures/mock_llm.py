@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 Mock LLM for deterministic testing in LangGraph workflows.
 
@@ -83,7 +82,7 @@ class MockLLM(BaseChatModel):
         messages: List[BaseMessage],
         stop: Optional[List[str]] = None,
         run_manager: Optional[CallbackManagerForLLMRun] = None,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> LLMResult:
         """
         Generate response based on input messages.
@@ -117,7 +116,8 @@ class MockLLM(BaseChatModel):
 
         # Create generation
         generation = Generation(
-            text=response, generation_info={"mock": True, "pattern_matched": True},
+            text=response,
+            generation_info={"mock": True, "pattern_matched": True},
         )
 
         return LLMResult(generations=[[generation]])
@@ -127,7 +127,7 @@ class MockLLM(BaseChatModel):
         messages: List[BaseMessage],
         stop: Optional[List[str]] = None,
         run_manager: Optional[CallbackManagerForLLMRun] = None,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> LLMResult:
         """
         Async version of generate for LangChain compatibility.
@@ -204,7 +204,7 @@ class MockLLMWithStreaming(MockLLM):
         messages: List[BaseMessage],
         stop: Optional[List[str]] = None,
         run_manager: Optional[CallbackManagerForLLMRun] = None,
-        **kwargs: Any
+        **kwargs: Any,
     ):
         """Stream tokens for testing streaming functionality."""
         response = self._get_response_for_input(
@@ -223,7 +223,7 @@ class MockLLMWithStreaming(MockLLM):
         messages: List[BaseMessage],
         stop: Optional[List[str]] = None,
         run_manager: Optional[CallbackManagerForLLMRun] = None,
-        **kwargs: Any
+        **kwargs: Any,
     ):
         """Async stream tokens for testing streaming functionality."""
         response = self._get_response_for_input(

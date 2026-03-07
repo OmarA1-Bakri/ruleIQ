@@ -13,8 +13,9 @@ import asyncio
 def setup_test_environment():
     """Override parent database setup - unit tests don't need database."""
     import os
-    os.environ['TESTING'] = 'true'
-    os.environ['ENVIRONMENT'] = 'testing'
+
+    os.environ["TESTING"] = "true"
+    os.environ["ENVIRONMENT"] = "testing"
     # No database setup needed - all dependencies are mocked
     yield
     # No cleanup needed
@@ -57,7 +58,7 @@ def event_loop():
 def pytest_configure(config):
     """Configure pytest to only run asyncio backend."""
     # Set anyio backends to asyncio only
-    if not hasattr(config.option, 'anyio_backends'):
+    if not hasattr(config.option, "anyio_backends"):
         config.option.anyio_backends = []
     config.option.anyio_backends = ["asyncio"]
 

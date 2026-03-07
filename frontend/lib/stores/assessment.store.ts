@@ -401,7 +401,7 @@ export const useAssessmentStore = create<AssessmentState>()(
             // Note: Schema validation may not match Assessment interface exactly
             // For now, we'll trust the input data and just set it
             set({ assessments }, false, 'setAssessments');
-          } catch (error) {
+          } catch (_error) {
             set({ assessments }, false, 'setAssessments');
           }
         },
@@ -416,7 +416,7 @@ export const useAssessmentStore = create<AssessmentState>()(
               false,
               'addAssessment',
             );
-          } catch (error) {
+          } catch (_error) {
             set(
               (state) => ({
                 assessments: [assessment, ...state.assessments],
@@ -431,7 +431,7 @@ export const useAssessmentStore = create<AssessmentState>()(
           try {
             safeValidate(LoadingStateSchema, loading, 'setLoading');
             set({ isLoading: loading }, false, 'setLoading');
-          } catch (error) {
+          } catch (_error) {
             set({ isLoading: loading }, false, 'setLoading');
           }
         },
@@ -440,7 +440,8 @@ export const useAssessmentStore = create<AssessmentState>()(
           try {
             safeValidate(FrameworksArraySchema, frameworks, 'setFrameworks');
             // Note: frameworks are not part of this store, but adding for test compatibility
-          } catch (error) {
+          } catch (_error) {
+            // intentionally empty - validation failure is non-blocking
           }
         },
 

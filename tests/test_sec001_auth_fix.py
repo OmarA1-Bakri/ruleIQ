@@ -17,15 +17,17 @@ from config.settings import settings
 TEST_SECRET = "test-secret-key"
 TEST_ALGORITHM = "HS256"
 
+
 def generate_test_token(user_id: str = "test_user", expired: bool = False):
     """Generate a test JWT token"""
-    exp_time = datetime.now(timezone.utc) - timedelta(hours=1) if expired else datetime.now(timezone.utc) + timedelta(hours=1)
-    payload = {
-        "sub": user_id,
-        "type": "access",
-        "exp": exp_time.timestamp()
-    }
+    exp_time = (
+        datetime.now(timezone.utc) - timedelta(hours=1)
+        if expired
+        else datetime.now(timezone.utc) + timedelta(hours=1)
+    )
+    payload = {"sub": user_id, "type": "access", "exp": exp_time.timestamp()}
     return jwt.encode(payload, TEST_SECRET, algorithm=TEST_ALGORITHM)
+
 
 @pytest.fixture
 def test_app():
@@ -38,7 +40,7 @@ def test_app():
         enable_rate_limiting=False,  # Disable for testing
         enable_audit_logging=False,  # Disable for testing
         enable_performance_monitoring=False,
-        test_mode=True
+        test_mode=True,
     )
 
     @app.middleware("http")
@@ -72,6 +74,7 @@ def test_app():
 
     return app
 
+
 @pytest.fixture
 def client(test_app):
     """Create test client"""
@@ -83,10 +86,7 @@ class TestSEC001AuthenticationFix:
 
     def test_public_endpoints_accessible_without_auth(self, client):
         """Test that public endpoints remain accessible without authentication"""
-        public_endpoints = [
-            "/health",
-            "/api/v1/auth/login"
-        ]
+        public_endpoints = ["/health", "/api/v1/auth/login"]
 
         for endpoint in public_endpoints:
             response = client.get(endpoint)
@@ -98,7 +98,7 @@ class TestSEC001AuthenticationFix:
             "/api/v1/users/profile",
             "/api/v1/assessments/create",
             "/api/v1/policies/generate",
-            "/api/v1/admin/settings"
+            "/api/v1/admin/settings",
         ]
 
         for endpoint in protected_endpoints:
@@ -109,10 +109,7 @@ class TestSEC001AuthenticationFix:
 
     def test_protected_endpoints_reject_invalid_token(self, client):
         """Test that protected endpoints reject invalid tokens"""
-        protected_endpoints = [
-            "/api/v1/users/profile",
-            "/api/v1/assessments/create"
-        ]
+        protected_endpoints = ["/api/v1/users/profile", "/api/v1/assessments/create"]
 
         invalid_token = "invalid.token.here"
         headers = {"Authorization": f"Bearer {invalid_token}"}
@@ -122,8 +119,8 @@ class TestSEC001AuthenticationFix:
             assert response.status_code == 401, f"Endpoint {endpoint} should reject invalid token"
             assert "Invalid or expired token" in response.json()["detail"]
 
-    @patch('middleware.jwt_auth_v2.SECRET_KEY', TEST_SECRET)
-    @patch('middleware.jwt_auth_v2.ALGORITHM', TEST_ALGORITHM)
+    @patch("middleware.jwt_auth_v2.SECRET_KEY", TEST_SECRET)
+    @patch("middleware.jwt_auth_v2.ALGORITHM", TEST_ALGORITHM)
     def test_protected_endpoints_accept_valid_token(self, client):
         """Test that protected endpoints accept valid tokens"""
         valid_token = generate_test_token("user123")
@@ -132,15 +129,15 @@ class TestSEC001AuthenticationFix:
         protected_endpoints = [
             "/api/v1/users/profile",
             "/api/v1/assessments/create",
-            "/api/v1/policies/generate"
+            "/api/v1/policies/generate",
         ]
 
         for endpoint in protected_endpoints:
             response = client.get(endpoint, headers=headers)
             assert response.status_code == 200, f"Endpoint {endpoint} should accept valid token"
 
-    @patch('middleware.jwt_auth_v2.SECRET_KEY', TEST_SECRET)
-    @patch('middleware.jwt_auth_v2.ALGORITHM', TEST_ALGORITHM)
+    @patch("middleware.jwt_auth_v2.SECRET_KEY", TEST_SECRET)
+    @patch("middleware.jwt_auth_v2.ALGORITHM", TEST_ALGORITHM)
     def test_expired_token_rejected(self, client):
         """Test that expired tokens are rejected"""
         expired_token = generate_test_token("user123", expired=True)
@@ -165,7 +162,7 @@ class TestSEC001AuthenticationFix:
         undefined_routes = [
             "/api/v1/new/endpoint",
             "/api/v1/future/feature",
-            "/api/undefined/route"
+            "/api/undefined/route",
         ]
 
         for route in undefined_routes:
@@ -182,17 +179,13 @@ class TestSEC001AuthenticationFix:
         assert response.headers.get("X-XSS-Protection") == "1; mode=block"
         assert response.headers.get("X-Auth-Version") == "v2"
 
-    @patch('middleware.jwt_auth_v2.SECRET_KEY', TEST_SECRET)
-    @patch('middleware.jwt_auth_v2.ALGORITHM', TEST_ALGORITHM)
+    @patch("middleware.jwt_auth_v2.SECRET_KEY", TEST_SECRET)
+    @patch("middleware.jwt_auth_v2.ALGORITHM", TEST_ALGORITHM)
     def test_token_expiry_warning_header(self, client):
         """Test that expiring tokens get warning headers"""
         # Token expires in 4 minutes (under 5 minute threshold)
         exp_time = datetime.now(timezone.utc) + timedelta(minutes=4)
-        payload = {
-            "sub": "test_user",
-            "type": "access",
-            "exp": exp_time.timestamp()
-        }
+        payload = {"sub": "test_user", "type": "access", "exp": exp_time.timestamp()}
         token = jwt.encode(payload, TEST_SECRET, algorithm=TEST_ALGORITHM)
         headers = {"Authorization": f"Bearer {token}"}
 
@@ -213,7 +206,7 @@ class TestVulnerabilityScenarios:
             "/users/sensitive-data",
             "/admin/config",
             "/internal/api/data",
-            "/../../etc/passwd"  # Path traversal attempt
+            "/../../etc/passwd",  # Path traversal attempt
         ]
 
         for path in bypass_attempts:

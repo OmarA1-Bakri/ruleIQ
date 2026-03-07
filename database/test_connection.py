@@ -20,7 +20,7 @@ class TestDatabaseManager:
 
     def __init__(self) -> None:
         self.test_engine: Optional[Engine] = None
-        self.is_test_env = os.getenv('TESTING', '').lower() == 'true'
+        self.is_test_env = os.getenv("TESTING", "").lower() == "true"
 
     def get_test_db_url(self) -> str:
         """Get the test database URL."""
@@ -30,52 +30,54 @@ class TestDatabaseManager:
         # 3. Default test database
         if self.is_test_env:
             return os.getenv(
-                'TEST_DATABASE_URL',
+                "TEST_DATABASE_URL",
                 os.getenv(
-                    'DATABASE_URL',
-                    'postgresql://test_user:test_password@localhost:5433/ruleiq_test'
-                )
+                    "DATABASE_URL",
+                    "postgresql://test_user:test_password@localhost:5433/ruleiq_test",
+                ),
             )
-        return os.getenv('DATABASE_URL', '')
+        return os.getenv("DATABASE_URL", "")
 
     def get_redis_test_url(self) -> str:
         """Get the test Redis URL."""
         if self.is_test_env:
-            return os.getenv('REDIS_URL', 'redis://localhost:6380/0')
-        return os.getenv('REDIS_URL', 'redis://localhost:6379/0')
+            return os.getenv("REDIS_URL", "redis://localhost:6380/0")
+        return os.getenv("REDIS_URL", "redis://localhost:6379/0")
 
     def create_test_engine(self, **kwargs) -> Engine:
         """Create a test database engine with optimized settings."""
         db_url = self.get_test_db_url()
 
         # Convert URL format if needed
-        if '+asyncpg' in db_url:
-            db_url = db_url.replace('+asyncpg', '+psycopg2')
-        elif 'postgresql://' in db_url and '+' not in db_url:
-            db_url = db_url.replace('postgresql://', 'postgresql+psycopg2://')
+        if "+asyncpg" in db_url:
+            db_url = db_url.replace("+asyncpg", "+psycopg2")
+        elif "postgresql://" in db_url and "+" not in db_url:
+            db_url = db_url.replace("postgresql://", "postgresql+psycopg2://")
 
         # Test-optimized settings
         engine_kwargs = {
-            'echo': os.getenv('SQLALCHEMY_ECHO', 'false').lower() == 'true',
-            'poolclass': pool.StaticPool if 'sqlite' in db_url else pool.QueuePool,
-            'pool_size': 5,  # Smaller pool for tests
-            'max_overflow': 10,
-            'pool_timeout': 10,
-            'pool_recycle': 1800,
-            'pool_pre_ping': True,  # Important for test reliability
-            **kwargs
+            "echo": os.getenv("SQLALCHEMY_ECHO", "false").lower() == "true",
+            "poolclass": pool.StaticPool if "sqlite" in db_url else pool.QueuePool,
+            "pool_size": 5,  # Smaller pool for tests
+            "max_overflow": 10,
+            "pool_timeout": 10,
+            "pool_recycle": 1800,
+            "pool_pre_ping": True,  # Important for test reliability
+            **kwargs,
         }
 
         # Remove poolclass for SQLite
-        if 'sqlite' in db_url:
-            engine_kwargs.pop('pool_size', None)
-            engine_kwargs.pop('max_overflow', None)
-            engine_kwargs.pop('pool_timeout', None)
-            engine_kwargs.pop('pool_recycle', None)
+        if "sqlite" in db_url:
+            engine_kwargs.pop("pool_size", None)
+            engine_kwargs.pop("max_overflow", None)
+            engine_kwargs.pop("pool_timeout", None)
+            engine_kwargs.pop("pool_recycle", None)
 
         try:
             self.test_engine = create_engine(db_url, **engine_kwargs)
-            logger.info(f"Test engine created for: {db_url.split('@')[-1] if '@' in db_url else 'memory'}")
+            logger.info(
+                f"Test engine created for: {db_url.split('@')[-1] if '@' in db_url else 'memory'}"
+            )
             return self.test_engine
         except Exception as e:
             logger.error(f"Failed to create test engine: {e}")
@@ -103,15 +105,16 @@ class TestDatabaseManager:
         db_url = self.get_test_db_url()
 
         # Skip database creation for Neon (managed service)
-        if 'neon.tech' in db_url:
+        if "neon.tech" in db_url:
             logger.info("✓ Using Neon managed database - skipping database creation check")
             return True
 
         # Parse connection parameters
-        if 'postgresql' in db_url:
+        if "postgresql" in db_url:
             # Extract components from URL
             import re
-            pattern = r'postgresql(?:\+\w+)?://([^:]+):([^@]+)@([^:/]+)(?::(\d+))?/(.+)'
+
+            pattern = r"postgresql(?:\+\w+)?://([^:]+):([^@]+)@([^:/]+)(?::(\d+))?/(.+)"
             match = re.match(pattern, db_url)
 
             if not match:
@@ -119,25 +122,18 @@ class TestDatabaseManager:
                 return False
 
             user, password, host, port, database = match.groups()
-            port = port or '5432'
+            port = port or "5432"
 
             try:
                 # Connect to postgres database to create test database
                 conn = psycopg2.connect(
-                    host=host,
-                    port=port,
-                    user=user,
-                    password=password,
-                    database='postgres'
+                    host=host, port=port, user=user, password=password, database="postgres"
                 )
                 conn.autocommit = True
 
                 with conn.cursor() as cursor:
                     # Check if database exists
-                    cursor.execute(
-                        "SELECT 1 FROM pg_database WHERE datname = %s",
-                        (database,)
-                    )
+                    cursor.execute("SELECT 1 FROM pg_database WHERE datname = %s", (database,))
                     if not cursor.fetchone():
                         cursor.execute(f"CREATE DATABASE {database}")
                         logger.info(f"Created test database: {database}")
@@ -177,7 +173,7 @@ class TestDatabaseManager:
 
 def get_test_db_manager() -> TestDatabaseManager:
     """Get a singleton test database manager."""
-    if not hasattr(get_test_db_manager, '_instance'):
+    if not hasattr(get_test_db_manager, "_instance"):
         get_test_db_manager._instance = TestDatabaseManager()
     return get_test_db_manager._instance
 
@@ -207,6 +203,7 @@ def setup_test_database() -> Tuple[bool, Optional[str]]:
 
     # 4. Create tables
     from database import Base
+
     if not manager.create_tables(Base.metadata):
         return False, "Failed to create tables"
 
@@ -222,7 +219,8 @@ def test_redis_connection() -> bool:
 
     # Parse Redis URL
     import re
-    pattern = r'redis://(?:([^:]+):([^@]+)@)?([^:/]+)(?::(\d+))?(?:/(\d+))?'
+
+    pattern = r"redis://(?:([^:]+):([^@]+)@)?([^:/]+)(?::(\d+))?(?:/(\d+))?"
     match = re.match(pattern, redis_url)
 
     if not match:
@@ -238,11 +236,11 @@ def test_redis_connection() -> bool:
         r.ping()
 
         # Test basic operations
-        r.set('test_key', 'test_value', ex=10)
-        value = r.get('test_key')
-        r.delete('test_key')
+        r.set("test_key", "test_value", ex=10)
+        value = r.get("test_key")
+        r.delete("test_key")
 
-        if value == 'test_value':
+        if value == "test_value":
             logger.info(f"✓ Redis connection verified on {host}:{port}")
             return True
         else:

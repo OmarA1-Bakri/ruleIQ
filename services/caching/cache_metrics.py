@@ -9,23 +9,23 @@ from typing import Dict, Any, List
 from dataclasses import dataclass, field
 
 # Security and Performance Constants
-CRITICAL_ERROR_RATE_THRESHOLD = 0.1    # 10% error rate threshold
-WARNING_HIT_RATE_THRESHOLD = 0.5       # 50% hit rate threshold
+CRITICAL_ERROR_RATE_THRESHOLD = 0.1  # 10% error rate threshold
+WARNING_HIT_RATE_THRESHOLD = 0.5  # 50% hit rate threshold
 WARNING_RESPONSE_TIME_THRESHOLD = 0.1  # 100ms response time threshold
-HEALTHY_HIT_RATE_THRESHOLD = 0.7       # 70% hit rate for recommendations
-ACCEPTABLE_ERROR_RATE = 0.05           # 5% acceptable error rate
-ACCEPTABLE_RESPONSE_TIME = 0.05        # 50ms acceptable response time
+HEALTHY_HIT_RATE_THRESHOLD = 0.7  # 70% hit rate for recommendations
+ACCEPTABLE_ERROR_RATE = 0.05  # 5% acceptable error rate
+ACCEPTABLE_RESPONSE_TIME = 0.05  # 50ms acceptable response time
 
 # Effectiveness Score Weights
-HIT_RATE_WEIGHT = 40                   # 40% weight for hit rate
-RESPONSE_TIME_WEIGHT = 30              # 30% weight for response time
-ERROR_RATE_WEIGHT = 30                 # 30% weight for error rate
-MAX_RESPONSE_TIME_PENALTY = 30         # Maximum penalty for response time
+HIT_RATE_WEIGHT = 40  # 40% weight for hit rate
+RESPONSE_TIME_WEIGHT = 30  # 30% weight for response time
+ERROR_RATE_WEIGHT = 30  # 30% weight for error rate
+MAX_RESPONSE_TIME_PENALTY = 30  # Maximum penalty for response time
 
 # Trend Analysis Constants
-TREND_IMPROVEMENT_THRESHOLD = 0.9      # 90% threshold for improvement
-TREND_DEGRADATION_THRESHOLD = 1.1      # 110% threshold for degradation
-MIN_SAMPLES_FOR_TREND = 10             # Minimum samples for trend analysis
+TREND_IMPROVEMENT_THRESHOLD = 0.9  # 90% threshold for improvement
+TREND_DEGRADATION_THRESHOLD = 1.1  # 110% threshold for degradation
+MIN_SAMPLES_FOR_TREND = 10  # Minimum samples for trend analysis
 
 
 @dataclass
@@ -96,10 +96,7 @@ class CacheMetrics:
 
     def get_avg_response_time(self) -> float:
         """Calculate average response time"""
-        return (
-            sum(self.response_times) / len(self.response_times)
-            if self.response_times else 0.0
-        )
+        return sum(self.response_times) / len(self.response_times) if self.response_times else 0.0
 
     def get_error_rate(self) -> float:
         """Calculate error rate"""
@@ -120,24 +117,20 @@ class CacheMetrics:
             "sets": self.sets,
             "deletes": self.deletes,
             "errors": self.errors,
-
             # Derived metrics
             "total_requests": self.hits + self.misses,
             "hit_rate": self.get_hit_rate(),
             "avg_response_time": self.get_avg_response_time(),
             "error_rate": self.get_error_rate(),
-
             # Memory metrics
             "memory_usage_bytes": self.memory_usage_bytes,
             "memory_usage_mb": self.memory_usage_bytes / (1024 * 1024),
             "max_memory_bytes": self.max_memory_bytes,
             "max_memory_mb": self.max_memory_bytes / (1024 * 1024),
             "memory_efficiency": self.get_memory_efficiency(),
-
             # Size metrics
             "total_items": self.total_items,
             "max_items": self.max_items,
-
             # Performance indicators
             "cache_effectiveness_score": self._calculate_effectiveness_score(),
             "performance_trend": self._analyze_performance_trend(),
@@ -197,8 +190,10 @@ class CacheMetrics:
         # Determine health status
         if error_rate > CRITICAL_ERROR_RATE_THRESHOLD:  # Critical error threshold
             status = "critical"
-        elif (hit_rate < WARNING_HIT_RATE_THRESHOLD or
-              avg_response_time > WARNING_RESPONSE_TIME_THRESHOLD):
+        elif (
+            hit_rate < WARNING_HIT_RATE_THRESHOLD
+            or avg_response_time > WARNING_RESPONSE_TIME_THRESHOLD
+        ):
             status = "warning"
         else:
             status = "healthy"
@@ -210,15 +205,11 @@ class CacheMetrics:
             "avg_response_time": avg_response_time,
             "recommendations": self._get_health_recommendations(
                 status, hit_rate, error_rate, avg_response_time
-            )
+            ),
         }
 
     def _get_health_recommendations(
-        self,
-        status: str,
-        hit_rate: float,
-        error_rate: float,
-        avg_response_time: float
+        self, status: str, hit_rate: float, error_rate: float, avg_response_time: float
     ) -> List[str]:
         """Generate health recommendations based on metrics"""
         recommendations = []

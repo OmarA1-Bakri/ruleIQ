@@ -443,8 +443,8 @@ export const getResults = (token: string): Promise<AssessmentResultsResponse> =>
   freemiumService.getResults(token);
 
 export const trackConversion = (
-  token: string,
-  data: ConversionTrackingRequest,
+  _token: string,
+  _data: ConversionTrackingRequest,
 ): Promise<ConversionTrackingResponse> =>
   Promise.resolve({
     event_id: 'mock',

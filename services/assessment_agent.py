@@ -161,7 +161,8 @@ class AssessmentAgent:
                 # Convert asyncpg URL to psycopg format if needed
                 if "asyncpg" in database_url:
                     database_url = database_url.replace(
-                        "postgresql+asyncpg://", "postgresql://",
+                        "postgresql+asyncpg://",
+                        "postgresql://",
                     )
 
                 # Import psycopg for PostgreSQL connection
@@ -171,7 +172,9 @@ class AssessmentAgent:
                 # Create connection with proper parameters for AsyncPostgresSaver
                 # AsyncPostgresSaver expects a psycopg connection with autocommit and dict_row
                 conn = await psycopg.AsyncConnection.connect(
-                    database_url, autocommit=True, row_factory=dict_row,
+                    database_url,
+                    autocommit=True,
+                    row_factory=dict_row,
                 )
 
                 # Use the official AsyncPostgresSaver with the connection
@@ -318,7 +321,8 @@ what's your primary industry?
 
                 # Determine expertise level from responses
                 state["expertise_level"] = analysis.get(
-                    "expertise_level", "intermediate",
+                    "expertise_level",
+                    "intermediate",
                 )
 
                 # Check if we need follow-up questions
@@ -395,7 +399,8 @@ what's your primary industry?
                 if question_data:
                     question_text = question_data.get("question_text")
                     question_id = question_data.get(
-                        "question_id", f"dyn_{uuid.uuid4().hex[:8]}",
+                        "question_id",
+                        f"dyn_{uuid.uuid4().hex[:8]}",
                     )
 
                     # Add question to conversation
@@ -519,14 +524,14 @@ what's your primary industry?
             content=f"""
 Thank you for completing the assessment! Here's what I've learned about your compliance needs:
 
-**Compliance Score:** {state['compliance_score']:.1f}%
-**Risk Level:** {state['risk_level']}
+**Compliance Score:** {state["compliance_score"]:.1f}%
+**Risk Level:** {state["risk_level"]}
 
 **Key Compliance Areas Identified:**
-{self._format_list(state['compliance_needs'])}
+{self._format_list(state["compliance_needs"])}
 
 **Top Recommendations:**
-{self._format_recommendations(state['recommendations'][:3])}
+{self._format_recommendations(state["recommendations"][:3])}
 
 Based on our conversation, I can see that your organization would benefit from a more structured
 approach to compliance management. Our platform can help automate many of these processes and
@@ -572,7 +577,8 @@ Would you like to schedule a demo to see how we can help address your specific n
 
         # Adjust based on expertise level
         expertise_bonus = {"beginner": -10, "intermediate": 0, "expert": 10}.get(
-            state["expertise_level"], 0,
+            state["expertise_level"],
+            0,
         )
 
         base_score += expertise_bonus
@@ -591,9 +597,7 @@ Would you like to schedule a demo to see how we can help address your specific n
         else:
             return "critical"
 
-    def _get_fallback_question(
-        self, state: AssessmentState
-    ) -> Optional[Dict[str, Any]]:
+    def _get_fallback_question(self, state: AssessmentState) -> Optional[Dict[str, Any]]:
         """Get a fallback question when AI is unavailable."""
         fallback_questions = {
             AssessmentPhase.BUSINESS_CONTEXT: [
@@ -663,9 +667,7 @@ Would you like to schedule a demo to see how we can help address your specific n
 
         return None
 
-    def _get_fallback_recommendations(
-        self, state: AssessmentState
-    ) -> List[Dict[str, Any]]:
+    def _get_fallback_recommendations(self, state: AssessmentState) -> List[Dict[str, Any]]:
         """Get fallback recommendations when AI is unavailable."""
         score = state["compliance_score"]
 
@@ -702,8 +704,8 @@ Would you like to schedule a demo to see how we can help address your specific n
                 {
                     "priority": "low",
                     "title": "Prepare for Certification",
-                    "description": "Work towards formal compliance certification"
-                }
+                    "description": "Work towards formal compliance certification",
+                },
             ]
         else:
             return [
@@ -715,8 +717,8 @@ Would you like to schedule a demo to see how we can help address your specific n
                 {
                     "priority": "low",
                     "title": "Automate Processes",
-                    "description": "Look for opportunities to automate compliance workflows"
-                }
+                    "description": "Look for opportunities to automate compliance workflows",
+                },
             ]
 
     def _format_list(self, items: List[str]) -> str:
@@ -917,7 +919,8 @@ Would you like to schedule a demo to see how we can help address your specific n
 
         # Add user message to state
         user_message = HumanMessage(
-            content=user_response, additional_kwargs={"confidence": confidence},
+            content=user_response,
+            additional_kwargs={"confidence": confidence},
         )
 
         # Try to get existing state from checkpointer first
@@ -973,9 +976,7 @@ Would you like to schedule a demo to see how we can help address your specific n
                                 phase_value,
                             )
                         except ValueError:
-                            existing_state["current_phase"] = (
-                                AssessmentPhase.BUSINESS_CONTEXT,
-                            )
+                            existing_state["current_phase"] = (AssessmentPhase.BUSINESS_CONTEXT,)
 
                 logger.info(
                     f"Retrieved existing state for session {session_id}: phase={existing_state.get('current_phase')}, answered={existing_state.get('questions_answered')}"  # noqa: E501,

@@ -18,28 +18,23 @@ Examples:
     python scripts/validate_required_env_vars.py --no-fail
 """
 
-from __future__ import annotations
-
 import argparse
 import os
 import sys
-from typing import Dict, List, Tuple
+from typing import Any, Dict, List, Literal, Tuple
 
 # Required environment variables with descriptions
 REQUIRED_ENV_VARS: Dict[str, str] = {
     # Database
     "DATABASE_URL": "PostgreSQL database connection URL",
     "REDIS_URL": "Redis connection URL for caching and sessions",
-
     # Neo4j
     "NEO4J_URI": "Neo4j database URI (e.g., neo4j+s://xxx.databases.neo4j.io)",
     "NEO4J_USERNAME": "Neo4j database username",
     "NEO4J_PASSWORD": "Neo4j database password",
-
     # Authentication
     "JWT_SECRET": "Secret key for JWT token signing",
     "FERNET_KEY": "Encryption key for sensitive data",
-
     # Application
     "SECRET_KEY": "Application secret key",
 }
@@ -65,7 +60,10 @@ DEVELOPMENT_EXEMPTIONS = {
 }
 
 
-def check_environment_variable(var_name: str, description: str) -> Tuple[bool, str]:
+def check_environment_variable(
+    var_name: str,
+    description: str,
+) -> Tuple[Literal["valid", "missing", "invalid"], str]:
     """Check if an environment variable is set.
 
     Args:
@@ -73,12 +71,12 @@ def check_environment_variable(var_name: str, description: str) -> Tuple[bool, s
         description: Human-readable description
 
     Returns:
-        Tuple of (is_set, error_message)
+        Tuple of (status, message)
     """
     value = os.getenv(var_name)
 
     if not value:
-        return False, f"❌ {var_name} is not set"
+        return "missing", f"❌ {var_name} is not set"
 
     # Check for placeholder values
     placeholder_patterns = [
@@ -94,28 +92,26 @@ def check_environment_variable(var_name: str, description: str) -> Tuple[bool, s
     value_lower = value.lower()
     for pattern in placeholder_patterns:
         if pattern and pattern in value_lower:
-            return False, f"❌ {var_name} contains placeholder value: {value[:20]}..."
+            return "invalid", f"❌ {var_name} contains placeholder value: {value[:20]}..."
 
     # Warn about insecure default passwords
     insecure_passwords = ["password", "ruleiq123", "admin", "123456"]
-    if "password" in var_name.lower():
-        if value.lower() in insecure_passwords:
-            return False, f"❌ {var_name} uses insecure password (NEVER use default passwords)"
+    if "password" in var_name.lower() and value.lower() in insecure_passwords:
+        return "invalid", f"❌ {var_name} uses insecure password (NEVER use default passwords)"
 
-    return True, f"✅ {var_name} is set"
+    return "valid", f"✅ {var_name} is set"
 
 
 def validate_environment(
     fail_fast: bool = True,
     environment: str | None = None,
     verbose: bool = True,
-) -> Dict[str, any]:
+) -> Dict[str, Any]:
     """Validate required environment variables are set.
 
     Args:
         fail_fast: If True, raise exception on first missing variable
         environment: Target environment (development/staging/production)
-        verbose: If True, print detailed validation results
 
     Returns:
         Dictionary with validation results
@@ -125,11 +121,11 @@ def validate_environment(
     present: List[str] = []
     warnings: List[str] = []
 
-    environment = environment or os.getenv("ENVIRONMENT", "development")
-    is_development = environment.lower() == "development"
+    environment_name = environment or os.getenv("ENVIRONMENT") or "development"
+    is_development = environment_name.lower() == "development"
 
     if verbose:
-        print(f"\n🔍 Validating environment variables for: {environment}\n")
+        print(f"\n🔍 Validating environment variables for: {environment_name}\n")
         print("=" * 70)
 
     # Check required variables
@@ -139,19 +135,18 @@ def validate_environment(
             warnings.append(f"⚠️  {var_name} skipped (development exemption)")
             continue
 
-        is_set, message = check_environment_variable(var_name, description)
+        status, message = check_environment_variable(var_name, description)
 
         if verbose:
             print(f"{message}")
             print(f"   {description}")
 
-        if is_set:
+        if status == "valid":
             present.append(var_name)
+        elif status == "invalid":
+            invalid.append(var_name)
         else:
-            if "placeholder" in message or "insecure" in message:
-                invalid.append(var_name)
-            else:
-                missing.append(var_name)
+            missing.append(var_name)
 
     if verbose:
         print("\n" + "=" * 70)
@@ -209,24 +204,23 @@ def validate_environment(
                 print(f"   - {var}")
 
     # Provide guidance
-    if missing or invalid:
-        if verbose:
-            print("\n" + "=" * 70)
-            print("\n💡 How to fix:\n")
-            print("Option 1: Use Doppler (recommended for teams)")
-            print("  doppler login")
-            print("  doppler setup")
-            print("  doppler run -- python main.py")
-            print("\nOption 2: Set environment variables manually")
-            print("  export NEO4J_URI='your-uri'")
-            print("  export NEO4J_PASSWORD='your-password'")
-            print("  # ... etc")
-            print("\nOption 3: Use .env.local file")
-            print("  cp env.template .env.local")
-            print("  # Edit .env.local with your credentials")
-            print("  # Application will load it automatically")
-            print("\nSee docs/ENVIRONMENT_SETUP.md for detailed instructions.")
-            print("=" * 70 + "\n")
+    if (missing or invalid) and verbose:
+        print("\n" + "=" * 70)
+        print("\n💡 How to fix:\n")
+        print("Option 1: Use Doppler (recommended for teams)")
+        print("  doppler login")
+        print("  doppler setup")
+        print("  doppler run -- python main.py")
+        print("\nOption 2: Set environment variables manually")
+        print("  export NEO4J_URI='your-uri'")
+        print("  export NEO4J_PASSWORD='your-password'")
+        print("  # ... etc")
+        print("\nOption 3: Use .env.local file")
+        print("  cp env.template .env.local")
+        print("  # Edit .env.local with your credentials")
+        print("  # Application will load it automatically")
+        print("\nSee docs/ENVIRONMENT_SETUP.md for detailed instructions.")
+        print("=" * 70 + "\n")
 
     result = {
         "valid": len(missing) == 0 and len(invalid) == 0,
@@ -235,7 +229,7 @@ def validate_environment(
         "present": present,
         "ai_services": ai_services_set,
         "warnings": warnings,
-        "environment": environment,
+        "environment": environment_name,
     }
 
     return result

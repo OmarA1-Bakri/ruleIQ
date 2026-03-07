@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 API Key Management Service for B2B Integrations
 
@@ -149,7 +148,9 @@ class APIKeyManager:
         # Add scopes
         for scope in scopes:
             db_scope = APIKeyScope(
-                key_id=key_id, scope=scope, granted_at=datetime.now(timezone.utc),
+                key_id=key_id,
+                scope=scope,
+                granted_at=datetime.now(timezone.utc),
             )
             self.db.add(db_scope)
 
@@ -258,8 +259,10 @@ class APIKeyManager:
                     return False, None, "Request IP not allowed"
 
             # Check origin whitelist
-            if metadata.allowed_origins and origin and not any(
-                origin.startswith(allowed) for allowed in metadata.allowed_origins
+            if (
+                metadata.allowed_origins
+                and origin
+                and not any(origin.startswith(allowed) for allowed in metadata.allowed_origins)
             ):
                 return False, None, "Origin not allowed"
 
@@ -483,9 +486,7 @@ class APIKeyManager:
             "unique_ips": unique_ips,
             "endpoints": endpoint_counts,
             "daily_usage": daily_counts,
-            "last_used": (
-                usage_records[0].timestamp.isoformat() if usage_records else None,
-            ),
+            "last_used": usage_records[0].timestamp.isoformat() if usage_records else None,
         }
 
     # Private helper methods
@@ -495,7 +496,7 @@ class APIKeyManager:
         salt = (
             settings.API_KEY_SALT.encode()
             if hasattr(settings, "API_KEY_SALT")
-            else b"default_salt",
+            else b"default_salt"
         )
         return hashlib.pbkdf2_hmac("sha256", secret.encode(), salt, 100000).hex()
 

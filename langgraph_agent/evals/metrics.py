@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 Production-grade evaluation metrics for LangGraph compliance agent.
 Includes recall@k, citation exactness, link precision, and performance metrics.
@@ -104,9 +103,7 @@ class RecallAtKEvaluator:
                         "k": k,
                         "num_queries": len(recall_scores),
                         "individual_scores": recall_scores,
-                        "std_dev": (
-                            stdev(recall_scores) if len(recall_scores) > 1 else 0.0
-                        ),
+                        "std_dev": (stdev(recall_scores) if len(recall_scores) > 1 else 0.0),
                     },
                 )
 
@@ -187,9 +184,7 @@ class CitationExactnessEvaluator:
         # Calculate aggregate metrics
         avg_exactness = mean(exactness_scores) if exactness_scores else 0.0
         details["avg_precision"] = (
-            mean(details["citation_precision"])
-            if details["citation_precision"]
-            else 0.0
+            mean(details["citation_precision"]) if details["citation_precision"] else 0.0
         )
         details["avg_recall"] = (
             mean(details["citation_recall"]) if details["citation_recall"] else 0.0
@@ -222,7 +217,9 @@ class LinkPrecisionEvaluator:
         """Extract URLs from text using basic regex."""
         import re
 
-        url_pattern = r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+"
+        url_pattern = (
+            r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+"
+        )
         return re.findall(url_pattern, text)
 
     def is_valid_link(self, url: str) -> bool:
@@ -273,9 +270,7 @@ class LinkPrecisionEvaluator:
             "valid_domains": self.valid_domains,
         }
 
-        return EvaluationResult(
-            metric_name="link_precision", score=precision, details=details
-        )
+        return EvaluationResult(metric_name="link_precision", score=precision, details=details)
 
 
 class CounselFPREvaluator:
@@ -324,9 +319,7 @@ class CounselFPREvaluator:
         response_lower = response.lower()
         return any(trigger in response_lower for trigger in self.counsel_triggers)
 
-    def evaluate(
-        self, responses: List[str], contexts: List[Dict[str, Any]]
-    ) -> EvaluationResult:
+    def evaluate(self, responses: List[str], contexts: List[Dict[str, Any]]) -> EvaluationResult:
         """
         Evaluate False Positive Rate for counsel recommendations.
 
@@ -512,9 +505,7 @@ class AgentPerformanceEvaluator:
         total_interactions = len(self.interaction_results)
 
         # Success Rate
-        successful_interactions = sum(
-            1 for r in self.interaction_results if r["success"]
-        )
+        successful_interactions = sum(1 for r in self.interaction_results if r["success"])
         success_rate = successful_interactions / total_interactions
 
         results["success_rate"] = EvaluationResult(
@@ -529,16 +520,13 @@ class AgentPerformanceEvaluator:
 
         # Error Analysis
         error_counts = Counter(
-            r["error_type"]
-            for r in self.interaction_results
-            if r["error_type"] is not None
+            r["error_type"] for r in self.interaction_results if r["error_type"] is not None
         )
 
         results["error_analysis"] = EvaluationResult(
             metric_name="error_analysis",
             score=1.0
-            - len(error_counts)
-            / max(total_interactions, 1),  # Fewer error types is better
+            - len(error_counts) / max(total_interactions, 1),  # Fewer error types is better
             details={
                 "error_counts": dict(error_counts),
                 "unique_error_types": len(error_counts),
@@ -547,9 +535,7 @@ class AgentPerformanceEvaluator:
         )
 
         # Task Completion Rate
-        completed_tasks = sum(
-            1 for r in self.interaction_results if r["task_completion"]
-        )
+        completed_tasks = sum(1 for r in self.interaction_results if r["task_completion"])
         completion_rate = completed_tasks / total_interactions
 
         results["task_completion_rate"] = EvaluationResult(
@@ -578,9 +564,7 @@ class AgentPerformanceEvaluator:
                     "average_satisfaction": avg_satisfaction,
                     "satisfaction_samples": len(satisfaction_scores),
                     "satisfaction_std": (
-                        stdev(satisfaction_scores)
-                        if len(satisfaction_scores) > 1
-                        else 0.0
+                        stdev(satisfaction_scores) if len(satisfaction_scores) > 1 else 0.0
                     ),
                 },
             )
@@ -609,9 +593,7 @@ class ComprehensiveEvaluator:
         self.latency_evaluator = LatencyEvaluator(slo_p95_ms)
         self.performance_evaluator = AgentPerformanceEvaluator()
 
-    def evaluate_all(
-        self, evaluation_data: Dict[str, Any]
-    ) -> Dict[str, EvaluationResult]:
+    def evaluate_all(self, evaluation_data: Dict[str, Any]) -> Dict[str, EvaluationResult]:
         """
         Run comprehensive evaluation across all metrics.
 
@@ -664,9 +646,7 @@ class ComprehensiveEvaluator:
 
         return results
 
-    def generate_evaluation_report(
-        self, results: Dict[str, EvaluationResult]
-    ) -> Dict[str, Any]:
+    def generate_evaluation_report(self, results: Dict[str, EvaluationResult]) -> Dict[str, Any]:
         """
         Generate comprehensive evaluation report.
 
@@ -698,9 +678,7 @@ class ComprehensiveEvaluator:
 
         weighted_scores = []
         for metric_name, result in results.items():
-            weight = metric_weights.get(
-                metric_name, 0.05
-            )  # Default weight for unlisted metrics
+            weight = metric_weights.get(metric_name, 0.05)  # Default weight for unlisted metrics
             weighted_scores.append(result.score * weight)
             report["metric_scores"][metric_name] = result.score
             report["details"][metric_name] = result.details
@@ -735,10 +713,7 @@ class ComprehensiveEvaluator:
                 "P95 latency exceeds SLO. Optimize critical paths and consider caching."
             )
 
-        if (
-            "citation_exactness" in results
-            and results["citation_exactness"].score < 0.8
-        ):
+        if "citation_exactness" in results and results["citation_exactness"].score < 0.8:
             recommendations.append(
                 "Citation exactness below 80%. Improve source attribution and validation."
             )

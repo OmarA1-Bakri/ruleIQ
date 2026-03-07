@@ -80,7 +80,9 @@ class TestUserOnboardingFlow:
         }
 
         profile_response = client.post(
-            "/api/v1/business-profiles", json=business_profile_data, headers=auth_headers,
+            "/api/v1/business-profiles",
+            json=business_profile_data,
+            headers=auth_headers,
         )
         assert profile_response.status_code == 201
         # assert_api_response_security(profile_response)
@@ -100,7 +102,9 @@ class TestUserOnboardingFlow:
         }
 
         assessment_response = client.post(
-            "/api/v1/assessments/quick", json=assessment_data, headers=auth_headers,
+            "/api/v1/assessments/quick",
+            json=assessment_data,
+            headers=auth_headers,
         )
         assert assessment_response.status_code == 200
         # assert_api_response_security(assessment_response)
@@ -171,7 +175,9 @@ class TestUserOnboardingFlow:
             "has_international_operations": False,
         }
         profile_response = client.post(
-            "/api/v1/business-profiles", json=business_profile_data, headers=auth_headers,
+            "/api/v1/business-profiles",
+            json=business_profile_data,
+            headers=auth_headers,
         )
         assert profile_response.status_code == 201
         business_profile_id = profile_response.json()["id"]
@@ -184,7 +190,9 @@ class TestUserOnboardingFlow:
         }
 
         assessment_response = client.post(
-            "/api/v1/assessments/quick", json=assessment_data, headers=auth_headers,
+            "/api/v1/assessments/quick",
+            json=assessment_data,
+            headers=auth_headers,
         )
         assert assessment_response.status_code == 200
 
@@ -201,7 +209,9 @@ class TestUserOnboardingFlow:
 
         # Test "restart" by running assessment again (simulating restart)
         restart_response = client.post(
-            "/api/v1/assessments/quick", json=assessment_data, headers=auth_headers,
+            "/api/v1/assessments/quick",
+            json=assessment_data,
+            headers=auth_headers,
         )
         assert restart_response.status_code == 200
 
@@ -244,7 +254,9 @@ class TestUserOnboardingFlow:
         }
 
         profile_response = client.post(
-            "/api/v1/business-profiles", json=minimal_profile, headers=auth_headers,
+            "/api/v1/business-profiles",
+            json=minimal_profile,
+            headers=auth_headers,
         )
         assert profile_response.status_code == 201
         business_profile_id = profile_response.json()["id"]
@@ -257,7 +269,9 @@ class TestUserOnboardingFlow:
         }
 
         quick_response = client.post(
-            "/api/v1/assessments/quick", json=quick_assessment_data, headers=auth_headers,
+            "/api/v1/assessments/quick",
+            json=quick_assessment_data,
+            headers=auth_headers,
         )
         assert quick_response.status_code == 200
 
@@ -266,10 +280,7 @@ class TestUserOnboardingFlow:
         assert len(quick_result["recommendations"]) > 0
 
         # Should still get basic framework recommendations
-        assert any(
-            "GDPR" in rec["framework"]["name"]
-            for rec in quick_result["recommendations"]
-        )
+        assert any("GDPR" in rec["framework"]["name"] for rec in quick_result["recommendations"])
 
     def test_user_onboarding_error_recovery(self, client):
         """Test user onboarding with error recovery scenarios"""
@@ -380,7 +391,9 @@ class TestOnboardingIntegration:
         }
 
         profile_response = client.post(
-            "/api/v1/business-profiles", json=business_profile_data, headers=auth_headers,
+            "/api/v1/business-profiles",
+            json=business_profile_data,
+            headers=auth_headers,
         )
         assert profile_response.status_code == 201
         business_profile_id = profile_response.json()["id"]
@@ -393,7 +406,9 @@ class TestOnboardingIntegration:
         }
 
         assessment_response = client.post(
-            "/api/v1/assessments/quick", json=assessment_data, headers=auth_headers,
+            "/api/v1/assessments/quick",
+            json=assessment_data,
+            headers=auth_headers,
         )
         assert assessment_response.status_code == 200
 
@@ -444,7 +459,9 @@ class TestOnboardingIntegration:
             "has_international_operations": sample_business_profile.has_international_operations,
         }
         client.post(
-            "/api/v1/business-profiles", json=business_profile_data, headers=auth_headers,
+            "/api/v1/business-profiles",
+            json=business_profile_data,
+            headers=auth_headers,
         )
 
         # Check audit trail
@@ -501,7 +518,8 @@ class TestOnboardingIntegration:
 
         # Check that preferences were saved (if endpoint exists)
         preferences_response = client.get(
-            "/api/v1/users/preferences", headers=auth_headers,
+            "/api/v1/users/preferences",
+            headers=auth_headers,
         )
         if preferences_response.status_code == 200:
             preferences_response.json()

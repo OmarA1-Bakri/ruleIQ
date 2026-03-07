@@ -525,7 +525,7 @@ const getNextQuestion = (
       } else {
         // Invalid question ID returned
       }
-    } catch (error) {
+    } catch (_error) {
       // Error in nextQuestion logic
     }
   }
@@ -837,7 +837,7 @@ export default function AIGuidedSignupPage() {
           localStorage.setItem('ruleiq_compliance_profile', JSON.stringify(complianceProfile));
           localStorage.setItem('ruleiq_onboarding_data', JSON.stringify(formData));
         }
-      } catch (error) {
+      } catch (_error) {
         // Unable to save to localStorage
         // Continue anyway - the app will work without personalization
       }

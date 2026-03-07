@@ -67,18 +67,18 @@ class VercelKVAdapter(CacheAdapter):
 
     def __init__(self) -> None:
         """Initialize Vercel KV adapter."""
-        self.api_url = os.getenv('VERCEL_KV_REST_API_URL', '')
-        self.api_token = os.getenv('VERCEL_KV_REST_API_TOKEN', '')
+        self.api_url = os.getenv("VERCEL_KV_REST_API_URL", "")
+        self.api_token = os.getenv("VERCEL_KV_REST_API_TOKEN", "")
 
         if not self.api_url or not self.api_token:
             logger.warning("Vercel KV credentials not found. Cache operations will fail.")
 
         self.client = httpx.AsyncClient(
             headers={
-                'Authorization': f'Bearer {self.api_token}',
-                'Content-Type': 'application/json',
+                "Authorization": f"Bearer {self.api_token}",
+                "Content-Type": "application/json",
             },
-            timeout=30.0
+            timeout=30.0,
         )
 
     async def _execute(self, command: List[str]) -> Any:
@@ -88,14 +88,11 @@ class VercelKVAdapter(CacheAdapter):
             return None
 
         try:
-            response = await self.client.post(
-                self.api_url,
-                json=command
-            )
+            response = await self.client.post(self.api_url, json=command)
 
             if response.status_code == 200:
                 result = response.json()
-                return result.get('result')
+                return result.get("result")
             else:
                 logger.error(f"Vercel KV error: {response.status_code} - {response.text}")
                 return None
@@ -106,7 +103,7 @@ class VercelKVAdapter(CacheAdapter):
 
     async def get(self, key: str) -> Optional[Any]:
         """Get value from Vercel KV."""
-        result = await self._execute(['GET', key])
+        result = await self._execute(["GET", key])
 
         if result is None:
             return None
@@ -125,62 +122,62 @@ class VercelKVAdapter(CacheAdapter):
 
         if expire:
             # SET with EX option
-            result = await self._execute(['SET', key, value, 'EX', str(expire)])
+            result = await self._execute(["SET", key, value, "EX", str(expire)])
         else:
-            result = await self._execute(['SET', key, value])
+            result = await self._execute(["SET", key, value])
 
-        return result == 'OK'
+        return result == "OK"
 
     async def delete(self, key: str) -> bool:
         """Delete key from Vercel KV."""
-        result = await self._execute(['DEL', key])
+        result = await self._execute(["DEL", key])
         return bool(result)
 
     async def exists(self, key: str) -> bool:
         """Check if key exists in Vercel KV."""
-        result = await self._execute(['EXISTS', key])
+        result = await self._execute(["EXISTS", key])
         return bool(result)
 
     async def expire(self, key: str, seconds: int) -> bool:
         """Set expiration for key in Vercel KV."""
-        result = await self._execute(['EXPIRE', key, str(seconds)])
+        result = await self._execute(["EXPIRE", key, str(seconds)])
         return bool(result)
 
     async def ttl(self, key: str) -> int:
         """Get TTL for key from Vercel KV."""
-        result = await self._execute(['TTL', key])
+        result = await self._execute(["TTL", key])
         return int(result) if result else -1
 
     async def keys(self, pattern: str = "*") -> List[str]:
         """Get keys matching pattern from Vercel KV."""
-        result = await self._execute(['KEYS', pattern])
+        result = await self._execute(["KEYS", pattern])
         return result if isinstance(result, list) else []
 
     async def flush_all(self) -> bool:
         """Flush all keys in Vercel KV."""
-        result = await self._execute(['FLUSHALL'])
-        return result == 'OK'
+        result = await self._execute(["FLUSHALL"])
+        return result == "OK"
 
     async def incr(self, key: str) -> int:
         """Increment counter in Vercel KV."""
-        result = await self._execute(['INCR', key])
+        result = await self._execute(["INCR", key])
         return int(result) if result else 0
 
     async def decr(self, key: str) -> int:
         """Decrement counter in Vercel KV."""
-        result = await self._execute(['DECR', key])
+        result = await self._execute(["DECR", key])
         return int(result) if result else 0
 
     async def hset(self, key: str, field: str, value: Any) -> bool:
         """Set hash field in Vercel KV."""
         if not isinstance(value, (str, int, float)):
             value = json.dumps(value)
-        result = await self._execute(['HSET', key, field, value])
+        result = await self._execute(["HSET", key, field, value])
         return bool(result)
 
     async def hget(self, key: str, field: str) -> Optional[Any]:
         """Get hash field from Vercel KV."""
-        result = await self._execute(['HGET', key, field])
+        result = await self._execute(["HGET", key, field])
         if result is None:
             return None
 
@@ -191,7 +188,7 @@ class VercelKVAdapter(CacheAdapter):
 
     async def hgetall(self, key: str) -> Dict[str, Any]:
         """Get all hash fields from Vercel KV."""
-        result = await self._execute(['HGETALL', key])
+        result = await self._execute(["HGETALL", key])
 
         if not result or not isinstance(result, dict):
             return {}
@@ -215,12 +212,12 @@ class VercelKVAdapter(CacheAdapter):
             else:
                 serialized.append(value)
 
-        result = await self._execute(['LPUSH', key] + serialized)
+        result = await self._execute(["LPUSH", key] + serialized)
         return int(result) if result else 0
 
     async def rpop(self, key: str) -> Optional[Any]:
         """Pop value from list in Vercel KV."""
-        result = await self._execute(['RPOP', key])
+        result = await self._execute(["RPOP", key])
 
         if result is None:
             return None
@@ -232,7 +229,7 @@ class VercelKVAdapter(CacheAdapter):
 
     async def lrange(self, key: str, start: int, stop: int) -> List[Any]:
         """Get range of values from list in Vercel KV."""
-        result = await self._execute(['LRANGE', key, str(start), str(stop)])
+        result = await self._execute(["LRANGE", key, str(start), str(stop)])
 
         if not result or not isinstance(result, list):
             return []
@@ -259,7 +256,7 @@ class RedisAdapter(CacheAdapter):
         """Initialize Redis adapter."""
         import redis.asyncio as redis
 
-        self.redis_url = os.getenv('REDIS_URL', 'redis://localhost:6379')
+        self.redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
         self.client = redis.from_url(self.redis_url, decode_responses=True)
 
     async def get(self, key: str) -> Optional[Any]:
@@ -321,8 +318,8 @@ def get_cache_adapter() -> CacheAdapter:
     Returns:
         CacheAdapter instance (VercelKV for production, Redis for dev)
     """
-    use_vercel_kv = os.getenv('USE_VERCEL_KV', 'false').lower() == 'true'
-    is_production = os.getenv('VERCEL_ENV') == 'production'
+    use_vercel_kv = os.getenv("USE_VERCEL_KV", "false").lower() == "true"
+    is_production = os.getenv("VERCEL_ENV") == "production"
 
     if use_vercel_kv or is_production:
         logger.info("Using Vercel KV adapter for cache")

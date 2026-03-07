@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 import logging
 
 
@@ -9,7 +8,6 @@ Monitoring middleware for FastAPI applications.
 
 import time
 import uuid
-import requests
 from typing import Callable
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
@@ -218,9 +216,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["X-XSS-Protection"] = "1; mode=block"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-        response.headers["Permissions-Policy"] = (
-            "geolocation=(), microphone=(), camera=()"
-        )
+        response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
 
         # Add CSP header for HTML responses
         if "text/html" in response.headers.get("content-type", ""):
@@ -276,9 +272,7 @@ def setup_middleware(
 
     # Performance monitoring
     if enable_performance:
-        app.add_middleware(
-            PerformanceMiddleware, slow_request_threshold=slow_request_threshold
-        )
+        app.add_middleware(PerformanceMiddleware, slow_request_threshold=slow_request_threshold)
 
     # Metrics collection
     if enable_metrics:

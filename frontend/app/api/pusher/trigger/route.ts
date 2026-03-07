@@ -103,7 +103,7 @@ function sanitizeEventData(data: any): any {
   if (typeof data === 'object' && data !== null) {
     const sanitized: any = Array.isArray(data) ? [] : {};
     for (const key in data) {
-      if (data.hasOwnProperty(key)) {
+      if (Object.hasOwn(data, key)) {
         sanitized[key] = sanitizeEventData(data[key]);
       }
     }
@@ -236,7 +236,7 @@ export async function POST(req: NextRequest) {
  * OPTIONS /api/pusher/trigger
  * Handle CORS preflight requests.
  */
-export async function OPTIONS(req: NextRequest) {
+export async function OPTIONS(_req: NextRequest) {
   return new NextResponse(null, {
     status: 200,
     headers: {

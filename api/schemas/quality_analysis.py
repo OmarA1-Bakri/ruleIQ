@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 Pydantic schemas for quality analysis and duplicate detection API endpoints.
 """
@@ -38,7 +37,8 @@ class AIAnalysisResult(BaseModel):
     strengths: List[str] = Field(default_factory=list, description="Identified strengths")
     weaknesses: List[str] = Field(default_factory=list, description="Identified weaknesses")
     recommendations: List[str] = Field(
-        default_factory=list, description="Improvement recommendations",
+        default_factory=list,
+        description="Improvement recommendations",
     )
     ai_confidence: int = Field(..., ge=0, le=100, description="AI analysis confidence")
 
@@ -72,10 +72,16 @@ class DuplicateDetectionRequest(BaseModel):
 
     evidence_id: UUID = Field(..., description="ID of evidence to check for duplicates")
     similarity_threshold: float = Field(
-        80.0, ge=50, le=100, description="Minimum similarity threshold",
+        80.0,
+        ge=50,
+        le=100,
+        description="Minimum similarity threshold",
     )
     max_candidates: int = Field(
-        20, ge=1, le=100, description="Maximum number of candidates to check",
+        20,
+        ge=1,
+        le=100,
+        description="Maximum number of candidates to check",
     )
 
 
@@ -96,7 +102,10 @@ class DuplicateGroup(BaseModel):
     duplicates: List[DuplicateCandidate]
     group_size: int = Field(..., description="Total items in duplicate group")
     highest_similarity: float = Field(
-        ..., ge=0, le=100, description="Highest similarity score in group",
+        ...,
+        ge=0,
+        le=100,
+        description="Highest similarity score in group",
     )
 
 
@@ -104,10 +113,16 @@ class BatchDuplicateDetectionRequest(BaseModel):
     """Request schema for batch duplicate detection."""
 
     evidence_ids: List[UUID] = Field(
-        ..., min_items=2, max_items=100, description="Evidence IDs to analyze",
+        ...,
+        min_items=2,
+        max_items=100,
+        description="Evidence IDs to analyze",
     )
     similarity_threshold: float = Field(
-        80.0, ge=50, le=100, description="Minimum similarity threshold",
+        80.0,
+        ge=50,
+        le=100,
+        description="Minimum similarity threshold",
     )
 
 
@@ -138,7 +153,8 @@ class QualityBenchmarkResponse(BaseModel):
     score_distribution: Dict[str, int] = Field(..., description="Distribution of scores")
     improvement_areas: List[str] = Field(default_factory=list, description="Areas for improvement")
     top_performers: List[Dict[str, Any]] = Field(
-        default_factory=list, description="Top performing evidence examples",
+        default_factory=list,
+        description="Top performing evidence examples",
     )
 
 
@@ -157,8 +173,10 @@ class QualityTrendResponse(BaseModel):
     average_score_change: float = Field(..., description="Change in average score")
     daily_scores: List[Dict[str, Any]] = Field(..., description="Daily quality score data")
     insights: List[str] = Field(
-        default_factory=list, description="Key insights from trend analysis",
+        default_factory=list,
+        description="Key insights from trend analysis",
     )
     recommendations: List[str] = Field(
-        default_factory=list, description="Recommendations based on trends",
+        default_factory=list,
+        description="Recommendations based on trends",
     )

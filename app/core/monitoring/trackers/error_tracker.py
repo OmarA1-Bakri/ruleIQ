@@ -5,7 +5,7 @@ Error metrics collection and analysis for LangGraph workflows.
 import time
 from collections import defaultdict, deque
 from datetime import datetime
-from typing import Any, Deque, Dict, List, Optional
+from typing import Any, Deque, Dict, List, Optional, Union
 
 
 class ErrorAnalysisTracker:
@@ -30,15 +30,15 @@ class ErrorAnalysisTracker:
     def record_error(
         self,
         error_type: str,
-        error_message: str = None,
-        component: str = None,
-        message: str = None,
-        workflow_id: str = None,
-        node_name: str = None,
-        severity: str = 'error',
+        error_message: Optional[str] = None,
+        component: Optional[str] = None,
+        message: Optional[str] = None,
+        workflow_id: Optional[str] = None,
+        node_name: Optional[str] = None,
+        severity: str = "error",
         retry_count: int = 0,
-        metadata: Dict[str, Any] = None,
-        timestamp: float = None
+        metadata: Optional[Dict[str, Any]] = None,
+        timestamp: Optional[Union[float, datetime]] = None,
     ) -> None:
         """Record an error occurrence.
 
@@ -54,7 +54,7 @@ class ErrorAnalysisTracker:
             metadata: Additional metadata
             timestamp: Optional timestamp
         """
-        final_message = error_message or message or ''
+        final_message = error_message or message or ""
 
         if timestamp is not None:
             if isinstance(timestamp, datetime):
@@ -63,15 +63,15 @@ class ErrorAnalysisTracker:
             timestamp = time.time()
 
         error = {
-            'timestamp': timestamp,
-            'error_type': error_type,
-            'component': component,
-            'message': final_message,
-            'workflow_id': workflow_id,
-            'node_name': node_name,
-            'severity': severity,
-            'retry_count': retry_count,
-            'metadata': metadata or {}
+            "timestamp": timestamp,
+            "error_type": error_type,
+            "component": component,
+            "message": final_message,
+            "workflow_id": workflow_id,
+            "node_name": node_name,
+            "severity": severity,
+            "retry_count": retry_count,
+            "metadata": metadata or {},
         }
 
         self._errors.append(error)
@@ -83,9 +83,9 @@ class ErrorAnalysisTracker:
 
     def record_success(
         self,
-        component: str = None,
-        operation: str = None,
-        timestamp: float = None
+        component: Optional[str] = None,
+        operation: Optional[str] = None,
+        timestamp: Optional[Union[float, datetime]] = None,
     ) -> None:
         """Record a successful operation.
 
@@ -100,11 +100,7 @@ class ErrorAnalysisTracker:
         else:
             timestamp = time.time()
 
-        success_record = {
-            'timestamp': timestamp,
-            'component': component,
-            'operation': operation
-        }
+        success_record = {"timestamp": timestamp, "component": component, "operation": operation}
 
         self._successes.append(success_record)
         self._success_count += 1
@@ -117,44 +113,44 @@ class ErrorAnalysisTracker:
         """
         if not self._errors:
             return {
-                'total_errors': 0,
-                'by_type': {},
-                'by_severity': {},
-                'by_component': {},
-                'error_rate_per_minute': 0.0,
-                'most_common_error': None
+                "total_errors": 0,
+                "by_type": {},
+                "by_severity": {},
+                "by_component": {},
+                "error_rate_per_minute": 0.0,
+                "most_common_error": None,
             }
 
-        timestamps = [e['timestamp'] for e in self._errors]
+        timestamps = [e["timestamp"] for e in self._errors]
         time_window = max(timestamps) - min(timestamps) if len(timestamps) > 1 else 1
         time_window_minutes = time_window / 60.0
 
-        by_severity = defaultdict(int)
+        by_severity: Dict[str, int] = defaultdict(int)
         for error in self._errors:
-            by_severity[error.get('severity', 'error')] += 1
+            by_severity[error.get("severity", "error")] += 1
 
-        by_component = defaultdict(int)
+        by_component: Dict[str, int] = defaultdict(int)
         for error in self._errors:
-            if error.get('component'):
-                by_component[error['component']] += 1
+            if error.get("component"):
+                by_component[error["component"]] += 1
 
         most_common_error = None
         if self._error_counts:
             most_common_error = max(self._error_counts.items(), key=lambda x: x[1])[0]
 
         return {
-            'total_errors': len(self._errors),
-            'by_type': dict(self._error_counts),
-            'by_severity': dict(by_severity),
-            'by_component': dict(by_component),
-            'error_rate_per_minute': len(self._errors) / time_window_minutes if time_window_minutes > 0 else 0,
-            'most_common_error': most_common_error
+            "total_errors": len(self._errors),
+            "by_type": dict(self._error_counts),
+            "by_severity": dict(by_severity),
+            "by_component": dict(by_component),
+            "error_rate_per_minute": len(self._errors) / time_window_minutes
+            if time_window_minutes > 0
+            else 0,
+            "most_common_error": most_common_error,
         }
 
     def calculate_error_rate(
-        self,
-        time_window_seconds: int = 60,
-        window_seconds: int = None
+        self, time_window_seconds: int = 60, window_seconds: Optional[int] = None
     ) -> Dict[str, float]:
         """Calculate overall error rate.
 
@@ -168,20 +164,26 @@ class ErrorAnalysisTracker:
         actual_window = time_window_seconds if window_seconds is None else window_seconds
         cutoff_time = time.time() - actual_window
 
-        recent_errors = [e for e in self._errors if e['timestamp'] >= cutoff_time]
-        recent_successes = len([s for s in self._successes if s['timestamp'] >= cutoff_time])
+        recent_errors = [e for e in self._errors if e["timestamp"] >= cutoff_time]
+        recent_successes = len([s for s in self._successes if s["timestamp"] >= cutoff_time])
 
         total_operations = recent_successes
         error_rate = len(recent_errors) / total_operations if total_operations > 0 else 0.0
-        success_rate = (total_operations - len(recent_errors)) / total_operations if total_operations > 0 else 1.0
+        success_rate = (
+            (total_operations - len(recent_errors)) / total_operations
+            if total_operations > 0
+            else 1.0
+        )
 
         return {
-            'error_rate': error_rate,
-            'errors_per_minute': len(recent_errors) * 60 / actual_window if actual_window > 0 else 0,
-            'success_rate': success_rate,
-            'total_errors': len(recent_errors),
-            'total_successes': recent_successes,
-            'total_operations': total_operations
+            "error_rate": error_rate,
+            "errors_per_minute": len(recent_errors) * 60 / actual_window
+            if actual_window > 0
+            else 0,
+            "success_rate": success_rate,
+            "total_errors": len(recent_errors),
+            "total_successes": recent_successes,
+            "total_operations": total_operations,
         }
 
     def get_error_distribution(self) -> Dict[str, float]:
@@ -195,8 +197,7 @@ class ErrorAnalysisTracker:
             return {}
 
         return {
-            error_type: count / total_errors
-            for error_type, count in self._error_counts.items()
+            error_type: count / total_errors for error_type, count in self._error_counts.items()
         }
 
     def detect_error_patterns(self) -> List[Dict[str, Any]]:
@@ -209,28 +210,32 @@ class ErrorAnalysisTracker:
         error_groups = defaultdict(list)
 
         for error in self._errors:
-            key = (error['error_type'], error['component'])
+            key = (error["error_type"], error["component"])
             error_groups[key].append(error)
 
         for (error_type, component), errors in error_groups.items():
             if len(errors) >= 3:
                 intervals = []
                 for i in range(1, len(errors)):
-                    intervals.append(errors[i]['timestamp'] - errors[i - 1]['timestamp'])
+                    intervals.append(errors[i]["timestamp"] - errors[i - 1]["timestamp"])
 
                 if intervals:
                     avg_interval = sum(intervals) / len(intervals)
-                    std_interval = (sum((i - avg_interval) ** 2 for i in intervals) / len(intervals)) ** 0.5
+                    std_interval = (
+                        sum((i - avg_interval) ** 2 for i in intervals) / len(intervals)
+                    ) ** 0.5
 
                     # Pattern is periodic if standard deviation is low relative to average
                     if std_interval < avg_interval * 0.3:
-                        patterns.append({
-                            'error_type': error_type,
-                            'component': component,
-                            'frequency': len(errors),
-                            'avg_interval_seconds': avg_interval,
-                            'pattern_type': 'periodic'
-                        })
+                        patterns.append(
+                            {
+                                "error_type": error_type,
+                                "component": component,
+                                "frequency": len(errors),
+                                "avg_interval_seconds": avg_interval,
+                                "pattern_type": "periodic",
+                            }
+                        )
 
         return patterns
 
@@ -252,10 +257,10 @@ class ErrorAnalysisTracker:
             return {}
 
         return {
-            'avg_recovery_seconds': sum(self._recovery_times) / len(self._recovery_times),
-            'min_recovery_seconds': min(self._recovery_times),
-            'max_recovery_seconds': max(self._recovery_times),
-            'total_recoveries': len(self._recovery_times)
+            "avg_recovery_seconds": sum(self._recovery_times) / len(self._recovery_times),
+            "min_recovery_seconds": min(self._recovery_times),
+            "max_recovery_seconds": max(self._recovery_times),
+            "total_recoveries": len(self._recovery_times),
         }
 
 

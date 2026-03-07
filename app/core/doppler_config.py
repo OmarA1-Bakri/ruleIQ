@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 Doppler Secrets Management Integration
 ======================================
@@ -36,9 +35,7 @@ class DopplerConfig:
     def _run_doppler_command(self, args: list) -> tuple[bool, str]:
         """Execute Doppler CLI command."""
         try:
-            result = subprocess.run(
-                ["doppler"] + args, capture_output=True, text=True, check=True
-            )
+            result = subprocess.run(["doppler"] + args, capture_output=True, text=True, check=True)
             return True, result.stdout
         except subprocess.CalledProcessError as e:
             logger.error(f"Doppler command failed: {e.stderr}")
@@ -55,9 +52,7 @@ class DopplerConfig:
         # Verify Doppler CLI is available
         success, _ = self._run_doppler_command(["--version"])
         if not success:
-            logger.warning(
-                "Doppler CLI not available, falling back to environment variables"
-            )
+            logger.warning("Doppler CLI not available, falling back to environment variables")
             return False
 
         # Verify project and config exist
@@ -198,9 +193,7 @@ class DopplerConfig:
             "access_token_expire_minutes": int(
                 self.get_secret("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", "30")
             ),
-            "refresh_token_expire_days": int(
-                self.get_secret("JWT_REFRESH_TOKEN_EXPIRE_DAYS", "7")
-            ),
+            "refresh_token_expire_days": int(self.get_secret("JWT_REFRESH_TOKEN_EXPIRE_DAYS", "7")),
         }
 
     def get_ai_config(self) -> Dict[str, str]:
@@ -320,9 +313,7 @@ def validate_startup_secrets() -> None:
 
     if not valid:
         logger.error(f"Missing required secrets: {', '.join(missing)}")
-        logger.error(
-            "Please configure these secrets in Doppler or environment variables"
-        )
+        logger.error("Please configure these secrets in Doppler or environment variables")
         sys.exit(1)
 
     logger.info("All required secrets validated successfully")

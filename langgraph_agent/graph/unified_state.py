@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 Unified state management for LangGraph compliance system.
 Complete state definition for ALL phases of the compliance workflow.

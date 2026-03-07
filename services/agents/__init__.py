@@ -7,7 +7,7 @@ from .context_manager import ContextManager
 from .decision_tracker import DecisionTracker
 from .trust_manager import TrustManager
 from .communication import CommunicationProtocol
-from .coordinator import AgentCoordinator
+from .coordinator import Coordinator as AgentCoordinator
 from .monitor import AgentMonitor
 
 __all__ = [

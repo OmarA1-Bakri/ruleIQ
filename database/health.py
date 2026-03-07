@@ -4,6 +4,7 @@ Database health monitoring and metrics.
 This module provides comprehensive health monitoring, metrics collection,
 and alerting capabilities for database providers.
 """
+
 import asyncio
 import logging
 import time
@@ -18,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 class HealthStatus(Enum):
     """Health status enumeration."""
+
     HEALTHY = "healthy"
     DEGRADED = "degraded"
     UNHEALTHY = "unhealthy"
@@ -26,6 +28,7 @@ class HealthStatus(Enum):
 @dataclass
 class HealthMetrics:
     """Health metrics data class."""
+
     status: HealthStatus
     response_time: float
     timestamp: float
@@ -39,7 +42,7 @@ class HealthMetrics:
             "response_time": self.response_time,
             "timestamp": self.timestamp,
             "details": self.details,
-            "error_message": self.error_message
+            "error_message": self.error_message,
         }
 
 
@@ -122,34 +125,30 @@ class DatabaseHealthMonitor(ABC):
             if metrics.status == HealthStatus.UNHEALTHY:
                 self._consecutive_failures += 1
                 if self._consecutive_failures >= self._max_consecutive_failures:
-                    message = (
-                        "Service %s is unhealthy after %d consecutive failures"
-                        % (self.provider_name, self._consecutive_failures)
+                    message = "Service %s is unhealthy after %d consecutive failures" % (
+                        self.provider_name,
+                        self._consecutive_failures,
                     )
-                    await self._notify_alert_callbacks(
-                        HealthStatus.UNHEALTHY, message
-                    )
+                    await self._notify_alert_callbacks(HealthStatus.UNHEALTHY, message)
             else:
                 if self._consecutive_failures > 0:
                     # Service recovered
                     await self._notify_alert_callbacks(
                         HealthStatus.HEALTHY,
                         "Service %s has recovered after %d failures"
-                        % (self.provider_name, self._consecutive_failures)
+                        % (self.provider_name, self._consecutive_failures),
                     )
                 self._consecutive_failures = 0
 
             return metrics
 
         except (ConnectionError, TimeoutError, ValueError) as e:
-            logger.exception(
-                "Health check failed for %s", self.provider_name
-            )
+            logger.exception("Health check failed for %s", self.provider_name)
             error_metrics = HealthMetrics(
                 status=HealthStatus.UNHEALTHY,
                 response_time=0.0,
                 timestamp=time.time(),
-                error_message=str(e)
+                error_message=str(e),
             )
             self._last_health_check = error_metrics
             await self._notify_health_callbacks(error_metrics)
@@ -170,8 +169,7 @@ class PostgreSQLHealthMonitor(DatabaseHealthMonitor):
         try:
             # Perform basic connectivity test
             result = await self.provider.execute_query(
-                "SELECT 1 as health_check, "
-                "pg_postmaster_start_time() as start_time"
+                "SELECT 1 as health_check, pg_postmaster_start_time() as start_time"
             )
 
             if not result or len(result) == 0:
@@ -193,8 +191,8 @@ class PostgreSQLHealthMonitor(DatabaseHealthMonitor):
                 details={
                     "connection_status": "connected",
                     "server_start_time": str(row.get("start_time")),
-                    **details
-                }
+                    **details,
+                },
             )
 
         except (ConnectionError, TimeoutError, ValueError) as e:
@@ -204,7 +202,7 @@ class PostgreSQLHealthMonitor(DatabaseHealthMonitor):
                 response_time=response_time,
                 timestamp=time.time(),
                 error_message=str(e),
-                details={"connection_status": "failed"}
+                details={"connection_status": "failed"},
             )
 
     async def _get_postgres_metrics(self) -> Dict[str, Any]:
@@ -241,9 +239,7 @@ class PostgreSQLHealthMonitor(DatabaseHealthMonitor):
             return metrics
 
         except (ConnectionError, TimeoutError, ValueError) as e:
-            logger.warning(
-                "Failed to collect PostgreSQL metrics: %s", e
-            )
+            logger.warning("Failed to collect PostgreSQL metrics: %s", e)
             return {}
 
 
@@ -283,8 +279,8 @@ class Neo4jHealthMonitor(DatabaseHealthMonitor):
                 details={
                     "connection_status": "connected",
                     "server_time": record.get("current_time"),
-                    **details
-                }
+                    **details,
+                },
             )
 
         except (ConnectionError, TimeoutError, ValueError) as e:
@@ -294,7 +290,7 @@ class Neo4jHealthMonitor(DatabaseHealthMonitor):
                 response_time=response_time,
                 timestamp=time.time(),
                 error_message=str(e),
-                details={"connection_status": "failed"}
+                details={"connection_status": "failed"},
             )
 
     async def _get_neo4j_metrics(self) -> Dict[str, Any]:
@@ -329,15 +325,14 @@ class Neo4jHealthMonitor(DatabaseHealthMonitor):
             return metrics
 
         except (ConnectionError, TimeoutError, ValueError) as e:
-            logger.warning(
-                "Failed to collect Neo4j metrics: %s", e
-            )
+            logger.warning("Failed to collect Neo4j metrics: %s", e)
             return {}
 
 
 @dataclass
 class HealthCheckConfig:
     """Configuration for health checks."""
+
     interval_seconds: float = 30.0
     timeout_seconds: float = 10.0
     max_consecutive_failures: int = 3
@@ -366,14 +361,12 @@ class HealthMonitorService:
                 metrics = await monitor.perform_health_check()
                 results[name] = metrics
             except (ConnectionError, TimeoutError, ValueError) as e:
-                logger.exception(
-                    "Health check failed for %s", name
-                )
+                logger.exception("Health check failed for %s", name)
                 results[name] = HealthMetrics(
                     status=HealthStatus.UNHEALTHY,
                     response_time=0.0,
                     timestamp=time.time(),
-                    error_message=str(e)
+                    error_message=str(e),
                 )
         return results
 
@@ -381,9 +374,7 @@ class HealthMonitorService:
         """Get health status for all or specific service."""
         if service_name:
             if service_name not in self.monitors:
-                raise ValueError(
-                    "Monitor '%s' not found" % service_name
-                )
+                raise ValueError("Monitor '%s' not found" % service_name)
 
             monitor = self.monitors[service_name]
             metrics = monitor.get_last_health_check()
@@ -394,14 +385,13 @@ class HealthMonitorService:
             return {
                 "service": service_name,
                 "healthy": monitor.is_healthy(),
-                "last_check": metrics.to_dict() if metrics else None
+                "last_check": metrics.to_dict() if metrics else None,
             }
         else:
             # Check all services
             all_results = await self.check_all_health()
             overall_healthy = all(
-                metrics.status == HealthStatus.HEALTHY
-                for metrics in all_results.values()
+                metrics.status == HealthStatus.HEALTHY for metrics in all_results.values()
             )
 
             return {
@@ -413,10 +403,10 @@ class HealthMonitorService:
                         "response_time": metrics.response_time,
                         "last_check": metrics.timestamp,
                         "details": metrics.details,
-                        "error_message": metrics.error_message
+                        "error_message": metrics.error_message,
                     }
                     for name, metrics in all_results.items()
-                }
+                },
             }
 
     async def start_monitoring(self) -> None:
@@ -475,21 +465,18 @@ async def initialize_health_service() -> None:
         postgres_monitor = PostgreSQLHealthMonitor(postgres_provider)
         service.add_monitor("postgres", postgres_monitor)
     except (ImportError, ConnectionError, ValueError) as e:
-        logger.warning(
-            "Failed to initialize PostgreSQL health monitor: %s", e
-        )
+        logger.warning("Failed to initialize PostgreSQL health monitor: %s", e)
 
     try:
         neo4j_provider = await get_neo4j_provider()
         neo4j_monitor = Neo4jHealthMonitor(neo4j_provider)
         service.add_monitor("neo4j", neo4j_monitor)
     except (ImportError, ConnectionError, ValueError) as e:
-        logger.warning(
-            "Failed to initialize Neo4j health monitor: %s", e
-        )
+        logger.warning("Failed to initialize Neo4j health monitor: %s", e)
 
 
 # Utility functions for alerts and notifications
+
 
 async def log_health_alert(service_name: str, status: HealthStatus, message: str) -> None:
     """Default alert callback that logs alerts."""

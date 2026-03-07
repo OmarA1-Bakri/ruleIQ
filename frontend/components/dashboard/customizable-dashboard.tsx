@@ -180,7 +180,7 @@ export function CustomizableDashboard({ data, onLayoutChange }: CustomizableDash
   const [selectedWidgetType, setSelectedWidgetType] = useState<WidgetType>('ai-insights');
 
   // Get undo/redo functions from store (Comment 3 & 10 requirements)
-  const { undo, redo, history, historyIndex } = useLayoutStore();
+  const { undo, redo, history: _history, historyIndex: _historyIndex } = useLayoutStore();
 
   // Keyboard shortcuts (Comment 10 requirement)
   useEffect(() => {

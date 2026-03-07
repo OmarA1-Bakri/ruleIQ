@@ -38,7 +38,8 @@ class SecureStorage {
           ['encrypt', 'decrypt'],
         );
         return this.encryptionKey;
-      } catch (error) {
+      } catch (_error) {
+        // intentionally empty - stored key is invalid, will generate new one
       }
     }
 
@@ -78,7 +79,7 @@ class SecureStorage {
 
       // Return base64 encoded result
       return btoa(String.fromCharCode(...combined));
-    } catch (error) {
+    } catch (_error) {
 
       throw new Error('Failed to encrypt data');
     }
@@ -108,7 +109,7 @@ class SecureStorage {
       // Convert back to string
       const decoder = new TextDecoder();
       return decoder.decode(decryptedBuffer);
-    } catch (error) {
+    } catch (_error) {
 
       throw new Error('Failed to decrypt data');
     }
@@ -179,7 +180,7 @@ class SecureStorage {
       }
 
       return await this.decrypt(encryptedToken);
-    } catch (error) {
+    } catch (_error) {
 
       // Clear corrupted data
       this.clearAccessToken();
@@ -285,7 +286,8 @@ class SecureStorage {
       sessionStorage.removeItem('ruleiq_auth_token');
       sessionStorage.removeItem('ruleiq_refresh_token');
       sessionStorage.removeItem('ruleiq_session_expiry');
-    } catch (error) {
+    } catch (_error) {
+      // intentionally empty - legacy token migration is best-effort
     }
   }
 }

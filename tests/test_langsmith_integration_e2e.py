@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 End-to-end integration test for LangSmith tracing with LangGraph nodes.
 Tests actual tracing functionality with real node execution.
@@ -127,9 +126,7 @@ class TestLangSmithIntegrationE2E:
                 assert "session:test-session-123" in trace["tags"]
 
             # Verify phase tracking
-            evidence_traces = [
-                t for t in traced_operations if "mock.process_evidence" in t["tags"]
-            ]
+            evidence_traces = [t for t in traced_operations if "mock.process_evidence" in t["tags"]]
             assert "phase:evidence_collection" in evidence_traces[0]["tags"]
 
             compliance_traces = [
@@ -185,14 +182,10 @@ class TestLangSmithIntegrationE2E:
             evidence_nodes = [MockEvidenceNode() for _ in range(3)]
 
             # Create multiple states with different session IDs
-            states = [
-                {"session_id": f"session-{i}", "data": f"data-{i}"} for i in range(3)
-            ]
+            states = [{"session_id": f"session-{i}", "data": f"data-{i}"} for i in range(3)]
 
             # Execute nodes concurrently
-            tasks = [
-                evidence_nodes[i].process_evidence(state=states[i]) for i in range(3)
-            ]
+            tasks = [evidence_nodes[i].process_evidence(state=states[i]) for i in range(3)]
 
             results = await asyncio.gather(*tasks)
 
@@ -202,9 +195,7 @@ class TestLangSmithIntegrationE2E:
             # Verify each execution was traced with correct session
             assert len(traced_operations) == 3
             for _i, trace in enumerate(traced_operations):
-                assert any(
-                    (f"session-{j}" in tag for j in range(3) for tag in trace["tags"])
-                )
+                assert any((f"session-{j}" in tag for j in range(3) for tag in trace["tags"]))
 
     async def test_error_handling_with_tracing(self, monkeypatch):
         """Test error handling in traced functions."""

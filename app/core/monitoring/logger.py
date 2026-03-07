@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 Structured logging implementation with multiple handlers and levels.
 """
@@ -211,9 +210,7 @@ def setup_logging(
         console_handler.setFormatter(ColoredFormatter())
     else:
         console_handler.setFormatter(
-            logging.Formatter(
-                "[%(asctime)s] %(levelname)-8s | %(name)-20s | %(message)s"
-            )
+            logging.Formatter("[%(asctime)s] %(levelname)-8s | %(name)-20s | %(message)s")
         )
 
     root_logger.addHandler(console_handler)
@@ -231,9 +228,7 @@ def setup_logging(
             file_handler.setFormatter(StructuredFormatter())
         else:
             file_handler.setFormatter(
-                logging.Formatter(
-                    "[%(asctime)s] %(levelname)-8s | %(name)-20s | %(message)s"
-                )
+                logging.Formatter("[%(asctime)s] %(levelname)-8s | %(name)-20s | %(message)s")
             )
 
         root_logger.addHandler(file_handler)
@@ -247,9 +242,7 @@ def setup_logging(
     logging.getLogger("httpx").setLevel(logging.WARNING)
 
 
-def get_logger(
-    name: str, level: Optional[Union[str, LogLevel]] = None
-) -> StructuredLogger:
+def get_logger(name: str, level: Optional[Union[str, LogLevel]] = None) -> StructuredLogger:
     """
     Get a structured logger instance.
 

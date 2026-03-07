@@ -16,9 +16,16 @@ class MonitoringSetup:
 
     def log(self, message: str, level: str = "info"):
         symbols = {"info": "ℹ️", "success": "✅", "warning": "⚠️", "error": "❌"}
-        colors = {"info": "\033[94m", "success": "\033[92m", "warning": "\033[93m",
-                 "error": "\033[91m", "reset": "\033[0m"}
-        print(f"{colors.get(level, colors['info'])}{symbols.get(level, 'ℹ️')} {message}{colors['reset']}")
+        colors = {
+            "info": "\033[94m",
+            "success": "\033[92m",
+            "warning": "\033[93m",
+            "error": "\033[91m",
+            "reset": "\033[0m",
+        }
+        print(
+            f"{colors.get(level, colors['info'])}{symbols.get(level, 'ℹ️')} {message}{colors['reset']}"
+        )
 
     def setup_health_checks(self) -> bool:
         """Configure health check endpoints."""
@@ -67,7 +74,7 @@ class MonitoringSetup:
             "High memory usage (>90%)",
             "Database connection failures",
             "API response time >2s",
-            "Error rate >5%"
+            "Error rate >5%",
         ]
 
         for alert in alerts:
@@ -84,7 +91,7 @@ class MonitoringSetup:
             "Database Metrics",
             "API Endpoints",
             "User Activity",
-            "Error Tracking"
+            "Error Tracking",
         ]
 
         for dashboard in dashboards:
@@ -115,7 +122,7 @@ class MonitoringSetup:
             (self.setup_metrics, "Metrics"),
             (self.setup_alerts, "Alerts"),
             (self.setup_dashboards, "Dashboards"),
-            (self.setup_backup_monitoring, "Backup Monitoring")
+            (self.setup_backup_monitoring, "Backup Monitoring"),
         ]
 
         for func, name in steps:

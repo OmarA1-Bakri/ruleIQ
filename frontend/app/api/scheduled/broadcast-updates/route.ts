@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
 }
 
 // Support GET for manual testing/health checks
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   return NextResponse.json({
     status: 'ok',
     pusherConfigured: !!pusherClient,

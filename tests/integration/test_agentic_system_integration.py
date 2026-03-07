@@ -19,8 +19,14 @@ from freezegun import freeze_time
 from faker import Faker
 
 from models.agentic_models import (
-    Base, Agent, AgentSession, AgentDecision, TrustMetric,
-    Decision, DecisionFeedback, SessionContext
+    Base,
+    Agent,
+    AgentSession,
+    AgentDecision,
+    TrustMetric,
+    Decision,
+    DecisionFeedback,
+    SessionContext,
 )
 from services.agents.orchestrator import OrchestratorService
 from services.agents.trust_manager import TrustManager, TrustProgressionRules
@@ -85,16 +91,12 @@ class TestAgentWorkflowIntegration:
         agent = await orchestrator.create_agent(
             name=faker.name(),
             persona_type="developer",
-            capabilities={
-                "code_generation": True,
-                "testing": True,
-                "review": True
-            },
+            capabilities={"code_generation": True, "testing": True, "review": True},
             config={
                 "max_tokens": 2000,
                 "temperature": 0.7,
-                "trust_level": TrustLevel.L0_OBSERVED.value
-            }
+                "trust_level": TrustLevel.L0_OBSERVED.value,
+            },
         )
 
         assert agent is not None
@@ -102,9 +104,7 @@ class TestAgentWorkflowIntegration:
         assert agent.name is not None
 
         # Verify agent in database
-        db_agent = test_db.query(Agent).filter(
-            Agent.agent_id == agent.agent_id
-        ).first()
+        db_agent = test_db.query(Agent).filter(Agent.agent_id == agent.agent_id).first()
         assert db_agent is not None
         assert db_agent.name == agent.name
         assert db_agent.persona_type == "developer"
@@ -122,8 +122,8 @@ class TestAgentWorkflowIntegration:
             initial_context={
                 "task": "Generate unit tests",
                 "language": "Python",
-                "framework": "pytest"
-            }
+                "framework": "pytest",
+            },
         )
 
         assert session is not None
@@ -131,9 +131,11 @@ class TestAgentWorkflowIntegration:
         assert session.trust_level == TrustLevel.L0_OBSERVED
 
         # Verify session in database
-        db_session = test_db.query(AgentSession).filter(
-            AgentSession.session_id == session.session_id
-        ).first()
+        db_session = (
+            test_db.query(AgentSession)
+            .filter(AgentSession.session_id == session.session_id)
+            .first()
+        )
         assert db_session is not None
         assert db_session.context["task"] == "Generate unit tests"
 
@@ -148,13 +150,15 @@ class TestAgentWorkflowIntegration:
         assert agent.agent_id not in orchestrator.agent_registry
 
     @pytest.mark.asyncio
-    async def test_agent_workflow_with_decisions(self, orchestrator, decision_tracker, test_db, faker):
+    async def test_agent_workflow_with_decisions(
+        self, orchestrator, decision_tracker, test_db, faker
+    ):
         """Test agent workflow including decision tracking."""
         # Create and activate agent
         agent = await orchestrator.create_agent(
             name=f"TestAgent_{faker.name()}",
             persona_type="developer",
-            capabilities={"code_generation": True}
+            capabilities={"code_generation": True},
         )
         await orchestrator.activate_agent(agent.agent_id)
 
@@ -162,7 +166,7 @@ class TestAgentWorkflowIntegration:
         session = await orchestrator.create_session(
             agent_id=agent.agent_id,
             user_id=str(uuid4()),
-            initial_context={"task": "implement_feature"}
+            initial_context={"task": "implement_feature"},
         )
 
         # Record decision
@@ -170,13 +174,9 @@ class TestAgentWorkflowIntegration:
             session_id=session.session_id,
             agent_id=agent.agent_id,
             decision_type=DecisionType.ACTION,
-            decision_data={
-                "action": "generate_code",
-                "language": "python",
-                "complexity": 0.7
-            },
+            decision_data={"action": "generate_code", "language": "python", "complexity": 0.7},
             confidence=0.85,
-            trust_level=TrustLevel.L0_OBSERVED
+            trust_level=TrustLevel.L0_OBSERVED,
         )
 
         assert decision is not None
@@ -190,15 +190,14 @@ class TestAgentWorkflowIntegration:
 
         # Execute decision
         execution_result = decision_tracker.execute_decision(
-            decision_id=decision.decision_id,
-            execution_result={"code_generated": True, "lines": 25}
+            decision_id=decision.decision_id, execution_result={"code_generated": True, "lines": 25}
         )
         assert execution_result is True
 
         # Verify decision status updated
-        updated_decision = test_db.query(Decision).filter(
-            Decision.decision_id == decision.decision_id
-        ).first()
+        updated_decision = (
+            test_db.query(Decision).filter(Decision.decision_id == decision.decision_id).first()
+        )
         assert updated_decision.status == DecisionStatus.EXECUTED.value
         assert updated_decision.executed_at is not None
 
@@ -207,7 +206,7 @@ class TestAgentWorkflowIntegration:
             decision_id=decision.decision_id,
             feedback_type="approval",
             feedback_value=True,
-            user_id=str(uuid4())
+            user_id=str(uuid4()),
         )
         assert feedback is not None
 
@@ -234,8 +233,8 @@ class TestMultiAgentCoordination:
                     "code_generation": persona == "developer",
                     "testing": persona == "qa",
                     "design": persona == "architect",
-                    "security_check": persona == "security"
-                }
+                    "security_check": persona == "security",
+                },
             )
             agents.append(agent)
 
@@ -254,8 +253,8 @@ class TestMultiAgentCoordination:
                 user_id=user_id,
                 initial_context={
                     "task": f"perform_{agent.persona_type}_task",
-                    "coordination_required": True
-                }
+                    "coordination_required": True,
+                },
             )
             sessions.append(session)
 
@@ -292,7 +291,7 @@ class TestMultiAgentCoordination:
             agent = await orchestrator.create_agent(
                 name=f"Agent{i}_{faker.name()}",
                 persona_type="developer",
-                capabilities={"code_generation": True}
+                capabilities={"code_generation": True},
             )
             agents.append(agent)
 
@@ -331,7 +330,7 @@ class TestTrustLevelProgression:
             persona_type="developer",
             capabilities={"code_generation": True},
             is_active=True,
-            config={"trust_level": TrustLevel.L0_OBSERVED.value}
+            config={"trust_level": TrustLevel.L0_OBSERVED.value},
         )
         test_db.add(agent)
 
@@ -341,7 +340,7 @@ class TestTrustLevelProgression:
             user_id=str(uuid4()),
             trust_level=TrustLevel.L0_OBSERVED.value,
             context={},
-            started_at=datetime.utcnow()
+            started_at=datetime.utcnow(),
         )
         test_db.add(session)
         test_db.commit()
@@ -353,7 +352,7 @@ class TestTrustLevelProgression:
                 session_id=session_id,
                 metric_type="accuracy",
                 metric_value=95.0 + i,  # High accuracy
-                measurement_context={"iteration": i}
+                measurement_context={"iteration": i},
             )
             test_db.add(metric)
 
@@ -387,7 +386,7 @@ class TestTrustLevelProgression:
             persona_type="developer",
             capabilities={"code_generation": True},
             is_active=True,
-            config={"trust_level": TrustLevel.L2_SUPERVISED.value}
+            config={"trust_level": TrustLevel.L2_SUPERVISED.value},
         )
         test_db.add(agent)
 
@@ -397,7 +396,7 @@ class TestTrustLevelProgression:
             user_id=str(uuid4()),
             trust_level=TrustLevel.L2_SUPERVISED.value,
             context={},
-            started_at=datetime.utcnow()
+            started_at=datetime.utcnow(),
         )
         test_db.add(session)
         test_db.commit()
@@ -409,7 +408,7 @@ class TestTrustLevelProgression:
                 session_id=session_id,
                 metric_type="accuracy",
                 metric_value=20.0,  # Very low accuracy
-                measurement_context={"iteration": i}
+                measurement_context={"iteration": i},
             )
             test_db.add(metric)
 
@@ -436,7 +435,7 @@ class TestTrustLevelProgression:
                 was_approved=True,
                 was_successful=True,
                 complexity=0.8,
-                execution_time_ms=500
+                execution_time_ms=500,
             )
 
         # Check promotion eligibility
@@ -448,8 +447,7 @@ class TestTrustLevelProgression:
 
         # Promote trust level
         promotion_result = await algorithm.promote_trust_level(
-            authorized_by="system",
-            reason="High performance in testing"
+            authorized_by="system", reason="High performance in testing"
         )
 
         assert promotion_result["success"] is True
@@ -472,8 +470,8 @@ class TestSessionManagement:
             initial_context={
                 "task": "implement_feature",
                 "language": "python",
-                "framework": "fastapi"
-            }
+                "framework": "fastapi",
+            },
         )
 
         assert session is not None
@@ -482,13 +480,11 @@ class TestSessionManagement:
         context_updates = {
             "current_step": "design_api",
             "completed_steps": ["analyze_requirements"],
-            "next_steps": ["implement_endpoints", "add_validation"]
+            "next_steps": ["implement_endpoints", "add_validation"],
         }
 
         update_result = await session_manager.update_context(
-            session_id=session.session_id,
-            context_updates=context_updates,
-            merge=True
+            session_id=session.session_id, context_updates=context_updates, merge=True
         )
 
         assert update_result is True
@@ -508,8 +504,7 @@ class TestSessionManagement:
         # Test context deserialization
         new_context = {"restored": True, "timestamp": datetime.utcnow().isoformat()}
         deserialize_result = await session_manager.deserialize_context(
-            session_id=session.session_id,
-            context_str=json.dumps(new_context)
+            session_id=session.session_id, context_str=json.dumps(new_context)
         )
         assert deserialize_result is True
 
@@ -524,9 +519,7 @@ class TestSessionManagement:
 
         # Create session
         session = await session_manager.create_session(
-            agent_id=agent_id,
-            user_id=str(uuid4()),
-            initial_context={"task": "test_timeout"}
+            agent_id=agent_id, user_id=str(uuid4()), initial_context={"task": "test_timeout"}
         )
 
         # Manually set old start time to simulate timeout
@@ -548,23 +541,22 @@ class TestSessionManagement:
 
         # Create session
         session = await session_manager.create_session(
-            agent_id=agent_id,
-            user_id=str(uuid4()),
-            initial_context={"task": "test_extension"}
+            agent_id=agent_id, user_id=str(uuid4()), initial_context={"task": "test_extension"}
         )
 
         # Extend session
         extension_result = await session_manager.extend_session(
-            session_id=session.session_id,
-            extension_minutes=30
+            session_id=session.session_id, extension_minutes=30
         )
 
         assert extension_result is True
 
         # Verify extension metadata
-        db_session = test_db.query(AgentSession).filter(
-            AgentSession.session_id == session.session_id
-        ).first()
+        db_session = (
+            test_db.query(AgentSession)
+            .filter(AgentSession.session_id == session.session_id)
+            .first()
+        )
 
         assert db_session.session_metadata["extension_minutes"] == 30
         assert "extended_at" in db_session.session_metadata
@@ -576,9 +568,7 @@ class TestSessionManagement:
 
         # Create session
         session = await session_manager.create_session(
-            agent_id=agent_id,
-            user_id=str(uuid4()),
-            initial_context={"version": 1}
+            agent_id=agent_id, user_id=str(uuid4()), initial_context={"version": 1}
         )
 
         # Update context multiple times
@@ -586,7 +576,7 @@ class TestSessionManagement:
             await session_manager.update_context(
                 session_id=session.session_id,
                 context_updates={"version": i + 2, "step": f"step_{i}"},
-                merge=True
+                merge=True,
             )
 
         # Get context history
@@ -598,8 +588,7 @@ class TestSessionManagement:
 
         # Test context recovery
         recovery_result = await session_manager.recover_context(
-            session_id=session.session_id,
-            sequence_number=2
+            session_id=session.session_id, sequence_number=2
         )
 
         assert recovery_result is True
@@ -616,12 +605,12 @@ class TestErrorHandling:
     async def test_agent_creation_failure_recovery(self, orchestrator, test_db):
         """Test recovery from agent creation failures."""
         # Mock database error during creation
-        with patch.object(test_db, 'commit', side_effect=Exception("DB Error")):
+        with patch.object(test_db, "commit", side_effect=Exception("DB Error")):
             with pytest.raises(Exception):
                 await orchestrator.create_agent(
                     name="FailingAgent",
                     persona_type="developer",
-                    capabilities={"code_generation": True}
+                    capabilities={"code_generation": True},
                 )
 
         # Verify no agent was created
@@ -630,9 +619,7 @@ class TestErrorHandling:
 
         # Try creation again (recovery)
         agent = await orchestrator.create_agent(
-            name="RecoveredAgent",
-            persona_type="developer",
-            capabilities={"code_generation": True}
+            name="RecoveredAgent", persona_type="developer", capabilities={"code_generation": True}
         )
 
         assert agent is not None
@@ -645,16 +632,13 @@ class TestErrorHandling:
 
         # Create session
         session = await session_manager.create_session(
-            agent_id=agent_id,
-            user_id=str(uuid4()),
-            initial_context={"task": "test_recovery"}
+            agent_id=agent_id, user_id=str(uuid4()), initial_context={"task": "test_recovery"}
         )
 
         # Mock database error during context update
-        with patch.object(test_db, 'commit', side_effect=Exception("DB Error")):
+        with patch.object(test_db, "commit", side_effect=Exception("DB Error")):
             update_result = await session_manager.update_context(
-                session_id=session.session_id,
-                context_updates={"error_test": True}
+                session_id=session.session_id, context_updates={"error_test": True}
             )
             assert update_result is False
 
@@ -664,8 +648,7 @@ class TestErrorHandling:
 
         # Try update again (recovery)
         update_result = await session_manager.update_context(
-            session_id=session.session_id,
-            context_updates={"recovery_test": True}
+            session_id=session.session_id, context_updates={"recovery_test": True}
         )
         assert update_result is True
 
@@ -683,7 +666,7 @@ class TestErrorHandling:
             decision_type=DecisionType.ACTION,
             decision_data={},  # Empty data should fail validation
             confidence=0.3,  # Low confidence should fail
-            trust_level=TrustLevel.L0_OBSERVED
+            trust_level=TrustLevel.L0_OBSERVED,
         )
 
         # Validate decision
@@ -700,7 +683,7 @@ class TestErrorHandling:
         agent_id = uuid4()
 
         # Mock database error during trust calculation
-        with patch.object(test_db, 'query', side_effect=Exception("DB Error")):
+        with patch.object(test_db, "query", side_effect=Exception("DB Error")):
             trust_metric = trust_manager.calculate_trust_metrics(agent_id)
 
             # Should return empty metric on error
@@ -715,12 +698,13 @@ class TestPerformance:
     @pytest.mark.asyncio
     async def test_concurrent_agent_operations(self, orchestrator, test_db, faker):
         """Test concurrent agent creation and operations."""
+
         async def create_and_operate_agent(index):
             # Create agent
             agent = await orchestrator.create_agent(
                 name=f"ConcurrentAgent{index}_{faker.name()}",
                 persona_type="developer",
-                capabilities={"code_generation": True}
+                capabilities={"code_generation": True},
             )
 
             # Activate agent
@@ -730,7 +714,7 @@ class TestPerformance:
             session = await orchestrator.create_session(
                 agent_id=agent.agent_id,
                 user_id=str(uuid4()),
-                initial_context={"concurrent_test": True, "index": index}
+                initial_context={"concurrent_test": True, "index": index},
             )
 
             # Simulate some operations
@@ -772,7 +756,7 @@ class TestPerformance:
                 decision_type=DecisionType.ACTION,
                 decision_data={"action": f"action_{i}", "index": i},
                 confidence=0.8,
-                trust_level=TrustLevel.L1_ASSISTED
+                trust_level=TrustLevel.L1_ASSISTED,
             )
             decisions.append(decision)
 
@@ -780,9 +764,7 @@ class TestPerformance:
         assert len(decisions) == 100
 
         # Verify database state
-        db_decisions = test_db.query(Decision).filter(
-            Decision.session_id == session_id
-        ).all()
+        db_decisions = test_db.query(Decision).filter(Decision.session_id == session_id).all()
 
         assert len(db_decisions) == 100
 
@@ -802,7 +784,7 @@ class TestPerformance:
             session = await session_manager.create_session(
                 agent_id=agent_id,
                 user_id=str(uuid4()),
-                initial_context={"bulk_test": True, "index": i}
+                initial_context={"bulk_test": True, "index": i},
             )
             sessions.append(session)
 
@@ -833,14 +815,15 @@ class TestIntegrationScenarios:
     """Test complete integration scenarios."""
 
     @pytest.mark.asyncio
-    async def test_end_to_end_agent_workflow(self, orchestrator, trust_manager,
-                                           session_manager, decision_tracker, test_db, faker):
+    async def test_end_to_end_agent_workflow(
+        self, orchestrator, trust_manager, session_manager, decision_tracker, test_db, faker
+    ):
         """Test complete end-to-end agent workflow."""
         # 1. Create and setup agent
         agent = await orchestrator.create_agent(
             name=f"E2E_Agent_{faker.name()}",
             persona_type="developer",
-            capabilities={"code_generation": True, "testing": True}
+            capabilities={"code_generation": True, "testing": True},
         )
 
         await orchestrator.activate_agent(agent.agent_id)
@@ -852,8 +835,8 @@ class TestIntegrationScenarios:
             initial_context={
                 "project": "e2e_test",
                 "task": "implement_user_authentication",
-                "requirements": ["secure", "scalable", "testable"]
-            }
+                "requirements": ["secure", "scalable", "testable"],
+            },
         )
 
         # 3. Update session context as work progresses
@@ -862,8 +845,8 @@ class TestIntegrationScenarios:
             context_updates={
                 "current_phase": "analysis",
                 "completed": [],
-                "in_progress": ["analyze_requirements"]
-            }
+                "in_progress": ["analyze_requirements"],
+            },
         )
 
         # 4. Record decisions and actions
@@ -876,10 +859,10 @@ class TestIntegrationScenarios:
                 decision_data={
                     "action": f"implement_feature_{i}",
                     "complexity": 0.7,
-                    "estimated_time": "2 hours"
+                    "estimated_time": "2 hours",
                 },
                 confidence=0.85,
-                trust_level=TrustLevel.L0_OBSERVED
+                trust_level=TrustLevel.L0_OBSERVED,
             )
             decisions.append(decision)
 
@@ -890,15 +873,13 @@ class TestIntegrationScenarios:
 
             decision_tracker.execute_decision(
                 decision_id=decision.decision_id,
-                execution_result={"success": True, "lines_of_code": 50}
+                execution_result={"success": True, "lines_of_code": 50},
             )
 
         # 6. Record feedback
         for decision in decisions:
             decision_tracker.record_feedback(
-                decision_id=decision.decision_id,
-                feedback_type="approval",
-                feedback_value=True
+                decision_id=decision.decision_id, feedback_type="approval", feedback_value=True
             )
 
         # 7. Calculate trust metrics
@@ -910,8 +891,8 @@ class TestIntegrationScenarios:
             context_updates={
                 "current_phase": "completed",
                 "completed": ["analyze_requirements", "implement_auth", "add_tests"],
-                "in_progress": []
-            }
+                "in_progress": [],
+            },
         )
 
         # 9. End session
@@ -929,22 +910,22 @@ class TestIntegrationScenarios:
         await orchestrator.terminate_agent(agent.agent_id)
 
     @pytest.mark.asyncio
-    async def test_multi_agent_collaboration_scenario(self, orchestrator, decision_tracker, test_db, faker):
+    async def test_multi_agent_collaboration_scenario(
+        self, orchestrator, decision_tracker, test_db, faker
+    ):
         """Test multi-agent collaboration on a complex task."""
         # Create specialized agents
         agents_data = [
             ("ArchitectAgent", "architect", {"design": True, "planning": True}),
             ("DeveloperAgent", "developer", {"code_generation": True, "implementation": True}),
             ("QAAgent", "qa", {"testing": True, "validation": True}),
-            ("SecurityAgent", "security", {"security_check": True, "audit": True})
+            ("SecurityAgent", "security", {"security_check": True, "audit": True}),
         ]
 
         agents = []
         for name, persona, capabilities in agents_data:
             agent = await orchestrator.create_agent(
-                name=f"{name}_{faker.name()}",
-                persona_type=persona,
-                capabilities=capabilities
+                name=f"{name}_{faker.name()}", persona_type=persona, capabilities=capabilities
             )
             await orchestrator.activate_agent(agent.agent_id)
             agents.append(agent)
@@ -960,8 +941,8 @@ class TestIntegrationScenarios:
                 initial_context={
                     "collaboration_task": "build_secure_web_app",
                     "agent_role": agent.persona_type,
-                    "team_size": len(agents)
-                }
+                    "team_size": len(agents),
+                },
             )
             sessions.append(session)
 
@@ -973,10 +954,10 @@ class TestIntegrationScenarios:
             decision_type=DecisionType.ACTION,
             decision_data={
                 "action": "design_system_architecture",
-                "deliverable": "system_design_document"
+                "deliverable": "system_design_document",
             },
             confidence=0.9,
-            trust_level=TrustLevel.L1_ASSISTED
+            trust_level=TrustLevel.L1_ASSISTED,
         )
 
         # Developer implements
@@ -986,10 +967,10 @@ class TestIntegrationScenarios:
             decision_type=DecisionType.ACTION,
             decision_data={
                 "action": "implement_user_auth",
-                "based_on": str(design_decision.decision_id)
+                "based_on": str(design_decision.decision_id),
             },
             confidence=0.85,
-            trust_level=TrustLevel.L1_ASSISTED
+            trust_level=TrustLevel.L1_ASSISTED,
         )
 
         # QA tests
@@ -997,12 +978,9 @@ class TestIntegrationScenarios:
             session_id=sessions[2].session_id,
             agent_id=agents[2].agent_id,
             decision_type=DecisionType.ACTION,
-            decision_data={
-                "action": "create_test_suite",
-                "target": str(impl_decision.decision_id)
-            },
+            decision_data={"action": "create_test_suite", "target": str(impl_decision.decision_id)},
             confidence=0.8,
-            trust_level=TrustLevel.L1_ASSISTED
+            trust_level=TrustLevel.L1_ASSISTED,
         )
 
         # Security audits
@@ -1010,12 +988,9 @@ class TestIntegrationScenarios:
             session_id=sessions[3].session_id,
             agent_id=agents[3].agent_id,
             decision_type=DecisionType.ACTION,
-            decision_data={
-                "action": "security_audit",
-                "target": str(impl_decision.decision_id)
-            },
+            decision_data={"action": "security_audit", "target": str(impl_decision.decision_id)},
             confidence=0.95,
-            trust_level=TrustLevel.L1_ASSISTED
+            trust_level=TrustLevel.L1_ASSISTED,
         )
 
         # Execute all decisions

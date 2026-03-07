@@ -13,7 +13,7 @@ import {
 } from 'recharts';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { neuralPurple, silver, semantic, chartColors, neutral } from '@/lib/theme/neural-purple-colors';
+import { neuralPurple, silver, semantic, neutral } from '@/lib/theme/neural-purple-colors';
 
 interface TimeSeriesAnalysisChartProps {
   data: Array<{

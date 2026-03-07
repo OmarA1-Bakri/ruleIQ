@@ -109,7 +109,7 @@ class EvidenceService {
   async uploadEvidenceFile(
     id: string,
     file: File,
-    onProgress?: (progress: number) => void,
+    _onProgress?: (progress: number) => void,
   ): Promise<EvidenceItem> {
     // Note: onProgress callback is not currently supported by the API client
     const response = await apiClient.upload<EvidenceItem>(

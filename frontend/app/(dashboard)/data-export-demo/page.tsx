@@ -190,7 +190,7 @@ export default function DataExportDemoPage() {
         });
         toast.success('Excel file generated successfully');
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error('Export failed. Please try again.');
 
     }
@@ -207,7 +207,7 @@ export default function DataExportDemoPage() {
       }));
 
     toast.promise(
-      DataExporter.exportWithProgress(largeData, 'csv', (progress) => {
+      DataExporter.exportWithProgress(largeData, 'csv', (_progress) => {
       }),
       {
         loading: 'Exporting large dataset...',

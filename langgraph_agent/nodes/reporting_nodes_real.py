@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 Real reporting nodes implementation with actual service integration.
 Connects to real ReportGenerator, PDFGenerator, and ReportScheduler services.
@@ -36,11 +35,12 @@ from core.exceptions import NotFoundException, DatabaseException, BusinessLogicE
 
 logger = logging.getLogger(__name__)
 
+
 def _send_email_directly(
     recipients: List[str],
     subject: str,
     body: str,
-    attachments: Optional[List[Dict[str, Any]]] = None
+    attachments: Optional[List[Dict[str, Any]]] = None,
 ) -> bool:
     """
     Send email directly without Celery (migration complete).
@@ -56,30 +56,29 @@ def _send_email_directly(
     """
     try:
         # Get SMTP configuration from settings
-        smtp_host = getattr(settings, 'SMTP_HOST', 'localhost')
-        smtp_port = getattr(settings, 'SMTP_PORT', 587)
-        smtp_user = getattr(settings, 'SMTP_USER', '')
-        smtp_password = getattr(settings, 'SMTP_PASSWORD', '')
-        smtp_from = getattr(settings, 'SMTP_FROM', 'noreply@ruleiq.com')
+        smtp_host = getattr(settings, "SMTP_HOST", "localhost")
+        smtp_port = getattr(settings, "SMTP_PORT", 587)
+        smtp_user = getattr(settings, "SMTP_USER", "")
+        smtp_password = getattr(settings, "SMTP_PASSWORD", "")
+        smtp_from = getattr(settings, "SMTP_FROM", "noreply@ruleiq.com")
 
         # Create message
         msg = MIMEMultipart()
-        msg['From'] = smtp_from
-        msg['To'] = ', '.join(recipients)
-        msg['Subject'] = subject
+        msg["From"] = smtp_from
+        msg["To"] = ", ".join(recipients)
+        msg["Subject"] = subject
 
         # Add body
-        msg.attach(MIMEText(body, 'plain'))
+        msg.attach(MIMEText(body, "plain"))
 
         # Add attachments if provided
         if attachments:
             for attachment in attachments:
-                part = MIMEBase('application', 'octet-stream')
-                part.set_payload(attachment['content'])
+                part = MIMEBase("application", "octet-stream")
+                part.set_payload(attachment["content"])
                 encoders.encode_base64(part)
                 part.add_header(
-                    'Content-Disposition',
-                    f'attachment; filename={attachment["filename"]}'
+                    "Content-Disposition", f"attachment; filename={attachment['filename']}"
                 )
                 msg.attach(part)
 
@@ -97,15 +96,15 @@ def _send_email_directly(
         logger.error(f"Failed to send email: {e}")
         return False
 
-async def get_user_for_profile(
-    db: AsyncSession, profile: BusinessProfileModel
-) -> UserModel:
+
+async def get_user_for_profile(db: AsyncSession, profile: BusinessProfileModel) -> UserModel:
     """Get the user associated with a business profile."""
     result = await db.execute(select(UserModel).where(UserModel.id == profile.user_id))
     user = result.scalars().first()
     if not user:
         raise NotFoundException(f"User not found for profile {profile.id}")
     return user
+
 
 async def get_default_framework(db: AsyncSession) -> ComplianceFrameworkModel:
     """Get a default compliance framework (first available)."""
@@ -114,6 +113,7 @@ async def get_default_framework(db: AsyncSession) -> ComplianceFrameworkModel:
     if not framework:
         raise NotFoundException("No compliance frameworks found in database")
     return framework
+
 
 async def generate_scheduled_reports_node(
     state: ComplianceAgentState,
@@ -134,9 +134,7 @@ async def generate_scheduled_reports_node(
     Returns:
         Updated state with report generation results
     """
-    logger.info(
-        f"Starting scheduled report generation for workflow {state.get('workflow_id')}"
-    )
+    logger.info(f"Starting scheduled report generation for workflow {state.get('workflow_id')}")
 
     # Get database session from state
     db = state.get("db_session")
@@ -212,9 +210,7 @@ async def generate_scheduled_reports_node(
                 logger.info(f"Successfully generated report for schedule {schedule.id}")
 
             except Exception as e:
-                logger.error(
-                    f"Failed to generate report for schedule {schedule.id}: {e}"
-                )
+                logger.error(f"Failed to generate report for schedule {schedule.id}: {e}")
                 await scheduler.update_schedule_status(
                     schedule_id=schedule.id,
                     status="failed",
@@ -258,6 +254,7 @@ async def generate_scheduled_reports_node(
 
     return state
 
+
 async def generate_on_demand_report_node(
     state: ComplianceAgentState,
 ) -> ComplianceAgentState:
@@ -275,9 +272,7 @@ async def generate_on_demand_report_node(
     Returns:
         Updated state with generated report
     """
-    logger.info(
-        f"Starting on-demand report generation for workflow {state.get('workflow_id')}"
-    )
+    logger.info(f"Starting on-demand report generation for workflow {state.get('workflow_id')}")
 
     # Get database session
     db = state.get("db_session")
@@ -415,6 +410,7 @@ async def generate_on_demand_report_node(
 
     return state
 
+
 async def send_summary_notifications_node(
     state: ComplianceAgentState,
 ) -> ComplianceAgentState:
@@ -432,9 +428,7 @@ async def send_summary_notifications_node(
     Returns:
         Updated state with notification results
     """
-    logger.info(
-        f"Starting summary notifications for workflow {state.get('workflow_id')}"
-    )
+    logger.info(f"Starting summary notifications for workflow {state.get('workflow_id')}")
 
     # Get database session
     db = state.get("db_session")
@@ -546,6 +540,7 @@ async def send_summary_notifications_node(
 
     return state
 
+
 def should_run_schedule(schedule: ReportScheduleModel) -> bool:
     """
     Check if a schedule should run now based on frequency and last run time.
@@ -575,6 +570,7 @@ def should_run_schedule(schedule: ReportScheduleModel) -> bool:
 
     return False
 
+
 async def save_report_file(content: bytes, filename: str) -> str:
     """
     Save report content to file.
@@ -595,6 +591,7 @@ async def save_report_file(content: bytes, filename: str) -> str:
         await f.write(content)
 
     return str(file_path)
+
 
 async def send_scheduled_report_email(
     recipients: List[str],
@@ -627,7 +624,7 @@ async def send_scheduled_report_email(
         Your scheduled {report_type} report has been generated.
 
         Report Summary:
-        - Generated: {report_data.get('generated_at', datetime.now().isoformat())}
+        - Generated: {report_data.get("generated_at", datetime.now().isoformat())}
         - Overall Compliance Score: {compliance_score}%
         - Report Type: {report_type}
 
@@ -643,14 +640,13 @@ async def send_scheduled_report_email(
             subject=subject,
             body=body,
             attachment_data=pdf_content,
-            attachment_name=(
-                f"{report_type.replace(' ', '_')}.pdf" if pdf_content else None
-            ),
+            attachment_name=(f"{report_type.replace(' ', '_')}.pdf" if pdf_content else None),
         )
 
     except Exception as e:
         logger.error(f"Failed to send scheduled report email: {e}")
         return False
+
 
 async def send_on_demand_report_email(
     recipients: List[str],
@@ -679,10 +675,10 @@ async def send_on_demand_report_email(
         Your requested {report_type} report has been generated.
 
         Report Details:
-        - Generated: {report_data.get('generated_at', datetime.now().isoformat())}
-        - Report Title: {report_data.get('report_title', report_type)}
+        - Generated: {report_data.get("generated_at", datetime.now().isoformat())}
+        - Report Title: {report_data.get("report_title", report_type)}
 
-        {report_data.get('summary', 'Please see the attached report for details.')}
+        {report_data.get("summary", "Please see the attached report for details.")}
 
         Best regards,
         Compliance Monitoring System
@@ -705,6 +701,7 @@ async def send_on_demand_report_email(
     except Exception as e:
         logger.error(f"Failed to send on-demand report email: {e}")
         return False
+
 
 def prepare_summary_content(summary: Dict[str, Any]) -> str:
     """
@@ -736,9 +733,8 @@ def prepare_summary_content(summary: Dict[str, Any]) -> str:
     All reports are being generated and distributed according to schedule.
     """
 
-async def send_summary_email(
-    recipient: str, user_name: str, summary_content: str
-) -> bool:
+
+async def send_summary_email(recipient: str, user_name: str, summary_content: str) -> bool:
     """
     Send summary notification email to user.
 
@@ -765,13 +761,12 @@ async def send_summary_email(
         Compliance Monitoring System
         """
 
-        return await send_email_with_attachment(
-            recipients=[recipient], subject=subject, body=body
-        )
+        return await send_email_with_attachment(recipients=[recipient], subject=subject, body=body)
 
     except Exception as e:
         logger.error(f"Failed to send summary email: {e}")
         return False
+
 
 async def send_email_with_attachment(
     recipients: List[str],
@@ -798,6 +793,4 @@ async def send_email_with_attachment(
         attachments.append({"filename": attachment_name, "content": attachment_data})
 
     # Send email directly (Celery migration complete)
-    return _send_email_directly(
-        recipients, subject, body, attachments if attachments else None
-    )
+    return _send_email_directly(recipients, subject, body, attachments if attachments else None)

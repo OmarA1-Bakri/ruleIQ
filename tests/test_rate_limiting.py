@@ -3,6 +3,7 @@ Comprehensive tests for Rate Limiting (Story 1.2)
 
 Tests rate limiting middleware with tiered limits, Redis integration, and headers.
 """
+
 import pytest
 import asyncio
 import time
@@ -11,11 +12,7 @@ from fastapi import Request, Response
 from fastapi.responses import JSONResponse
 import redis
 
-from middleware.rate_limiter import (
-    RateLimiter,
-    RateLimitMiddleware,
-    UserTier
-)
+from middleware.rate_limiter import RateLimiter, RateLimitMiddleware, UserTier
 
 
 class TestRateLimiter:
@@ -161,7 +158,7 @@ class TestRateLimiter:
             1,  # zremrangebyscore result
             5,  # zcard result (5 requests)
             1,  # zadd result
-            1   # expire result
+            1,  # expire result
         ]
 
         allowed, info = await rate_limiter.check_rate_limit(mock_request)
@@ -175,10 +172,10 @@ class TestRateLimiter:
     async def test_check_rate_limit_exceeded(self, rate_limiter, mock_request):
         """Test rate limit check when limit exceeded."""
         rate_limiter.redis_client.pipeline.return_value.execute.return_value = [
-            1,   # zremrangebyscore result
+            1,  # zremrangebyscore result
             10,  # zcard result (10 requests - at limit)
-            1,   # zadd result
-            1    # expire result
+            1,  # zadd result
+            1,  # expire result
         ]
 
         allowed, info = await rate_limiter.check_rate_limit(mock_request)
@@ -205,7 +202,7 @@ class TestRateLimiter:
         rate_limiter.redis_client.pipeline.side_effect = redis.RedisError("Connection failed")
 
         # With fail_open = True (default)
-        with patch('config.settings.RATE_LIMIT_FAIL_OPEN', True):
+        with patch("config.settings.RATE_LIMIT_FAIL_OPEN", True):
             allowed, info = await rate_limiter.check_rate_limit(mock_request)
             assert allowed is True
             assert "error" in info
@@ -216,7 +213,7 @@ class TestRateLimiter:
         rate_limiter.redis_client.pipeline.side_effect = redis.RedisError("Connection failed")
 
         # With fail_open = False
-        with patch('config.settings.RATE_LIMIT_FAIL_OPEN', False):
+        with patch("config.settings.RATE_LIMIT_FAIL_OPEN", False):
             allowed, info = await rate_limiter.check_rate_limit(mock_request)
             assert allowed is False
             assert "error" in info
@@ -235,7 +232,7 @@ class TestRateLimiter:
         """Test retrieving statistics."""
         rate_limiter.redis_client.hgetall.return_value = {
             b"requests:authenticated": b"100",
-            b"violations:authenticated": b"5"
+            b"violations:authenticated": b"5",
         }
 
         stats = rate_limiter.get_stats("/api/v1/test")
@@ -255,7 +252,7 @@ class TestRateLimiter:
         """Test resetting all limits for an identifier."""
         rate_limiter.redis_client.scan_iter.return_value = [
             b"rate_limit:/api/v1/test:user:user123",
-            b"rate_limit:/api/v1/other:user:user123"
+            b"rate_limit:/api/v1/other:user:user123",
         ]
 
         result = rate_limiter.reset_limits("user:user123")
@@ -280,10 +277,12 @@ class TestRateLimitMiddleware:
     @pytest.fixture
     async def mock_call_next(self):
         """Create mock call_next function."""
+
         async def call_next(request):
             response = Response()
             response.headers = {}
             return response
+
         return call_next
 
     # Test 9: Middleware Integration
@@ -299,11 +298,7 @@ class TestRateLimitMiddleware:
 
         # Mock rate limiter to allow
         middleware.rate_limiter.check_rate_limit = AsyncMock(
-            return_value=(True, {
-                "limit": 10,
-                "remaining": 5,
-                "reset": int(time.time()) + 60
-            })
+            return_value=(True, {"limit": 10, "remaining": 5, "reset": int(time.time()) + 60})
         )
 
         response = await middleware(request, mock_call_next)
@@ -325,12 +320,10 @@ class TestRateLimitMiddleware:
 
         # Mock rate limiter to block
         middleware.rate_limiter.check_rate_limit = AsyncMock(
-            return_value=(False, {
-                "limit": 10,
-                "remaining": 0,
-                "reset": int(time.time()) + 60,
-                "retry_after": 60
-            })
+            return_value=(
+                False,
+                {"limit": 10, "remaining": 0, "reset": int(time.time()) + 60, "retry_after": 60},
+            )
         )
 
         response = await middleware(request, mock_call_next)

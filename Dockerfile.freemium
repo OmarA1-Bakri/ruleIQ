@@ -84,7 +84,7 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
 ENTRYPOINT ["dumb-init", "--"]
 
 # Production command with Gunicorn for better performance
-CMD ["gunicorn", "main:app", \
+CMD ["gunicorn", "api.main:app", \
      "--bind", "0.0.0.0:8000", \
      "--workers", "${WORKERS}", \
      "--worker-class", "${WORKER_CLASS}", \

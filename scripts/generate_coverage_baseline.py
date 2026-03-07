@@ -17,16 +17,14 @@ from xml.etree import ElementTree as ET
 class CoverageBaselineGenerator:
     """Generates coverage baseline documentation from test artifacts."""
 
-    def __init__(self, project_root: Optional[Path] = None):
+    def __init__(self, project_root: Optional[Path] = None) -> None:
         self.project_root = project_root or Path(__file__).parent.parent
         self.backend_coverage_xml = self.project_root / "coverage.xml"
         self.backend_coverage_json = self.project_root / "coverage.json"
         self.frontend_coverage_summary = (
             self.project_root / "frontend" / "coverage" / "coverage-summary.json"
         )
-        self.frontend_lcov = (
-            self.project_root / "frontend" / "coverage" / "lcov.info"
-        )
+        self.frontend_lcov = self.project_root / "frontend" / "coverage" / "lcov.info"
         self.output_file = self.project_root / "docs" / "COVERAGE_BASELINE.md"
 
     def parse_backend_coverage_xml(self) -> Dict:
@@ -116,9 +114,7 @@ class CoverageBaselineGenerator:
     def parse_frontend_coverage(self) -> Dict:
         """Parse frontend coverage-summary.json."""
         if not self.frontend_coverage_summary.exists():
-            print(
-                f"⚠️  Frontend coverage summary not found: {self.frontend_coverage_summary}"
-            )
+            print(f"⚠️  Frontend coverage summary not found: {self.frontend_coverage_summary}")
             return {}
 
         try:
@@ -142,10 +138,7 @@ class CoverageBaselineGenerator:
 
                 # Extract directory from path
                 path_obj = Path(path)
-                if len(path_obj.parts) > 0:
-                    directory = path_obj.parts[0]
-                else:
-                    directory = "root"
+                directory = path_obj.parts[0] if path_obj.parts else "root"
 
                 if directory not in directories:
                     directories[directory] = {
@@ -160,11 +153,9 @@ class CoverageBaselineGenerator:
                 directories[directory]["covered_lines"] += lines.get("covered", 0)
 
             # Calculate directory percentages
-            for dir_name, stats in directories.items():
+            for _dir_name, stats in directories.items():
                 if stats["total_lines"] > 0:
-                    stats["line_coverage"] = (
-                        stats["covered_lines"] / stats["total_lines"]
-                    ) * 100
+                    stats["line_coverage"] = (stats["covered_lines"] / stats["total_lines"]) * 100
                 else:
                     stats["line_coverage"] = 0
 
@@ -186,12 +177,8 @@ class CoverageBaselineGenerator:
 
     def get_least_covered_files(self, files: Dict, limit: int = 10) -> List[Tuple]:
         """Get top N least covered files (excluding 0% coverage)."""
-        filtered_files = {
-            k: v for k, v in files.items() if v.get("line_coverage", 0) > 0
-        }
-        sorted_files = sorted(
-            filtered_files.items(), key=lambda x: x[1].get("line_coverage", 0)
-        )
+        filtered_files = {k: v for k, v in files.items() if v.get("line_coverage", 0) > 0}
+        sorted_files = sorted(filtered_files.items(), key=lambda x: x[1].get("line_coverage", 0))
         return sorted_files[:limit]
 
     def get_critical_uncovered_files(self, files: Dict) -> List[str]:
@@ -276,8 +263,8 @@ class CoverageBaselineGenerator:
 
 | Type | Coverage | Status |
 |------|----------|--------|
-| **Line Coverage** | {backend_xml.get('overall_line', 0):.2f}% | {"✅" if backend_xml.get('overall_line', 0) >= 80 else "⚠️"} |
-| **Branch Coverage** | {backend_xml.get('overall_branch', 0):.2f}% | {"✅" if backend_xml.get('overall_branch', 0) >= 70 else "⚠️"} |
+| **Line Coverage** | {backend_xml.get("overall_line", 0):.2f}% | {"✅" if backend_xml.get("overall_line", 0) >= 80 else "⚠️"} |
+| **Branch Coverage** | {backend_xml.get("overall_branch", 0):.2f}% | {"✅" if backend_xml.get("overall_branch", 0) >= 70 else "⚠️"} |
 
 ### Per-Module Breakdown
 
@@ -412,8 +399,7 @@ Modules below baseline require explicit approval for coverage decreases:
             small_uncovered = {
                 k: v
                 for k, v in backend_files.items()
-                if v.get("num_statements", 0) < 50
-                and v.get("line_coverage", 0) < 50
+                if v.get("num_statements", 0) < 50 and v.get("line_coverage", 0) < 50
             }
             if small_uncovered:
                 doc += "\n**Backend:**\n"
@@ -529,7 +515,10 @@ cd frontend && pnpm test:coverage
 def main():
     generator = CoverageBaselineGenerator()
 
-    if not generator.backend_coverage_xml.exists() and not generator.frontend_coverage_summary.exists():
+    if (
+        not generator.backend_coverage_xml.exists()
+        and not generator.frontend_coverage_summary.exists()
+    ):
         print("❌ No coverage reports found. Run tests with coverage first:")
         print("   Backend: pytest --cov=services --cov=api --cov-report=xml")
         print("   Frontend: cd frontend && pnpm test:coverage")

@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   ChatMessage,
-  TrustLevel,
   Agent,
   Session,
   ConnectionState,
@@ -22,7 +21,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle, WifiOff } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 
 interface ChatContainerProps {
   agent: Agent;
@@ -30,7 +29,7 @@ interface ChatContainerProps {
   onSessionEnd?: () => void;
 }
 
-export function ChatContainer({ agent, session, onSessionEnd }: ChatContainerProps) {
+export function ChatContainer({ agent, session, onSessionEnd: _onSessionEnd }: ChatContainerProps) {
   const [connectionState, setConnectionState] = useState<ConnectionState>({
     connected: false,
     connecting: false,
@@ -49,16 +48,16 @@ export function ChatContainer({ agent, session, onSessionEnd }: ChatContainerPro
     messages,
     isStreaming,
     handleStreamChunk,
-    handleStreamComplete,
-    handleStreamError,
+    handleStreamComplete: _handleStreamComplete,
+    handleStreamError: _handleStreamError,
     addMessage,
     updateMessage,
-    clearMessages
+    clearMessages: _clearMessages
   } = useStreamingChat({
     onMessageComplete: (message) => {
       console.log('Message streaming complete:', message.id);
     },
-    onStreamError: (error, messageId) => {
+    onStreamError: (error, _messageId) => {
       toast({
         title: 'Streaming Error',
         description: `Failed to receive message: ${error.message}`,
@@ -68,7 +67,7 @@ export function ChatContainer({ agent, session, onSessionEnd }: ChatContainerPro
   });
 
   // Initialize typing indicator hook with WebSocket client support
-  const { handleTypingStart, handleTypingStop } = useTypingIndicator({
+  const { handleTypingStart: _handleTypingStart, handleTypingStop } = useTypingIndicator({
     sessionId: session.id,
     agentId: agent.id,
     useWebSocketClient: true
@@ -226,7 +225,7 @@ export function ChatContainer({ agent, session, onSessionEnd }: ChatContainerPro
   }, [messages]);
 
   // Handle sending messages
-  const handleSendMessage = useCallback((content: string, attachments?: File[]) => {
+  const handleSendMessage = useCallback((content: string, _attachments?: File[]) => {
     if (!wsClientRef.current || !connectionState.connected) {
       toast({
         title: 'Not Connected',
@@ -251,7 +250,7 @@ export function ChatContainer({ agent, session, onSessionEnd }: ChatContainerPro
     addMessage(newMessage);
 
     // Send through WebSocket with streaming support
-    const sentMessageId = wsClientRef.current.sendChatMessageWithStreaming(content, {
+    const _sentMessageId = wsClientRef.current.sendChatMessageWithStreaming(content, {
       agentId: agent.id,
       sessionId: session.id,
       userId: session.userId,

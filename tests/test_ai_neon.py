@@ -2,6 +2,7 @@
 """
 Test AI functionality with Neon database
 """
+
 import asyncio
 import os
 import time

@@ -14,7 +14,7 @@ import {
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
-import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import { usePresenceChannel } from '@/lib/hooks/use-pusher';
 
 export function DashboardHeader() {

@@ -164,9 +164,7 @@ class TestIQAgentEndpoints:
         )
         return service
 
-    async def test_compliance_query_success(
-        self, async_client, auth_headers, mock_iq_agent
-    ):
+    async def test_compliance_query_success(self, async_client, auth_headers, mock_iq_agent):
         """Test successful compliance query processing"""
 
         with patch("api.routers.iq_agent.get_iq_agent", return_value=mock_iq_agent):
@@ -253,9 +251,7 @@ class TestIQAgentEndpoints:
 
         assert response.status_code == 401  # Unauthorized
 
-    async def test_compliance_query_rate_limiting(
-        self, async_client, auth_headers, mock_iq_agent
-    ):
+    async def test_compliance_query_rate_limiting(self, async_client, auth_headers, mock_iq_agent):
         """Test rate limiting on compliance queries"""
 
         with patch("api.routers.iq_agent.get_iq_agent", return_value=mock_iq_agent):
@@ -274,13 +270,9 @@ class TestIQAgentEndpoints:
 
             # Should eventually hit rate limit
             rate_limited = any(r.status_code == 429 for r in responses)
-            assert (
-                rate_limited
-            ), "Rate limiting should be triggered for excessive requests"
+            assert rate_limited, "Rate limiting should be triggered for excessive requests"
 
-    async def test_store_memory_success(
-        self, async_client, auth_headers, mock_iq_agent
-    ):
+    async def test_store_memory_success(self, async_client, auth_headers, mock_iq_agent):
         """Test successful memory storage"""
 
         with patch("api.routers.iq_agent.get_iq_agent", return_value=mock_iq_agent):
@@ -308,9 +300,7 @@ class TestIQAgentEndpoints:
         assert data["data"]["status"] == "stored"
         assert data["message"] == "Knowledge stored successfully in IQ's memory"
 
-    async def test_retrieve_memories_success(
-        self, async_client, auth_headers, mock_iq_agent
-    ):
+    async def test_retrieve_memories_success(self, async_client, auth_headers, mock_iq_agent):
         """Test successful memory retrieval"""
 
         with patch("api.routers.iq_agent.get_iq_agent", return_value=mock_iq_agent):
@@ -342,9 +332,7 @@ class TestIQAgentEndpoints:
     ):
         """Test successful graph initialization"""
 
-        with patch(
-            "api.routers.iq_agent.get_neo4j_service", return_value=mock_neo4j_service
-        ):
+        with patch("api.routers.iq_agent.get_neo4j_service", return_value=mock_neo4j_service):
             response = await async_client.post(
                 "/api/v1/iq/graph/initialize",
                 json={"clear_existing": False, "load_sample_data": True},
@@ -359,15 +347,13 @@ class TestIQAgentEndpoints:
         assert "timestamp" in data["data"]
         assert data["message"] == "Compliance graph initialization initiated"
 
-    async def test_health_check_healthy(
-        self, async_client, mock_neo4j_service, mock_iq_agent
-    ):
+    async def test_health_check_healthy(self, async_client, mock_neo4j_service, mock_iq_agent):
         """Test health check when all systems healthy"""
 
-        with patch(
-            "api.routers.iq_agent.get_neo4j_service", return_value=mock_neo4j_service
-        ), patch("api.routers.iq_agent.get_iq_agent", return_value=mock_iq_agent):
-
+        with (
+            patch("api.routers.iq_agent.get_neo4j_service", return_value=mock_neo4j_service),
+            patch("api.routers.iq_agent.get_iq_agent", return_value=mock_iq_agent),
+        ):
             response = await async_client.get("/api/v1/iq/health?include_stats=true")
 
         assert response.status_code == 200
@@ -389,9 +375,7 @@ class TestIQAgentEndpoints:
             side_effect=Exception("Connection failed"),
         )
 
-        with patch(
-            "api.routers.iq_agent.get_neo4j_service", return_value=failing_service
-        ):
+        with patch("api.routers.iq_agent.get_neo4j_service", return_value=failing_service):
             response = await async_client.get("/api/v1/iq/health")
 
         assert response.status_code == 200
@@ -402,15 +386,13 @@ class TestIQAgentEndpoints:
         assert health_data["status"] in ["degraded", "unhealthy"]
         assert health_data["neo4j_connected"] is False
 
-    async def test_status_endpoint(
-        self, async_client, mock_neo4j_service, mock_iq_agent
-    ):
+    async def test_status_endpoint(self, async_client, mock_neo4j_service, mock_iq_agent):
         """Test lightweight status endpoint"""
 
-        with patch(
-            "api.routers.iq_agent.get_neo4j_service", return_value=mock_neo4j_service
-        ), patch("api.routers.iq_agent.get_iq_agent", return_value=mock_iq_agent):
-
+        with (
+            patch("api.routers.iq_agent.get_neo4j_service", return_value=mock_neo4j_service),
+            patch("api.routers.iq_agent.get_iq_agent", return_value=mock_iq_agent),
+        ):
             response = await async_client.get("/api/v1/iq/status")
 
         assert response.status_code == 200
@@ -444,7 +426,9 @@ class TestIQAgentEndpoints:
             side_effect=Exception("Service unavailable"),
         ):
             response = await async_client.post(
-                "/api/v1/iq/query", json={"query": "Test query"}, headers=auth_headers,
+                "/api/v1/iq/query",
+                json={"query": "Test query"},
+                headers=auth_headers,
             )
 
         assert response.status_code == 503
@@ -465,16 +449,16 @@ class TestIQAgentEndpoints:
 
         with patch("api.routers.iq_agent.get_iq_agent", return_value=mock_iq_agent):
             response = await async_client.post(
-                "/api/v1/iq/query", json={"query": "Test query"}, headers=auth_headers,
+                "/api/v1/iq/query",
+                json={"query": "Test query"},
+                headers=auth_headers,
             )
 
         assert response.status_code == 502
         data = response.json()
         assert "AI analysis failed" in data["detail"]
 
-    async def test_memory_storage_error_handling(
-        self, async_client, auth_headers, mock_iq_agent
-    ):
+    async def test_memory_storage_error_handling(self, async_client, auth_headers, mock_iq_agent):
         """Test error handling during memory storage"""
 
         # Mock memory manager to raise exception
@@ -502,7 +486,6 @@ class TestIQAgentEndpoints:
         import asyncio
 
         with patch("api.routers.iq_agent.get_iq_agent", return_value=mock_iq_agent):
-
             # Create multiple concurrent queries
             tasks = []
             for i in range(5):
@@ -522,9 +505,7 @@ class TestIQAgentEndpoints:
             successful_responses = [r for r in responses if r.status_code == 200]
             assert len(successful_responses) > 0  # At least some should succeed
 
-    async def test_large_query_handling(
-        self, async_client, auth_headers, mock_iq_agent
-    ):
+    async def test_large_query_handling(self, async_client, auth_headers, mock_iq_agent):
         """Test handling of large compliance queries"""
 
         # Create a large but valid query
@@ -541,25 +522,21 @@ class TestIQAgentEndpoints:
 
         assert response.status_code == 200
 
-    async def test_query_with_special_characters(
-        self, async_client, auth_headers, mock_iq_agent
-    ):
+    async def test_query_with_special_characters(self, async_client, auth_headers, mock_iq_agent):
         """Test queries with special characters and unicode"""
 
-        special_query = (
-            "What are our compliance gaps für GDPR & 6AMLD? Include costs €£$",
-        )
+        special_query = ("What are our compliance gaps für GDPR & 6AMLD? Include costs €£$",)
 
         with patch("api.routers.iq_agent.get_iq_agent", return_value=mock_iq_agent):
             response = await async_client.post(
-                "/api/v1/iq/query", json={"query": special_query}, headers=auth_headers,
+                "/api/v1/iq/query",
+                json={"query": special_query},
+                headers=auth_headers,
             )
 
         assert response.status_code == 200
 
-    async def test_background_task_execution(
-        self, async_client, auth_headers, mock_iq_agent
-    ):
+    async def test_background_task_execution(self, async_client, auth_headers, mock_iq_agent):
         """Test that background tasks are properly executed"""
 
         with patch("api.routers.iq_agent.get_iq_agent", return_value=mock_iq_agent):
@@ -580,15 +557,12 @@ class TestIQAgentEndpoints:
 class TestIQAgentLoadTesting:
     """Load testing for IQ Agent endpoints"""
 
-    async def test_sustained_query_load(
-        self, async_client, auth_headers, mock_iq_agent
-    ):
+    async def test_sustained_query_load(self, async_client, auth_headers, mock_iq_agent):
         """Test sustained load on compliance queries"""
         import asyncio
         import time
 
         with patch("api.routers.iq_agent.get_iq_agent", return_value=mock_iq_agent):
-
             start_time = time.time()
             tasks = []
 
@@ -610,14 +584,10 @@ class TestIQAgentLoadTesting:
 
             # Analyze results
             successful_responses = [
-                r
-                for r in responses
-                if hasattr(r, "status_code") and r.status_code == 200
+                r for r in responses if hasattr(r, "status_code") and r.status_code == 200
             ]
             rate_limited_responses = [
-                r
-                for r in responses
-                if hasattr(r, "status_code") and r.status_code == 429
+                r for r in responses if hasattr(r, "status_code") and r.status_code == 429
             ]
 
             total_time = end_time - start_time

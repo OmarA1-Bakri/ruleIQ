@@ -4,6 +4,7 @@
 
 Simple test to verify SMB ownership logic without database.
 """
+
 import pytest
 from unittest.mock import Mock, AsyncMock, patch
 from uuid import uuid4
@@ -11,10 +12,7 @@ from fastapi import HTTPException
 from services.data_access import DataAccess
 from database.user import User
 
-from tests.test_constants import (
-    HTTP_FORBIDDEN,
-    HTTP_NOT_FOUND
-)
+from tests.test_constants import HTTP_FORBIDDEN, HTTP_NOT_FOUND
 
 
 class TestDataAccessOwnership:
@@ -32,10 +30,10 @@ class TestDataAccessOwnership:
         mock_model = Mock()
         mock_model.id = Mock()
         mock_db = Mock()
-        (mock_db.query.return_value.filter.return_value.first.return_value
-            ) = mock_resource,
-        result = DataAccess.ensure_owner(mock_db, mock_model, resource_id,
-            mock_user, 'test resource')
+        (mock_db.query.return_value.filter.return_value.first.return_value) = (mock_resource,)
+        result = DataAccess.ensure_owner(
+            mock_db, mock_model, resource_id, mock_user, "test resource"
+        )
         assert result == mock_resource
 
     def test_ensure_owner_forbidden(self):
@@ -51,11 +49,9 @@ class TestDataAccessOwnership:
         mock_model = Mock()
         mock_model.id = Mock()
         mock_db = Mock()
-        (mock_db.query.return_value.filter.return_value.first.return_value
-            ) = mock_resource,
+        (mock_db.query.return_value.filter.return_value.first.return_value) = (mock_resource,)
         with pytest.raises(HTTPException) as exc_info:
-            DataAccess.ensure_owner(mock_db, mock_model, resource_id,
-                mock_user, 'test resource')
+            DataAccess.ensure_owner(mock_db, mock_model, resource_id, mock_user, "test resource")
         assert exc_info.value.status_code == HTTP_FORBIDDEN
         assert "don't have access" in exc_info.value.detail
 
@@ -68,13 +64,11 @@ class TestDataAccessOwnership:
         mock_model = Mock()
         mock_model.id = Mock()
         mock_db = Mock()
-        (mock_db.query.return_value.filter.return_value.first.return_value
-            ) = None
+        (mock_db.query.return_value.filter.return_value.first.return_value) = None
         with pytest.raises(HTTPException) as exc_info:
-            DataAccess.ensure_owner(mock_db, mock_model, resource_id,
-                mock_user, 'test resource')
+            DataAccess.ensure_owner(mock_db, mock_model, resource_id, mock_user, "test resource")
         assert exc_info.value.status_code == HTTP_NOT_FOUND
-        assert 'not found' in exc_info.value.detail.lower()
+        assert "not found" in exc_info.value.detail.lower()
 
     @pytest.mark.asyncio
     async def test_ensure_owner_async_success(self):
@@ -90,14 +84,15 @@ class TestDataAccessOwnership:
         mock_result.scalars.return_value.first.return_value = mock_resource
         mock_db = AsyncMock()
         mock_db.execute = AsyncMock(return_value=mock_result)
-        with patch('services.data_access.select') as mock_select:
+        with patch("services.data_access.select") as mock_select:
             mock_stmt = Mock()
             mock_stmt.where.return_value = mock_stmt
             mock_select.return_value = mock_stmt
             mock_model = Mock()
             mock_model.id = Mock()
-            result = await DataAccess.ensure_owner_async(mock_db,
-                mock_model, resource_id, mock_user, 'test resource')
+            result = await DataAccess.ensure_owner_async(
+                mock_db, mock_model, resource_id, mock_user, "test resource"
+            )
             assert result == mock_resource
 
     @pytest.mark.asyncio
@@ -115,15 +110,16 @@ class TestDataAccessOwnership:
         mock_result.scalars.return_value.first.return_value = mock_resource
         mock_db = AsyncMock()
         mock_db.execute = AsyncMock(return_value=mock_result)
-        with patch('services.data_access.select') as mock_select:
+        with patch("services.data_access.select") as mock_select:
             mock_stmt = Mock()
             mock_stmt.where.return_value = mock_stmt
             mock_select.return_value = mock_stmt
             mock_model = Mock()
             mock_model.id = Mock()
             with pytest.raises(HTTPException) as exc_info:
-                await DataAccess.ensure_owner_async(mock_db, mock_model,
-                    resource_id, mock_user, 'test resource')
+                await DataAccess.ensure_owner_async(
+                    mock_db, mock_model, resource_id, mock_user, "test resource"
+                )
             assert exc_info.value.status_code == HTTP_FORBIDDEN
             assert "don't have access" in exc_info.value.detail
 
@@ -134,7 +130,7 @@ class TestDataAccessOwnership:
         mock_user.id = user_id
         owned_resource = Mock()
         owned_resource.user_id = user_id
-        owned_resource.name = 'Owned Resource'
+        owned_resource.name = "Owned Resource"
         mock_query = Mock()
         mock_query.filter.return_value = mock_query
         mock_query.limit.return_value = mock_query
@@ -158,13 +154,12 @@ class TestDataAccessOwnership:
         mock_model = Mock()
         mock_model.return_value = Mock()
         mock_model.user_id = Mock()
-        data = {'name': 'Test Resource', 'description': 'Test'}
-        result = DataAccess.create_owned(mock_db, mock_model, mock_user, **data
-            )
+        data = {"name": "Test Resource", "description": "Test"}
+        result = DataAccess.create_owned(mock_db, mock_model, mock_user, **data)
         mock_model.assert_called_once()
         call_args = mock_model.call_args[1]
-        assert call_args['user_id'] == user_id
-        assert call_args['name'] == 'Test Resource'
+        assert call_args["user_id"] == user_id
+        assert call_args["name"] == "Test Resource"
         mock_db.add.assert_called_once()
         mock_db.commit.assert_called_once()
         mock_db.refresh.assert_called_once()

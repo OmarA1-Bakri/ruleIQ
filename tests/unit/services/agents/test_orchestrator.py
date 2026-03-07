@@ -37,7 +37,7 @@ def sample_agent():
         persona_type="developer",
         capabilities={"code_generation": True, "testing": True},
         config={"max_tokens": 1000},
-        is_active=True
+        is_active=True,
     )
 
 
@@ -50,7 +50,7 @@ def sample_session(sample_agent):
         user_id=str(uuid4()),
         trust_level=TrustLevel.L0_OBSERVED,
         context={"test": "context"},
-        started_at=datetime.utcnow()
+        started_at=datetime.utcnow(),
     )
 
 
@@ -68,10 +68,7 @@ class TestOrchestratorService:
 
         # Execute
         agent = await orchestrator.create_agent(
-            name=name,
-            persona_type=persona_type,
-            capabilities=capabilities,
-            config=config
+            name=name, persona_type=persona_type, capabilities=capabilities, config=config
         )
 
         # Verify
@@ -133,10 +130,7 @@ class TestOrchestratorService:
         orchestrator.agent_registry[sample_agent.agent_id] = sample_agent
 
         # Execute
-        result = await orchestrator.suspend_agent(
-            sample_agent.agent_id,
-            reason="Test suspension"
-        )
+        result = await orchestrator.suspend_agent(sample_agent.agent_id, reason="Test suspension")
 
         # Verify
         assert result is True
@@ -153,10 +147,7 @@ class TestOrchestratorService:
         orchestrator.active_sessions[sample_session.session_id] = sample_session
 
         # Execute
-        result = await orchestrator.suspend_agent(
-            sample_agent.agent_id,
-            reason="Test suspension"
-        )
+        result = await orchestrator.suspend_agent(sample_agent.agent_id, reason="Test suspension")
 
         # Verify
         assert result is True
@@ -188,9 +179,7 @@ class TestOrchestratorService:
 
         # Execute
         session = await orchestrator.create_session(
-            agent_id=sample_agent.agent_id,
-            user_id=user_id,
-            initial_context=initial_context
+            agent_id=sample_agent.agent_id, user_id=user_id, initial_context=initial_context
         )
 
         # Verify
@@ -242,16 +231,12 @@ class TestOrchestratorService:
         # Setup
         # Create an expired session
         expired_session = AgentSession(
-            session_id=uuid4(),
-            agent_id=uuid4(),
-            started_at=datetime.utcnow() - timedelta(hours=2)
+            session_id=uuid4(), agent_id=uuid4(), started_at=datetime.utcnow() - timedelta(hours=2)
         )
 
         # Create an active session
         active_session = AgentSession(
-            session_id=uuid4(),
-            agent_id=uuid4(),
-            started_at=datetime.utcnow()
+            session_id=uuid4(), agent_id=uuid4(), started_at=datetime.utcnow()
         )
 
         orchestrator.active_sessions[expired_session.session_id] = expired_session
@@ -296,10 +281,9 @@ class TestOrchestratorService:
         # Setup
         sessions = [
             MagicMock(
-                ended_at=datetime.utcnow(),
-                started_at=datetime.utcnow() - timedelta(minutes=30)
+                ended_at=datetime.utcnow(), started_at=datetime.utcnow() - timedelta(minutes=30)
             ),
-            MagicMock(ended_at=None, started_at=datetime.utcnow())
+            MagicMock(ended_at=None, started_at=datetime.utcnow()),
         ]
         mock_db_session.query().filter().all.return_value = sessions
         orchestrator.agent_registry[sample_agent.agent_id] = sample_agent
@@ -321,11 +305,7 @@ class TestOrchestratorService:
         agent_ids = []
 
         async def create_and_activate_agent(index):
-            agent = await orchestrator.create_agent(
-                f"Agent{index}",
-                "developer",
-                {"test": True}
-            )
+            agent = await orchestrator.create_agent(f"Agent{index}", "developer", {"test": True})
             agent_ids.append(agent.agent_id)
             await orchestrator.activate_agent(agent.agent_id)
             return agent
@@ -362,7 +342,7 @@ class TestOrchestratorService:
         session = AgentSession(
             session_id=uuid4(),
             agent_id=uuid4(),
-            started_at=datetime.utcnow() - timedelta(seconds=2)
+            started_at=datetime.utcnow() - timedelta(seconds=2),
         )
 
         orchestrator.active_sessions[session.session_id] = session
@@ -383,9 +363,7 @@ class TestOrchestratorIntegration:
         """Test complete agent lifecycle from creation to termination."""
         # Create agent
         agent = await orchestrator.create_agent(
-            "LifecycleAgent",
-            "developer",
-            {"full_lifecycle": True}
+            "LifecycleAgent", "developer", {"full_lifecycle": True}
         )
         assert agent is not None
 
@@ -394,17 +372,11 @@ class TestOrchestratorIntegration:
         assert result is True
 
         # Create session
-        session = await orchestrator.create_session(
-            agent.agent_id,
-            user_id=str(uuid4())
-        )
+        session = await orchestrator.create_session(agent.agent_id, user_id=str(uuid4()))
         assert session is not None
 
         # Suspend agent
-        result = await orchestrator.suspend_agent(
-            agent.agent_id,
-            "Testing suspension"
-        )
+        result = await orchestrator.suspend_agent(agent.agent_id, "Testing suspension")
         assert result is True
 
         # Verify session was ended

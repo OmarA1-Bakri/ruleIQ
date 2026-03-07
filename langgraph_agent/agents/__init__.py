@@ -52,9 +52,7 @@ except ImportError:
     # Mock classes for when observability dependencies are missing
     class ObservabilityManager:
         def __init__(self, *args, **kwargs) -> None:
-            raise ImportError(
-                f"ObservabilityManager requires additional dependencies: {e}"
-            )
+            raise ImportError(f"ObservabilityManager requires additional dependencies: {e}")
 
     class AgentCallback:
         pass

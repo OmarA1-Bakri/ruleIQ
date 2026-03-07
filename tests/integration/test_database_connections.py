@@ -16,8 +16,8 @@ class TestDatabaseConnections:
 
     def test_environment_is_test(self):
         """Ensure we're in test environment."""
-        assert os.getenv('TESTING') == 'true'
-        assert os.getenv('ENVIRONMENT') == 'testing'
+        assert os.getenv("TESTING") == "true"
+        assert os.getenv("ENVIRONMENT") == "testing"
 
     def test_postgres_connection(self, db_session: Session):
         """Test basic PostgreSQL connection."""
@@ -29,7 +29,7 @@ class TestDatabaseConnections:
         # Test database name
         result = db_session.execute(text("SELECT current_database()"))
         db_name = result.scalar()
-        assert 'test' in db_name.lower() or 'compliance' in db_name.lower()
+        assert "test" in db_name.lower() or "compliance" in db_name.lower()
 
     def test_postgres_transaction_rollback(self, db_session: Session):
         """Test that transactions are properly rolled back between tests."""
@@ -39,7 +39,7 @@ class TestDatabaseConnections:
         user = User(
             email="rollback_test@example.com",
             full_name="Rollback Test",
-            hashed_password="test_hash"
+            hashed_password="test_hash",
         )
         db_session.add(user)
         db_session.commit()
@@ -73,11 +73,11 @@ class TestDatabaseConnections:
 
         # Check for essential tables
         essential_tables = [
-            'users',
-            'business_profiles',
-            'compliance_frameworks',
-            'assessment_sessions',
-            'evidence_items'
+            "users",
+            "business_profiles",
+            "compliance_frameworks",
+            "assessment_sessions",
+            "evidence_items",
         ]
 
         for table in essential_tables:
@@ -89,53 +89,54 @@ class TestDatabaseConnections:
         assert redis_client.ping() is True
 
         # Test set/get
-        redis_client.set('test_key', 'test_value')
-        value = redis_client.get('test_key')
-        assert value == 'test_value'
+        redis_client.set("test_key", "test_value")
+        value = redis_client.get("test_key")
+        assert value == "test_value"
 
         # Test delete
-        result = redis_client.delete('test_key')
+        result = redis_client.delete("test_key")
         assert result == 1
 
         # Verify deleted
-        value = redis_client.get('test_key')
+        value = redis_client.get("test_key")
         assert value is None
 
     def test_redis_expiration(self, redis_client):
         """Test Redis key expiration."""
         # Set key with 1 second expiration
-        redis_client.set('expire_test', 'value', ex=1)
+        redis_client.set("expire_test", "value", ex=1)
 
         # Should exist immediately
-        assert redis_client.get('expire_test') == 'value'
+        assert redis_client.get("expire_test") == "value"
 
         # Wait for expiration
         import time
+
         time.sleep(1.1)
 
         # Should be expired
-        assert redis_client.get('expire_test') is None
+        assert redis_client.get("expire_test") is None
 
     def test_redis_data_types(self, redis_client):
         """Test various Redis data types."""
         # List operations
-        redis_client.lpush('test_list', 'item1', 'item2')
-        items = redis_client.lrange('test_list', 0, -1)
-        assert items == ['item2', 'item1']
+        redis_client.lpush("test_list", "item1", "item2")
+        items = redis_client.lrange("test_list", 0, -1)
+        assert items == ["item2", "item1"]
 
         # Hash operations
-        redis_client.hset('test_hash', 'field1', 'value1')
-        redis_client.hset('test_hash', 'field2', 'value2')
-        hash_data = redis_client.hgetall('test_hash')
-        assert hash_data == {'field1': 'value1', 'field2': 'value2'}
+        redis_client.hset("test_hash", "field1", "value1")
+        redis_client.hset("test_hash", "field2", "value2")
+        hash_data = redis_client.hgetall("test_hash")
+        assert hash_data == {"field1": "value1", "field2": "value2"}
 
         # Set operations
-        redis_client.sadd('test_set', 'member1', 'member2', 'member1')
-        members = redis_client.smembers('test_set')
-        assert members == {'member1', 'member2'}
+        redis_client.sadd("test_set", "member1", "member2", "member1")
+        members = redis_client.smembers("test_set")
+        assert members == {"member1", "member2"}
 
         # Cleanup
-        redis_client.delete('test_list', 'test_hash', 'test_set')
+        redis_client.delete("test_list", "test_hash", "test_set")
 
     @pytest.mark.asyncio
     async def test_async_postgres_connection(self, async_db_session):
@@ -151,7 +152,7 @@ class TestDatabaseConnections:
 
         # Check pool settings
         assert pool.size() <= 5  # Pool size for tests
-        assert hasattr(pool, '_overflow')  # Has overflow capability
+        assert hasattr(pool, "_overflow")  # Has overflow capability
 
     def test_fixtures_work_together(self, db_session, redis_client, sample_user):
         """Test that multiple fixtures can work together."""
@@ -195,9 +196,9 @@ class TestConnectionResilience:
             pass
 
         # Should still work
-        redis_client.set('recovery_test', 'works')
-        assert redis_client.get('recovery_test') == 'works'
-        redis_client.delete('recovery_test')
+        redis_client.set("recovery_test", "works")
+        assert redis_client.get("recovery_test") == "works"
+        redis_client.delete("recovery_test")
 
 
 class TestMockFixtures:
@@ -206,19 +207,19 @@ class TestMockFixtures:
     def test_mock_redis_client(self, mock_redis_client):
         """Test the mock Redis client fixture."""
         # Test basic operations
-        assert mock_redis_client.set('key1', 'value1') is True
-        assert mock_redis_client.get('key1') == 'value1'
-        assert mock_redis_client.exists('key1') is True
-        assert mock_redis_client.delete('key1') == 1
-        assert mock_redis_client.exists('key1') is False
+        assert mock_redis_client.set("key1", "value1") is True
+        assert mock_redis_client.get("key1") == "value1"
+        assert mock_redis_client.exists("key1") is True
+        assert mock_redis_client.delete("key1") == 1
+        assert mock_redis_client.exists("key1") is False
 
         # Test nx (not exists) flag
-        mock_redis_client.set('key2', 'value2')
-        assert mock_redis_client.set('key2', 'new_value', nx=True) is False
-        assert mock_redis_client.get('key2') == 'value2'
+        mock_redis_client.set("key2", "value2")
+        assert mock_redis_client.set("key2", "new_value", nx=True) is False
+        assert mock_redis_client.get("key2") == "value2"
 
         # Test xx (exists) flag
-        assert mock_redis_client.set('key3', 'value3', xx=True) is False
-        mock_redis_client.set('key3', 'initial')
-        assert mock_redis_client.set('key3', 'updated', xx=True) is True
-        assert mock_redis_client.get('key3') == 'updated'
+        assert mock_redis_client.set("key3", "value3", xx=True) is False
+        mock_redis_client.set("key3", "initial")
+        assert mock_redis_client.set("key3", "updated", xx=True) is True
+        assert mock_redis_client.get("key3") == "updated"

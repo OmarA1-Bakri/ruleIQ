@@ -1,6 +1,5 @@
 """Add API key management tables
 
-from __future__ import annotations
 
 Revision ID: add_api_key_tables
 Revises: latest
@@ -26,9 +25,7 @@ def upgrade() -> None:
     # Create api_keys table
     op.create_table(
         "api_keys",
-        sa.Column(
-            "id", postgresql.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-        ),
+        sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4),
         sa.Column("key_id", sa.String(50), unique=True, nullable=False, index=True),
         sa.Column("key_hash", sa.String(255), nullable=False),
         sa.Column("organization_id", sa.String(100), nullable=False, index=True),
@@ -46,17 +43,13 @@ def upgrade() -> None:
     )
 
     # Create indexes for api_keys
-    op.create_index(
-        "idx_api_keys_org_status", "api_keys", ["organization_id", "status"]
-    )
+    op.create_index("idx_api_keys_org_status", "api_keys", ["organization_id", "status"])
     op.create_index("idx_api_keys_expires", "api_keys", ["expires_at"])
 
     # Create api_key_scopes table
     op.create_table(
         "api_key_scopes",
-        sa.Column(
-            "id", postgresql.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-        ),
+        sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4),
         sa.Column(
             "key_id",
             sa.String(50),
@@ -79,9 +72,7 @@ def upgrade() -> None:
     # Create api_key_usage table
     op.create_table(
         "api_key_usage",
-        sa.Column(
-            "id", postgresql.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-        ),
+        sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4),
         sa.Column(
             "key_id",
             sa.String(50),
@@ -105,9 +96,7 @@ def upgrade() -> None:
     )
 
     # Create indexes for api_key_usage
-    op.create_index(
-        "idx_api_key_usage_key_timestamp", "api_key_usage", ["key_id", "timestamp"]
-    )
+    op.create_index("idx_api_key_usage_key_timestamp", "api_key_usage", ["key_id", "timestamp"])
     op.create_index("idx_api_key_usage_timestamp", "api_key_usage", ["timestamp"])
 
 

@@ -11,8 +11,10 @@ from functools import wraps
 from datetime import datetime
 import asyncio
 
+
 class FeatureFlag(BaseModel):
     """Feature flag configuration"""
+
     name: str
     enabled: bool = False
     percentage: int = Field(0, ge=0, le=100)  # Percentage rollout
@@ -21,22 +23,16 @@ class FeatureFlag(BaseModel):
     environments: List[str] = ["development"]  # Enabled environments
     expires_at: Optional[datetime] = None
 
+
 class FeatureFlagService:
     """Service for managing feature flags"""
 
     def __init__(self, redis_client: Optional[redis.Redis] = None) -> None:
-        self.redis = redis_client or redis.Redis(
-            host='localhost',
-            port=6379,
-            decode_responses=True
-        )
+        self.redis = redis_client or redis.Redis(host="localhost", port=6379, decode_responses=True)
         self.cache_ttl = 60  # 60 second cache
 
     def is_enabled(
-        self,
-        flag_name: str,
-        user_id: Optional[str] = None,
-        environment: str = "production"
+        self, flag_name: str, user_id: Optional[str] = None, environment: str = "production"
     ) -> bool:
         """Check if feature flag is enabled for user"""
 
@@ -51,11 +47,7 @@ class FeatureFlagService:
             flag = self._load_flag(flag_name)
             if flag:
                 # Cache for 60 seconds
-                self.redis.setex(
-                    cache_key,
-                    self.cache_ttl,
-                    flag.json()
-                )
+                self.redis.setex(cache_key, self.cache_ttl, flag.json())
 
         if not flag:
             return False
@@ -107,31 +99,31 @@ class FeatureFlagService:
                 name="new_dashboard",
                 enabled=True,
                 percentage=50,  # 50% rollout
-                environments=["development", "staging", "production"]
+                environments=["development", "staging", "production"],
             ),
             "ai_assistant": FeatureFlag(
                 name="ai_assistant",
                 enabled=True,
                 percentage=10,  # 10% rollout
                 whitelist=["admin_user_id"],
-                environments=["development", "staging"]
+                environments=["development", "staging"],
             ),
             "advanced_analytics": FeatureFlag(
-                name="advanced_analytics",
-                enabled=False,
-                environments=["development"]
-            )
+                name="advanced_analytics", enabled=False, environments=["development"]
+            ),
         }
 
         return default_flags.get(flag_name)
 
+
 def feature_flag(flag_name: str):
     """Decorator for feature flag protected code"""
+
     def decorator(func):
         @wraps(func)
         async def async_wrapper(*args, **kwargs):
             service = FeatureFlagService()
-            user_id = kwargs.get('user_id') or (args[0].user_id if args else None)
+            user_id = kwargs.get("user_id") or (args[0].user_id if args else None)
 
             if service.is_enabled(flag_name, user_id):
                 return await func(*args, **kwargs)
@@ -142,7 +134,7 @@ def feature_flag(flag_name: str):
         @wraps(func)
         def sync_wrapper(*args, **kwargs):
             service = FeatureFlagService()
-            user_id = kwargs.get('user_id') or (args[0].user_id if args else None)
+            user_id = kwargs.get("user_id") or (args[0].user_id if args else None)
 
             if service.is_enabled(flag_name, user_id):
                 return func(*args, **kwargs)
@@ -153,11 +145,15 @@ def feature_flag(flag_name: str):
         if asyncio.iscoroutinefunction(func):
             return async_wrapper
         return sync_wrapper
+
     return decorator
+
 
 class FeatureNotEnabledException(Exception):
     """Exception raised when feature is not enabled"""
+
     pass
+
 
 # Usage example:
 # @feature_flag("new_dashboard")

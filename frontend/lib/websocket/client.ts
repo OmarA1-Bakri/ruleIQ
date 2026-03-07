@@ -7,7 +7,6 @@ import {
   MessageType,
   ConnectionState,
   WSEventHandlers,
-  ChatMessage,
   TypingIndicator,
   StreamingMessagePayload
 } from './types';

@@ -121,7 +121,9 @@ class TestParallelCollectionMechanisms:
         query = {"type": "compliance_check", "regulation": "GDPR"}
 
         results = await orchestrator.collect_parallel(
-            query=query, sources=["source1", "source2"], timeout=5.0,
+            query=query,
+            sources=["source1", "source2"],
+            timeout=5.0,
         )
 
         assert len(results) == 2
@@ -145,7 +147,9 @@ class TestParallelCollectionMechanisms:
 
         # Should timeout after 2 seconds
         results = await orchestrator.collect_parallel(
-            query=query, sources=["slow_source"], timeout=2.0,
+            query=query,
+            sources=["slow_source"],
+            timeout=2.0,
         )
 
         assert len(results) == 1
@@ -167,7 +171,9 @@ class TestParallelCollectionMechanisms:
         # Collect from all sources
         source_ids = [f"source_{i}" for i in range(10)]
         results = await orchestrator.collect_parallel(
-            query={"type": "test"}, sources=source_ids, timeout=5.0,
+            query={"type": "test"},
+            sources=source_ids,
+            timeout=5.0,
         )
 
         # Verify all sources were queried
@@ -187,7 +193,9 @@ class TestParallelCollectionMechanisms:
         )
 
         results = await orchestrator.collect_parallel(
-            query={"type": "test"}, sources=["good_source", "error_source"], timeout=5.0,
+            query={"type": "test"},
+            sources=["good_source", "error_source"],
+            timeout=5.0,
         )
 
         # Good source should succeed
@@ -287,17 +295,17 @@ class TestEvidenceValidationAndScoring:
         """Test evidence deduplication based on similarity"""
         evidence1 = {
             "evidence_id": "ev_1",
-            "content": "GDPR requires explicit consent for data processing"
+            "content": "GDPR requires explicit consent for data processing",
         }
 
         evidence2 = {
             "evidence_id": "ev_2",
-            "content": "GDPR requires explicit consent for processing personal data"
+            "content": "GDPR requires explicit consent for processing personal data",
         }
 
         evidence3 = {
             "evidence_id": "ev_3",
-            "content": "HIPAA requires patient authorization for data disclosure"
+            "content": "HIPAA requires patient authorization for data disclosure",
         }
 
         # High similarity between evidence1 and evidence2
@@ -391,7 +399,8 @@ class TestEvidenceAggregationAlgorithms:
         ]
 
         hierarchy = orchestrator.aggregate_hierarchical(
-            evidence_list, levels=["regulation", "chapter", "article", "section"],
+            evidence_list,
+            levels=["regulation", "chapter", "article", "section"],
         )
 
         assert "GDPR" in hierarchy
@@ -579,7 +588,8 @@ class TestEvidenceConfidenceCalculations:
         }
 
         confidence = orchestrator.calculate_temporal_confidence(
-            evidence, half_life_days=30,
+            evidence,
+            half_life_days=30,
         )
 
         # 30 days old with 30-day half-life should be ~0.5
@@ -592,7 +602,8 @@ class TestEvidenceConfidenceCalculations:
         }
 
         fresh_confidence = orchestrator.calculate_temporal_confidence(
-            fresh_evidence, half_life_days=30,
+            fresh_evidence,
+            half_life_days=30,
         )
         assert fresh_confidence["temporal_confidence"] > 0.95
 
@@ -610,7 +621,8 @@ class TestEvidenceConfidenceCalculations:
         ]
 
         confidence = orchestrator.calculate_corroboration_confidence(
-            primary_evidence, corroborating_evidence=corroborating,
+            primary_evidence,
+            corroborating_evidence=corroborating,
         )
 
         # Multiple corroborating sources should increase confidence
@@ -619,7 +631,8 @@ class TestEvidenceConfidenceCalculations:
 
         # No corroboration should have lower confidence
         no_corroboration = orchestrator.calculate_corroboration_confidence(
-            primary_evidence, corroborating_evidence=[],
+            primary_evidence,
+            corroborating_evidence=[],
         )
         assert no_corroboration["corroboration_score"] < 0.5
 

@@ -195,6 +195,7 @@ export const FreemiumAssessmentStartResponseSchema = z.object({
   question_type: z.enum(['multiple_choice', 'yes_no', 'text', 'scale']),
   question_context: z.string().optional(),
   answer_options: z.array(z.string()).optional(),
+  is_required: z.boolean().optional(),
   progress: ProgressSchema,
   personalization_applied: z.boolean(),
   expires_at: z.string(),
@@ -413,6 +414,7 @@ export const AdvancedQuestionResponseSchema = z.object({
 export const AssessmentResultsResponseSchema = z.object({
   session_id: z.string().uuid(),
   lead_id: z.string().optional(),
+  framework_id: z.string().optional(),
   session_token: z.string(),
   compliance_score: z.number().min(0).max(100),
   risk_score: z.number().min(0).max(100),

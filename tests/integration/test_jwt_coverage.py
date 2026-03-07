@@ -4,6 +4,7 @@ Part of SEC-005: Complete JWT Coverage Extension
 
 These tests verify that all protected routes require valid JWT authentication.
 """
+
 import pytest
 import asyncio
 from httpx import AsyncClient
@@ -46,13 +47,11 @@ class TestJWTCoverage:
         ("PUT", "/api/v1/assessments/{id}"),
         ("DELETE", "/api/v1/assessments/{id}"),
         ("POST", "/api/v1/assessments/quick"),
-
         # Compliance
         ("GET", "/api/v1/compliance/status"),
         ("GET", "/api/v1/compliance/requirements"),
         ("POST", "/api/v1/compliance/check"),
         ("GET", "/api/v1/compliance/report"),
-
         # Evidence
         ("GET", "/api/v1/evidence"),
         ("POST", "/api/v1/evidence"),
@@ -61,52 +60,43 @@ class TestJWTCoverage:
         ("DELETE", "/api/v1/evidence/{id}"),
         ("POST", "/api/v1/evidence/bulk"),
         ("GET", "/api/v1/evidence/search"),
-
         # Policies
         ("GET", "/api/v1/policies"),
         ("POST", "/api/v1/policies/generate"),
         ("GET", "/api/v1/policies/{id}"),
         ("PATCH", "/api/v1/policies/{id}/status"),
         ("DELETE", "/api/v1/policies/{id}"),
-
         # Users
         ("GET", "/api/v1/users/profile"),
         ("PUT", "/api/v1/users/profile"),
         ("GET", "/api/v1/users/me"),
         ("DELETE", "/api/v1/users/me"),
-
         # Business Profiles
         ("GET", "/api/v1/business-profiles"),
         ("POST", "/api/v1/business-profiles"),
         ("GET", "/api/v1/business-profiles/{id}"),
         ("PUT", "/api/v1/business-profiles/{id}"),
-
         # Admin endpoints (critical)
         ("GET", "/api/v1/admin/users"),
         ("GET", "/api/v1/admin/metrics"),
         ("POST", "/api/v1/admin/audit"),
         ("GET", "/api/v1/admin/logs"),
-
         # Reports
         ("GET", "/api/v1/reports"),
         ("POST", "/api/v1/reports/generate"),
         ("GET", "/api/v1/reports/{id}"),
-
         # Dashboard
         ("GET", "/api/v1/dashboard"),
         ("GET", "/api/v1/dashboard/metrics"),
         ("GET", "/api/v1/dashboard/analytics"),
-
         # Payments
         ("GET", "/api/v1/payments"),
         ("POST", "/api/v1/payments/create"),
         ("GET", "/api/v1/payments/history"),
-
         # API Keys
         ("GET", "/api/v1/api-keys"),
         ("POST", "/api/v1/api-keys"),
         ("DELETE", "/api/v1/api-keys/{id}"),
-
         # Secrets Vault
         ("GET", "/api/v1/secrets"),
         ("POST", "/api/v1/secrets"),
@@ -126,7 +116,7 @@ class TestJWTCoverage:
             "sub": "test-user-id",
             "email": "test@example.com",
             "type": "access",
-            "exp": datetime.utcnow() + timedelta(hours=1)
+            "exp": datetime.utcnow() + timedelta(hours=1),
         }
         return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
@@ -137,7 +127,7 @@ class TestJWTCoverage:
             "sub": "test-user-id",
             "email": "test@example.com",
             "type": "access",
-            "exp": datetime.utcnow() - timedelta(hours=1)
+            "exp": datetime.utcnow() - timedelta(hours=1),
         }
         return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
@@ -162,8 +152,7 @@ class TestJWTCoverage:
                 continue
 
             # Public routes should not return 401
-            assert response.status_code != 401, \
-                f"Public route {method} {path} returned 401"
+            assert response.status_code != 401, f"Public route {method} {path} returned 401"
 
     @pytest.mark.asyncio
     async def test_protected_routes_require_auth(self, client: AsyncClient):
@@ -187,11 +176,14 @@ class TestJWTCoverage:
                 continue
 
             # Protected routes MUST return 401 without auth
-            assert response.status_code == 401, \
+            assert response.status_code == 401, (
                 f"Protected route {method} {test_path} did not return 401 without auth (got {response.status_code})"
+            )
 
     @pytest.mark.asyncio
-    async def test_protected_routes_reject_expired_token(self, client: AsyncClient, expired_token: str):
+    async def test_protected_routes_reject_expired_token(
+        self, client: AsyncClient, expired_token: str
+    ):
         """Test that protected routes reject expired tokens"""
         headers = {"Authorization": f"Bearer {expired_token}"}
 
@@ -207,11 +199,12 @@ class TestJWTCoverage:
             response = await client.get(path, headers=headers)
 
             # Should reject expired token
-            assert response.status_code == 401, \
-                f"Route {method} {path} accepted expired token"
+            assert response.status_code == 401, f"Route {method} {path} accepted expired token"
 
     @pytest.mark.asyncio
-    async def test_protected_routes_reject_invalid_token(self, client: AsyncClient, invalid_token: str):
+    async def test_protected_routes_reject_invalid_token(
+        self, client: AsyncClient, invalid_token: str
+    ):
         """Test that protected routes reject invalid tokens"""
         headers = {"Authorization": f"Bearer {invalid_token}"}
 
@@ -227,8 +220,7 @@ class TestJWTCoverage:
             response = await client.get(path, headers=headers)
 
             # Should reject invalid token
-            assert response.status_code == 401, \
-                f"Route {method} {path} accepted invalid token"
+            assert response.status_code == 401, f"Route {method} {path} accepted invalid token"
 
     @pytest.mark.asyncio
     async def test_auth_header_format_validation(self, client: AsyncClient, valid_token: str):
@@ -247,8 +239,7 @@ class TestJWTCoverage:
 
             response = await client.get("/api/v1/assessments", headers=headers)
 
-            assert response.status_code == 401, \
-                f"Malformed auth header accepted: {description}"
+            assert response.status_code == 401, f"Malformed auth header accepted: {description}"
 
     @pytest.mark.asyncio
     async def test_concurrent_auth_requests(self, client: AsyncClient, valid_token: str):
@@ -265,8 +256,9 @@ class TestJWTCoverage:
         # All should be processed correctly
         for response in responses:
             # Should either succeed or fail consistently
-            assert response.status_code in [200, 401, 404], \
+            assert response.status_code in [200, 401, 404], (
                 f"Unexpected status code in concurrent request: {response.status_code}"
+            )
 
 
 class TestJWTMiddlewareFeatures:
@@ -280,7 +272,7 @@ class TestJWTMiddlewareFeatures:
             "sub": "test-user-id",
             "email": "test@example.com",
             "type": "access",
-            "exp": datetime.utcnow() + timedelta(minutes=4)
+            "exp": datetime.utcnow() + timedelta(minutes=4),
         }
         token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
         headers = {"Authorization": f"Bearer {token}"}
@@ -317,15 +309,13 @@ class TestJWTMiddlewareFeatures:
         """Test that rate limiting is applied to authentication endpoints"""
         # Make many rapid requests to auth endpoint
         for i in range(settings.auth_rate_limit_per_minute + 5):
-            response = await client.post("/api/v1/auth/login", json={
-                "email": f"test{i}@example.com",
-                "password": "wrong"
-            })
+            response = await client.post(
+                "/api/v1/auth/login", json={"email": f"test{i}@example.com", "password": "wrong"}
+            )
 
             # After rate limit, should get 429
             if i >= settings.auth_rate_limit_per_minute:
-                assert response.status_code == 429, \
-                    "Rate limiting not applied to auth endpoint"
+                assert response.status_code == 429, "Rate limiting not applied to auth endpoint"
                 assert "retry_after" in response.json()
 
 
@@ -345,8 +335,7 @@ class TestJWTCoverageMetrics:
         if metrics_response.status_code == 200:
             metrics_text = metrics_response.text
             # Should track authentication success
-            assert "authentication_success" in metrics_text or \
-                   "auth_success" in metrics_text
+            assert "authentication_success" in metrics_text or "auth_success" in metrics_text
 
     @pytest.mark.asyncio
     async def test_authentication_failure_metrics(self, client: AsyncClient, invalid_token: str):
@@ -362,8 +351,7 @@ class TestJWTCoverageMetrics:
         if metrics_response.status_code == 200:
             metrics_text = metrics_response.text
             # Should track authentication failures
-            assert "authentication_failure" in metrics_text or \
-                   "auth_failure" in metrics_text
+            assert "authentication_failure" in metrics_text or "auth_failure" in metrics_text
 
 
 if __name__ == "__main__":

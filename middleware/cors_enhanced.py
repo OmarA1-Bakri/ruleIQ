@@ -2,6 +2,7 @@
 Enhanced CORS Middleware with Production-Ready Security
 Implements proper CORS handling with environment-specific configuration
 """
+
 from typing import Optional, Callable
 from fastapi import Request, Response
 from fastapi.middleware.cors import CORSMiddleware as FastAPICORSMiddleware
@@ -23,10 +24,7 @@ class EnhancedCORSMiddleware(BaseHTTPMiddleware):
     """
 
     def __init__(
-        self,
-        app: ASGIApp,
-        environment: Optional[SecurityEnvironment] = None,
-        **kwargs
+        self, app: ASGIApp, environment: Optional[SecurityEnvironment] = None, **kwargs
     ) -> None:
         super().__init__(app)
         self.security_settings = get_security_settings()
@@ -46,7 +44,7 @@ class EnhancedCORSMiddleware(BaseHTTPMiddleware):
             self.websocket_origins = [
                 "ws://localhost:3000",
                 "ws://localhost:8000",
-                "ws://127.0.0.1:3000"
+                "ws://127.0.0.1:3000",
             ]
         else:
             self.websocket_origins = self.security_settings.cors.websocket_origins
@@ -78,9 +76,7 @@ class EnhancedCORSMiddleware(BaseHTTPMiddleware):
 
             # Add exposed headers
             if self.exposed_headers:
-                response.headers["Access-Control-Expose-Headers"] = ", ".join(
-                    self.exposed_headers
-                )
+                response.headers["Access-Control-Expose-Headers"] = ", ".join(self.exposed_headers)
 
         # Always add Vary: Origin header for proper caching
         existing_vary = response.headers.get("Vary", "")
@@ -97,10 +93,7 @@ class EnhancedCORSMiddleware(BaseHTTPMiddleware):
 
         if not origin or not self._is_origin_allowed(origin):
             # Return 403 for disallowed origins
-            return Response(
-                content="CORS origin not allowed",
-                status_code=403
-            )
+            return Response(content="CORS origin not allowed", status_code=403)
 
         # Build preflight response
         headers = {
@@ -108,7 +101,7 @@ class EnhancedCORSMiddleware(BaseHTTPMiddleware):
             "Access-Control-Allow-Methods": ", ".join(self.allowed_methods),
             "Access-Control-Allow-Headers": ", ".join(self.allowed_headers),
             "Access-Control-Max-Age": str(self.max_age),
-            "Vary": "Origin"
+            "Vary": "Origin",
         }
 
         if self.allow_credentials:
@@ -117,10 +110,7 @@ class EnhancedCORSMiddleware(BaseHTTPMiddleware):
         # Check if requested method is allowed
         requested_method = request.headers.get("Access-Control-Request-Method")
         if requested_method and requested_method not in self.allowed_methods:
-            return Response(
-                content=f"Method {requested_method} not allowed",
-                status_code=403
-            )
+            return Response(content=f"Method {requested_method} not allowed", status_code=403)
 
         # Check if requested headers are allowed
         requested_headers = request.headers.get("Access-Control-Request-Headers")
@@ -130,17 +120,10 @@ class EnhancedCORSMiddleware(BaseHTTPMiddleware):
                 if header.lower() not in [h.lower() for h in self.allowed_headers]:
                     logger.warning(f"Requested header not allowed: {header}")
 
-        return Response(
-            content="",
-            status_code=204,
-            headers=headers
-        )
+        return Response(content="", status_code=204, headers=headers)
 
     async def _handle_websocket_cors(
-        self,
-        request: Request,
-        call_next: Callable,
-        origin: Optional[str]
+        self, request: Request, call_next: Callable, origin: Optional[str]
     ) -> Response:
         """Handle CORS for WebSocket connections"""
 
@@ -150,13 +133,9 @@ class EnhancedCORSMiddleware(BaseHTTPMiddleware):
             http_origin = origin.replace("ws://", "http://").replace("wss://", "https://")
             ws_origin = origin.replace("http://", "ws://").replace("https://", "wss://")
 
-            if (http_origin not in self.allowed_origins and
-                ws_origin not in self.websocket_origins):
+            if http_origin not in self.allowed_origins and ws_origin not in self.websocket_origins:
                 logger.warning(f"WebSocket connection rejected from origin: {origin}")
-                return Response(
-                    content="WebSocket origin not allowed",
-                    status_code=403
-                )
+                return Response(content="WebSocket origin not allowed", status_code=403)
 
         # Allow the WebSocket upgrade
         return await call_next(request)
@@ -166,17 +145,16 @@ class EnhancedCORSMiddleware(BaseHTTPMiddleware):
 
         # In development, be more permissive
         if self.environment == SecurityEnvironment.DEVELOPMENT:
-            if any(origin.startswith(prefix) for prefix in ["http://localhost", "http://127.0.0.1"]):
+            if any(
+                origin.startswith(prefix) for prefix in ["http://localhost", "http://127.0.0.1"]
+            ):
                 return True
 
         # Exact match for production
         return origin in self.allowed_origins
 
 
-def setup_cors(
-    app: ASGIApp,
-    environment: Optional[SecurityEnvironment] = None
-) -> ASGIApp:
+def setup_cors(app: ASGIApp, environment: Optional[SecurityEnvironment] = None) -> ASGIApp:
     """
     Setup CORS middleware with proper configuration
 
@@ -204,7 +182,7 @@ def setup_cors(
             allow_headers=cors_config["allow_headers"],
             expose_headers=cors_config["expose_headers"],
             allow_credentials=cors_config["allow_credentials"],
-            max_age=cors_config["max_age"]
+            max_age=cors_config["max_age"],
         )
         logger.info(f"Using standard CORS middleware for {env}")
 

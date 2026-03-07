@@ -3,6 +3,7 @@ Agent Coordinator Service - Manages multi-agent coordination and task distributi
 
 Handles task allocation, conflict resolution, and deadlock prevention.
 """
+
 from typing import Dict, List, Optional, Any, Set
 from uuid import UUID, uuid4
 from datetime import datetime, timedelta
@@ -17,6 +18,7 @@ logger = logging.getLogger(__name__)
 
 class TaskStatus(Enum):
     """Status of coordinated tasks."""
+
     PENDING = "pending"
     ASSIGNED = "assigned"
     IN_PROGRESS = "in_progress"
@@ -27,6 +29,7 @@ class TaskStatus(Enum):
 
 class ConflictResolutionStrategy(Enum):
     """Strategies for resolving conflicts."""
+
     PRIORITY = "priority"
     FIRST_COME = "first_come"
     LOAD_BALANCE = "load_balance"
@@ -37,6 +40,7 @@ class ConflictResolutionStrategy(Enum):
 @dataclass
 class CoordinatedTask:
     """Represents a task that needs coordination."""
+
     task_id: UUID = field(default_factory=uuid4)
     name: str = ""
     description: str = ""
@@ -55,6 +59,7 @@ class CoordinatedTask:
 @dataclass
 class AgentWorkload:
     """Tracks agent workload for load balancing."""
+
     agent_id: UUID
     current_tasks: List[UUID] = field(default_factory=list)
     completed_tasks: int = 0
@@ -68,9 +73,7 @@ class Coordinator:
     """Coordinates multiple agents for complex tasks."""
 
     def __init__(
-        self,
-        max_concurrent_tasks: int = 10,
-        task_timeout: timedelta = timedelta(hours=1)
+        self, max_concurrent_tasks: int = 10, task_timeout: timedelta = timedelta(hours=1)
     ) -> None:
         """Initialize coordinator."""
         self.max_concurrent_tasks = max_concurrent_tasks
@@ -83,10 +86,7 @@ class Coordinator:
         self.resource_locks: Dict[str, UUID] = {}  # resource -> agent_id
         self._coordination_loop_task = None
 
-    async def submit_task(
-        self,
-        task: CoordinatedTask
-    ) -> UUID:
+    async def submit_task(self, task: CoordinatedTask) -> UUID:
         """Submit a task for coordination."""
         # Validate task
         if not task.name:
@@ -103,16 +103,14 @@ class Coordinator:
 
         # Start coordination loop if not running
         if not self._coordination_loop_task:
-            self._coordination_loop_task = asyncio.create_task(
-                self._coordination_loop()
-            )
+            self._coordination_loop_task = asyncio.create_task(self._coordination_loop())
 
         return task.task_id
 
     async def assign_task(
         self,
         task: CoordinatedTask,
-        strategy: ConflictResolutionStrategy = ConflictResolutionStrategy.LOAD_BALANCE
+        strategy: ConflictResolutionStrategy = ConflictResolutionStrategy.LOAD_BALANCE,
     ) -> List[UUID]:
         """Assign task to agents based on strategy."""
         eligible_agents = self._find_eligible_agents(task)
@@ -148,10 +146,7 @@ class Coordinator:
         logger.info(f"Assigned task {task.task_id} to agents: {assigned}")
         return assigned
 
-    def _find_eligible_agents(
-        self,
-        task: CoordinatedTask
-    ) -> List[UUID]:
+    def _find_eligible_agents(self, task: CoordinatedTask) -> List[UUID]:
         """Find agents eligible for a task."""
         eligible = []
 
@@ -173,20 +168,16 @@ class Coordinator:
 
         return eligible
 
-    def _assign_by_priority(
-        self,
-        task: CoordinatedTask,
-        eligible_agents: List[UUID]
-    ) -> List[UUID]:
+    def _assign_by_priority(self, task: CoordinatedTask, eligible_agents: List[UUID]) -> List[UUID]:
         """Assign based on task priority."""
         # Sort by agent performance
         sorted_agents = sorted(
             eligible_agents,
             key=lambda a: (
-                self.agent_workloads[a].completed_tasks /
-                max(1, self.agent_workloads[a].failed_tasks)
+                self.agent_workloads[a].completed_tasks
+                / max(1, self.agent_workloads[a].failed_tasks)
             ),
-            reverse=True
+            reverse=True,
         )
 
         # Assign to best performer for high priority
@@ -196,31 +187,24 @@ class Coordinator:
             return sorted_agents[:2]
 
     def _assign_first_available(
-        self,
-        task: CoordinatedTask,
-        eligible_agents: List[UUID]
+        self, task: CoordinatedTask, eligible_agents: List[UUID]
     ) -> List[UUID]:
         """Assign to first available agent."""
         return eligible_agents[:1] if eligible_agents else []
 
     def _assign_by_load_balance(
-        self,
-        task: CoordinatedTask,
-        eligible_agents: List[UUID]
+        self, task: CoordinatedTask, eligible_agents: List[UUID]
     ) -> List[UUID]:
         """Assign based on load balancing."""
         # Sort by current workload (ascending)
         sorted_agents = sorted(
-            eligible_agents,
-            key=lambda a: len(self.agent_workloads[a].current_tasks)
+            eligible_agents, key=lambda a: len(self.agent_workloads[a].current_tasks)
         )
 
         return sorted_agents[:1] if sorted_agents else []
 
     def _assign_by_expertise(
-        self,
-        task: CoordinatedTask,
-        eligible_agents: List[UUID]
+        self, task: CoordinatedTask, eligible_agents: List[UUID]
     ) -> List[UUID]:
         """Assign based on agent expertise."""
         # Score agents by capability match
@@ -232,29 +216,19 @@ class Coordinator:
             agent_scores[agent_id] = score
 
         # Sort by score (descending)
-        sorted_agents = sorted(
-            agent_scores.keys(),
-            key=lambda a: agent_scores[a],
-            reverse=True
-        )
+        sorted_agents = sorted(agent_scores.keys(), key=lambda a: agent_scores[a], reverse=True)
 
         return sorted_agents[:1] if sorted_agents else []
 
     def _assign_by_consensus(
-        self,
-        task: CoordinatedTask,
-        eligible_agents: List[UUID]
+        self, task: CoordinatedTask, eligible_agents: List[UUID]
     ) -> List[UUID]:
         """Assign requiring consensus (multiple agents)."""
         # For consensus, assign to multiple agents
         num_agents = min(3, len(eligible_agents))
         return eligible_agents[:num_agents]
 
-    async def complete_task(
-        self,
-        task_id: UUID,
-        result: Dict[str, Any]
-    ) -> bool:
+    async def complete_task(self, task_id: UUID, result: Dict[str, Any]) -> bool:
         """Mark a task as completed."""
         if task_id not in self.active_tasks:
             logger.warning(f"Task {task_id} not found in active tasks")
@@ -277,9 +251,9 @@ class Coordinator:
                 if task.started_at:
                     completion_time = (task.completed_at - task.started_at).total_seconds()
                     workload.avg_completion_time = (
-                        (workload.avg_completion_time * (workload.completed_tasks - 1) +
-                         completion_time) / workload.completed_tasks
-                    )
+                        workload.avg_completion_time * (workload.completed_tasks - 1)
+                        + completion_time
+                    ) / workload.completed_tasks
 
         # Move to completed
         self.completed_tasks[task_id] = task
@@ -300,11 +274,7 @@ class Coordinator:
                     del self.task_dependencies[task_id]
                     logger.info(f"Unblocked task {task_id}")
 
-    async def fail_task(
-        self,
-        task_id: UUID,
-        error: str
-    ) -> bool:
+    async def fail_task(self, task_id: UUID, error: str) -> bool:
         """Mark a task as failed."""
         if task_id not in self.active_tasks:
             return False
@@ -362,7 +332,7 @@ class Coordinator:
         self,
         resource: str,
         requesting_agents: List[UUID],
-        strategy: ConflictResolutionStrategy = ConflictResolutionStrategy.PRIORITY
+        strategy: ConflictResolutionStrategy = ConflictResolutionStrategy.PRIORITY,
     ) -> UUID:
         """Resolve resource conflict between agents."""
         if not requesting_agents:
@@ -380,11 +350,13 @@ class Coordinator:
             winner = max(
                 requesting_agents,
                 key=lambda a: max(
-                    (self.active_tasks[t].priority
-                     for t in self.agent_workloads[a].current_tasks
-                     if t in self.active_tasks),
-                    default=0
-                )
+                    (
+                        self.active_tasks[t].priority
+                        for t in self.agent_workloads[a].current_tasks
+                        if t in self.active_tasks
+                    ),
+                    default=0,
+                ),
             )
         else:
             # Default to first requester
@@ -404,16 +376,11 @@ class Coordinator:
             return True
         return False
 
-    def register_agent(
-        self,
-        agent_id: UUID,
-        capabilities: Set[str]
-    ):
+    def register_agent(self, agent_id: UUID, capabilities: Set[str]):
         """Register an agent with the coordinator."""
         if agent_id not in self.agent_workloads:
             self.agent_workloads[agent_id] = AgentWorkload(
-                agent_id=agent_id,
-                capabilities=capabilities
+                agent_id=agent_id, capabilities=capabilities
             )
             logger.info(f"Registered agent {agent_id} with capabilities: {capabilities}")
 

@@ -1,4 +1,5 @@
 // Example Component Implementations - Neural Purple Theme
+import Link from 'next/link';
 
 // ============================================
 // 1. Dashboard Page Example
@@ -146,11 +147,11 @@ export function Navigation() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center gap-8">
-            <a href="/" className="flex items-center gap-2">
+            <Link href="/" className="flex items-center gap-2">
               <span className="text-2xl font-extralight text-white">
                 Rule<span className="text-neural-purple-400">IQ</span>
               </span>
-            </a>
+            </Link>
 
             {/* Nav Links */}
             <div className="hidden md:flex items-center gap-6">

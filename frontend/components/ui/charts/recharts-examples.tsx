@@ -2,11 +2,9 @@
 
 import React from 'react';
 import {
-  LineChart,
   Line,
   AreaChart,
   Area,
-  BarChart,
   Bar,
   RadarChart,
   Radar,
@@ -20,13 +18,7 @@ import {
   Legend,
   ResponsiveContainer,
   ComposedChart,
-  ScatterChart,
-  Scatter,
-  PieChart,
-  Pie,
-  Cell,
 } from 'recharts';
-import { motion } from 'framer-motion';
 
 const data = [
   { month: 'Jan', compliance: 87, security: 92, performance: 78, users: 120 },
@@ -45,7 +37,7 @@ const radarData = [
   { subject: 'UX', A: 65, B: 85, fullMark: 150 },
 ];
 
-const pieData = [
+const _pieData = [
   { name: 'Critical', value: 400, color: 'var(--purple-500)' },
   { name: 'High', value: 300, color: 'var(--purple-500)' },
   { name: 'Medium', value: 300, color: 'var(--purple-400)' },

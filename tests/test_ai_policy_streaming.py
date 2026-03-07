@@ -34,8 +34,9 @@ class TestPolicyStreamingService:
     @pytest.fixture
     def policy_generator(self):
         """Create a PolicyGenerator instance with mocked dependencies."""
-        with patch("services.ai.google_client.GoogleAIClient"), patch(
-            "services.ai.openai_client.OpenAIClient"
+        with (
+            patch("services.ai.google_client.GoogleAIClient"),
+            patch("services.ai.openai_client.OpenAIClient"),
         ):
             generator = PolicyGenerator()
             generator.google_client = Mock()
@@ -86,9 +87,7 @@ class TestPolicyStreamingService:
             }
             yield {"type": "complete", "content": "", "chunk_id": "2", "progress": 1.0}
 
-        with patch.object(
-            policy_generator, "_stream_with_google", side_effect=mock_google_stream
-        ):
+        with patch.object(policy_generator, "_stream_with_google", side_effect=mock_google_stream):
             async for chunk in policy_generator.generate_policy_stream(
                 sample_request, sample_framework
             ):
@@ -126,9 +125,7 @@ class TestPolicyStreamingService:
         )
 
         chunks = []
-        async for chunk in policy_generator._stream_with_google(
-            "Test prompt", sample_request
-        ):
+        async for chunk in policy_generator._stream_with_google("Test prompt", sample_request):
             chunks.append(chunk)
 
         # Verify chunks were generated
@@ -158,9 +155,7 @@ class TestPolicyStreamingService:
         )
 
         chunks = []
-        async for chunk in policy_generator._stream_with_openai(
-            "Test prompt", sample_request
-        ):
+        async for chunk in policy_generator._stream_with_openai("Test prompt", sample_request):
             chunks.append(chunk)
 
         # Verify chunks were generated
@@ -173,21 +168,19 @@ class TestPolicyStreamingService:
         assert "Privacy Policy Content" in content
 
     @pytest.mark.asyncio
-    async def test_stream_error_handling(
-        self, policy_generator, sample_request, sample_framework
-    ):
+    async def test_stream_error_handling(self, policy_generator, sample_request, sample_framework):
         """Test error handling during streaming."""
 
         # Mock Google to raise an error
         async def mock_google_error(*args, **kwargs):
             yield PolicyStreamingChunk(
-                chunk_id="1", content="Partial content", chunk_type="content",
+                chunk_id="1",
+                content="Partial content",
+                chunk_type="content",
             )
             raise Exception("Network error during streaming")
 
-        with patch.object(
-            policy_generator, "_stream_with_google", side_effect=mock_google_error
-        ):
+        with patch.object(policy_generator, "_stream_with_google", side_effect=mock_google_error):
             chunks = []
             async for chunk in policy_generator.generate_policy_stream(
                 sample_request, sample_framework
@@ -222,7 +215,9 @@ class TestPolicyStreamingService:
                     chunk_type="content",
                 )
                 yield PolicyStreamingChunk(
-                    chunk_id="2", content="", chunk_type="complete",
+                    chunk_id="2",
+                    content="",
+                    chunk_type="complete",
                 )
 
             with patch.object(
@@ -235,9 +230,7 @@ class TestPolicyStreamingService:
                     chunks.append(chunk)
 
                 # Should fall back to OpenAI
-                content = "".join(
-                    c.content for c in chunks if c.chunk_type == "content"
-                )
+                content = "".join(c.content for c in chunks if c.chunk_type == "content")
                 assert "Fallback content from OpenAI" in content
 
     @pytest.mark.asyncio
@@ -265,7 +258,10 @@ class TestPolicyStreamingService:
                 )
 
             yield PolicyStreamingChunk(
-                chunk_id="complete", content="", chunk_type="complete", progress=1.0,
+                chunk_id="complete",
+                content="",
+                chunk_type="complete",
+                progress=1.0,
             )
 
         with patch.object(
@@ -321,13 +317,19 @@ class TestPolicyStreamingAPI:
 
             async def mock_stream(*args, **kwargs):
                 yield PolicyStreamingChunk(
-                    chunk_id="1", content='{"test": "metadata"}', chunk_type="metadata",
+                    chunk_id="1",
+                    content='{"test": "metadata"}',
+                    chunk_type="metadata",
                 )
                 yield PolicyStreamingChunk(
-                    chunk_id="2", content="Test content", chunk_type="content",
+                    chunk_id="2",
+                    content="Test content",
+                    chunk_type="content",
                 )
                 yield PolicyStreamingChunk(
-                    chunk_id="3", content="", chunk_type="complete",
+                    chunk_id="3",
+                    content="",
+                    chunk_type="complete",
                 )
 
             mock_generator.generate_policy_stream = mock_stream
@@ -370,7 +372,9 @@ class TestPolicyStreamingAPI:
 
             async def mock_stream(*args, **kwargs):
                 yield PolicyStreamingChunk(
-                    chunk_id="1", content="Test", chunk_type="content",
+                    chunk_id="1",
+                    content="Test",
+                    chunk_type="content",
                 )
 
             mock_generator.generate_policy_stream = mock_stream
@@ -391,24 +395,22 @@ class TestPolicyStreamingAPI:
             )
 
             # Check headers
-            assert (
-                response.headers["content-type"] == "text/event-stream; charset=utf-8",
-            )
+            assert (response.headers["content-type"] == "text/event-stream; charset=utf-8",)
             assert response.headers["cache-control"] == "no-cache"
             assert response.headers["connection"] == "keep-alive"
             assert response.headers.get("x-accel-buffering") == "no"
 
     @pytest.mark.asyncio
-    async def test_stream_endpoint_error_handling(
-        self, client, auth_headers, mock_auth
-    ):
+    async def test_stream_endpoint_error_handling(self, client, auth_headers, mock_auth):
         """Test error handling in streaming endpoint."""
         with patch("api.routers.ai_policy.PolicyGenerator") as MockGenerator:
             mock_generator = MockGenerator.return_value
 
             async def mock_stream_with_error(*args, **kwargs):
                 yield PolicyStreamingChunk(
-                    chunk_id="1", content="Partial content", chunk_type="content",
+                    chunk_id="1",
+                    content="Partial content",
+                    chunk_type="content",
                 )
                 raise Exception("Streaming error")
 
@@ -573,25 +575,25 @@ class TestPolicyStreamingPerformance:
     """Performance tests for streaming functionality."""
 
     @pytest.mark.asyncio
-    async def test_streaming_latency(
-        self, policy_generator, sample_request, sample_framework
-    ):
+    async def test_streaming_latency(self, policy_generator, sample_request, sample_framework):
         """Test that first chunk arrives quickly."""
         import time
 
         async def mock_slow_stream(*args, **kwargs):
             yield PolicyStreamingChunk(
-                chunk_id="1", content="First chunk", chunk_type="content",
+                chunk_id="1",
+                content="First chunk",
+                chunk_type="content",
             )
             await asyncio.sleep(1)  # Simulate slow generation
             yield PolicyStreamingChunk(
-                chunk_id="2", content="Second chunk", chunk_type="content",
+                chunk_id="2",
+                content="Second chunk",
+                chunk_type="content",
             )
             yield PolicyStreamingChunk(chunk_id="3", content="", chunk_type="complete")
 
-        with patch.object(
-            policy_generator, "_stream_with_google", side_effect=mock_slow_stream
-        ):
+        with patch.object(policy_generator, "_stream_with_google", side_effect=mock_slow_stream):
             start_time = time.time()
             first_chunk_time = None
 
@@ -605,9 +607,7 @@ class TestPolicyStreamingPerformance:
             assert first_chunk_time - start_time < 0.5
 
     @pytest.mark.asyncio
-    async def test_streaming_memory_usage(
-        self, policy_generator, sample_request, sample_framework
-    ):
+    async def test_streaming_memory_usage(self, policy_generator, sample_request, sample_framework):
         """Test that streaming doesn't accumulate large buffers."""
         import tracemalloc
 
@@ -620,12 +620,12 @@ class TestPolicyStreamingPerformance:
                     chunk_type="content",
                 )
             yield PolicyStreamingChunk(
-                chunk_id="complete", content="", chunk_type="complete",
+                chunk_id="complete",
+                content="",
+                chunk_type="complete",
             )
 
-        with patch.object(
-            policy_generator, "_stream_with_google", side_effect=mock_large_stream
-        ):
+        with patch.object(policy_generator, "_stream_with_google", side_effect=mock_large_stream):
             tracemalloc.start()
 
             chunk_count = 0

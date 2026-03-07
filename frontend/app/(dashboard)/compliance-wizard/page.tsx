@@ -243,7 +243,7 @@ export default function ComplianceWizardPage() {
 
   // Fetch frameworks and compliance data
   const { data: frameworksData, isLoading: frameworksLoading } = useFrameworks();
-  const { data: complianceStatus } = useComplianceStatus(profile?.id);
+  const { data: _complianceStatus } = useComplianceStatus(profile?.id);
   // const { data: complianceScore } = useComplianceScore(profile?.id, undefined);
   const complianceScore = undefined; // Temporarily disabled - method doesn't exist in service
   // const { mutate: runComplianceCheck, isPending: isRunningCheck } = useRunComplianceCheck();
@@ -262,7 +262,8 @@ export default function ComplianceWizardPage() {
           title: 'Draft Loaded',
           message: 'We found your previous answers and loaded them for you.',
         });
-      } catch (error) {
+      } catch (_error) {
+        // intentionally empty - ignore invalid draft JSON
       }
     }
   }, []);
@@ -416,7 +417,7 @@ export default function ComplianceWizardPage() {
 
       // Redirect to results page
       router.push('/compliance-wizard/results');
-    } catch (error) {
+    } catch (_error) {
 
       addNotification({
         type: 'error',

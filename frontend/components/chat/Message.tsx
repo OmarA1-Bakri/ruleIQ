@@ -4,7 +4,7 @@ import React from 'react';
 import { ChatMessage } from '@/lib/websocket/types';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
-import { Check, CheckCheck, Clock, AlertCircle, Loader2 } from 'lucide-react';
+import { Check, CheckCheck, Clock, AlertCircle } from 'lucide-react';
 import { TrustIndicator } from './TrustIndicator';
 import { StreamingMessageIndicator } from './StreamingMessageIndicator';
 import Prism from 'prismjs';

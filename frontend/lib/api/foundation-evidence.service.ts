@@ -222,7 +222,7 @@ class FoundationEvidenceService {
       try {
         const data = JSON.parse(event.data);
         onProgress(data);
-      } catch (error) {
+      } catch (_error) {
         onError(new Error('Failed to parse progress data'));
       }
     };

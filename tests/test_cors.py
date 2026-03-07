@@ -3,17 +3,14 @@ Comprehensive tests for CORS Configuration (Story 1.3)
 
 Tests CORS middleware with environment-specific configuration and security.
 """
+
 import pytest
 import os
 from unittest.mock import Mock, patch
 from fastapi import Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 
-from middleware.cors_config import (
-    CORSConfig,
-    EnhancedCORSMiddleware,
-    setup_cors
-)
+from middleware.cors_config import CORSConfig, EnhancedCORSMiddleware, setup_cors
 
 
 class TestCORSConfig:
@@ -86,19 +83,19 @@ class TestCORSConfig:
 
     def test_env_override_origins(self):
         """Test environment variable override for origins."""
-        with patch.dict(os.environ, {
-            "ENVIRONMENT": "development",
-            "CORS_ORIGINS": '["http://custom.local:3000"]'
-        }):
+        with patch.dict(
+            os.environ,
+            {"ENVIRONMENT": "development", "CORS_ORIGINS": '["http://custom.local:3000"]'},
+        ):
             config = CORSConfig()
             assert config.allowed_origins == ["http://custom.local:3000"]
 
     def test_env_override_comma_separated(self):
         """Test comma-separated origins from environment."""
-        with patch.dict(os.environ, {
-            "ENVIRONMENT": "development",
-            "CORS_ORIGINS": "http://app1.local,http://app2.local"
-        }):
+        with patch.dict(
+            os.environ,
+            {"ENVIRONMENT": "development", "CORS_ORIGINS": "http://app1.local,http://app2.local"},
+        ):
             config = CORSConfig()
             assert "http://app1.local" in config.allowed_origins
             assert "http://app2.local" in config.allowed_origins
@@ -106,37 +103,29 @@ class TestCORSConfig:
     # Test 3: Security Validation
     def test_no_wildcards_in_production(self):
         """Test that wildcards are not allowed in production."""
-        with patch.dict(os.environ, {
-            "ENVIRONMENT": "production",
-            "CORS_ORIGINS": '["*"]'
-        }):
+        with patch.dict(os.environ, {"ENVIRONMENT": "production", "CORS_ORIGINS": '["*"]'}):
             with pytest.raises(ValueError, match="Insecure origin"):
                 CORSConfig()
 
     def test_no_http_in_production(self):
         """Test that HTTP origins are not allowed in production."""
-        with patch.dict(os.environ, {
-            "ENVIRONMENT": "production",
-            "CORS_ORIGINS": '["http://insecure.com"]'
-        }):
+        with patch.dict(
+            os.environ, {"ENVIRONMENT": "production", "CORS_ORIGINS": '["http://insecure.com"]'}
+        ):
             with pytest.raises(ValueError, match="Insecure origin"):
                 CORSConfig()
 
     def test_wildcard_warning_in_dev(self, caplog):
         """Test warning for wildcard in development."""
-        with patch.dict(os.environ, {
-            "ENVIRONMENT": "development",
-            "CORS_ORIGINS": '["*"]'
-        }):
+        with patch.dict(os.environ, {"ENVIRONMENT": "development", "CORS_ORIGINS": '["*"]'}):
             config = CORSConfig()
             assert "Wildcard origin" in caplog.text
 
     def test_invalid_origin_format(self):
         """Test validation of origin format."""
-        with patch.dict(os.environ, {
-            "ENVIRONMENT": "development",
-            "CORS_ORIGINS": '["not-a-valid-url"]'
-        }):
+        with patch.dict(
+            os.environ, {"ENVIRONMENT": "development", "CORS_ORIGINS": '["not-a-valid-url"]'}
+        ):
             with pytest.raises(ValueError, match="Invalid origin"):
                 CORSConfig()
 
@@ -261,10 +250,12 @@ class TestEnhancedCORSMiddleware:
     @pytest.fixture
     async def mock_call_next(self):
         """Create mock call_next function."""
+
         async def call_next(request):
             response = Response()
             response.headers = {}
             return response
+
         return call_next
 
     # Test 9: Preflight Handling
@@ -364,7 +355,7 @@ class TestEnhancedCORSMiddleware:
         middleware.violation_count = 5
         middleware.last_violations = [
             {"origin": "http://evil1.com"},
-            {"origin": "http://evil2.com"}
+            {"origin": "http://evil2.com"},
         ]
 
         stats = middleware.get_stats()

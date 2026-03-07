@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 Shared types and enums for AI services
 

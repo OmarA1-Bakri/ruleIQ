@@ -14,6 +14,7 @@ from .db_setup import (
     get_engine_info,
     get_db,
     get_async_db,
+    get_async_session_maker,
     get_db_context,
     DatabaseConfig,
     _ASYNC_SESSION_LOCAL as _AsyncSessionLocal,
@@ -71,6 +72,7 @@ __all__ = [
     "get_engine_info",
     "get_db",
     "get_async_db",
+    "get_async_session_maker",
     "get_db_context",
     "DatabaseConfig",
     # Legacy exports for backward compatibility

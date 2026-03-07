@@ -16,13 +16,13 @@ def load_doppler_env():
             ["doppler", "secrets", "download", "--no-file", "--format", "env"],
             capture_output=True,
             text=True,
-            check=True
+            check=True,
         )
 
         # Parse and set environment variables
-        for line in result.stdout.strip().split('\n'):
-            if '=' in line:
-                key, value = line.split('=', 1)
+        for line in result.stdout.strip().split("\n"):
+            if "=" in line:
+                key, value = line.split("=", 1)
                 # Remove quotes if present
                 if value.startswith('"') and value.endswith('"'):
                     value = value[1:-1]
@@ -48,7 +48,7 @@ def setup_test_database_urls():
     # If set and contains 'neon.tech', use it; otherwise use local Docker
     existing_db_url = os.environ.get("DATABASE_URL", "")
 
-    if existing_db_url and 'neon.tech' in existing_db_url:
+    if existing_db_url and "neon.tech" in existing_db_url:
         # Use existing Neon database URL from environment
         test_db_url = existing_db_url
         os.environ["TEST_DATABASE_URL"] = test_db_url

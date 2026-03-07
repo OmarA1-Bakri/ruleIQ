@@ -8,9 +8,7 @@ import {
   AlertTriangle, 
   RefreshCw, 
   MessageCircle, 
-  Brain,
   Shield,
-  ExternalLink,
   Bug
 } from 'lucide-react';
 import { cn } from '@/lib/utils';

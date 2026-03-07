@@ -26,12 +26,12 @@ class IQKnowledgeLoader:
     def __init__(self) -> None:
         self.neo4j = Neo4jGraphRAGService()
         self.stats = {
-            'iq_persona': 0,
-            'uk_regulations': 0,
-            'obligations': 0,
-            'compliance_domains': 0,
-            'relationships': 0,
-            'total_nodes': 0
+            "iq_persona": 0,
+            "uk_regulations": 0,
+            "obligations": 0,
+            "compliance_domains": 0,
+            "relationships": 0,
+            "total_nodes": 0,
         }
 
     async def load_complete_knowledge(self):
@@ -77,7 +77,7 @@ class IQKnowledgeLoader:
         """Load IQ's persona and CCO playbook"""
         manifest_path = Path("data/manifests/iq_agent_cco_manifest.json")
 
-        with open(manifest_path, 'r') as f:
+        with open(manifest_path, "r") as f:
             iq_manifest = json.load(f)
 
         # Create IQ's core persona node
@@ -96,17 +96,19 @@ class IQKnowledgeLoader:
         await self.neo4j.execute_query(
             query,
             parameters={
-                'name': iq_manifest['agent_name'],
-                'role': iq_manifest['role'],
-                'description': iq_manifest['description'],
-                'vision': iq_manifest['cco_strategic_playbook']['vision_2025_2030']['title'],
-                'mission': iq_manifest['cco_strategic_playbook']['vision_2025_2030']['mission']
+                "name": iq_manifest["agent_name"],
+                "role": iq_manifest["role"],
+                "description": iq_manifest["description"],
+                "vision": iq_manifest["cco_strategic_playbook"]["vision_2025_2030"]["title"],
+                "mission": iq_manifest["cco_strategic_playbook"]["vision_2025_2030"]["mission"],
             },
-            read_only=False
+            read_only=False,
         )
 
         # Load strategic pillars
-        for pillar in iq_manifest['cco_strategic_playbook']['vision_2025_2030']['strategic_pillars']:
+        for pillar in iq_manifest["cco_strategic_playbook"]["vision_2025_2030"][
+            "strategic_pillars"
+        ]:
             query = """
             MERGE (p:StrategicPillar {name: $name})
             SET p.description = $description,
@@ -119,15 +121,19 @@ class IQKnowledgeLoader:
             await self.neo4j.execute_query(
                 query,
                 parameters={
-                    'name': pillar['pillar'],
-                    'description': pillar['description'],
-                    'target': pillar.get('target_automation') or pillar.get('target_accuracy') or pillar.get('target_latency') or pillar.get('target_coverage') or pillar.get('target_efficiency')
+                    "name": pillar["pillar"],
+                    "description": pillar["description"],
+                    "target": pillar.get("target_automation")
+                    or pillar.get("target_accuracy")
+                    or pillar.get("target_latency")
+                    or pillar.get("target_coverage")
+                    or pillar.get("target_efficiency"),
                 },
-                read_only=False
+                read_only=False,
             )
 
         # Load knowledge domains
-        for domain in iq_manifest['knowledge_domains']['regulatory_expertise']:
+        for domain in iq_manifest["knowledge_domains"]["regulatory_expertise"]:
             query = """
             MERGE (kd:KnowledgeDomain {jurisdiction: $jurisdiction})
             SET kd.depth = $depth,
@@ -140,15 +146,17 @@ class IQKnowledgeLoader:
             await self.neo4j.execute_query(
                 query,
                 parameters={
-                    'jurisdiction': domain['jurisdiction'],
-                    'depth': domain['depth'],
-                    'regulations': domain['regulations']
+                    "jurisdiction": domain["jurisdiction"],
+                    "depth": domain["depth"],
+                    "regulations": domain["regulations"],
                 },
-                read_only=False
+                read_only=False,
             )
 
-        self.stats['iq_persona'] = 1
-        logger.info(f"   ✅ Loaded IQ's persona with {len(iq_manifest['cco_strategic_playbook']['vision_2025_2030']['strategic_pillars'])} strategic pillars")
+        self.stats["iq_persona"] = 1
+        logger.info(
+            f"   ✅ Loaded IQ's persona with {len(iq_manifest['cco_strategic_playbook']['vision_2025_2030']['strategic_pillars'])} strategic pillars"
+        )
 
     async def load_uk_regulations(self):
         """Load the complete UK regulatory database"""
@@ -157,13 +165,15 @@ class IQKnowledgeLoader:
         analysis_path = Path("data/manifests/uk_regulations_analysis.json")
 
         if obligations_path.exists():
-            with open(obligations_path, 'r') as f:
+            with open(obligations_path, "r") as f:
                 obligations_data = json.load(f)
 
             # Extract obligations list
             if isinstance(obligations_data, dict):
-                obligations_list = obligations_data.get('obligations', [])
-                total_obligations = obligations_data.get('unique_obligations', len(obligations_list))
+                obligations_list = obligations_data.get("obligations", [])
+                total_obligations = obligations_data.get(
+                    "unique_obligations", len(obligations_list)
+                )
             else:
                 obligations_list = obligations_data if isinstance(obligations_data, list) else []
                 total_obligations = len(obligations_list)
@@ -178,11 +188,13 @@ class IQKnowledgeLoader:
                     uk.regulatory_body = 'FCA, PRA, ICO, HMRC',
                     uk.last_updated = datetime()
                 """,
-                read_only=False
+                read_only=False,
             )
 
             # Load each obligation
-            for idx, obligation in enumerate(obligations_list[:500]):  # Load first 500 for performance
+            for idx, obligation in enumerate(
+                obligations_list[:500]
+            ):  # Load first 500 for performance
                 if idx % 100 == 0:
                     logger.info(f"      Loaded {idx} obligations...")
 
@@ -202,22 +214,22 @@ class IQKnowledgeLoader:
                 await self.neo4j.execute_query(
                     query,
                     parameters={
-                        'id': obligation_id,
-                        'text': str(obligation).replace("'", "")[:1000],  # Truncate for storage
-                        'regulation': obligation.get('regulation', 'Unknown'),
-                        'source': obligation.get('source', 'legislation.gov.uk')
+                        "id": obligation_id,
+                        "text": str(obligation).replace("'", "")[:1000],  # Truncate for storage
+                        "regulation": obligation.get("regulation", "Unknown"),
+                        "source": obligation.get("source", "legislation.gov.uk"),
                     },
-                    read_only=False
+                    read_only=False,
                 )
 
-                self.stats['obligations'] += 1
+                self.stats["obligations"] += 1
 
         # Load regulation analysis
         if analysis_path.exists():
-            with open(analysis_path, 'r') as f:
+            with open(analysis_path, "r") as f:
                 analysis_data = json.load(f)
 
-            for reg_name, reg_info in analysis_data.get('regulation_summary', {}).items():
+            for reg_name, reg_info in analysis_data.get("regulation_summary", {}).items():
                 query = """
                 MERGE (r:UKRegulation {name: $name})
                 SET r.document_count = $doc_count,
@@ -232,17 +244,19 @@ class IQKnowledgeLoader:
                 await self.neo4j.execute_query(
                     query,
                     parameters={
-                        'name': reg_name,
-                        'doc_count': reg_info['document_count'],
-                        'total_obligations': reg_info['total_obligations'],
-                        'urls': reg_info['urls']
+                        "name": reg_name,
+                        "doc_count": reg_info["document_count"],
+                        "total_obligations": reg_info["total_obligations"],
+                        "urls": reg_info["urls"],
                     },
-                    read_only=False
+                    read_only=False,
                 )
 
-                self.stats['uk_regulations'] += 1
+                self.stats["uk_regulations"] += 1
 
-        logger.info(f"   ✅ Loaded {self.stats['uk_regulations']} UK regulations with {self.stats['obligations']} obligations")
+        logger.info(
+            f"   ✅ Loaded {self.stats['uk_regulations']} UK regulations with {self.stats['obligations']} obligations"
+        )
 
     async def load_compliance_manifests(self):
         """Load additional compliance manifests"""
@@ -250,13 +264,13 @@ class IQKnowledgeLoader:
             "compliance_ml_manifest_enhanced.json",
             "regulatory_relationships.json",
             "control_effectiveness_templates.json",
-            "uk_industry_regulations.json"
+            "uk_industry_regulations.json",
         ]
 
         for manifest_file in manifest_files:
             manifest_path = Path(f"data/manifests/{manifest_file}")
             if manifest_path.exists():
-                with open(manifest_path, 'r') as f:
+                with open(manifest_path, "r") as f:
                     data = json.load(f)
 
                 # Store manifest metadata
@@ -273,14 +287,14 @@ class IQKnowledgeLoader:
                 await self.neo4j.execute_query(
                     query,
                     parameters={
-                        'name': manifest_file.replace('.json', ''),
-                        'file': manifest_file,
-                        'size': len(json.dumps(data))
+                        "name": manifest_file.replace(".json", ""),
+                        "file": manifest_file,
+                        "size": len(json.dumps(data)),
                     },
-                    read_only=False
+                    read_only=False,
                 )
 
-                self.stats['compliance_domains'] += 1
+                self.stats["compliance_domains"] += 1
 
         logger.info(f"   ✅ Loaded {self.stats['compliance_domains']} compliance manifests")
 
@@ -293,14 +307,12 @@ class IQKnowledgeLoader:
             MATCH (r:Regulation)
             MERGE (iq)-[:MONITORS]->(r)
             """,
-
             # Link IQ to UK regulations
             """
             MATCH (iq:IQPersona {id: 'IQ_CCO_2025'})
             MATCH (r:UKRegulation)
             MERGE (iq)-[:UK_EXPERTISE]->(r)
             """,
-
             # Link obligations to regulations
             """
             MATCH (o:Obligation)
@@ -308,7 +320,6 @@ class IQKnowledgeLoader:
             WHERE o.regulation = r.name
             MERGE (o)-[:MANDATED_BY]->(r)
             """,
-
             # Create compliance domain relationships
             """
             MATCH (r:Regulation)
@@ -316,19 +327,18 @@ class IQKnowledgeLoader:
             WHERE r.compliance_domain = d.name
             MERGE (r)-[:BELONGS_TO]->(d)
             """,
-
             # Link IQ to all compliance domains
             """
             MATCH (iq:IQPersona {id: 'IQ_CCO_2025'})
             MATCH (d:ComplianceDomain)
             MERGE (iq)-[:OVERSEES]->(d)
-            """
+            """,
         ]
 
         for query in relationship_queries:
             try:
                 await self.neo4j.execute_query(query, read_only=False)
-                self.stats['relationships'] += 1
+                self.stats["relationships"] += 1
             except Exception as e:
                 logger.warning(f"   ⚠️  Relationship query failed: {e}")
 
@@ -338,25 +348,25 @@ class IQKnowledgeLoader:
         """Initialize IQ's memory systems"""
         memory_types = [
             {
-                'type': 'EpisodicMemory',
-                'description': 'Specific compliance events and decisions',
-                'retention': 'Permanent for audit trail'
+                "type": "EpisodicMemory",
+                "description": "Specific compliance events and decisions",
+                "retention": "Permanent for audit trail",
             },
             {
-                'type': 'SemanticMemory',
-                'description': 'Regulatory knowledge and patterns',
-                'retention': 'Updated with each regulatory change'
+                "type": "SemanticMemory",
+                "description": "Regulatory knowledge and patterns",
+                "retention": "Updated with each regulatory change",
             },
             {
-                'type': 'ProceduralMemory',
-                'description': 'Compliance processes and workflows',
-                'retention': 'Version controlled with change tracking'
+                "type": "ProceduralMemory",
+                "description": "Compliance processes and workflows",
+                "retention": "Version controlled with change tracking",
             },
             {
-                'type': 'StrategicMemory',
-                'description': 'Long-term patterns and organizational learning',
-                'retention': 'Consolidated quarterly'
-            }
+                "type": "StrategicMemory",
+                "description": "Long-term patterns and organizational learning",
+                "retention": "Consolidated quarterly",
+            },
         ]
 
         for memory in memory_types:
@@ -370,11 +380,7 @@ class IQKnowledgeLoader:
             MERGE (iq)-[:HAS_MEMORY]->(m)
             """
 
-            await self.neo4j.execute_query(
-                query,
-                parameters=memory,
-                read_only=False
-            )
+            await self.neo4j.execute_query(query, parameters=memory, read_only=False)
 
         logger.info(f"   ✅ Initialized {len(memory_types)} memory systems")
 
@@ -402,8 +408,8 @@ class IQKnowledgeLoader:
         logger.info(f"   Relationships: {self.stats['relationships']}")
 
         logger.info("\n🧠 NODE TYPES IN GRAPH:")
-        if result and 'results' in result:
-            for record in result['results'][:10]:
+        if result and "results" in result:
+            for record in result["results"][:10]:
                 logger.info(f"   {record['node_labels']}: {record['count']}")
 
         logger.info("\n✨ IQ NOW HAS:")
@@ -430,7 +436,7 @@ async def main():
 
     response = input("Load IQ's complete knowledge base? (yes/no): ")
 
-    if response.lower() != 'yes':
+    if response.lower() != "yes":
         print("❌ Aborted")
         return
 
@@ -441,5 +447,5 @@ async def main():
         sys.exit(1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     asyncio.run(main())

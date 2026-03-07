@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 Usability Testing Framework for ComplianceGPT
 
@@ -37,7 +36,8 @@ class TestUserOnboardingFlow:
         """Test that business profile creation provides guidance"""
         # Test profile creation with help text and validation
         response = client.get(
-            "/api/business-profiles/create-wizard", headers=authenticated_headers,
+            "/api/business-profiles/create-wizard",
+            headers=authenticated_headers,
         )
 
         if response.status_code == 200:
@@ -49,9 +49,7 @@ class TestUserOnboardingFlow:
             assert "estimated_time" in wizard_data
 
             # Verify reasonable number of steps
-            assert (
-                len(wizard_data["steps"]) <= 5
-            ), "Should not overwhelm users with too many steps"
+            assert len(wizard_data["steps"]) <= 5, "Should not overwhelm users with too many steps"
 
     def test_assessment_question_clarity(self, client, authenticated_headers):
         """Test that assessment questions are clear and well-explained"""
@@ -65,7 +63,8 @@ class TestUserOnboardingFlow:
 
         # Get questions
         questions_response = client.get(
-            f"/api/assessments/{session_id}/questions", headers=authenticated_headers,
+            f"/api/assessments/{session_id}/questions",
+            headers=authenticated_headers,
         )
 
         if questions_response.status_code == 200:
@@ -74,12 +73,8 @@ class TestUserOnboardingFlow:
 
             for question in questions[:3]:  # Test first few questions
                 # Verify question clarity
-                assert (
-                    len(question["question"]) >= 20
-                ), "Questions should be descriptive"
-                assert (
-                    len(question["question"]) <= 200
-                ), "Questions should not be overwhelming"
+                assert len(question["question"]) >= 20, "Questions should be descriptive"
+                assert len(question["question"]) <= 200, "Questions should not be overwhelming"
 
                 # Verify help text exists
                 assert "help_text" in question or "description" in question
@@ -87,9 +82,7 @@ class TestUserOnboardingFlow:
                 # For multiple choice, verify reasonable options
                 if question.get("type") == "multiple_choice":
                     options = question.get("options", [])
-                    assert (
-                        2 <= len(options) <= 6
-                    ), "Should have reasonable number of options"
+                    assert 2 <= len(options) <= 6, "Should have reasonable number of options"
 
 
 @pytest.mark.usability
@@ -112,12 +105,8 @@ class TestNavigationAndWorkflow:
                 "recommendations",
             ]
 
-            present_sections = sum(
-                1 for section in expected_sections if section in dashboard_data
-            )
-            assert (
-                present_sections >= 3
-            ), "Dashboard should have key information sections"
+            present_sections = sum(1 for section in expected_sections if section in dashboard_data)
+            assert present_sections >= 3, "Dashboard should have key information sections"
 
             # Verify progress indicators are intuitive
             if "compliance_status" in dashboard_data:
@@ -137,7 +126,8 @@ class TestNavigationAndWorkflow:
         session_id = session_response.json()["id"]
 
         progress_response = client.get(
-            f"/api/assessments/{session_id}/progress", headers=authenticated_headers,
+            f"/api/assessments/{session_id}/progress",
+            headers=authenticated_headers,
         )
 
         if progress_response.status_code == 200:
@@ -152,15 +142,14 @@ class TestNavigationAndWorkflow:
             # Verify reasonable progress tracking
             assert 0 <= progress_data["completion_percentage"] <= 100
 
-    def test_action_feedback_and_confirmation(
-        self, client, authenticated_headers, mock_ai_client
-    ):
+    def test_action_feedback_and_confirmation(self, client, authenticated_headers, mock_ai_client):
         """Test that user actions provide clear feedback"""
         mock_ai_client.generate_content.return_value.text = "Sample policy content"
 
         # Test policy generation feedback
         frameworks_response = client.get(
-            "/api/frameworks", headers=authenticated_headers,
+            "/api/frameworks",
+            headers=authenticated_headers,
         )
         if frameworks_response.status_code == 200:
             frameworks = frameworks_response.json()
@@ -181,19 +170,14 @@ class TestNavigationAndWorkflow:
                     assert "message" in policy_data or "success_message" in policy_data
 
                     # Verify next steps guidance
-                    assert (
-                        "next_steps" in policy_data
-                        or "recommended_actions" in policy_data,
-                    )
+                    assert ("next_steps" in policy_data or "recommended_actions" in policy_data,)
 
 
 @pytest.mark.usability
 class TestContentReadabilityAndClarity:
     """Test readability and clarity of generated content"""
 
-    def test_policy_content_readability(
-        self, client, authenticated_headers, mock_ai_client
-    ):
+    def test_policy_content_readability(self, client, authenticated_headers, mock_ai_client):
         """Test that generated policies are readable and well-structured"""
         mock_ai_client.generate_content.return_value.text = """
         # Data Protection Policy
@@ -212,7 +196,8 @@ class TestContentReadabilityAndClarity:
         """
 
         frameworks_response = client.get(
-            "/api/frameworks", headers=authenticated_headers,
+            "/api/frameworks",
+            headers=authenticated_headers,
         )
         if frameworks_response.status_code == 200:
             frameworks = frameworks_response.json()
@@ -265,9 +250,7 @@ class TestContentReadabilityAndClarity:
                 framework = rec["framework"]
                 assert "display_name" in framework
                 assert "description" in framework
-                assert (
-                    len(framework["description"]) >= 50
-                ), "Description should be informative"
+                assert len(framework["description"]) >= 50, "Description should be informative"
 
     def test_error_message_helpfulness(self, client, authenticated_headers):
         """Test that error messages are helpful and guide users toward solutions"""
@@ -312,12 +295,8 @@ class TestContentReadabilityAndClarity:
                 "greater than",
             ]
 
-            has_helpful_indicator = any(
-                indicator in error_text for indicator in helpful_indicators
-            )
-            assert (
-                has_helpful_indicator
-            ), f"Error message should be helpful: {error_text}"
+            has_helpful_indicator = any(indicator in error_text for indicator in helpful_indicators)
+            assert has_helpful_indicator, f"Error message should be helpful: {error_text}"
 
     def _assert_content_readability(self, content: str):
         """Assert that content meets readability standards"""
@@ -328,14 +307,10 @@ class TestContentReadabilityAndClarity:
         )
 
         # Sentences shouldn't be too long
-        assert (
-            avg_sentence_length <= 25
-        ), "Sentences should be reasonably short for readability"
+        assert avg_sentence_length <= 25, "Sentences should be reasonably short for readability"
 
         # Should have proper structure with headings
-        assert (
-            content.count("#") >= 3
-        ), "Content should have clear structure with headings"
+        assert content.count("#") >= 3, "Content should have clear structure with headings"
 
         # Should avoid jargon without explanation
         jargon_terms = ["gdpr", "dpo", "ico", "supervisory authority"]
@@ -355,7 +330,7 @@ class TestContentReadabilityAndClarity:
                             "is",
                             "stands for",
                             "(",
-                            "also known as"
+                            "also known as",
                         ]
                     )
                     # Note: Not asserting this as it depends on context
@@ -390,7 +365,8 @@ class TestAccessibilityAndInclusion:
                 ):
                     # This is likely a list endpoint
                     list_key = next(
-                        (key for key in response_data if key.endswith("s")), None,
+                        (key for key in response_data if key.endswith("s")),
+                        None,
                     )
                     if list_key:
                         assert isinstance(response_data[list_key], list)
@@ -453,9 +429,7 @@ class TestAccessibilityAndInclusion:
                 "overview",
             ]
 
-            _ = any(
-                indicator in dashboard_data for indicator in mobile_friendly_indicators
-            )
+            _ = any(indicator in dashboard_data for indicator in mobile_friendly_indicators)
 
             # Note: This is more of a design guideline than a hard requirement
 
@@ -468,7 +442,8 @@ class TestUserGuidanceAndHelp:
         """Test that contextual help is available throughout the application"""
         # Test help endpoint existence
         help_response = client.get(
-            "/api/help/getting-started", headers=authenticated_headers,
+            "/api/help/getting-started",
+            headers=authenticated_headers,
         )
 
         # Help system should be available (even if content is basic) or return appropriate status
@@ -495,7 +470,8 @@ class TestUserGuidanceAndHelp:
 
         # Check progress tracking
         progress_response = client.get(
-            "/api/compliance/progress", headers=authenticated_headers,
+            "/api/compliance/progress",
+            headers=authenticated_headers,
         )
 
         if progress_response.status_code == 200:
@@ -514,9 +490,7 @@ class TestUserGuidanceAndHelp:
             present_elements = sum(
                 1 for element in motivational_elements if element in progress_data
             )
-            assert (
-                present_elements >= 2
-            ), "Should provide motivational progress indicators"
+            assert present_elements >= 2, "Should provide motivational progress indicators"
 
     def test_workflow_guidance_and_next_steps(self, client, authenticated_headers):
         """Test that users always know what to do next"""
@@ -536,15 +510,14 @@ class TestUserGuidanceAndHelp:
                 "suggestions",
             ]
 
-            has_guidance = any(
-                indicator in dashboard_data for indicator in guidance_indicators
-            )
+            has_guidance = any(indicator in dashboard_data for indicator in guidance_indicators)
             assert has_guidance, "Dashboard should provide clear next steps"
 
     def test_complexity_progressive_disclosure(self, client, authenticated_headers):
         """Test that complex information is progressively disclosed"""
         frameworks_response = client.get(
-            "/api/frameworks", headers=authenticated_headers,
+            "/api/frameworks",
+            headers=authenticated_headers,
         )
 
         if frameworks_response.status_code == 200:
@@ -560,13 +533,12 @@ class TestUserGuidanceAndHelp:
                     assert field in framework
                     if field == "description":
                         # Description should be concise in list view
-                        assert (
-                            len(framework[field]) <= 300
-                        ), "List descriptions should be concise"
+                        assert len(framework[field]) <= 300, "List descriptions should be concise"
 
                 # Detailed view should have more information
                 detail_response = client.get(
-                    f"/api/frameworks/{framework_id}", headers=authenticated_headers,
+                    f"/api/frameworks/{framework_id}",
+                    headers=authenticated_headers,
                 )
 
                 if detail_response.status_code == 200:
@@ -574,18 +546,16 @@ class TestUserGuidanceAndHelp:
 
                     # Detail view should have more comprehensive information
                     detailed_fields = ["controls", "category", "version"]
-                    present_detailed = sum(
-                        1 for field in detailed_fields if field in detail_data
+                    present_detailed = sum(1 for field in detailed_fields if field in detail_data)
+                    assert present_detailed >= 1, (
+                        "Detail view should provide more comprehensive information"
                     )
-                    assert (
-                        present_detailed >= 1
-                    ), "Detail view should provide more comprehensive information"
 
                     # Controls should be present and provide structure
                     if "controls" in detail_data:
-                        assert isinstance(
-                            detail_data["controls"], list
-                        ), "Controls should be a list"
+                        assert isinstance(detail_data["controls"], list), (
+                            "Controls should be a list"
+                        )
 
 
 @pytest.mark.usability
@@ -616,7 +586,8 @@ class TestUserWorkflowEfficiency:
     def test_quick_actions_availability(self, client, authenticated_headers):
         """Test availability of quick actions for common tasks"""
         quick_actions_response = client.get(
-            "/api/quick-actions", headers=authenticated_headers,
+            "/api/quick-actions",
+            headers=authenticated_headers,
         )
 
         if quick_actions_response.status_code == 200:
@@ -632,9 +603,7 @@ class TestUserWorkflowEfficiency:
             ]
 
             if "actions" in quick_actions:
-                available_actions = [
-                    action["id"] for action in quick_actions["actions"]
-                ]
+                available_actions = [action["id"] for action in quick_actions["actions"]]
                 matching_actions = sum(
                     1 for action in expected_actions if action in available_actions
                 )
@@ -663,13 +632,12 @@ class TestUserWorkflowEfficiency:
                 },
             )
 
-            assert (
-                partial_response.status_code == 200
-            ), "Should allow saving partial progress"
+            assert partial_response.status_code == 200, "Should allow saving partial progress"
 
             # Verify session can be resumed
             resume_response = client.get(
-                f"/api/assessments/{session_id}", headers=authenticated_headers,
+                f"/api/assessments/{session_id}",
+                headers=authenticated_headers,
             )
 
             if resume_response.status_code == 200:

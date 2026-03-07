@@ -524,9 +524,7 @@ class TestIntegrationContracts:
         fallback = tool_error.to_fallback_response(company_id, thread_id)
 
         # Add to state
-        state = create_initial_state(
-            company_id=company_id, user_input="Test", thread_id=thread_id
-        )
+        state = create_initial_state(company_id=company_id, user_input="Test", thread_id=thread_id)
         state["errors"].append(fallback)
         state["error_count"] += 1
 
@@ -541,9 +539,7 @@ class TestBackwardCompatibility:
 
     def test_state_serialization_compatibility(self):
         """Test that state can be serialized and maintains compatibility."""
-        state = create_initial_state(
-            company_id=uuid4(), user_input="Test compatibility"
-        )
+        state = create_initial_state(company_id=uuid4(), user_input="Test compatibility")
 
         # Should be able to extract key data without errors
         try:

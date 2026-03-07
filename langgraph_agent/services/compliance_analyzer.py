@@ -1,5 +1,4 @@
 """
-from __future__ import annotations
 
 Compliance Analyzer service for LangGraph integration.
 Bridges to existing compliance services.
@@ -59,10 +58,8 @@ class ComplianceAnalyzer:
         for framework in frameworks:
             try:
                 # Use compliance queries to get framework obligations
-                framework_obligations = (
-                    await self.compliance_queries.get_framework_obligations(
-                        framework_name=framework
-                    )
+                framework_obligations = await self.compliance_queries.get_framework_obligations(
+                    framework_name=framework
                 )
                 obligations.extend(framework_obligations)
             except Exception:
@@ -82,7 +79,6 @@ class ComplianceAnalyzer:
             "obligations": obligations[:10],  # Limit to top 10 obligations
             "risk_level": "medium",
             "recommendations": [
-                f"Implement {framework} compliance measures"
-                for framework in frameworks[:3]
+                f"Implement {framework} compliance measures" for framework in frameworks[:3]
             ],
         }

@@ -157,7 +157,7 @@ class TestTrustLevelResolution:
         # Test service can be instantiated
         service = UserContextService()
         assert service is not None
-        assert hasattr(service, 'cache_service')
+        assert hasattr(service, "cache_service")
 
     def test_trust_algorithm_functionality(self):
         """Test that trust algorithm works with its TrustLevel enum."""
@@ -170,9 +170,9 @@ class TestTrustLevelResolution:
 
         # Test trust score calculation
         score = algorithm.calculate_trust_score()
-        assert hasattr(score, 'overall_score')
-        assert hasattr(score, 'approval_rate')
-        assert hasattr(score, 'success_rate')
+        assert hasattr(score, "overall_score")
+        assert hasattr(score, "approval_rate")
+        assert hasattr(score, "success_rate")
 
     def test_database_models_with_trust_levels(self):
         """Test that database models work with TrustLevelEnum."""
@@ -182,7 +182,7 @@ class TestTrustLevelResolution:
         metrics = TrustMetrics(
             user_id="test-user",
             current_trust_level=TrustLevelEnum.L1_ASSISTED.value,
-            trust_score=75.0
+            trust_score=75.0,
         )
         assert metrics.user_id == "test-user"
         assert metrics.current_trust_level == 1

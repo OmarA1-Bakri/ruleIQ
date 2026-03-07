@@ -1,7 +1,5 @@
 """Test ingestion tool for Golden Dataset."""
 
-from __future__ import annotations
-
 from typing import Any
 import pytest
 from unittest.mock import Mock, patch
@@ -101,7 +99,8 @@ class TestChunkProcessor:
     def test_chunk_document_basic(self) -> Any:
         """Test basic document chunking."""
         processor = ChunkProcessor(
-            chunk_size=100, overlap=10  # ~25 tokens  # ~2-3 tokens,
+            chunk_size=100,
+            overlap=10,  # ~25 tokens  # ~2-3 tokens,
         )
 
         # Create a document with enough content to chunk
@@ -172,7 +171,9 @@ class TestChunkProcessor:
             ],
             expected_outcomes=[
                 ExpectedOutcome(
-                    outcome_id="out1", description="Test outcome", tags=["security"],
+                    outcome_id="out1",
+                    description="Test outcome",
+                    tags=["security"],
                 ),
             ],
         )

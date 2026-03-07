@@ -17,7 +17,6 @@ from pydantic import ValidationError
 from utils.input_validation import validate_evidence_update
 from api.utils.input_validation import sanitize_input, InputValidator
 import contextlib
-import requests
 
 # Enhanced dangerous pattern detection - categorized for contextual use
 DANGEROUS_PATTERNS_SQL = [
@@ -72,27 +71,27 @@ DANGEROUS_PATTERNS_TEMPLATE = [
 
 # Combined patterns for strict mode
 DANGEROUS_PATTERNS = (
-    DANGEROUS_PATTERNS_SQL +
-    DANGEROUS_PATTERNS_NOSQL +
-    DANGEROUS_PATTERNS_XSS +
-    DANGEROUS_PATTERNS_CMD +
-    DANGEROUS_PATTERNS_PATH +
-    DANGEROUS_PATTERNS_XXE +
-    DANGEROUS_PATTERNS_TEMPLATE
+    DANGEROUS_PATTERNS_SQL
+    + DANGEROUS_PATTERNS_NOSQL
+    + DANGEROUS_PATTERNS_XSS
+    + DANGEROUS_PATTERNS_CMD
+    + DANGEROUS_PATTERNS_PATH
+    + DANGEROUS_PATTERNS_XXE
+    + DANGEROUS_PATTERNS_TEMPLATE
 )
 
 # Allowed MIME types for file uploads
 ALLOWED_MIME_TYPES = {
-    'application/pdf': ['.pdf'],
-    'image/jpeg': ['.jpg', '.jpeg'],
-    'image/png': ['.png'],
-    'image/gif': ['.gif'],
-    'text/plain': ['.txt'],
-    'text/csv': ['.csv'],
-    'application/vnd.ms-excel': ['.xls'],
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
-    'application/msword': ['.doc'],
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+    "application/pdf": [".pdf"],
+    "image/jpeg": [".jpg", ".jpeg"],
+    "image/png": [".png"],
+    "image/gif": [".gif"],
+    "text/plain": [".txt"],
+    "text/csv": [".csv"],
+    "application/vnd.ms-excel": [".xls"],
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"],
+    "application/msword": [".doc"],
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"],
 }
 
 # Maximum file size (10 MB)
@@ -103,7 +102,9 @@ class SecurityValidator:
     """Enhanced security validation for API requests."""
 
     @staticmethod
-    def validate_no_dangerous_content(content: str, field_name: str = "content", mode: str = "strict") -> str:
+    def validate_no_dangerous_content(
+        content: str, field_name: str = "content", mode: str = "strict"
+    ) -> str:
         """
         Validate that content doesn't contain dangerous patterns.
 
@@ -128,9 +129,7 @@ class SecurityValidator:
         if mode == "lenient":
             # For lenient mode, only check critical patterns
             patterns_to_check = (
-                DANGEROUS_PATTERNS_SQL +
-                DANGEROUS_PATTERNS_PATH +
-                DANGEROUS_PATTERNS_XXE
+                DANGEROUS_PATTERNS_SQL + DANGEROUS_PATTERNS_PATH + DANGEROUS_PATTERNS_XXE
             )
         elif mode == "xss_only":
             # For UI-rendered fields
@@ -143,7 +142,7 @@ class SecurityValidator:
             if re.search(pattern, content_str, re.IGNORECASE | re.DOTALL):
                 raise HTTPException(
                     status_code=400,
-                    detail=f"Invalid {field_name}: contains potentially dangerous content"
+                    detail=f"Invalid {field_name}: contains potentially dangerous content",
                 )
 
         # Sanitize and return
@@ -164,11 +163,11 @@ class SecurityValidator:
         Raises:
             HTTPException: If payload contains security threats
         """
+
         def check_depth(obj: Any, current_depth: int = 0) -> None:
             if current_depth > max_depth:
                 raise HTTPException(
-                    status_code=400,
-                    detail="JSON payload exceeds maximum nesting depth"
+                    status_code=400, detail="JSON payload exceeds maximum nesting depth"
                 )
 
             if isinstance(obj, dict):
@@ -204,12 +203,12 @@ class SecurityValidator:
         file_size = None
 
         # Method 1: Try to get from file.size attribute if available
-        if hasattr(file, 'size') and file.size is not None:
+        if hasattr(file, "size") and file.size is not None:
             file_size = file.size
 
         # Method 2: Try to get from headers
-        elif hasattr(file, 'headers') and file.headers:
-            content_length = file.headers.get('content-length')
+        elif hasattr(file, "headers") and file.headers:
+            content_length = file.headers.get("content-length")
             if content_length:
                 with contextlib.suppress(ValueError, TypeError):
                     file_size = int(content_length)
@@ -229,15 +228,14 @@ class SecurityValidator:
         if file_size > MAX_FILE_SIZE:
             raise HTTPException(
                 status_code=413,
-                detail=f"File size exceeds maximum allowed size of {MAX_FILE_SIZE} bytes"
+                detail=f"File size exceeds maximum allowed size of {MAX_FILE_SIZE} bytes",
             )
 
         # Check MIME type
         if file.content_type:
             if file.content_type not in ALLOWED_MIME_TYPES:
                 raise HTTPException(
-                    status_code=400,
-                    detail=f"File type {file.content_type} is not allowed"
+                    status_code=400, detail=f"File type {file.content_type} is not allowed"
                 )
 
             # Check file extension
@@ -247,7 +245,7 @@ class SecurityValidator:
                 if file_ext not in allowed_exts:
                     raise HTTPException(
                         status_code=400,
-                        detail=f"File extension {file_ext} doesn't match content type {file.content_type}"
+                        detail=f"File extension {file_ext} doesn't match content type {file.content_type}",
                     )
 
         # Validate filename
@@ -277,16 +275,23 @@ class SecurityValidator:
 
             # Validate parameter value
             if isinstance(value, list):
-                clean_value = [SecurityValidator.validate_no_dangerous_content(str(v), f"parameter {key}") for v in value]
+                clean_value = [
+                    SecurityValidator.validate_no_dangerous_content(str(v), f"parameter {key}")
+                    for v in value
+                ]
             else:
-                clean_value = SecurityValidator.validate_no_dangerous_content(str(value), f"parameter {key}")
+                clean_value = SecurityValidator.validate_no_dangerous_content(
+                    str(value), f"parameter {key}"
+                )
 
             validated[clean_key] = clean_value
 
         return validated
 
     @staticmethod
-    def validate_headers(headers: Dict[str, str], sensitive_headers: List[str] = None) -> Dict[str, str]:
+    def validate_headers(
+        headers: Dict[str, str], sensitive_headers: List[str] = None
+    ) -> Dict[str, str]:
         """
         Validate HTTP headers for security.
 
@@ -298,7 +303,7 @@ class SecurityValidator:
             Validated headers with sensitive values redacted
         """
         if sensitive_headers is None:
-            sensitive_headers = ['authorization', 'cookie', 'x-api-key', 'x-auth-token']
+            sensitive_headers = ["authorization", "cookie", "x-api-key", "x-auth-token"]
 
         validated = {}
         for key, value in headers.items():
@@ -310,7 +315,9 @@ class SecurityValidator:
                 validated[clean_key] = "***REDACTED***"
             else:
                 # Validate header value
-                clean_value = SecurityValidator.validate_no_dangerous_content(value, f"header {key}")
+                clean_value = SecurityValidator.validate_no_dangerous_content(
+                    value, f"header {key}"
+                )
                 validated[clean_key] = clean_value
 
         return validated
@@ -405,11 +412,11 @@ async def validate_evidence_data(data: Dict[str, Any]) -> Dict[str, Any]:
     validated = validate_evidence_update(data)
 
     # Additional evidence-specific validation
-    if 'file_path' in data:
-        SecurityValidator.validate_no_dangerous_content(data['file_path'], 'file_path')
+    if "file_path" in data:
+        SecurityValidator.validate_no_dangerous_content(data["file_path"], "file_path")
 
-    if 'framework' in data:
-        SecurityValidator.validate_no_dangerous_content(data['framework'], 'framework')
+    if "framework" in data:
+        SecurityValidator.validate_no_dangerous_content(data["framework"], "framework")
 
     return validated
 
@@ -427,7 +434,8 @@ async def validate_business_profile_data(data: Dict[str, Any]) -> Dict[str, Any]
         elif isinstance(value, list):
             validated[field] = [
                 SecurityValidator.validate_no_dangerous_content(str(item), f"{field} item")
-                if isinstance(item, str) else item
+                if isinstance(item, str)
+                else item
                 for item in value
             ]
         else:
@@ -440,41 +448,52 @@ async def validate_integration_data(data: Dict[str, Any]) -> Dict[str, Any]:
     """Validate integration configuration data."""
     # Whitelist of allowed providers
     ALLOWED_PROVIDERS = [
-        'slack', 'teams', 'google', 'microsoft', 'okta', 'auth0',
-        'salesforce', 'jira', 'github', 'gitlab', 'bitbucket'
+        "slack",
+        "teams",
+        "google",
+        "microsoft",
+        "okta",
+        "auth0",
+        "salesforce",
+        "jira",
+        "github",
+        "gitlab",
+        "bitbucket",
     ]
 
     validated = {}
 
     # Validate provider
-    if 'provider' in data:
-        provider = data['provider'].lower()
+    if "provider" in data:
+        provider = data["provider"].lower()
         if provider not in ALLOWED_PROVIDERS:
             raise HTTPException(
                 status_code=400,
-                detail=f"Invalid provider: {provider}. Allowed providers: {', '.join(ALLOWED_PROVIDERS)}"
+                detail=f"Invalid provider: {provider}. Allowed providers: {', '.join(ALLOWED_PROVIDERS)}",
             )
-        validated['provider'] = provider
+        validated["provider"] = provider
 
     # Validate credentials (ensure they're encrypted)
-    if 'credentials' in data:
+    if "credentials" in data:
         # Don't validate the actual credential values as they should be encrypted
         # Just ensure the structure is valid
-        if not isinstance(data['credentials'], dict):
+        if not isinstance(data["credentials"], dict):
             raise HTTPException(status_code=400, detail="Invalid credentials format")
-        validated['credentials'] = data['credentials']
+        validated["credentials"] = data["credentials"]
 
     # Validate webhook URLs
-    if 'webhook_url' in data:
+    if "webhook_url" in data:
         try:
-            validated['webhook_url'] = InputValidator.validate_url(data['webhook_url'])
+            validated["webhook_url"] = InputValidator.validate_url(data["webhook_url"])
         except ValueError as e:
             raise HTTPException(status_code=400, detail=str(e))
 
     # Validate other fields
-    for field in ['name', 'description', 'settings']:
+    for field in ["name", "description", "settings"]:
         if field in data:
-            validated[field] = SecurityValidator.validate_no_dangerous_content(str(data[field]), field)
+            validated[field] = SecurityValidator.validate_no_dangerous_content(
+                str(data[field]), field
+            )
 
     return validated
 
@@ -493,28 +512,25 @@ def handle_validation_error(error: ValidationError) -> HTTPException:
     # Sanitize error messages to prevent information leakage
     errors = []
     for err in error.errors():
-        location = " -> ".join(str(loc) for loc in err['loc'])
-        message = err['msg']
+        location = " -> ".join(str(loc) for loc in err["loc"])
+        message = err["msg"]
         errors.append(f"{location}: {message}")
 
-    return HTTPException(
-        status_code=400,
-        detail=f"Validation failed: {'; '.join(errors)}"
-    )
+    return HTTPException(status_code=400, detail=f"Validation failed: {'; '.join(errors)}")
 
 
 # Export main components
 __all__ = [
-    'SecurityValidator',
-    'validate_request_security',
-    'validate_json_request',
-    'validate_file_upload_dependency',
-    'validate_auth_request',
-    'validate_evidence_data',
-    'validate_business_profile_data',
-    'validate_integration_data',
-    'handle_validation_error',
-    'InputValidator',  # Re-export from utils
-    'validate_evidence_update',  # Re-export from api.utils
-    'sanitize_input',  # Re-export from api.utils
+    "SecurityValidator",
+    "validate_request_security",
+    "validate_json_request",
+    "validate_file_upload_dependency",
+    "validate_auth_request",
+    "validate_evidence_data",
+    "validate_business_profile_data",
+    "validate_integration_data",
+    "handle_validation_error",
+    "InputValidator",  # Re-export from utils
+    "validate_evidence_update",  # Re-export from api.utils
+    "sanitize_input",  # Re-export from api.utils
 ]

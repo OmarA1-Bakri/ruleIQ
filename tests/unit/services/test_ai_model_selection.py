@@ -152,31 +152,21 @@ class TestAIConfig:
         complexity = ai_config._calculate_task_complexity(complex_context)
         assert complexity in ["medium", "complex"]
 
-    @patch("config.ai_config.genai.GenerativeModel")
-    def test_get_model_success(self, mock_genai_model, ai_config):
-        """Test successful model instantiation."""
-        mock_model_instance = Mock()
-        mock_genai_model.return_value = mock_model_instance
-        model = ai_config.get_model(ModelType.GEMINI_25_FLASH)
-        if os.getenv("USE_MOCK_AI", "false").lower() == "true":
-            assert hasattr(model, "generate_content")
-            assert hasattr(model.generate_content, "return_value")
-        else:
-            assert model == mock_model_instance
-            mock_genai_model.assert_called_once()
+    def test_get_model_success(self, ai_config):
+        """Test successful model instantiation returns a wrapper with generate_content."""
+        mock_client = Mock()
+        with patch.object(ai_config, "_get_genai_client", return_value=mock_client):
+            model = ai_config.get_model(ModelType.GEMINI_25_FLASH)
+        assert hasattr(model, "generate_content")
+        assert hasattr(model, "model_name")
 
-    @patch("config.ai_config.genai.GenerativeModel")
-    def test_get_model_with_fallback(self, mock_genai_model, ai_config):
-        """Test model instantiation with fallback on failure."""
-        mock_model_instance = Mock()
-        mock_genai_model.side_effect = [Exception("Model unavailable"), mock_model_instance]
-        model = ai_config.get_model(ModelType.GEMINI_25_PRO)
-        if os.getenv("USE_MOCK_AI", "false").lower() == "true":
-            assert hasattr(model, "generate_content")
-            assert hasattr(model.generate_content, "return_value")
-        else:
-            assert model == mock_model_instance
-            assert mock_genai_model.call_count == 2
+    def test_get_model_with_correct_model_name(self, ai_config):
+        """Test model instantiation uses the correct model name."""
+        mock_client = Mock()
+        with patch.object(ai_config, "_get_genai_client", return_value=mock_client):
+            model = ai_config.get_model(ModelType.GEMINI_25_PRO)
+        if os.getenv("USE_MOCK_AI", "false").lower() != "true":
+            assert model.model_name == ModelType.GEMINI_25_PRO.value
 
     def test_model_selection_prefer_speed(self, ai_config):
         """Test model selection when preferring speed."""

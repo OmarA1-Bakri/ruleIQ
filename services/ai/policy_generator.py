@@ -310,22 +310,18 @@ class PolicyGenerator:
     async def _stream_with_google(self, prompt: str, request: "PolicyGenerationRequest"):
         """Stream policy generation using Google AI."""
         try:
-            import google.generativeai as genai
+            from config.ai_config import get_ai_model
 
-            model = genai.GenerativeModel("gemini-pro")
+            model = get_ai_model()
             response = model.generate_content(
                 prompt,
                 stream=True,
-                generation_config=genai.GenerationConfig(
-                    temperature=0.7, top_p=0.9, max_output_tokens=4000
-                ),
+                generation_config={"temperature": 0.7, "top_p": 0.9, "max_output_tokens": 4000},
             )
-            accumulated_text = ""
             chunk_count = 0
             for chunk in response:
-                if chunk.text:
+                if hasattr(chunk, "text") and chunk.text:
                     chunk_count += 1
-                    accumulated_text += chunk.text
                     yield {
                         "type": "content",
                         "content": chunk.text,

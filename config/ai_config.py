@@ -14,10 +14,10 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    import google.generativeai as genai
+    import google.genai as genai
 else:
     try:
-        import google.generativeai as genai
+        import google.genai as genai
     except ImportError:
         genai = None
 from dotenv import load_dotenv
@@ -94,6 +94,75 @@ MODEL_METADATA = {
 }
 
 
+class _GenAIModelWrapper:
+    """Wraps google.genai Client to expose a GenerativeModel-compatible interface."""
+
+    def __init__(
+        self,
+        client: Any,
+        model_name: str,
+        generation_config: Dict[str, Any],
+        safety_settings: list,
+        system_instruction: Optional[str] = None,
+    ) -> None:
+        self._client = client
+        self._model_name = model_name
+        self._generation_config = generation_config
+        self._safety_settings = safety_settings
+        self._system_instruction = system_instruction
+
+    @property
+    def model_name(self) -> str:
+        return self._model_name
+
+    def _build_genai_config(self, generation_config: Any = None, safety_settings: Any = None) -> Any:
+        from google.genai import types as _gtypes
+
+        gen_cfg = generation_config if generation_config is not None else self._generation_config
+        safe_cfg = safety_settings if safety_settings is not None else self._safety_settings
+
+        if not isinstance(gen_cfg, dict):
+            return gen_cfg  # already a config object
+
+        config_kwargs: Dict[str, Any] = {
+            "temperature": gen_cfg.get("temperature", 0.7),
+            "top_p": gen_cfg.get("top_p", 0.8),
+            "top_k": gen_cfg.get("top_k", 40),
+            "max_output_tokens": gen_cfg.get("max_output_tokens", 4096),
+        }
+        if "response_mime_type" in gen_cfg:
+            config_kwargs["response_mime_type"] = gen_cfg["response_mime_type"]
+        if "response_schema" in gen_cfg:
+            config_kwargs["response_schema"] = gen_cfg["response_schema"]
+        if self._system_instruction:
+            config_kwargs["system_instruction"] = self._system_instruction
+        if safe_cfg and isinstance(safe_cfg, list) and safe_cfg and isinstance(safe_cfg[0], dict):
+            config_kwargs["safety_settings"] = [
+                _gtypes.SafetySetting(category=s["category"], threshold=s["threshold"])
+                for s in safe_cfg
+            ]
+        elif safe_cfg:
+            config_kwargs["safety_settings"] = safe_cfg
+
+        return _gtypes.GenerateContentConfig(**config_kwargs)
+
+    def generate_content(
+        self,
+        prompt: Any,
+        safety_settings: Any = None,
+        generation_config: Any = None,
+        stream: bool = False,
+    ) -> Any:
+        config = self._build_genai_config(generation_config, safety_settings)
+        if stream:
+            return self._client.models.generate_content_stream(
+                model=self._model_name, contents=prompt, config=config
+            )
+        return self._client.models.generate_content(
+            model=self._model_name, contents=prompt, config=config
+        )
+
+
 class AIConfig:
     """AI Configuration Manager"""
 
@@ -165,30 +234,30 @@ class AIConfig:
             "enable_request_queuing": os.getenv("AI_OFFLINE_QUEUE_REQUESTS", "true").lower()
             == "true",
         }
+        self._genai_client: Optional[Any] = None
+
+    def _get_genai_client(self) -> Any:
+        """Get or lazily create the google.genai Client instance."""
+        if self._genai_client is None:
+            if genai is None:
+                raise ImportError("google.genai package is not installed")
+            if not self.google_api_key:
+                raise ValueError("GOOGLE_API_KEY environment variable is required")
+            self._genai_client = genai.Client(api_key=self.google_api_key)
+        return self._genai_client
 
     def _initialize_google_ai(self) -> None:
-        """Initialize Google Generative AI with API key"""
+        """Initialize Google AI client with API key"""
         if os.getenv("USE_MOCK_AI", "false").lower() == "true":
             return
-        if not self.google_api_key:
-            raise ValueError("GOOGLE_API_KEY environment variable is required")
-        if genai is None:
-            raise ImportError("google.generativeai package is not installed")
-        try:
-            genai.configure(api_key=self.google_api_key)
-        except AttributeError:
-            import google.ai.generativelanguage as glm
-
-            glm.configure(api_key=self.google_api_key)
-            raise ValueError("GOOGLE_API_KEY environment variable is required")
-        genai.configure(api_key=self.google_api_key)
+        self._get_genai_client()
 
     def get_model(
         self,
         model_type: Optional[ModelType] = None,
         system_instruction: Optional[str] = None,
         tools: Optional[List[Dict[str, Any]]] = None,
-    ) -> genai.GenerativeModel:
+    ) -> Any:
         """Get configured AI model instance with optional system instruction and tools"""
         if os.getenv("USE_MOCK_AI", "false").lower() == "true":
             from unittest.mock import MagicMock
@@ -197,19 +266,14 @@ class AIConfig:
             mock_model.generate_content.return_value.text = "Mock AI response"
             return mock_model
         model_name = model_type.value if model_type else self.default_model
-        model_params = {
-            "model_name": model_name,
-            "generation_config": self.generation_config,
-            "safety_settings": self.safety_settings,
-        }
-        if system_instruction:
-            model_params["system_instruction"] = system_instruction
-        if tools:
-            model_params["tools"] = tools
-        try:
-            return genai.GenerativeModel(**model_params)
-        except Exception:
-            return genai.GenerativeModel(**model_params)
+        client = self._get_genai_client()
+        return _GenAIModelWrapper(
+            client=client,
+            model_name=model_name,
+            generation_config=self.generation_config,
+            safety_settings=self.safety_settings,
+            system_instruction=system_instruction,
+        )
 
     def update_generation_config(self, **kwargs) -> None:
         """Update generation configuration parameters"""
@@ -256,7 +320,7 @@ class AIConfig:
         system_instruction: Optional[str] = None,
         response_schema_type: Optional[str] = None,
         tools: Optional[List[Dict[str, Any]]] = None,
-    ) -> genai.GenerativeModel:
+    ) -> Any:
         """
         Get AI model configured for structured output with schema validation
 
@@ -271,16 +335,14 @@ class AIConfig:
             generation_config = self.get_schema_aware_config(response_schema_type)
         else:
             generation_config = self.generation_config
-        model_params = {
-            "model_name": model_name,
-            "generation_config": generation_config,
-            "safety_settings": self.safety_settings,
-        }
-        if system_instruction:
-            model_params["system_instruction"] = system_instruction
-        if tools:
-            model_params["tools"] = tools
-        return genai.GenerativeModel(**model_params)
+        client = self._get_genai_client()
+        return _GenAIModelWrapper(
+            client=client,
+            model_name=model_name,
+            generation_config=generation_config,
+            safety_settings=self.safety_settings,
+            system_instruction=system_instruction,
+        )
 
     def get_retry_config(self, operation_type: str = "default") -> Dict[str, Any]:
         """
@@ -471,7 +533,7 @@ def get_ai_model(
     task_context: Optional[Dict[str, Any]] = None,
     system_instruction: Optional[str] = None,
     tools: Optional[List[Dict[str, Any]]] = None,
-) -> genai.GenerativeModel:
+) -> Any:
     """
     Convenience function to get AI model instance with intelligent selection, system instructions, and tools
 
@@ -499,7 +561,7 @@ def get_structured_ai_model(
     task_context: Optional[Dict[str, Any]] = None,
     system_instruction: Optional[str] = None,
     tools: Optional[List[Dict[str, Any]]] = None,
-) -> genai.GenerativeModel:
+) -> Any:
     """
     Convenience function to get AI model configured for structured output with schema validation
 

@@ -14,8 +14,7 @@ import json
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
-import google.generativeai as genai
-from config.ai_config import get_ai_config
+from config.ai_config import ai_config as _global_ai_config
 from config.logging_config import get_logger
 
 logger = get_logger(__name__)
@@ -43,7 +42,7 @@ class GoogleCachedContentManager:
     """
 
     def __init__(self) -> None:
-        self.config = get_ai_config()
+        self.config = _global_ai_config
         self.cache_registry: Dict[str, CacheMetadata] = {}
         self.ttl_strategies = {
             "assessment_context": timedelta(hours=2),
@@ -84,11 +83,17 @@ class GoogleCachedContentManager:
             cache_content = self._prepare_assessment_content(
                 framework_id, business_profile, additional_context
             )
-            cached_content = genai.caching.CachedContent.create(
-                model=self.config.default_model.value,
-                contents=cache_content,
-                ttl=self.ttl_strategies["assessment_context"],
-                display_name=f"assessment_context_{framework_id}_{business_profile.get('id', 'unknown')}",
+            from config.ai_config import ai_config as _ai_config
+            from google.genai import types as _gtypes
+            _client = _ai_config._get_genai_client()
+            ttl = self.ttl_strategies["assessment_context"]
+            cached_content = _client.caches.create(
+                config=_gtypes.CreateCachedContentConfig(
+                    model=self.config.default_model,
+                    contents=cache_content,
+                    ttl=f"{int(ttl.total_seconds())}s",
+                    display_name=f"assessment_context_{framework_id}_{business_profile.get('id', 'unknown')}",
+                )
             )
             metadata = CacheMetadata(
                 cache_id=cached_content.name,
@@ -130,11 +135,17 @@ class GoogleCachedContentManager:
             cache_content = self._prepare_business_profile_content(
                 business_profile, regulatory_context
             )
-            cached_content = genai.caching.CachedContent.create(
-                model=self.config.default_model.value,
-                contents=cache_content,
-                ttl=self.ttl_strategies["business_profile"],
-                display_name=f"business_profile_{business_profile.get('id', 'unknown')}",
+            from config.ai_config import ai_config as _ai_config
+            from google.genai import types as _gtypes
+            _client = _ai_config._get_genai_client()
+            ttl = self.ttl_strategies["business_profile"]
+            cached_content = _client.caches.create(
+                config=_gtypes.CreateCachedContentConfig(
+                    model=self.config.default_model,
+                    contents=cache_content,
+                    ttl=f"{int(ttl.total_seconds())}s",
+                    display_name=f"business_profile_{business_profile.get('id', 'unknown')}",
+                )
             )
             metadata = CacheMetadata(
                 cache_id=cached_content.name,
@@ -152,20 +163,26 @@ class GoogleCachedContentManager:
 
     def get_cached_model(self, cache_id: str) -> Optional[Any]:
         """
-        Get a model instance with cached content.
+        Get a model wrapper with cached content baked in.
 
         Args:
             cache_id: Google cached content ID
 
         Returns:
-            Model instance with cached content or None
+            Model wrapper using cached content or None
         """
         try:
-            cached_content = genai.caching.CachedContent.get(cache_id)
-            model = genai.GenerativeModel(
-                model_name=cached_content.model, cached_content=cached_content
+            from config.ai_config import ai_config as _ai_config, _GenAIModelWrapper
+            client = _ai_config._get_genai_client()
+            cached_content = client.caches.get(name=cache_id)
+            # Build a wrapper whose generate_content calls include the cached_content context
+            wrapper = _GenAIModelWrapper(
+                client=client,
+                model_name=cached_content.model,
+                generation_config=_ai_config.generation_config,
+                safety_settings=_ai_config.safety_settings,
             )
-            return model
+            return wrapper
         except Exception as e:
             logger.error("Failed to get cached model: %s" % e)
             return None
@@ -183,8 +200,9 @@ class GoogleCachedContentManager:
         try:
             if cache_key in self.cache_registry:
                 metadata = self.cache_registry[cache_key]
-                cached_content = genai.caching.CachedContent.get(metadata.cache_id)
-                cached_content.delete()
+                from config.ai_config import ai_config as _ai_config
+                _client = _ai_config._get_genai_client()
+                _client.caches.delete(name=metadata.cache_id)
                 del self.cache_registry[cache_key]
                 logger.info("Invalidated cache: %s" % cache_key)
                 return True

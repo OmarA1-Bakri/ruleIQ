@@ -23,7 +23,6 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 from dataclasses import dataclass
 from enum import Enum
-import google.generativeai as genai
 from config.logging_config import get_logger
 from config.ai_config import ModelType
 
@@ -67,7 +66,7 @@ class GoogleCachedContentManager:
 
     def __init__(self, lifecycle_config: Optional[CacheLifecycleConfig] = None) -> None:
         self.config = lifecycle_config or CacheLifecycleConfig()
-        self.active_caches: Dict[str, genai.caching.CachedContent] = {}
+        self.active_caches: Dict[str, Any] = {}
         self.cache_metadata: Dict[str, Dict[str, Any]] = {}
         import os
 
@@ -90,7 +89,7 @@ class GoogleCachedContentManager:
         business_profile: Dict[str, Any],
         assessment_context: Optional[Dict[str, Any]] = None,
         model_type: ModelType = ModelType.GEMINI_25_FLASH,
-    ) -> Optional[genai.caching.CachedContent]:
+    ) -> Optional[Any]:
         """
         Create cached content for assessment context.
 
@@ -133,8 +132,16 @@ class GoogleCachedContentManager:
             display_name = (
                 f"assessment_{framework_id}_{business_profile.get('id', 'unknown')[:8]}",
             )
-            cached_content = genai.caching.CachedContent.create(
-                model=model_type.value, contents=cache_content, ttl=ttl, display_name=display_name
+            from config.ai_config import ai_config
+            from google.genai import types as _gtypes
+            client = ai_config._get_genai_client()
+            cached_content = client.caches.create(
+                config=_gtypes.CreateCachedContentConfig(
+                    model=model_type.value,
+                    contents=cache_content,
+                    ttl=f"{int(ttl.total_seconds())}s",
+                    display_name=display_name[0] if isinstance(display_name, tuple) else display_name,
+                )
             )
             self.active_caches[cache_key] = cached_content
             self.cache_metadata[cache_key] = {
@@ -158,7 +165,7 @@ class GoogleCachedContentManager:
 
     async def create_business_profile_cache(
         self, business_profile: Dict[str, Any], model_type: ModelType = ModelType.GEMINI_25_FLASH
-    ) -> Optional[genai.caching.CachedContent]:
+    ) -> Optional[Any]:
         """
         Create cached content for business profile context.
 
@@ -182,9 +189,17 @@ class GoogleCachedContentManager:
             cache_content = self._build_business_profile_cache_content(business_profile)
             ttl_hours = self._calculate_business_profile_ttl(business_profile)
             ttl = timedelta(hours=ttl_hours)
-            display_name = (f"business_profile_{business_profile.get('id', 'unknown')[:8]}",)
-            cached_content = genai.caching.CachedContent.create(
-                model=model_type.value, contents=cache_content, ttl=ttl, display_name=display_name
+            display_name = f"business_profile_{business_profile.get('id', 'unknown')[:8]}"
+            from config.ai_config import ai_config
+            from google.genai import types as _gtypes
+            client = ai_config._get_genai_client()
+            cached_content = client.caches.create(
+                config=_gtypes.CreateCachedContentConfig(
+                    model=model_type.value,
+                    contents=cache_content,
+                    ttl=f"{int(ttl.total_seconds())}s",
+                    display_name=display_name,
+                )
             )
             self.active_caches[cache_key] = cached_content
             self.cache_metadata[cache_key] = {
@@ -213,7 +228,7 @@ class GoogleCachedContentManager:
         framework_id: str,
         industry_context: Optional[str] = None,
         model_type: ModelType = ModelType.GEMINI_25_FLASH,
-    ) -> Optional[genai.caching.CachedContent]:
+    ) -> Optional[Any]:
         """
         Create cached content for framework-specific information.
 
@@ -241,8 +256,16 @@ class GoogleCachedContentManager:
             ttl_hours = 12
             ttl = timedelta(hours=ttl_hours)
             display_name = f"framework_{framework_id}_{industry_context or 'general'}"
-            cached_content = genai.caching.CachedContent.create(
-                model=model_type.value, contents=cache_content, ttl=ttl, display_name=display_name
+            from config.ai_config import ai_config
+            from google.genai import types as _gtypes
+            client = ai_config._get_genai_client()
+            cached_content = client.caches.create(
+                config=_gtypes.CreateCachedContentConfig(
+                    model=model_type.value,
+                    contents=cache_content,
+                    ttl=f"{int(ttl.total_seconds())}s",
+                    display_name=display_name,
+                )
             )
             self.active_caches[cache_key] = cached_content
             self.cache_metadata[cache_key] = {
@@ -266,7 +289,7 @@ class GoogleCachedContentManager:
 
     def get_cached_content(
         self, content_type: CacheContentType, identifier: str, secondary_key: Optional[str] = None
-    ) -> Optional[genai.caching.CachedContent]:
+    ) -> Optional[Any]:
         """
         Get existing cached content by type and identifier.
 
@@ -494,7 +517,7 @@ class GoogleCachedContentManager:
         else:
             return base_ttl
 
-    def _is_cache_valid(self, cached_content: genai.caching.CachedContent) -> bool:
+    def _is_cache_valid(self, cached_content: Any) -> bool:
         """Check if cached content is still valid."""
         try:
             _ = cached_content.name

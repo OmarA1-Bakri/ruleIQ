@@ -289,9 +289,8 @@ class ServiceHealthMonitor:
     async def _check_google_ai_health(self) -> Dict[str, Any]:
         """Check Google AI API health"""
         try:
-            import google.generativeai as genai
-
-            models = list(genai.list_models())
+            client = ai_config._get_genai_client()
+            models = list(client.models.list())
             if models:
                 return {"healthy": True, "models_available": len(models)}
             else:

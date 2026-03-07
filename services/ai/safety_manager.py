@@ -20,7 +20,7 @@ from enum import Enum
 from typing import Any, Dict, List, Optional
 from dataclasses import dataclass, field
 from uuid import uuid4
-from google.generativeai.types import HarmBlockThreshold, HarmCategory
+from google.genai.types import HarmBlockThreshold, HarmCategory
 from config.logging_config import get_logger
 
 logger = get_logger(__name__)

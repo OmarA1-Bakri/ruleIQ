@@ -30,7 +30,7 @@ from datetime import datetime
 from datetime import timezone
 from typing import Any, AsyncIterator, Dict, List, Optional, Tuple
 from uuid import UUID, uuid4
-from google.generativeai.types import HarmBlockThreshold, HarmCategory
+from google.genai.types import HarmBlockThreshold, HarmCategory
 from sqlalchemy.ext.asyncio import AsyncSession
 from config.ai_config import get_ai_model
 from config.logging_config import get_logger

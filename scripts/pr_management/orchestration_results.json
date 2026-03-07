@@ -1,0 +1,92 @@
+{
+  "timestamp": "2025-09-26T06:06:59.829783",
+  "mode": "dry_run",
+  "phases": {
+    "analysis": {
+      "summary": {
+        "total_prs": 0,
+        "categories": {},
+        "total_additions": 0,
+        "total_deletions": 0,
+        "total_files_changed": 0,
+        "average_pr_age_days": 0,
+        "oldest_pr_days": 0,
+        "newest_pr_days": 0,
+        "dependabot_prs": 0,
+        "security_prs": 0,
+        "feature_prs": 0,
+        "with_conflicts": 0,
+        "ci_failing": 0
+      },
+      "categories": {},
+      "recommendations": [],
+      "risks": [],
+      "dependencies": [],
+      "conflicts": [],
+      "priority_order": []
+    },
+    "ci_check": {
+      "timestamp": "2025-09-26T06:07:00.210465",
+      "total_prs": 0,
+      "pr_statuses": [],
+      "summary": {
+        "all_passing": 0,
+        "some_failing": 0,
+        "pending": 0,
+        "no_checks": 0
+      },
+      "failures": []
+    },
+    "dependabot": {
+      "timestamp": "2025-09-26T06:07:00.398989",
+      "total_prs": 0,
+      "processed": 0,
+      "skipped": 0,
+      "failed": 0,
+      "details": {
+        "total": 0,
+        "processed": [],
+        "skipped": [],
+        "failed": [],
+        "categories": {
+          "security": [],
+          "priority": [],
+          "regular": [],
+          "dev": [],
+          "major": [],
+          "blocked": []
+        }
+      },
+      "recommendations": []
+    },
+    "decisions": {
+      "timestamp": "2025-09-26T06:07:00.585339",
+      "total_prs": 0,
+      "evaluations": [],
+      "summary": {
+        "auto_merge": [],
+        "ready_for_merge": [],
+        "needs_review": [],
+        "blocked": [],
+        "manual_review": []
+      },
+      "batch_recommendations": []
+    },
+    "branch_cleanup": {
+      "timestamp": "2025-09-26T06:07:00.585552",
+      "local_deleted": [],
+      "remote_deleted": [],
+      "skipped": [],
+      "errors": []
+    }
+  },
+  "summary": {
+    "total_actions": 0,
+    "errors": 0,
+    "prs_processed": 0,
+    "prs_merged": 0,
+    "branches_cleaned": 0
+  },
+  "actions_taken": [],
+  "errors": []
+}

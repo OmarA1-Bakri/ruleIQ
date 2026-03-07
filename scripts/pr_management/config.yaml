@@ -223,6 +223,37 @@ orchestration:
       enabled: true
       priority: 5
 
+# Auto-Reviewer Configuration
+auto_reviewer:
+  enabled: true
+  auto_merge_confidence_threshold: 85.0  # Minimum confidence for auto-merge
+  comment_confidence_threshold: 60.0     # Minimum confidence for helpful comments
+  max_auto_merges_per_run: 5            # Safety limit on merges per execution
+  
+  # Safety settings
+  require_ci_success: true
+  block_on_conflicts: true
+  block_on_security_issues: true
+  
+  # Comment settings
+  add_helpful_comments: true
+  include_next_steps: true
+  mention_reviewers: false
+  
+  # Merge settings
+  add_approval_before_merge: true
+  delete_branch_after_merge: false  # Let GitHub handle this
+  
+  # Protected file patterns (require manual review)
+  protected_patterns:
+    - ".github/"
+    - "config/"
+    - "security/"
+    - "Dockerfile"
+    - "docker-compose"
+    - "requirements.txt"
+    - "package.json"
+
 # Known Issues (PRs to handle specially)
 known_issues:
   pr_104:

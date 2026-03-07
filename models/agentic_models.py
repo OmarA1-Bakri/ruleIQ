@@ -116,7 +116,7 @@ class AgentSession(Base):
 
     # Relationships
     agent = relationship("Agent", back_populates="sessions")
-    user = relationship("User", backref="agent_sessions")
+    # user relationship omitted: User model lives in a different declarative_base registry
     decisions = relationship(
         "AgentDecision", back_populates="session", cascade="all, delete-orphan"
     )
@@ -451,7 +451,7 @@ class AgentAuditLog(Base):
     # Relationships
     agent = relationship("Agent", back_populates="audit_logs")
     session = relationship("AgentSession", back_populates="audit_logs")
-    user = relationship("User", backref="agent_audit_logs")
+    # user relationship omitted: User model lives in a different declarative_base registry
 
     # Constraints
     __table_args__ = (

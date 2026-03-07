@@ -46,6 +46,9 @@ class OrchestratorService:
         config: Optional[Dict[str, Any]] = None,
     ) -> Agent:
         """Create and register a new agent."""
+        if len(self.agent_registry) >= self.max_concurrent_agents:
+            raise ValueError("Max concurrent agents reached")
+
         try:
             agent = Agent(
                 agent_id=uuid4(),
@@ -65,7 +68,7 @@ class OrchestratorService:
 
             return agent
 
-        except SQLAlchemyError as e:
+        except Exception as e:
             self.db.rollback()
             logger.error(f"Failed to create agent: {e}")
             raise
@@ -103,8 +106,8 @@ class OrchestratorService:
                 agent = self.agent_registry[agent_id]
                 agent.is_active = False
 
-                # End any active sessions
-                for session_id, session in self.active_sessions.items():
+                # End any active sessions (iterate over copy to allow dict modification)
+                for session_id, session in list(self.active_sessions.items()):
                     if session.agent_id == agent_id:
                         await self.end_session(session_id)
 

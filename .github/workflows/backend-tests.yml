@@ -175,7 +175,7 @@ jobs:
 
       - name: Post coverage summary
         if: github.event_name == 'pull_request' && matrix.test-group == 'unit'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const fs = require('fs');

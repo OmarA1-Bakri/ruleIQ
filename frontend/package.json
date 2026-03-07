@@ -152,7 +152,7 @@
     "axios": "^1.10.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "cmdk": "1.0.4",
+    "cmdk": "1.1.1",
     "csrf": "^3.1.0",
     "date-fns": "latest",
     "echarts": "^6.0.0",

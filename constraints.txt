@@ -2,7 +2,7 @@
 pydantic>=2.11.0,<3.0.0
 pydantic-core>=2.33.0,<3.0.0
 pydantic-settings>=2.5.0,<3.0.0
-fastapi>=0.117.0,<0.120.0
+fastapi>=0.117.0,<0.136.0
 
 # LangChain compatibility
 langchain>=0.3.0,<0.4.0

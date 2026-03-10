@@ -685,6 +685,7 @@ async def analyze_assessment_results_stream(
     )
 
 
+@router.post("/recommendations", response_model=AIRecommendationResponse)
 async def generate_personalized_recommendations(
     request: AIRecommendationRequest,
     current_user: User = Depends(get_current_active_user),

@@ -1,10 +1,4 @@
-"""
-
-# Constants
-HOUR_SECONDS = 3600
-
-
-AI-specific rate limiting middleware for ruleIQ API endpoints.
+"""AI-specific rate limiting middleware for ruleIQ API endpoints.
 
 Implements tiered rate limiting for different AI operations:
 - AI Help: 10 requests/minute per user
@@ -22,6 +16,8 @@ from starlette import status
 from api.dependencies.auth import get_current_active_user
 from config.settings import get_settings
 from database.user import User
+
+HOUR_SECONDS = 3600
 
 settings = get_settings()
 

@@ -71,8 +71,7 @@ pip-delete-this-directory.txt
 secrets/
 credentials.json
 .secrets/
-**/.secrets/
-
+**/.secrets/*.jwt-backup*
 # =============================================================================
 # IDE & Editors
 # =============================================================================

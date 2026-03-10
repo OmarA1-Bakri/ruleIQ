@@ -321,14 +321,15 @@ class CoordinationManager:
 
 def create_coordination_session(
     session_id: Optional[str] = None,
-    tasks_config: Optional[Dict[str, Dict[str, Any]]] = None,
+    tasks_config: Optional[Union[Dict[str, Dict[str, Any]], List[Dict[str, Any]]]] = None,
     base_dir: Union[str, Path] = ".coordination",
 ) -> CoordinationManager:
     """Create a new coordination session with initial tasks.
 
     Args:
         session_id: Session ID (generated if not provided)
-        tasks_config: Dictionary of task_id -> task_config
+        tasks_config: Dictionary of task_id -> task_config or a list of
+            {"task_id": ..., "config": ...} entries
         base_dir: Base directory for coordination files
 
     Returns:
@@ -340,8 +341,15 @@ def create_coordination_session(
     manager = CoordinationManager(session_id, base_dir)
 
     if tasks_config:
-        for task_id, config in tasks_config.items():
-            manager.create_task(task_id, config)
+        if isinstance(tasks_config, dict):
+            for task_id, config in tasks_config.items():
+                manager.create_task(task_id, config)
+        else:
+            for task in tasks_config:
+                task_id = task.get("task_id")
+                if not task_id:
+                    raise CoordinationError("Each task entry must include a task_id")
+                manager.create_task(task_id, task.get("config", {}))
 
     return manager
 

@@ -387,14 +387,18 @@ class CacheKeyBuilder:
         Returns:
             True if key version is expired
         """
+        current = current_version or cls.CACHE_VERSION
+
         try:
             parsed = cls.parse_key(key)
             if not parsed["is_versioned"]:
                 return False
-
-            current = current_version or cls.CACHE_VERSION
             return parsed["version"] != current
         except ValueError:
+            version_marker = f":{cls.PREFIX_VERSION}:"
+            if version_marker in key:
+                return key.rsplit(version_marker, 1)[1] != current
+
             # Invalid key format
             return True
 
@@ -414,11 +418,17 @@ class CacheKeyBuilder:
             parsed = cls.parse_key(key)
             if parsed["is_versioned"]:
                 # Remove old version and add new one
-                base_key = f"{parsed['prefix']}:{parsed['namespace']}:{':'.join(parsed['parts'])}"
+                base_parts = [parsed["prefix"], parsed["namespace"], *parsed["parts"]]
+                base_key = ":".join(part for part in base_parts if part)
                 return cls.build_versioned_key(base_key, new_version)
             else:
                 # Add version to unversioned key
                 return cls.build_versioned_key(key, new_version)
         except ValueError:
+            version_marker = f":{cls.PREFIX_VERSION}:"
+            if version_marker in key:
+                base_key = key.rsplit(version_marker, 1)[0]
+                return cls.build_versioned_key(base_key, new_version)
+
             # Invalid key, return as-is
             return key

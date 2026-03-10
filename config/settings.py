@@ -300,13 +300,12 @@ class Settings(BaseSettings):
 
     # CORS configuration
     cors_origins: Union[List[str], str] = Field(default=["http://localhost:3000"])
-    cors_allowed_origins: Union[List[str], str] = Field(
-        default=["http://localhost:3000", "http://127.0.0.1:8080", "http://localhost:8080"]
+    allowed_hosts: Union[List[str], str] = Field(
+        default=["localhost", "127.0.0.1", "app.ruleiq.com"]
     )
-    allowed_hosts: Union[List[str], str] = Field(default=["localhost", "127.0.0.1"])
 
     @field_validator(
-        "cors_origins", "cors_allowed_origins", "allowed_hosts", "allowed_file_types", mode="before"
+        "cors_origins", "allowed_hosts", "allowed_file_types", mode="before"
     )
     @classmethod
     def parse_list_fields(cls, v: Union[str, List[str]]) -> List[str]:

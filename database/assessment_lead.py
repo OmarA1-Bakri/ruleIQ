@@ -56,7 +56,7 @@ class AssessmentLead(Base):
     engagement_score = Column(Integer, default=0)
 
     # Newsletter and marketing consent
-    newsletter_subscribed = Column(Boolean, default=True)
+    newsletter_subscribed = Column(Boolean, default=False)
     marketing_consent = Column(Boolean, default=False)  # Note: this is the correct column name
     consent_date = Column(DateTime, nullable=True)
 

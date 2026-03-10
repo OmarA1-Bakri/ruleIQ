@@ -2,3 +2,8 @@ export * from './types';
 export * from './QuestionnaireEngine';
 export * from './validators';
 export * from './utils';
+export * from './scoring';
+export * from './gap-analysis';
+export * from './context-extraction';
+export * from './condition-evaluator';
+export * from './ai-questions';

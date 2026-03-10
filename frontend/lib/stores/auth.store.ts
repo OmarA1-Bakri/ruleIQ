@@ -217,8 +217,10 @@ export const useAuthStore = create<AuthState>()(
             await fetch(`${API_BASE_URL}/api/v1/auth/logout`, {
               method: 'POST',
               headers: {
+                'Content-Type': 'application/json',
                 Authorization: `Bearer ${tokens.access}`,
               },
+              body: JSON.stringify({ refresh_token: tokens.refresh }),
             });
           } catch {
             // Ignore errors on logout
@@ -299,16 +301,28 @@ export const useAuthStore = create<AuthState>()(
         }
 
         try {
-          const response = await fetch(`${API_BASE_URL}/api/v1/auth/me`, {
-            headers: {
-              Authorization: `Bearer ${tokens.access}`,
-            },
-          });
+          const fetchCurrentUser = async (accessToken: string) =>
+            fetch(`${API_BASE_URL}/api/v1/auth/me`, {
+              headers: {
+                Authorization: `Bearer ${accessToken}`,
+              },
+            });
+
+          let response = await fetchCurrentUser(tokens.access);
 
           if (!response.ok) {
-            // Try to refresh token
             await get().refreshTokens();
-            return;
+            const refreshedAccessToken = get().tokens?.access;
+
+            if (!refreshedAccessToken) {
+              throw new Error('Token refresh failed');
+            }
+
+            response = await fetchCurrentUser(refreshedAccessToken);
+
+            if (!response.ok) {
+              throw new Error('Failed to fetch user after token refresh');
+            }
           }
 
           const user: User = await response.json();

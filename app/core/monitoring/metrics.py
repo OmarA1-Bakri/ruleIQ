@@ -1,10 +1,4 @@
-"""
-import logging
-
-
-logger = logging.getLogger(__name__)
-Metrics collection and monitoring implementation.
-"""
+"""Metrics collection and monitoring implementation."""
 
 import time
 import asyncio

@@ -61,13 +61,17 @@ async def generate_implementation_plan(
     end_date = end_datetime.date()
 
     # Create and save the new plan
+    default_title = f"Implementation Plan for {framework.display_name}"
+    if control_domain != "All Domains":
+        default_title = f"{control_domain} Implementation Plan for {framework.display_name}"
+
     new_plan = ImplementationPlan(
         user_id=user.id,
         business_profile_id=profile.id,
         framework_id=framework.id,
         title=plan_data.get(
             "title",
-            f"Implementation Plan for {framework.display_name}",
+            default_title,
         ),
         phases=plan_data.get("phases", []),
         planned_start_date=start_date,
@@ -146,13 +150,19 @@ async def get_plan_dashboard(
             if task.get("status") == "completed":
                 completed_tasks += 1
 
-    completion_percentage = ((completed_tasks / total_tasks * 100) if total_tasks > 0 else 0,)
+    completion_percentage = (completed_tasks / total_tasks * 100) if total_tasks > 0 else 0
 
     # Calculate timeline status
-    days_elapsed = (datetime.now(timezone.utc) - plan.created_at).days
-    days_remaining = (
-        (plan.planned_end_date - datetime.now(timezone.utc)).days if plan.planned_end_date else 0,
+    now = datetime.now(timezone.utc)
+    today = now.date()
+    created_date = plan.created_at.date() if hasattr(plan.created_at, "date") else plan.created_at
+    planned_end_date = (
+        plan.planned_end_date.date()
+        if plan.planned_end_date and hasattr(plan.planned_end_date, "date")
+        else plan.planned_end_date
     )
+    days_elapsed = (today - created_date).days
+    days_remaining = (planned_end_date - today).days if planned_end_date else 0
 
     return {
         "plan_title": plan.title,

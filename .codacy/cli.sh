@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-
 set -e +o pipefail
 
 # Set up paths first
@@ -140,6 +139,10 @@ chmod +x "$bin_path"
 run_command="$bin_path"
 if [ -z "$run_command" ]; then
     fatal "Codacy cli v2 binary could not be found."
+fi
+
+if [ -z "$CI" ]; then
+    export CI=true
 fi
 
 if [ "$#" -eq 1 ] && [ "$1" = "download" ]; then

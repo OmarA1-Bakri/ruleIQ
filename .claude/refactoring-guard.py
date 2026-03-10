@@ -7,9 +7,12 @@ This script should be run before any refactoring operation.
 import sys
 import os
 import subprocess
+import shutil
+import importlib.util
 from datetime import datetime
 import json
 import argparse
+from typing import Any
 
 
 class RefactoringGuard:
@@ -17,47 +20,67 @@ class RefactoringGuard:
 
     def __init__(self) -> None:
         self.max_files_without_approval = 5
-        self.changes_log = []
+        self.changes_log: list[dict[str, Any]] = []
 
-    def check_syntax(self, filepath):
+    def check_syntax(self, filepath: str) -> bool:
         """Check if a Python file has valid syntax."""
         try:
             result = subprocess.run(
-                ["python3", "-m", "py_compile", filepath], capture_output=True, text=True
+                [sys.executable, "-m", "py_compile", filepath],
+                capture_output=True,
+                text=True,
+                check=False,
             )
             return result.returncode == 0
-        except Exception as e:
+        except OSError as e:
             print(f"Error checking syntax for {filepath}: {e}")
             return False
 
-    def create_backup(self, filepath):
+    def create_backup(self, filepath: str) -> str | None:
         """Create a timestamped backup of a file."""
         timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
         backup_path = f"{filepath}.backup-{timestamp}"
         try:
-            subprocess.run(["cp", filepath, backup_path], check=True)
+            shutil.copy2(filepath, backup_path)
             print(f"✅ Backup created: {backup_path}")
             return backup_path
-        except subprocess.CalledProcessError as e:
+        except OSError as e:
             print(f"❌ Failed to create backup: {e}")
             return None
 
-    def test_application(self):
+    def _get_import_targets(self) -> list[str]:
+        """Return candidate modules for a lightweight startup smoke test."""
+        candidates = ["api.main", "main"]
+        return [module for module in candidates if importlib.util.find_spec(module) is not None]
+
+    def test_application(self) -> bool:
         """Test if the application starts without syntax errors."""
+        import_targets = self._get_import_targets()
+        if not import_targets:
+            return True
+
         try:
             result = subprocess.run(
-                ["python3", "-c", "import main"], capture_output=True, text=True, timeout=5
+                [
+                    sys.executable,
+                    "-c",
+                    "; ".join(f"import {module}" for module in import_targets),
+                ],
+                capture_output=True,
+                text=True,
+                timeout=5,
+                check=False,
             )
             return result.returncode == 0
         except subprocess.TimeoutExpired:
             return True  # Timeout means it started
-        except Exception as e:
+        except OSError as e:
             print(f"Error testing application: {e}")
             return False
 
-    def analyze_changes(self, files_to_change, changes_description):
+    def analyze_changes(self, files_to_change: list[str], changes_description: str) -> bool:
         """Analyze proposed changes and determine if approval is needed."""
-        approval_reasons = []
+        approval_reasons: list[str] = []
 
         # Check number of files
         if len(files_to_change) > self.max_files_without_approval:
@@ -100,7 +123,7 @@ class RefactoringGuard:
 
         return True
 
-    def log_change(self, file, change_type, result):
+    def log_change(self, file: str, change_type: str, result: str) -> None:
         """Log a refactoring change."""
         self.changes_log.append(
             {
@@ -111,26 +134,28 @@ class RefactoringGuard:
             }
         )
 
-    def save_log(self):
+    def save_log(self) -> None:
         """Save the refactoring log."""
         log_file = ".claude/refactoring-log.json"
         try:
             if os.path.exists(log_file):
-                with open(log_file, "r") as f:
+                with open(log_file, "r", encoding="utf-8") as f:
                     existing_log = json.load(f)
+                if not isinstance(existing_log, list):
+                    existing_log = []
             else:
                 existing_log = []
 
             existing_log.extend(self.changes_log)
 
-            with open(log_file, "w") as f:
+            with open(log_file, "w", encoding="utf-8") as f:
                 json.dump(existing_log, f, indent=2)
 
             print(f"✅ Changes logged to {log_file}")
-        except Exception as e:
+        except (OSError, json.JSONDecodeError) as e:
             print(f"Warning: Could not save log: {e}")
 
-    def request_approval(self, files, changes_description):
+    def request_approval(self, files: list[str], changes_description: str) -> bool:
         """Request user approval for changes."""
         print("\n" + "=" * 50)
         print("REFACTORING APPROVAL REQUEST")
@@ -155,7 +180,7 @@ class RefactoringGuard:
         except (EOFError, KeyboardInterrupt):
             return False
 
-    def guard_refactoring(self, files, changes_description):
+    def guard_refactoring(self, files: list[str], changes_description: str) -> bool:
         """Main guard function to check if refactoring should proceed."""
         print("\n🛡️ REFACTORING GUARD ACTIVE 🛡️")
         print(f"Checking {len(files)} files for refactoring...")

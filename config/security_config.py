@@ -24,9 +24,15 @@ class SecurityConfig:
         required_keys = ["SECRET_KEY", "CREDENTIAL_MASTER_KEY", "FERNET_KEY"]
         missing_keys = [key for key in required_keys if not os.getenv(key)]
         if missing_keys:
-            logger.warning("Missing security keys: %s" % missing_keys)
-            logger.info("Generating fallback keys for development...")
-            self._generate_fallback_keys()
+            environment = os.getenv("ENVIRONMENT", "development").lower()
+            if environment in {"development", "testing"}:
+                logger.warning("Missing security keys: %s" % missing_keys)
+                logger.info("Generating fallback keys for development/testing...")
+                self._generate_fallback_keys()
+                return
+            raise ValueError(
+                "Missing required security keys: %s" % ", ".join(sorted(missing_keys))
+            )
 
     def _generate_fallback_keys(self) -> None:
         """Generate fallback keys for development environment."""

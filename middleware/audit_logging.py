@@ -46,7 +46,7 @@ class AuditLogger:
     }
 
     def __init__(self) -> None:
-        self.buffer: List[Dict] = []
+        self.buffer: List[Dict[str, Any]] = []
         self.buffer_size = 100
         self.flush_interval = 30  # seconds
         self._flush_task_started = False
@@ -77,6 +77,8 @@ class AuditLogger:
     async def shutdown(self) -> None:
         """Stop periodic flush task and flush remaining buffered events."""
         task_to_cancel: Optional[asyncio.Task] = None
+        if self._flush_task_lock is None:
+            self._flush_task_lock = asyncio.Lock()
         async with self._flush_task_lock:
             if self._flush_task:
                 task_to_cancel = self._flush_task
@@ -124,17 +126,17 @@ class AuditLogger:
 
         # Log to file immediately for critical events
         if self._is_critical(event):
-            logger.warning(f"AUDIT_CRITICAL: {json.dumps(event)}")
+            logger.warning("AUDIT_CRITICAL: %s", json.dumps(event))
         else:
-            logger.info(f"AUDIT: {json.dumps(event)}")
+            logger.info("AUDIT: %s", json.dumps(event))
 
         # Flush if buffer is full
         if len(self.buffer) >= self.buffer_size:
             await self.flush()
 
-    def _sanitize_details(self, details: Dict) -> Dict:
+    def _sanitize_details(self, details: Dict[str, Any]) -> Dict[str, Any]:
         """Remove sensitive information from details."""
-        sanitized = {}
+        sanitized: Dict[str, Any] = {}
         for key, value in details.items():
             if any(sensitive in key.lower() for sensitive in self.SENSITIVE_FIELDS):
                 sanitized[key] = "***REDACTED***"
@@ -149,7 +151,7 @@ class AuditLogger:
                 sanitized[key] = value
         return sanitized
 
-    def _is_critical(self, event: Dict) -> bool:
+    def _is_critical(self, event: Dict[str, Any]) -> bool:
         """Check if event is critical and needs immediate attention."""
         # Failed authentication attempts
         if event["event_type"] == "AUTH_FAILED":
@@ -170,7 +172,7 @@ class AuditLogger:
             "SECURITY_VIOLATION",
         ]
 
-    async def flush(self):
+    async def flush(self) -> None:
         """Flush audit logs to database."""
         if not self.buffer:
             return
@@ -190,16 +192,16 @@ class AuditLogger:
             # Clear buffer after successful save
             self.buffer.clear()
 
-        except Exception as e:
-            logger.error(f"Failed to flush audit logs: {str(e)}")
+        except Exception as e:  # pylint: disable=broad-exception-caught
+            logger.error("Failed to flush audit logs: %s", e)
 
 
 class AuditLoggingMiddleware(BaseHTTPMiddleware):
     """Middleware for comprehensive audit logging."""
 
-    def __init__(self, app, audit_logger: Optional[AuditLogger] = None) -> None:
+    def __init__(self, app, audit_logger_instance: Optional[AuditLogger] = None) -> None:
         super().__init__(app)
-        self.audit_logger = audit_logger or AuditLogger()
+        self.audit_logger = audit_logger_instance or AuditLogger()
 
     async def dispatch(self, request: Request, call_next):
         """Process request with audit logging."""
@@ -258,7 +260,7 @@ class AuditLoggingMiddleware(BaseHTTPMiddleware):
 
             return response
 
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-exception-caught
             # Log error
             await self.audit_logger.log_event(
                 event_type="API_ERROR",
@@ -381,7 +383,7 @@ class AuditLoggingMiddleware(BaseHTTPMiddleware):
 
 
 # Audit log decorators for function-level logging
-def audit_operation(operation_type: str, resource_type: str = None):
+def audit_operation(operation_type: str, resource_type: Optional[str] = None):
     """Decorator for auditing function operations."""
 
     def decorator(func):
@@ -432,10 +434,10 @@ def audit_operation(operation_type: str, resource_type: str = None):
 
 def setup_audit_logging(app):
     """Setup audit logging middleware on FastAPI app."""
-    audit_logger = AuditLogger()
-    app.add_middleware(AuditLoggingMiddleware, audit_logger=audit_logger)
+    configured_audit_logger = AuditLogger()
+    app.add_middleware(AuditLoggingMiddleware, audit_logger_instance=configured_audit_logger)
     logger.info("Audit logging middleware configured")
-    return audit_logger
+    return configured_audit_logger
 
 
 # Create a module-level audit logger instance

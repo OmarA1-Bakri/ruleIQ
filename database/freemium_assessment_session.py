@@ -6,7 +6,7 @@ Stores session data, AI responses, and user interactions for freemium flow.
 
 from typing import Any
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID, JSONB
 from .db_setup import Base
@@ -76,15 +76,11 @@ class FreemiumAssessmentSession(Base):
     def mark_completed(self) -> None:
         """Mark session as completed and set completion timestamp."""
         self.status = "completed"
-        from datetime import timezone
-
         self.completed_at = datetime.now(timezone.utc)
 
     def extend_expiry(self, hours: int = 2) -> None:
         """Extend session expiry by specified hours."""
         if self.is_active():
-            from datetime import timezone
-
             self.expires_at = datetime.now(timezone.utc) + timedelta(hours=hours)
 
     @property

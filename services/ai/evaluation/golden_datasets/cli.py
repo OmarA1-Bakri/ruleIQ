@@ -1,22 +1,28 @@
 """CLI for golden dataset validation and reporting."""
 
-import logging
 import argparse
+import json
+import logging
+import sys
 
 # Constants
 MAX_DISPLAYED_ERRORS = 5
 
 logger = logging.getLogger(__name__)
-import json
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, List, cast
 from ..schemas import ComplianceScenario, EvidenceCase, RegulatoryQAPair
-from .loaders import load_jsonl
+from .loaders import JSONLLoader
 from .versioning import is_semver
 from .validators import DeepValidator, ExternalDataValidator
 from ..metrics import dataset_quality_summary, coverage_summary
-import sys
+
+
+def load_jsonl(path: Path, schema: Any) -> List[Any]:
+    """Load JSONL rows and coerce them into the requested schema type."""
+    loader = JSONLLoader(str(path))
+    return [schema(**item) for item in loader.load()]
 
 
 def validate_and_report(root: Path, version: str, outdir: Path) -> None:
@@ -32,13 +38,17 @@ def validate_and_report(root: Path, version: str, outdir: Path) -> None:
         raise ValueError(f"Invalid semantic version: {version}")
     outdir.mkdir(parents=True, exist_ok=True)
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-    datasets = {"compliance_scenarios": [], "evidence_cases": [], "regulatory_qa": []}
-    errors = []
+    datasets: Dict[str, List[Any]] = {
+        "compliance_scenarios": [],
+        "evidence_cases": [],
+        "regulatory_qa": [],
+    }
+    errors: List[str] = []
     scenario_path = root / "compliance_scenarios" / f"v{clean_version}" / "dataset.jsonl"
     if scenario_path.exists():
         try:
             datasets["compliance_scenarios"] = list(load_jsonl(scenario_path, ComplianceScenario))
-        except Exception as e:
+        except (ValueError, TypeError, OSError) as e:
             errors.append(f"Failed to load compliance scenarios: {e}")
     else:
         errors.append(f"Compliance scenarios not found: {scenario_path}")
@@ -46,7 +56,7 @@ def validate_and_report(root: Path, version: str, outdir: Path) -> None:
     if evidence_path.exists():
         try:
             datasets["evidence_cases"] = list(load_jsonl(evidence_path, EvidenceCase))
-        except Exception as e:
+        except (ValueError, TypeError, OSError) as e:
             errors.append(f"Failed to load evidence cases: {e}")
     else:
         errors.append(f"Evidence cases not found: {evidence_path}")
@@ -54,7 +64,7 @@ def validate_and_report(root: Path, version: str, outdir: Path) -> None:
     if qa_path.exists():
         try:
             datasets["regulatory_qa"] = list(load_jsonl(qa_path, RegulatoryQAPair))
-        except Exception as e:
+        except (ValueError, TypeError, OSError) as e:
             errors.append(f"Failed to load regulatory Q&A: {e}")
     else:
         errors.append(f"Regulatory Q&A not found: {qa_path}")
@@ -70,13 +80,14 @@ def validate_and_report(root: Path, version: str, outdir: Path) -> None:
             quality_metrics[dataset_type] = dataset_quality_summary(data)
             coverage_metrics[dataset_type] = coverage_summary(data)
             if data and hasattr(data[0], "source"):
-                source_meta = {
-                    "domain": data[0].source.domain,
-                    "fetched_at": data[0].source.fetched_at,
+                trust_scores[dataset_type] = {
+                    "overall": sum(
+                        external_validator.validate_external_data(item).trust_score
+                        for item in data
+                        if hasattr(item, "source")
+                    )
+                    / len(data)
                 }
-                trust_scores[dataset_type] = external_validator.score_trustworthiness(
-                    data, source_meta
-                )
     report = {
         "metadata": {
             "version": clean_version,
@@ -101,22 +112,19 @@ def validate_and_report(root: Path, version: str, outdir: Path) -> None:
     md_path = outdir / f"golden_report_{timestamp}.md"
     write_markdown_report(md_path, report)
     logger.info("Reports generated:")
-    logger.info("  JSON: %s" % json_path)
-    logger.info("  Markdown: %s" % md_path)
+    logger.info("  JSON: %s", json_path)
+    logger.info("  Markdown: %s", md_path)
     logger.info("\nSummary:")
-    logger.info("  Total items: %s" % report["metadata"]["total_items"])
+    metadata = cast(Dict[str, Any], report["metadata"])
+    logger.info("  Total items: %s", metadata["total_items"])
     logger.error(
-        "  Validation: %s"
-        % (
-            "PASSED"
-            if all(v.get("overall_valid", False) for v in validation_results.values())
-            else "FAILED"
-        )
+        "  Validation: %s",
+        "PASSED" if all(v.get("overall_valid", False) for v in validation_results.values()) else "FAILED",
     )
     if errors:
         logger.info("\nErrors encountered:")
         for error in errors:
-            logger.info("  - %s" % error)
+            logger.info("  - %s", error)
 
 
 def write_markdown_report(path: Path, report: Dict[str, Any]) -> None:
@@ -210,8 +218,8 @@ def main() -> None:
     args = parser.parse_args()
     try:
         validate_and_report(args.root, args.version, args.outdir)
-    except Exception as e:
-        logger.info("Error: %s" % e)
+    except (OSError, ValueError) as e:
+        logger.info("Error: %s", e)
         sys.exit(1)
 
 

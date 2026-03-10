@@ -1,7 +1,7 @@
 ---
 name: orchestrator
 description: Master task orchestrator for ruleIQ. Proactively coordinates 49 prioritized tasks (P0-P7) with strict gating, timeframe enforcement, and sub-agent delegation.
-tools: Read, Write, Search, Execute, Archon
+tools: execute, read, edit, search, web, agent, todo
 model: opus
 ---
 

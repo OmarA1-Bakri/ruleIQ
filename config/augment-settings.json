@@ -51,7 +51,7 @@
       "command": "npx",
       "args": ["@testsprite/testsprite-mcp@latest"],
       "env": {
-        "API_KEY": "sk-user-b-dOi1HbRc33E1UXQrAsQac8Lw1jPX-T6HFKcweaEaC7avLKnobKlFyScXbEMaZHzGP_BXKmYmwwtnj-8qVO7jrTAw0oWcnWqXqecgMnLVzOgJgHOfckcXNn4sB2ySyjZwE"
+        "API_KEY": "your-testsprite-api-key-here"
       }
     },
     "magic-ui-component-server": {

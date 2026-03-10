@@ -5,6 +5,7 @@ Validates graph structure, node execution, and basic functionality.
 
 import pytest
 from unittest.mock import Mock, patch, AsyncMock
+from typing import Any
 from uuid import uuid4
 from langgraph_agent.graph.app import (
     router_node,
@@ -156,16 +157,14 @@ class TestGraphCreation:
         graph = create_graph()
 
         # Check all nodes are added
-        [
-            GRAPH_NODES[key]
-            for key in [
-                "router",
-                "compliance_analyzer",
-                "obligation_finder",
-                "evidence_collector",
-                "legal_reviewer",
-            ]
-        ]
+        required_nodes = {
+            "router",
+            "compliance_analyzer",
+            "obligation_finder",
+            "evidence_collector",
+            "legal_reviewer",
+        }
+        assert not (required_nodes - set(GRAPH_NODES))
 
         # The graph object doesn't expose nodes directly in a simple way
         # So we'll just ensure the graph compiles without errors
@@ -179,12 +178,8 @@ class TestGraphCreation:
         # We'll mock the checkpointer since we don't have a real DB connection
         with patch("langgraph_agent.graph.app.create_checkpointer") as mock_checkpointer:
             mock_checkpointer.return_value = Mock()
-
-            try:
-                compiled = graph.compile(checkpointer=mock_checkpointer.return_value)
-                assert compiled is not None
-            except Exception as e:
-                pytest.fail(f"Graph compilation failed: {e}")
+            compiled = graph.compile(checkpointer=mock_checkpointer.return_value)
+            assert compiled is not None
 
 
 @pytest.mark.asyncio
@@ -241,7 +236,7 @@ class TestGraphInvocation:
     async def test_invoke_graph_error_handling(self):
         """Test graph invocation handles errors gracefully."""
         mock_compiled_graph = AsyncMock()
-        mock_compiled_graph.ainvoke.side_effect = Exception("Test error")
+        mock_compiled_graph.ainvoke.side_effect = RuntimeError("Test error")
 
         company_id = uuid4()
         result = await invoke_graph(
@@ -277,7 +272,7 @@ class TestGraphInvocation:
         mock_compiled_graph = AsyncMock()
 
         # Mock streaming chunks
-        async def mock_astream(*args, **kwargs):
+        async def mock_astream(*_args: Any, **_kwargs: Any):
             yield {"chunk": 1}
             yield {"chunk": 2}
             yield {"final": True}
@@ -303,9 +298,9 @@ class TestGraphInvocation:
         """Test streaming handles errors gracefully."""
         mock_compiled_graph = AsyncMock()
 
-        async def mock_astream_error(*args, **kwargs):
+        async def mock_astream_error(*_args: Any, **_kwargs: Any):
             yield {"chunk": 1}
-            raise Exception("Streaming error")
+            raise RuntimeError("Streaming error")
 
         mock_compiled_graph.astream = mock_astream_error
 

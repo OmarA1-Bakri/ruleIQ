@@ -1,0 +1,7 @@
+---
+exclude_paths:
+  - ".venv/**"
+  - "frontend/.next/**"
+  - "**/node_modules/**"
+  - ".claude/old-commands/**"
+  - "**/*.jwt-backup*"

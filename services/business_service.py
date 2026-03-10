@@ -60,7 +60,7 @@ async def update_assessment_status(
     """Update the assessment completion status and data."""
     profile = await get_business_profile(db, user)
     if not profile:
-        raise NotFoundException("Business profile not found for the current user.")
+        raise NotFoundException("Business profile", user.id)
 
     try:
         profile.assessment_completed = assessment_completed

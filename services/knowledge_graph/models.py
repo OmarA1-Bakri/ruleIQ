@@ -165,6 +165,8 @@ class GraphSnapshot:
         return {
             "id": self.id,
             "timestamp": self.timestamp.isoformat(),
+            "nodes": [node.to_dict() for node in self.nodes],
+            "relationships": [relationship.to_dict() for relationship in self.relationships],
             "node_count": len(self.nodes),
             "relationship_count": len(self.relationships),
             "metadata": self.metadata,

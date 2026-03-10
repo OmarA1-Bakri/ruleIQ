@@ -51,7 +51,7 @@ class AssessmentService:
             # Create new session
             new_session = AssessmentSession(
                 user_id=user.id,
-                business_profil=business_profile_id,  # Note: column name is truncated in model
+                business_profile_id=business_profile_id,
                 session_type=session_type,
                 status="in_progress",  # Ensure status is set
                 total_stages=5,  # Basic info, Industry, Data handling, Tech stack, Compliance goals
@@ -64,7 +64,7 @@ class AssessmentService:
             return new_session
         except sa.exc.SQLAlchemyError as e:
             await db.rollback()
-            raise DatabaseException(f"Error starting assessment session: {e}")
+            raise DatabaseException(f"Error starting assessment session: {e}") from e
 
     async def get_assessment_session(
         self, db: AsyncSession, user: User, session_id: UUID
@@ -85,7 +85,7 @@ class AssessmentService:
             # Log error appropriately
             raise DatabaseException(
                 f"Error retrieving assessment session {session_id}: {e}",
-            )
+            ) from e
 
     async def get_current_assessment_session(
         self, db: AsyncSession, user: User
@@ -105,7 +105,7 @@ class AssessmentService:
             # Log error appropriately
             raise DatabaseException(
                 f"Error retrieving current assessment session for user {user.id}: {e}",
-            )
+            ) from e
 
     async def get_user_assessment_sessions(
         self, db: AsyncSession, user: User
@@ -124,7 +124,7 @@ class AssessmentService:
             # Log error appropriately
             raise DatabaseException(
                 f"Error retrieving assessment sessions for user {user.id}: {e}",
-            )
+            ) from e
 
     async def update_assessment_response(
         self,
@@ -138,10 +138,7 @@ class AssessmentService:
         try:
             session = await self.get_assessment_session(db, user, session_id)
             if not session:
-                # Consider using NotFoundException if get_assessment_session can return None and it's an error here
-                raise NotFoundException(
-                    f"Assessment session {session_id} not found for user {user.id} during update.",
-                )
+                raise NotFoundException("Assessment session", session_id)
 
             if session.status != "in_progress":
                 raise ValueError(
@@ -166,12 +163,7 @@ class AssessmentService:
             # Log error appropriately
             raise DatabaseException(
                 f"Error updating assessment response for session {session_id}: {e}",
-            )
-        except NotFoundException:  # Re-raise if we want it to propagate
-            raise
-        except ValueError:  # Catch specific domain errors
-            # Log error appropriately
-            raise  # Or wrap in a custom API error
+            ) from e
 
     async def complete_assessment_session(
         self, db: AsyncSession, user: User, session_id: UUID
@@ -180,9 +172,7 @@ class AssessmentService:
         try:
             session = await self.get_assessment_session(db, user, session_id)
             if not session:
-                raise NotFoundException(
-                    f"Assessment session {session_id} not found for user {user.id} to complete.",
-                )
+                raise NotFoundException("Assessment session", session_id)
 
             if session.status != "in_progress":
                 # Consider a more specific exception, e.g., InvalidSessionStateError
@@ -226,15 +216,12 @@ class AssessmentService:
             # Log error appropriately
             raise DatabaseException(
                 f"Error completing assessment session {session_id}: {e}",
-            )
-        except NotFoundException:  # Re-raise
-            raise
-        except ValueError:  # Re-raise specific domain error
-            # Log error appropriately
-            raise
+            ) from e
 
     def get_assessment_questions(self, user: User, stage: int) -> List[Dict]:
         """Get assessment questions for a specific stage."""
+
+        _ = user
 
         questions = {
             1: [  # Basic Information

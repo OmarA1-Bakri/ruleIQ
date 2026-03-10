@@ -1,0 +1,396 @@
+{
+  "current_priority": "P2",
+  "gate_status": {
+    "P0": "passed",
+    "P1": "passed",
+    "P2": "in_progress",
+    "P3": "blocked"
+  },
+  "last_updated": "2026-03-10T00:42:00Z",
+  "tasks": {
+    "p0-001": {
+      "title": "Remove hardcoded passwords from neo4j_service.py",
+      "priority": "P0",
+      "status": "done",
+      "domain": "security",
+      "file": "services/neo4j_service.py",
+      "started_at": "2026-03-08",
+      "completed_at": "2026-03-08",
+      "notes": "Now reads from NEO4J_URI/NEO4J_USERNAME/NEO4J_PASSWORD env vars; raises ValueError if missing"
+    },
+    "p0-002": {
+      "title": "Remove hardcoded passwords from compliance_ingestion_pipeline.py",
+      "priority": "P0",
+      "status": "done",
+      "domain": "security",
+      "file": "services/ai/compliance_ingestion_pipeline.py",
+      "started_at": "2026-03-08",
+      "completed_at": "2026-03-08",
+      "notes": "Constructor takes params; __main__ block reads from env vars; raises ValueError if missing"
+    },
+    "p0-003": {
+      "title": "Remove hardcoded passwords from ingestion_fixed.py",
+      "priority": "P0",
+      "status": "done",
+      "domain": "security",
+      "file": "services/ai/evaluation/tools/ingestion_fixed.py",
+      "started_at": "2026-03-08",
+      "completed_at": "2026-03-08",
+      "notes": "Reads from NEO4J_URI/NEO4J_USER/NEO4J_PASSWORD; falls back to mock driver for testing"
+    },
+    "p0-004": {
+      "title": "Fix compliance endpoint stubs (tasks/risks/timeline/dashboard)",
+      "priority": "P0",
+      "status": "done",
+      "domain": "backend",
+      "file": "api/routers/compliance.py",
+      "started_at": "2026-03-08",
+      "completed_at": "2026-03-08",
+      "notes": "All placeholder endpoints replaced with data-backed implementations; 4 unit tests passing"
+    },
+    "p0-005": {
+      "title": "Verify test collection (pytest --collect-only)",
+      "priority": "P0",
+      "status": "done",
+      "domain": "testing",
+      "file": "pytest.ini",
+      "completed_at": "2026-03-09",
+      "notes": "2998 tests collected, 72 collection errors (external deps only - non-blocking)"
+    },
+    "p0-006": {
+      "title": "Fix FastAPI/Pydantic compatibility skew in .venv",
+      "priority": "P0",
+      "status": "done",
+      "domain": "infra",
+      "completed_at": "2026-03-09",
+      "notes": "Root cause: stale _compat/ directory alongside _compat.py. Deleted directory, reinstalled fastapi==0.117.0+pydantic==2.11.5"
+    },
+    "p0-007": {
+      "title": "Remove leaked credentials from env templates",
+      "priority": "P0",
+      "status": "done",
+      "domain": "security",
+      "file": "env.template",
+      "completed_at": "2026-03-09",
+      "notes": "15 credential replacements across env.template + env.comprehensive.template. Additional 6 files cleaned (alembic.ini, .env.test, config/augment-settings.json, doppler script, test utilities)"
+    },
+    "p1-001": {
+      "title": "assistant.py god object refactoring (4031 lines)",
+      "priority": "P1",
+      "status": "in_progress",
+      "domain": "refactoring",
+      "file": "services/ai/assistant.py",
+      "notes": "35% complete per REFACTORING_CHECKLIST.md. Phase 1 done, Phase 2 40%, Phases 3-8 not started."
+    },
+    "p1-002": {
+      "title": "Create persisted ComplianceRisk database model",
+      "priority": "P1",
+      "status": "done",
+      "domain": "backend",
+      "file": "database/compliance_risk.py",
+      "completed_at": "2026-03-09",
+      "notes": "Model created + registered in database/__init__.py + __all__. 5 unit tests passing."
+    },
+    "p1-003": {
+      "title": "Test coverage verification and baseline",
+      "priority": "P1",
+      "status": "done",
+      "domain": "testing",
+      "completed_at": "2026-03-09",
+      "notes": "Baseline: 23.16% (api+database modules). 92 passed, 3 skipped. 4 collection errors (missing langgraph dep). Target 80% is P2-009."
+    },
+    "p1-004": {
+      "title": "API documentation strategy (OpenAPI/Swagger audit)",
+      "priority": "P1",
+      "status": "done",
+      "domain": "docs",
+      "file": "api/main.py",
+      "completed_at": "2026-03-09",
+      "notes": "IMPLEMENTED: ReDoc enabled unconditionally in prod. openapi_tags block (24 tags) added to FastAPI constructor. Auth router endpoints (register, login_for_access_token) got docstrings. Remaining: response_model on dict-return endpoints, error response schemas."
+    },
+    "p1-005": {
+      "title": "Security audit: CORS configuration review",
+      "priority": "P1",
+      "status": "done",
+      "domain": "security",
+      "file": "api/main.py",
+      "completed_at": "2026-03-09",
+      "notes": "FULLY FIXED: 1) allow_headers=['*'] → explicit list. 2) Unused cors_allowed_origins field removed from settings + validator. 3) Production hostname 'app.ruleiq.com' added to allowed_hosts. All lints pass."
+    },
+    "p1-006": {
+      "title": "Security audit: CSP headers review",
+      "priority": "P1",
+      "status": "done",
+      "domain": "security",
+      "file": "api/middleware/security_headers.py",
+      "completed_at": "2026-03-09",
+      "notes": "FIXED: Replaced 'default-src self' with proper granular CSP (script-src, style-src unsafe-inline, img-src data: https:, connect-src wss:, object-src none, frame-src none, etc). Added COOP, CORP headers. Extended Permissions-Policy. Dead code in middleware/security_headers.py noted for cleanup."
+    },
+    "p1-007": {
+      "title": "Clean up .jwt-backup files",
+      "priority": "P1",
+      "status": "done",
+      "domain": "hygiene",
+      "completed_at": "2026-03-09",
+      "notes": "20 jwt-backup files deleted from api/routers/. 2 conftest.backup files deleted from tests/. *.jwt-backup* added to .gitignore."
+    },
+    "p1-008": {
+      "title": "GitHub Actions CI/CD pipeline validation",
+      "priority": "P1",
+      "status": "done",
+      "domain": "ci-cd",
+      "completed_at": "2026-03-09",
+      "notes": "Pipeline is solid: 3 workflows (ci.yml, security.yml, frontend.yml). Covers pytest, lint, typecheck, Codecov/Codacy, Gitleaks, CodeQL, Bandit, Safety, Docker builds, Lighthouse. Gaps: no E2E in CI, security scans use continue-on-error."
+    },
+    "p1-009": {
+      "title": "Wire ComplianceRisk model into compliance router",
+      "priority": "P1",
+      "status": "done",
+      "domain": "backend",
+      "file": "api/routers/compliance.py",
+      "completed_at": "2026-03-09",
+      "notes": "POST /risks creates ComplianceRisk with all fields, returns 201. PATCH /risks/{risk_id} queries by id+user_id, updates provided fields. 4 router + 5 model tests passing (9/9)."
+    },
+    "p1-010": {
+      "title": "Review /compliance/query endpoint (AI-powered Q&A)",
+      "priority": "P1",
+      "status": "done",
+      "domain": "backend",
+      "file": "api/routers/compliance.py",
+      "completed_at": "2026-03-09",
+      "notes": "FULLY IMPLEMENTED: 1) ComplianceQueryRequest Pydantic model (min_length=1, max_length=2000). 2) AI integration via ComplianceAssistant.response_generator.generate_simple(). 3) Regex blocklist removed. 4) Graceful fallback via _fallback_response() when AI unavailable. 5) 6 new unit tests (10 total). All pass."
+    },
+    "p2-001": {
+      "title": "Refactor chat.py (1605 lines)",
+      "priority": "P2",
+      "status": "done",
+      "domain": "refactoring",
+      "file": "api/routers/chat.py",
+      "completed_at": "pre-existing",
+      "notes": "ALREADY DONE: chat.py is a 21-line facade re-exporting from api/routers/chat/ (6 focused modules). No work needed."
+    },
+    "p2-002": {
+      "title": "Refactor export.ts (1504 lines)",
+      "priority": "P2",
+      "status": "done",
+      "domain": "refactoring",
+      "file": "frontend/lib/utils/export.ts",
+      "completed_at": "2026-03-10",
+      "notes": "Split 1510-line monolith into 5 modules: export-internals.ts (330 lines shared types/helpers), export-excel.ts (220 lines), export-pdf.ts (430 lines), export-csv.ts (260 lines), export.ts barrel (331 lines orchestrator). Fixed import path bug. TypeScript zero errors. Pre-existing test failures (jsdom env) unrelated."
+    },
+    "p2-003": {
+      "title": "Refactor freemium-store.ts (1262 lines)",
+      "priority": "P2",
+      "status": "done",
+      "domain": "refactoring",
+      "file": "frontend/lib/stores/freemium-store.ts",
+      "completed_at": "pre-existing",
+      "notes": "ALREADY DONE: freemium-store.ts is a 27-line facade re-exporting from freemium.store.ts. No work needed."
+    },
+    "p2-004": {
+      "title": "Refactor QuestionnaireEngine.ts (1254 lines)",
+      "priority": "P2",
+      "status": "done",
+      "domain": "refactoring",
+      "file": "frontend/lib/assessment-engine/QuestionnaireEngine.ts",
+      "completed_at": "2026-03-10",
+      "notes": "Extracted 5 modules: scoring.ts, gap-analysis.ts, context-extraction.ts, condition-evaluator.ts, ai-questions.ts. Class converted to thin orchestrator with one-liner delegators. 1070→611 lines (43% reduction). index.ts re-exports updated. TypeScript zero errors."
+    },
+    "p2-005": {
+      "title": "Refactor signup page.tsx (1252 lines)",
+      "priority": "P2",
+      "status": "done",
+      "domain": "refactoring",
+      "file": "frontend/app/(auth)/signup/page.tsx",
+      "completed_at": "2026-03-10",
+      "notes": "Extracted 4 modules: signup-types.ts (68 lines), question-bank.tsx (490 lines), compliance-profile.ts (70 lines), signup-utils.ts (95 lines). page.tsx reduced from ~1250→495 lines (60% reduction). TypeScript zero errors."
+    },
+    "p2-006": {
+      "title": "Refactor ab_testing_framework.py (1219 lines)",
+      "priority": "P2",
+      "status": "done",
+      "domain": "refactoring",
+      "file": "services/ai/ab_testing_framework.py",
+      "completed_at": "2026-03-09",
+      "notes": "Split 1254-line monolith into services/ai/ab_testing/ package (7 modules). Fixed _perform_statistical_test bug. Facade re-exports for backward compat. 1052 tests passing, ruff clean."
+    },
+    "p2-007": {
+      "title": "Refactor freemium_assessment_service.py (1319 lines)",
+      "priority": "P2",
+      "status": "done",
+      "domain": "refactoring",
+      "file": "services/freemium_assessment_service.py",
+      "completed_at": "2026-03-09",
+      "notes": "Split 1314-line monolith into services/freemium_assessment/ package (5 modules: service.py, fallback_questions.py, scoring.py, recommendations.py, __init__.py). Fixed 3 bugs: duplicate logger, tuple unpacking, unused dict. Facade re-exports for backward compat. 1052 tests passing, ruff clean."
+    },
+    "p2-008": {
+      "title": "Refactor langgraph_metrics.py (1896 lines)",
+      "priority": "P2",
+      "status": "done",
+      "domain": "refactoring",
+      "file": "app/core/monitoring/langgraph_metrics.py",
+      "completed_at": "pre-existing",
+      "notes": "ALREADY DONE: langgraph_metrics.py is ~190-line facade aggregating 7 tracker implementations in trackers/ subpackage. No work needed."
+    },
+    "p2-009": {
+      "title": "Achieve 80% backend test coverage",
+      "priority": "P2",
+      "status": "in_progress",
+      "domain": "testing",
+      "notes": "Batch 4 verified green on 2026-03-09: 142 targeted tests passed across cache_keys, kg_models, evaluation schemas, coordination_utils, and retry_handler. Full unit coverage measurement after Batch 4 was 26.08% (34104 stmts, 24398 miss). Batch 5 verified on 2026-03-09 across response_processor, business_service, framework_service, assessment_service, policy_service, implementation_service, and readiness_service. That batch brought the refreshed full backend unit coverage baseline to 27.68% (34213 stmts, 23909 miss) with 1709 passed and 5 skipped. On 2026-03-09 an additional targeted batch landed for performance_analyzer, compliance_analyzer, and evidence_collector. A follow-up regression fix restored prompt compatibility in services/ai/domains/evidence_service.py and hardened canonical JWT segment validation in api/dependencies/auth.py. A further unit-only batch added direct tests for app/core/monitoring/trackers/error_tracker.py and langgraph_agent/utils/cost_tracking.py. On 2026-03-10 two more targeted batches landed for services/session_manager.py and services/ai/ab_testing/statistical_tests.py, including a production fix for calculate_power() returning a tuple and a cleanup of unreachable recommendation logic. A subsequent utility batch added direct tests for api/utils/retry.py and for services/ai/ab_testing/factory.py plus storage.py helpers. A further pure-logic batch added direct tests for services/caching/cache_metrics.py. The current clean full unit-suite baseline is 33.23% (32047 stmts, 20403 miss, 8402 branches, 450 partial) with 1883 passed and 5 skipped."
+    },
+    "p2-010": {
+      "title": "Systematic TODO inventory review (458 comments)",
+      "priority": "P2",
+      "status": "pending",
+      "domain": "hygiene",
+      "notes": "scan_todos.py exists. Need to categorize and convert to tracked issues."
+    },
+    "p2-011": {
+      "title": "Type hints audit (mypy strict mode)",
+      "priority": "P2",
+      "status": "pending",
+      "domain": "quality",
+      "notes": "Python type hints required per style guide. Need mypy --strict baseline."
+    },
+    "p2-012": {
+      "title": "Dead code elimination",
+      "priority": "P2",
+      "status": "pending",
+      "domain": "hygiene",
+      "notes": "Merged d3d23042/2f2f8b57. Run vulture or similar to find unused code."
+    },
+    "p3-001": {
+      "title": "Complete assistant.py Phase 3: Domain Service Migration",
+      "priority": "P3",
+      "status": "pending",
+      "domain": "refactoring",
+      "notes": "5 domain services (assessment, policy, workflow, evidence, compliance) need migration from legacy."
+    },
+    "p3-002": {
+      "title": "Complete assistant.py Phase 4: Infrastructure Integration",
+      "priority": "P3",
+      "status": "pending",
+      "domain": "refactoring",
+      "notes": "Wire cached content, analytics, quality monitor, performance optimizer, instruction manager, safety."
+    },
+    "p3-003": {
+      "title": "Complete assistant.py Phase 5: Testing & Verification",
+      "priority": "P3",
+      "status": "pending",
+      "domain": "testing",
+      "notes": "Unit tests, integration tests, parity tests for refactored AI modules."
+    },
+    "p3-004": {
+      "title": "Complete assistant.py Phase 6: Performance & Benchmarking",
+      "priority": "P3",
+      "status": "pending",
+      "domain": "testing",
+      "notes": "Response latency comparison, token consumption, cache hit rates."
+    },
+    "p3-005": {
+      "title": "Complete assistant.py Phase 7: Documentation",
+      "priority": "P3",
+      "status": "pending",
+      "domain": "docs"
+    },
+    "p3-006": {
+      "title": "Complete assistant.py Phase 8: Finalization",
+      "priority": "P3",
+      "status": "pending",
+      "domain": "refactoring",
+      "notes": "Update all imports, archive legacy, close tracking issue."
+    },
+    "p3-007": {
+      "title": "Neo4j knowledge graph verification and data integrity",
+      "priority": "P3",
+      "status": "pending",
+      "domain": "data"
+    },
+    "p3-008": {
+      "title": "Teal design system migration completion (65% → 100%)",
+      "priority": "P3",
+      "status": "pending",
+      "domain": "frontend"
+    },
+    "p3-009": {
+      "title": "Frontend E2E test suite expansion (Playwright)",
+      "priority": "P3",
+      "status": "pending",
+      "domain": "testing"
+    },
+    "p3-010": {
+      "title": "Rate limiting configuration audit",
+      "priority": "P3",
+      "status": "pending",
+      "domain": "security",
+      "notes": "5/min auth, 100/min general, 20/min AI. Verify enforcement."
+    },
+    "p4-001": {
+      "title": "IQ Agent PPALE loop production hardening",
+      "priority": "P4",
+      "status": "pending",
+      "domain": "ai"
+    },
+    "p4-002": {
+      "title": "RAG Self-Critic fact-checking pipeline validation",
+      "priority": "P4",
+      "status": "pending",
+      "domain": "ai"
+    },
+    "p4-003": {
+      "title": "LangGraph multi-agent workflow stress testing",
+      "priority": "P4",
+      "status": "pending",
+      "domain": "ai"
+    },
+    "p4-004": {
+      "title": "Stripe subscription billing integration testing",
+      "priority": "P4",
+      "status": "pending",
+      "domain": "payments"
+    },
+    "p4-005": {
+      "title": "Sentry error monitoring configuration audit",
+      "priority": "P4",
+      "status": "pending",
+      "domain": "monitoring"
+    },
+    "p4-006": {
+      "title": "Redis connection pool tuning",
+      "priority": "P4",
+      "status": "pending",
+      "domain": "infra"
+    },
+    "p5-001": {
+      "title": "SonarCloud quality gate configuration",
+      "priority": "P5",
+      "status": "pending",
+      "domain": "ci-cd"
+    },
+    "p5-002": {
+      "title": "Prometheus metrics endpoint coverage",
+      "priority": "P5",
+      "status": "pending",
+      "domain": "monitoring"
+    },
+    "p5-003": {
+      "title": "Cloud Run production deployment validation",
+      "priority": "P5",
+      "status": "pending",
+      "domain": "deployment"
+    },
+    "p5-004": {
+      "title": "Load testing (API endpoints < 200ms p95)",
+      "priority": "P5",
+      "status": "pending",
+      "domain": "performance"
+    }
+  },
+  "merge_rules_applied": [
+    "d10c4062 → c81e1108 (GitHub Actions CI/CD duplicate) → p1-008",
+    "d3d23042 → 2f2f8b57 (Dead code elimination duplicate) → p2-012"
+  ],
+  "active_agents": [],
+  "escalations": []
+}

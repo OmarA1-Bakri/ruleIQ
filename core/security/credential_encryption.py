@@ -1,10 +1,6 @@
-"""
-import logging
+"""Enterprise-grade credential encryption system for ruleIQ.
 
-
-logger = logging.getLogger(__name__)
-Enterprise-grade credential encryption system for ruleIQ
-Implements AES-256 encryption with proper key derivation and security practices
+Implements AES-256 encryption with proper key derivation and security practices.
 """
 
 import os

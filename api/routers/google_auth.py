@@ -4,6 +4,7 @@ Google OAuth2 authentication router
 Handles Google Sign-In integration for the ruleIQ platform
 """
 
+import os
 import secrets
 from datetime import timedelta
 from uuid import uuid4
@@ -27,6 +28,15 @@ from services.auth_service import auth_service
 
 settings = get_settings()
 router = APIRouter(tags=["Google OAuth"])
+
+
+def _get_frontend_base_url() -> str:
+    """Get the frontend base URL for post-auth redirects."""
+    return (
+        os.getenv("FRONTEND_URL")
+        or os.getenv("NEXT_PUBLIC_APP_URL")
+        or "http://localhost:3000"
+    ).rstrip("/")
 
 
 class GoogleUserInfo(BaseModel):
@@ -64,7 +74,14 @@ async def google_login(request: Request) -> Any:
     if not hasattr(google_login, "_states"):
         google_login._states = {}
     google_login._states[state] = True
-    google_auth_url = f"https://accounts.google.com/o/oauth2/v2/auth?client_id={settings.google_client_id}&redirect_uri=http://localhost:8000/api/v1/auth/google/callback&response_type=code&scope=openid email profile&access_type=offline&prompt=consent&state={state}"
+    google_auth_url = (
+        "https://accounts.google.com/o/oauth2/v2/auth"
+        f"?client_id={settings.google_client_id}"
+        f"&redirect_uri={settings.google_redirect_uri}"
+        "&response_type=code&scope=openid email profile"
+        "&access_type=offline&prompt=consent"
+        f"&state={state}"
+    )
     return RedirectResponse(url=google_auth_url)
 
 
@@ -103,7 +120,7 @@ async def google_callback(
                     "client_secret": settings.google_client_secret,
                     "code": code,
                     "grant_type": "authorization_code",
-                    "redirect_uri": "http://localhost:8000/api/v1/auth/google/callback",
+                    "redirect_uri": settings.google_redirect_uri,
                 },
             )
             token_response.raise_for_status()
@@ -161,7 +178,10 @@ async def google_callback(
     await auth_service.create_user_session(
         db_user, access_token, metadata={"login_method": "google_oauth", "google_id": user_info.id}
     )
-    redirect_url = f"http://localhost:3000/auth/callback?access_token={access_token}&refresh_token={refresh_token}&new_user={is_new_user}"
+    redirect_url = (
+        f"{_get_frontend_base_url()}/auth/callback"
+        f"#access_token={access_token}&refresh_token={refresh_token}&new_user={str(is_new_user).lower()}"
+    )
     return RedirectResponse(url=redirect_url)
 
 

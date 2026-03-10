@@ -22,12 +22,12 @@ echo "📝 Setting Neo4j AuraDB credentials in Doppler..."
 echo ""
 
 # Set the actual credentials
-doppler secrets set NEO4J_URI="neo4j+s://12e71bc4.databases.neo4j.io" --silent
+doppler secrets set NEO4J_URI="neo4j+s://YOUR_INSTANCE_ID.databases.neo4j.io" --silent
 doppler secrets set NEO4J_USERNAME="neo4j" --silent
-doppler secrets set NEO4J_PASSWORD="b4mJskgWN15XenPG2spDWIXjHGTBmahg2Eg3HD8WvYh_0oTJE1u58JrY4f3pmVBJ" --silent
+doppler secrets set NEO4J_PASSWORD="YOUR_NEO4J_PASSWORD" --silent
 doppler secrets set NEO4J_DATABASE="neo4j" --silent
-doppler secrets set NEO4J_INSTANCE_ID="FuhHmUmMCYAEdFaCwg6LUCl9uhoVyiQN" --silent
-doppler secrets set NEO4J_QUERY_API_URL="https://12e71bc4.databases.neo4j.io/db/neo4j/query/v2" --silent
+doppler secrets set NEO4J_INSTANCE_ID="YOUR_NEO4J_INSTANCE_ID" --silent
+doppler secrets set NEO4J_QUERY_API_URL="https://YOUR_INSTANCE_ID.databases.neo4j.io/db/neo4j/query/v2" --silent
 
 echo "✅ Doppler secrets configured successfully!"
 echo ""

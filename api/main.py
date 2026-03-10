@@ -235,13 +235,41 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     logger.info("ruleIQ API shutdown complete")
 
 
+openapi_tags = [
+    {"name": "authentication", "description": "User registration, login, and token management"},
+    {"name": "users", "description": "User profile and account management"},
+    {"name": "assessments", "description": "Compliance readiness assessments"},
+    {"name": "ai-assessments", "description": "AI-powered compliance assessments"},
+    {"name": "ai-optimization", "description": "AI model optimization and tuning"},
+    {"name": "business-profiles", "description": "Business profile management"},
+    {"name": "chat", "description": "AI chat conversations and messages"},
+    {"name": "compliance", "description": "Compliance status, gap analysis, and AI-powered queries"},
+    {"name": "evidence", "description": "Evidence collection and management"},
+    {"name": "evidence-collection", "description": "Automated evidence collection workflows"},
+    {"name": "foundation-evidence", "description": "Foundation-level evidence tracking"},
+    {"name": "frameworks", "description": "Compliance framework management (GDPR, ISO 27001, etc.)"},
+    {"name": "implementation", "description": "Compliance implementation plans and tracking"},
+    {"name": "integrations", "description": "Third-party service integrations"},
+    {"name": "iq-agent", "description": "IQ Agent intelligence and GraphRAG queries"},
+    {"name": "monitoring", "description": "System health and performance monitoring"},
+    {"name": "policies", "description": "Policy document management"},
+    {"name": "readiness", "description": "Compliance readiness scoring and reports"},
+    {"name": "reports", "description": "Compliance report generation"},
+    {"name": "security", "description": "Security configuration and CSP management"},
+    {"name": "ai", "description": "AI policy, cost monitoring, and WebSocket streams"},
+    {"name": "freemium", "description": "Freemium tier features and limits"},
+    {"name": "rbac", "description": "Role-based access control administration"},
+    {"name": "uk", "description": "UK-specific compliance requirements"},
+]
+
 app = FastAPI(
     title="ruleIQ API",
     description="AI-powered compliance and risk management platform",
     version="1.0.0",
     docs_url="/api/v1/docs" if settings.debug else None,
-    redoc_url="/api/v1/redoc" if settings.debug else None,
+    redoc_url="/api/v1/redoc",
     openapi_url="/api/v1/openapi.json",
+    openapi_tags=openapi_tags,
     lifespan=lifespan,
 )
 
@@ -250,7 +278,14 @@ app.add_middleware(
     allow_origins=settings.cors_origins,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-    allow_headers=["*"],
+    allow_headers=[
+        "Content-Type",
+        "Authorization",
+        "X-Request-ID",
+        "X-CSRF-Token",
+        "Accept",
+        "Accept-Language",
+    ],
     expose_headers=[
         "X-Total-Count",
         "X-RateLimit-Limit",

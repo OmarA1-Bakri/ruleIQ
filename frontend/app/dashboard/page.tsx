@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Activity,
@@ -22,7 +23,10 @@ import {
   Globe,
 } from 'lucide-react';
 import { AuroraBackground } from '@/components/ui/backgrounds/aurora-background';
+import { useAuthStore } from '@/lib/stores/auth.store';
 import { cn } from '@/lib/utils';
+
+const INITIAL_LIVE_DATA_POINTS = [42, 48, 54, 58, 63, 60, 66, 69, 64, 71, 75, 72, 78, 81, 76, 83, 79, 86, 84, 90];
 
 // Animated Stats Card Component
 const StatsCard = ({ 
@@ -83,6 +87,8 @@ const StatsCard = ({
 
 // Activity Feed Item
 const ActivityItem = ({ activity, index }: any) => {
+  const message = activity.message ?? activity.title;
+
   return (
     <motion.div
       initial={{ opacity: 0, x: -20 }}
@@ -105,7 +111,7 @@ const ActivityItem = ({ activity, index }: any) => {
         )}
       </div>
       <div className="flex-1">
-        <p className="text-sm text-gray-300">{activity.message}</p>
+        <p className="text-sm text-gray-300">{message}</p>
         <p className="text-xs text-gray-500 mt-1">{activity.time}</p>
       </div>
     </motion.div>
@@ -202,19 +208,29 @@ const RadialChart = ({ value, label, color: _color }: any) => {
 };
 // Live Data Stream Component (simulating real-time data)
 const LiveDataStream = () => {
-  const [dataPoints, setDataPoints] = useState<number[]>(
-    Array.from({ length: 20 }, () => Math.random() * 100)
-  );
+  const [dataPoints, setDataPoints] = useState<number[]>(INITIAL_LIVE_DATA_POINTS);
 
   useEffect(() => {
     const interval = setInterval(() => {
       setDataPoints(prev => {
-        const newData = [...prev.slice(1), Math.random() * 100];
+        const nextPoint = Math.max(10, Math.min(95, prev[prev.length - 1] + (Math.random() * 18 - 9)));
+        const newData = [...prev.slice(1), Number(nextPoint.toFixed(2))];
         return newData;
       });
     }, 1000);
     return () => clearInterval(interval);
   }, []);
+
+  const chartPoints = dataPoints.map((point, i) => [
+    Number(((i / (dataPoints.length - 1)) * 100).toFixed(2)),
+    Number((100 - point).toFixed(2)),
+  ]);
+  const linePath = chartPoints.length > 0
+    ? `M ${chartPoints[0][0]},${chartPoints[0][1]} L ${chartPoints.slice(1).map(([x, y]) => `${x},${y}`).join(' L ')}`
+    : '';
+  const areaPath = chartPoints.length > 0
+    ? `M 0,100 L ${chartPoints.map(([x, y]) => `${x},${y}`).join(' L ')} L 100,100 Z`
+    : '';
 
   return (
     <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-2xl p-6 border border-purple-800/20">
@@ -227,7 +243,7 @@ const LiveDataStream = () => {
       </div>
       
       <div className="h-32 relative">
-        <svg className="w-full h-full">
+        <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
           <defs>
             <linearGradient id="gradient2" x1="0%" y1="0%" x2="0%" y2="100%">
               <stop offset="0%" stopColor="#8B5CF6" stopOpacity="0.8" />
@@ -242,9 +258,7 @@ const LiveDataStream = () => {
             </filter>
           </defs>          
           <motion.path
-            d={`M ${dataPoints.map((point, i) => 
-              `${(i / (dataPoints.length - 1)) * 100}%,${100 - point}%`
-            ).join(' L ')}`}
+            d={linePath}
             fill="none"
             stroke="url(#gradient2)"
             strokeWidth="2"
@@ -254,9 +268,7 @@ const LiveDataStream = () => {
             transition={{ duration: 0.5 }}
           />
           <motion.path
-            d={`M 0,100% ${dataPoints.map((point, i) => 
-              `${(i / (dataPoints.length - 1)) * 100}%,${100 - point}%`
-            ).join(' L ')} 100%,100% Z`}
+            d={areaPath}
             fill="url(#gradient2)"
             opacity="0.2"
           />
@@ -268,7 +280,27 @@ const LiveDataStream = () => {
 
 // Main Dashboard Component
 export default function DashboardPage() {
+  const router = useRouter();
+  const { isAuthenticated, isLoading, checkAuthStatus } = useAuthStore();
   const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  useEffect(() => {
+    checkAuthStatus();
+  }, [checkAuthStatus]);
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.replace('/login');
+    }
+  }, [isAuthenticated, isLoading, router]);
+
+  if (isLoading) {
+    return <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center">Loading dashboard...</div>;
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
   
   const stats = [
     { title: 'Total Revenue', value: '$124,563', change: '+12.5%', trend: 'up', icon: DollarSign },
@@ -297,6 +329,7 @@ export default function DashboardPage() {
               <button
                 onClick={() => setSidebarOpen(!sidebarOpen)}
                 className="text-gray-400 hover:text-white"
+                aria-label={sidebarOpen ? 'Close navigation menu' : 'Open navigation menu'}
               >
                 {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
               </button>
@@ -310,17 +343,18 @@ export default function DashboardPage() {
                 <input
                   type="text"
                   placeholder="Search..."
+                  aria-label="Search dashboard"
                   className="pl-10 pr-4 py-2 bg-gray-900 border border-purple-800/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-600"
                 />
               </div>              
               {/* Notifications */}
-              <button className="relative p-2 text-gray-400 hover:text-white">
+              <button className="relative p-2 text-gray-400 hover:text-white" aria-label="Open notifications">
                 <Bell size={20} />
                 <span className="absolute top-0 right-0 w-2 h-2 bg-purple-500 rounded-full" />
               </button>
               
               {/* Settings */}
-              <button className="p-2 text-gray-400 hover:text-white">
+              <button className="p-2 text-gray-400 hover:text-white" aria-label="Open dashboard settings">
                 <Settings size={20} />
               </button>
               

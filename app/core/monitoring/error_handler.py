@@ -1,10 +1,4 @@
-"""
-import logging
-
-
-logger = logging.getLogger(__name__)
-Comprehensive error handling with custom exceptions and handlers.
-"""
+"""Comprehensive error handling with custom exceptions and handlers."""
 
 import traceback
 from typing import Any, Dict, Optional, Callable

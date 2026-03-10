@@ -40,10 +40,13 @@ def build_policy_generation_prompt(
     custom_requirements: List[str],
 ) -> str:
     """Builds the AI prompt for policy generation."""
-    # This helper function remains synchronous as it's CPU-bound.
+    requirements_text = ""
+    if custom_requirements:
+        requirements_text = f" Include these custom requirements: {', '.join(custom_requirements)}."
+
     return (
         f"Generate a {policy_type} compliance policy for a {profile.industry} company "
-        f"named {profile.company_name}.",
+        f"named {profile.company_name} aligned to {framework.name}.{requirements_text}"
     )
 
 
@@ -61,16 +64,14 @@ async def generate_compliance_policy(
         )
         profile = profile_res.scalars().first()
         if not profile:
-            raise NotFoundException(
-                "Business profile not found. Please complete your business assessment first.",
-            )
+            raise NotFoundException("Business profile", user_id)
 
         framework_res = await db.execute(
             select(ComplianceFramework).where(ComplianceFramework.id == framework_id),
         )
         framework = framework_res.scalars().first()
         if not framework:
-            raise NotFoundException("Compliance framework not found.")
+            raise NotFoundException("Compliance framework", framework_id)
 
         prompt = build_policy_generation_prompt(
             profile,
@@ -120,6 +121,8 @@ async def generate_compliance_policy(
     except SQLAlchemyError as e:
         await db.rollback()
         raise DatabaseException("Failed to save the generated policy.") from e
+    except NotFoundException:
+        raise
     except Exception as e:
         await db.rollback()
         raise BusinessLogicException(
@@ -138,7 +141,7 @@ async def get_policy_by_id(db: AsyncSession, policy_id: UUID, user_id: UUID) -> 
         )
         policy = res.scalars().first()
         if not policy:
-            raise NotFoundException(f"Policy with ID {policy_id} not found.")
+            raise NotFoundException("Policy", policy_id)
         return policy
     except SQLAlchemyError as e:
         raise DatabaseException("Failed to retrieve policy.") from e

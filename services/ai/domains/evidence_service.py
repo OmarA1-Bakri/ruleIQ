@@ -22,9 +22,23 @@ from services.ai.response.parser import ResponseParser
 from services.ai.response.fallback import FallbackGenerator
 from services.ai.context_manager import ContextManager
 from services.ai.prompt_templates import PromptTemplates
-from uuid import uuid4 as generate_uuid
 
 logger = logging.getLogger(__name__)
+
+
+def _normalize_prompt(prompt: Any) -> Dict[str, str]:
+    """Normalize prompt templates to the system/user structure expected by the generator."""
+    if isinstance(prompt, dict):
+        system_prompt = prompt.get("system")
+        user_prompt = prompt.get("user")
+        if isinstance(system_prompt, str) and isinstance(user_prompt, str):
+            return {"system": system_prompt, "user": user_prompt}
+    if isinstance(prompt, str):
+        return {
+            "system": "You are a compliance expert who recommends practical evidence collection steps.",
+            "user": prompt,
+        }
+    raise ValueError("Unsupported evidence recommendation prompt format")
 
 
 class EvidenceService:
@@ -76,6 +90,7 @@ class EvidenceService:
             IntegrationException: If external service fails
             BusinessLogicException: For other unexpected errors
         """
+        _ = (user, control_id)
         try:
             # Get business context from context manager
             context = await self.context_manager.get_conversation_context(
@@ -87,11 +102,12 @@ class EvidenceService:
             prompt = self.prompt_templates.get_evidence_recommendation_prompt(
                 framework, business_context
             )
+            prompt_payload = _normalize_prompt(prompt)
 
             # Generate AI response
             response = await self.response_generator.generate_simple(
-                system_prompt="You are a compliance expert specializing in evidence collection.",
-                user_prompt=prompt,
+                system_prompt=prompt_payload["system"],
+                user_prompt=prompt_payload["user"],
                 task_type="evidence_recommendations",
                 context={"framework": framework, "business_context": business_context},
             )
@@ -107,13 +123,17 @@ class EvidenceService:
 
         except (NotFoundException, DatabaseException, IntegrationException) as e:
             logger.warning(
-                f"Known exception while generating recommendations for business {business_profile_id}: {e}"
+                "Known exception while generating recommendations for business %s: %s",
+                business_profile_id,
+                e,
             )
             raise
 
         except Exception as e:
             logger.error(
-                f"Error generating evidence recommendations for business {business_profile_id}: {e}",
+                "Error generating evidence recommendations for business %s: %s",
+                business_profile_id,
+                e,
                 exc_info=True,
             )
             raise BusinessLogicException(
@@ -125,7 +145,7 @@ class EvidenceService:
         if not existing_evidence:
             return "No evidence collected yet"
 
-        type_counts = {}
+        type_counts: Dict[str, int] = {}
         for item in existing_evidence:
             evidence_type = item.get("evidence_type", "unknown")
             type_counts[evidence_type] = type_counts.get(evidence_type, 0) + 1
@@ -150,16 +170,16 @@ class EvidenceService:
             return self._parse_text_recommendations(response, framework)
 
         except (json.JSONDecodeError, ValueError, KeyError) as e:
-            logger.warning(f"Error parsing AI recommendations: {e}")
+            logger.warning("Error parsing AI recommendations: %s", e)
             return self.fallback_generator.get_recommendations(
                 framework, {"maturity_level": "Basic"}
             )
 
     def _parse_text_recommendations(self, response: str, framework: str) -> List[Dict[str, Any]]:
         """Parse text-based recommendations as fallback."""
-        recommendations = []
+        recommendations: List[Dict[str, Any]] = []
         lines = response.split("\n")
-        current_rec = {}
+        current_rec: Dict[str, Any] = {}
 
         for line in lines:
             line = line.strip()
@@ -275,7 +295,7 @@ class EvidenceService:
             return enhanced_recommendations
 
         except (ValueError, KeyError, IndexError) as e:
-            logger.error(f"Error generating contextual recommendations: {e}")
+            logger.error("Error generating contextual recommendations: %s", e)
             return self.fallback_generator.get_recommendations(framework, maturity_analysis)
 
     def _add_automation_insights(
@@ -444,16 +464,18 @@ class EvidenceService:
         - Compliance maturity level
         - Risk assessment
         """
+        _ = (user, context_type)
         try:
             # Get business context
             context = await self.context_manager.get_conversation_context(
-                generate_uuid(), business_profile_id
+                uuid4(), business_profile_id
             )
             business_context = context.get("business_profile", {})
             existing_evidence = context.get("recent_evidence", [])
 
             # Analyze compliance maturity (from WorkflowService)
             if self.workflow_service:
+                # pylint: disable=protected-access
                 maturity_analysis = await self.workflow_service._analyze_compliance_maturity(
                     business_context, existing_evidence, framework
                 )
@@ -501,13 +523,17 @@ class EvidenceService:
 
         except (NotFoundException, DatabaseException, IntegrationException) as e:
             logger.warning(
-                f"Known exception while generating context-aware recommendations for business {business_profile_id}: {e}"
+                "Known exception while generating context-aware recommendations for business %s: %s",
+                business_profile_id,
+                e,
             )
             raise
 
         except Exception as e:
             logger.error(
-                f"Error generating context-aware recommendations for business {business_profile_id}: {e}",
+                "Error generating context-aware recommendations for business %s: %s",
+                business_profile_id,
+                e,
                 exc_info=True,
             )
             raise BusinessLogicException("Unable to generate context-aware recommendations") from e

@@ -6,6 +6,7 @@ global.fetch = vi.fn();
 describe('Auth Store', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.restoreAllMocks();
     vi.resetModules();
   });
 
@@ -186,5 +187,94 @@ describe('Auth Store', () => {
     // Just verify the method exists and returns something (null is valid)
     const result = store.getToken();
     expect(result).toBeDefined();
+  });
+
+  it('should retry /auth/me after refreshing an expired token', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch');
+    fetchMock
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ detail: 'expired' }), {
+          status: 401,
+          headers: { 'content-type': 'application/json' },
+        }),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            access_token: 'new-access-token',
+            refresh_token: 'new-refresh-token',
+            token_type: 'bearer',
+          }),
+          {
+            status: 200,
+            headers: { 'content-type': 'application/json' },
+          },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            id: 'user-123',
+            email: 'test@example.com',
+            created_at: new Date().toISOString(),
+            is_active: true,
+          }),
+          {
+            status: 200,
+            headers: { 'content-type': 'application/json' },
+          },
+        ),
+      );
+
+    const { useAuthStore } = await import('@/lib/stores/auth.store');
+
+    useAuthStore.setState({
+      tokens: { access: 'expired-access-token', refresh: 'refresh-token' },
+      isAuthenticated: false,
+      user: null,
+      accessToken: 'expired-access-token',
+      refreshTokenValue: 'refresh-token',
+    });
+
+    await useAuthStore.getState().checkAuthStatus();
+
+    const state = useAuthStore.getState();
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(state.tokens).toEqual({ access: 'new-access-token', refresh: 'new-refresh-token' });
+    expect(state.user?.email).toBe('test@example.com');
+    expect(state.isAuthenticated).toBe(true);
+  });
+
+  it('should include the refresh token when logging out', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch');
+    fetchMock.mockResolvedValue(
+      new Response(JSON.stringify({ message: 'ok' }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      }),
+    );
+
+    const { useAuthStore } = await import('@/lib/stores/auth.store');
+
+    useAuthStore.setState({
+      tokens: { access: 'access-token', refresh: 'refresh-token' },
+      isAuthenticated: true,
+      user: {
+        id: 'user-123',
+        email: 'test@example.com',
+        name: 'Test User',
+        created_at: new Date().toISOString(),
+        is_active: true,
+      } as any,
+      accessToken: 'access-token',
+      refreshTokenValue: 'refresh-token',
+    });
+
+    await useAuthStore.getState().logout();
+
+    const [, requestInit] = fetchMock.mock.calls[0];
+    expect(requestInit?.body).toBe(JSON.stringify({ refresh_token: 'refresh-token' }));
+    expect(useAuthStore.getState().isAuthenticated).toBe(false);
+    expect(useAuthStore.getState().tokens).toEqual({ access: null, refresh: null });
   });
 });

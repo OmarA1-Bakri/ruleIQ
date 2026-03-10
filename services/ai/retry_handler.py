@@ -26,6 +26,10 @@ from services.ai.exceptions import (
 class RetryStrategy(Enum):
     """Available retry strategies"""
 
+    EXPONENTIAL_BACKOFF = "exponential_backoff"
+    LINEAR_BACKOFF = "linear_backoff"
+    FIBONACCI_BACKOFF = "fibonacci_backoff"
+
 
 @dataclass
 class RetryConfig:

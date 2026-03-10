@@ -16,34 +16,16 @@ export class APIError extends Error {
 
 class APIClient {
   private async getAuthHeaders(): Promise<HeadersInit> {
-    const { tokens, refreshTokens } = useAuthStore.getState();
+    const { tokens } = useAuthStore.getState();
 
     if (!tokens?.access) {
       throw new APIError('No authentication token available', 401);
     }
 
-    // Check if token might be expired and try to refresh
-    try {
-      return {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${tokens.access}`,
-      };
-    } catch (_error) {
-      // If we have a refresh token, try to refresh
-      if (tokens.refresh) {
-        try {
-          await refreshTokens();
-          const newTokens = useAuthStore.getState().tokens;
-          return {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${newTokens?.access}`,
-          };
-        } catch (_refreshError) {
-          throw new APIError('Authentication failed', 401);
-        }
-      }
-      throw new APIError('Authentication failed', 401);
-    }
+    return {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${tokens.access}`,
+    };
   }
 
   async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
@@ -54,13 +36,26 @@ class APIClient {
     try {
       const headers = await this.getAuthHeaders();
 
-      const response = await fetch(url, {
+      let response = await fetch(url, {
         ...options,
         headers: {
           ...headers,
           ...options.headers,
         },
       });
+
+      if (response.status === 401 && useAuthStore.getState().tokens?.refresh) {
+        await useAuthStore.getState().refreshTokens();
+
+        const refreshedHeaders = await this.getAuthHeaders();
+        response = await fetch(url, {
+          ...options,
+          headers: {
+            ...refreshedHeaders,
+            ...options.headers,
+          },
+        });
+      }
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));

@@ -1,12 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+const mockRefreshTokens = vi.fn();
+const mockGetState = vi.fn(() => ({
+  tokens: { access: 'test-access-token', refresh: 'test-refresh-token' },
+  refreshTokens: mockRefreshTokens,
+}));
+
 // Mock the auth store before importing the client
 vi.mock('@/lib/stores/auth.store', () => ({
   useAuthStore: {
-    getState: vi.fn(() => ({
-      tokens: { access: 'test-access-token', refresh: 'test-refresh-token' },
-      refreshTokens: vi.fn(),
-    })),
+    getState: mockGetState,
   },
 }));
 
@@ -59,6 +62,12 @@ describe('APIClient', () => {
   beforeEach(() => {
     vi.resetModules();
     vi.restoreAllMocks();
+    mockRefreshTokens.mockReset();
+    mockGetState.mockReset();
+    mockGetState.mockImplementation(() => ({
+      tokens: { access: 'test-access-token', refresh: 'test-refresh-token' },
+      refreshTokens: mockRefreshTokens,
+    }));
   });
 
   async function getModule() {
@@ -249,6 +258,47 @@ describe('APIClient', () => {
   });
 
   describe('error handling', () => {
+    it('retries once after a 401 by refreshing tokens', async () => {
+      const { apiClient } = await getModule();
+
+      mockGetState
+        .mockImplementationOnce(() => ({
+          tokens: { access: 'expired-access-token', refresh: 'refresh-token' },
+          refreshTokens: mockRefreshTokens,
+        }))
+        .mockImplementationOnce(() => ({
+          tokens: { access: 'expired-access-token', refresh: 'refresh-token' },
+          refreshTokens: mockRefreshTokens,
+        }))
+        .mockImplementation(() => ({
+          tokens: { access: 'fresh-access-token', refresh: 'refresh-token' },
+          refreshTokens: mockRefreshTokens,
+        }));
+
+      mockRefreshTokens.mockResolvedValue(undefined);
+
+      const fetchSpy = vi
+        .spyOn(globalThis, 'fetch')
+        .mockResolvedValueOnce(
+          new Response(JSON.stringify({ detail: 'Unauthorized' }), {
+            status: 401,
+            headers: { 'content-type': 'application/json' },
+          }),
+        )
+        .mockResolvedValueOnce(
+          new Response(JSON.stringify({ ok: true }), {
+            status: 200,
+            headers: { 'content-type': 'application/json' },
+          }),
+        );
+
+      const response = await apiClient.get('/protected');
+
+      expect(mockRefreshTokens).toHaveBeenCalledTimes(1);
+      expect(fetchSpy).toHaveBeenCalledTimes(2);
+      expect(response).toEqual({ ok: true });
+    });
+
     it('throws APIError for non-OK response', async () => {
       const { apiClient, APIError } = await getModule();
       vi.spyOn(globalThis, 'fetch').mockResolvedValue(

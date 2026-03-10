@@ -50,7 +50,8 @@ class ReportParameters(BaseModel):
     )
 
     @validator("end_date", always=True)
-    def validate_date_range(self, v, values) -> Any:
+    @classmethod
+    def validate_date_range(cls, v, values) -> Any:
         if "start_date" in values and v and values["start_date"] and (v < values["start_date"]):
             raise ValueError("End date cannot be before start date.")
         return v
@@ -71,7 +72,8 @@ class ScheduleConfig(BaseModel):
     )
 
     @validator("cron_expression", always=True)
-    def validate_cron(self, v, values) -> Any:
+    @classmethod
+    def validate_cron(cls, v, values) -> Any:
         if v and values.get("frequency") != ReportFrequency.CUSTOM:
             raise ValueError("cron_expression can only be set for custom frequency.")
         return v
@@ -104,7 +106,8 @@ class CreateScheduleRequest(BaseModel):
     schedule_config: ScheduleConfig = Field(default_factory=ScheduleConfig)
 
     @validator("recipients")
-    def validate_recipients(self, v) -> Any:
+    @classmethod
+    def validate_recipients(cls, v) -> Any:
         import re
 
         email_pattern = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
@@ -141,7 +144,8 @@ class UpdateScheduleRequest(BaseModel):
     schedule_config: Optional[ScheduleConfig] = None
 
     @validator("recipients")
-    def validate_recipients(self, v) -> Any:
+    @classmethod
+    def validate_recipients(cls, v) -> Any:
         if v is not None:
             import re
 

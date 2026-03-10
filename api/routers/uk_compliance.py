@@ -10,6 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 from database.db_setup import get_db
 from database.compliance_framework import ComplianceFramework
+from database.user import User
 from api.schemas.compliance import (
     UKFrameworkSchema,
     FrameworkResponse,
@@ -22,6 +23,15 @@ from api.dependencies.auth import get_current_active_user
 from api.middleware.rate_limiter import RateLimited
 
 router = APIRouter(tags=["UK Compliance"])
+
+
+def require_admin_user(current_user: User = Depends(get_current_active_user)) -> User:
+    """Restrict framework mutations to administrators."""
+    if getattr(current_user, "role", None) != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Admin privileges required"
+        )
+    return current_user
 
 
 @router.get(
@@ -116,7 +126,7 @@ async def get_framework(framework_id: str, db: Session = Depends(get_db)) -> Any
 @router.post(
     "/frameworks/load",
     response_model=FrameworkLoadResponse,
-    dependencies=[Depends(get_current_active_user), Depends(RateLimited(requests=10, window=60))],
+    dependencies=[Depends(require_admin_user), Depends(RateLimited(requests=10, window=60))],
 )
 async def load_frameworks(request: FrameworkLoadRequest, db: Session = Depends(get_db)) -> Any:
     """
@@ -172,7 +182,7 @@ async def load_frameworks(request: FrameworkLoadRequest, db: Session = Depends(g
 @router.put(
     "/frameworks/{framework_id}",
     response_model=FrameworkResponse,
-    dependencies=[Depends(get_current_active_user), Depends(RateLimited(requests=50, window=60))],
+    dependencies=[Depends(require_admin_user), Depends(RateLimited(requests=50, window=60))],
 )
 async def update_framework(
     framework_id: str, framework_update: UKFrameworkSchema, db: Session = Depends(get_db)
@@ -233,7 +243,7 @@ async def update_framework(
 
 @router.delete(
     "/frameworks/{framework_id}",
-    dependencies=[Depends(get_current_active_user), Depends(RateLimited(requests=20, window=60))],
+    dependencies=[Depends(require_admin_user), Depends(RateLimited(requests=20, window=60))],
 )
 async def delete_framework(framework_id: str, db: Session = Depends(get_db)) -> Dict[str, Any]:
     """

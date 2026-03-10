@@ -8,8 +8,9 @@ from sqlalchemy import create_engine, text
 
 # Set environment variables
 os.environ["ENV"] = "testing"
-os.environ["DATABASE_URL"] = (
-    "postgresql://neondb_owner:npg_s0JhnfGNy3Ze@ep-wild-grass-a8o37wq8-pooler.eastus2.azure.neon.tech/neondb?sslmode=require",
+os.environ["DATABASE_URL"] = os.environ.get(
+    "DATABASE_URL",
+    "postgresql://postgres:postgres@localhost:5432/ruleiq_test",
 )
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))

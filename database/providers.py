@@ -6,11 +6,12 @@ implementations for PostgreSQL and Neo4j databases with dependency injection sup
 """
 
 import asyncio
+import concurrent.futures
 import logging
 import os
 import time
 from abc import ABC, abstractmethod
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, cast
 from dataclasses import dataclass
 
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
@@ -55,29 +56,29 @@ class DatabaseProvider(ABC):
     @abstractmethod
     async def initialize(self) -> bool:
         """Initialize the database connection."""
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     async def close(self) -> None:
         """Close the database connection."""
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     async def health_check(self) -> ConnectionHealth:
         """Check the health of the database connection."""
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     async def execute_query(
         self, query: str, params: Optional[Dict[str, Any]] = None
     ) -> List[Dict[str, Any]]:
         """Execute a query and return results."""
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     async def execute_transaction(self, queries: List[Dict[str, Any]]) -> bool:
         """Execute multiple queries in a transaction."""
-        pass
+        raise NotImplementedError
 
 
 class DatabaseConfig:
@@ -98,8 +99,8 @@ class PostgreSQLProvider(DatabaseProvider):
     """PostgreSQL database provider implementation."""
 
     def __init__(self) -> None:
-        self.engine = None
-        self.session_maker = None
+        self.engine: Any = None
+        self.session_maker: Any = None
         self._initialized = False
 
     async def initialize(self) -> bool:
@@ -153,6 +154,7 @@ class PostgreSQLProvider(DatabaseProvider):
 
         start_time = time.time()
         try:
+            assert self.session_maker is not None
             async with self.session_maker() as session:
                 # Simple health check query
                 result = await session.execute(text("SELECT 1 as health_check"))
@@ -162,7 +164,7 @@ class PostgreSQLProvider(DatabaseProvider):
                 if row and row.health_check == 1:
                     # Check connection pool stats
                     pool_details = {}
-                    if hasattr(self.engine, "pool"):
+                    if self.engine is not None and hasattr(self.engine, "pool"):
                         pool = self.engine.pool
                         pool_details = {
                             "pool_size": getattr(pool, "size", lambda: 0)(),
@@ -194,18 +196,16 @@ class PostgreSQLProvider(DatabaseProvider):
             raise DatabaseError("PostgreSQL provider not initialized")
 
         try:
+            assert self.session_maker is not None
             async with self.session_maker() as session:
                 result = await session.execute(text(query), params or {})
-                rows = result.fetchall()
-
-                # Convert to list of dictionaries
-                return [dict(row._mapping) for row in rows]
+                return [dict(row) for row in result.mappings().all()]
 
         except (ConnectionError, TimeoutError, ValueError) as e:
             logger.exception("PostgreSQL query execution failed: %s", e)
             raise DatabaseError(
                 "Query execution failed: %s" % e, {"query": query, "params": params}, e
-            )
+            ) from e
 
     async def execute_transaction(self, queries: List[Dict[str, Any]]) -> bool:
         """Execute multiple PostgreSQL queries in a transaction."""
@@ -213,6 +213,7 @@ class PostgreSQLProvider(DatabaseProvider):
             raise DatabaseError("PostgreSQL provider not initialized")
 
         try:
+            assert self.session_maker is not None
             async with self.session_maker() as session:
                 async with session.begin():
                     for query_data in queries:
@@ -225,16 +226,16 @@ class PostgreSQLProvider(DatabaseProvider):
 
         except (ConnectionError, TimeoutError, ValueError) as e:
             logger.exception("PostgreSQL transaction failed: %s", e)
-            raise DatabaseError("Transaction failed: %s" % e, {"queries": queries}, e)
+            raise DatabaseError("Transaction failed: %s" % e, {"queries": queries}, e) from e
 
 
 class Neo4jProvider(DatabaseProvider):
     """Neo4j graph database provider implementation."""
 
     def __init__(self) -> None:
-        self.driver = None
+        self.driver: Any = None
         self._initialized = False
-        self._executor = None
+        self._executor: Optional[concurrent.futures.ThreadPoolExecutor] = None
         self._database = os.getenv("NEO4J_DATABASE", "neo4j")
 
     async def initialize(self) -> bool:
@@ -263,9 +264,6 @@ class Neo4jProvider(DatabaseProvider):
                 connection_acquisition_timeout=60,
             )
 
-            # Create thread pool executor for async operations
-            import concurrent.futures
-
             self._executor = concurrent.futures.ThreadPoolExecutor(max_workers=10)
 
             # Test connection
@@ -286,6 +284,8 @@ class Neo4jProvider(DatabaseProvider):
             return False
 
         try:
+            assert self.driver is not None
+            assert self._executor is not None
 
             def _test():
                 with self.driver.session(database=self._database) as session:
@@ -319,6 +319,8 @@ class Neo4jProvider(DatabaseProvider):
 
         start_time = time.time()
         try:
+            assert self.driver is not None
+            assert self._executor is not None
 
             def _health_check():
                 with self.driver.session(database=self._database) as session:
@@ -350,6 +352,8 @@ class Neo4jProvider(DatabaseProvider):
             raise DatabaseError("Neo4j provider not initialized")
 
         try:
+            assert self.driver is not None
+            assert self._executor is not None
 
             def _execute():
                 with self.driver.session(database=self._database) as session:
@@ -362,7 +366,7 @@ class Neo4jProvider(DatabaseProvider):
             logger.exception("Neo4j query execution failed: %s", e)
             raise DatabaseError(
                 "Query execution failed: %s" % e, {"query": query, "params": params}, e
-            )
+            ) from e
 
     async def execute_transaction(self, queries: List[Dict[str, Any]]) -> bool:
         """Execute multiple Neo4j queries in a transaction."""
@@ -370,6 +374,8 @@ class Neo4jProvider(DatabaseProvider):
             raise DatabaseError("Neo4j provider not initialized")
 
         try:
+            assert self.driver is not None
+            assert self._executor is not None
 
             def _execute_transaction():
                 with self.driver.session(database=self._database) as session:
@@ -387,30 +393,34 @@ class Neo4jProvider(DatabaseProvider):
 
         except (neo4j.exceptions.Neo4jError, ConnectionError) as e:
             logger.exception("Neo4j transaction failed: %s", e)
-            raise DatabaseError("Transaction failed: %s" % e, {"queries": queries}, e)
+            raise DatabaseError("Transaction failed: %s" % e, {"queries": queries}, e) from e
 
 
 # Global provider instances for backward compatibility
-_postgres_provider: Optional[PostgreSQLProvider] = None
-_neo4j_provider: Optional[Neo4jProvider] = None
+_provider_state: Dict[str, Optional[DatabaseProvider]] = {
+    "postgres": None,
+    "neo4j": None,
+}
 
 
 async def get_postgres_provider() -> PostgreSQLProvider:
     """Get or create global PostgreSQL provider instance."""
-    global _postgres_provider
-    if _postgres_provider is None:
-        _postgres_provider = PostgreSQLProvider()
-        await _postgres_provider.initialize()
-    return _postgres_provider
+    provider = _provider_state["postgres"]
+    if provider is None:
+        provider = PostgreSQLProvider()
+        await provider.initialize()
+        _provider_state["postgres"] = provider
+    return cast(PostgreSQLProvider, provider)
 
 
 async def get_neo4j_provider() -> Neo4jProvider:
     """Get or create global Neo4j provider instance."""
-    global _neo4j_provider
-    if _neo4j_provider is None:
-        _neo4j_provider = Neo4jProvider()
-        await _neo4j_provider.initialize()
-    return _neo4j_provider
+    provider = _provider_state["neo4j"]
+    if provider is None:
+        provider = Neo4jProvider()
+        await provider.initialize()
+        _provider_state["neo4j"] = provider
+    return cast(Neo4jProvider, provider)
 
 
 async def initialize_providers() -> None:
@@ -421,12 +431,12 @@ async def initialize_providers() -> None:
 
 async def close_providers() -> None:
     """Close all database providers."""
-    global _postgres_provider, _neo4j_provider
+    postgres_provider = _provider_state["postgres"]
+    if postgres_provider:
+        await postgres_provider.close()
+        _provider_state["postgres"] = None
 
-    if _postgres_provider:
-        await _postgres_provider.close()
-        _postgres_provider = None
-
-    if _neo4j_provider:
-        await _neo4j_provider.close()
-        _neo4j_provider = None
+    neo4j_provider = _provider_state["neo4j"]
+    if neo4j_provider:
+        await neo4j_provider.close()
+        _provider_state["neo4j"] = None

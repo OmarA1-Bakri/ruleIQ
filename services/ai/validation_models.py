@@ -139,7 +139,8 @@ class GapValidationModel(BaseModel):
     )
 
     @validator("id")
-    def validate_gap_id(self, v):
+    @classmethod
+    def validate_gap_id(cls, v):
         if not v.startswith(("gap_", "GAP_")):
             return f"gap_{v}"
         return v
@@ -215,7 +216,8 @@ class RecommendationValidationModel(BaseModel):
     roi_estimate: Optional[str] = Field(None, description="ROI estimate")
 
     @validator("id")
-    def validate_recommendation_id(self, v):
+    @classmethod
+    def validate_recommendation_id(cls, v):
         if not v.startswith(("rec_", "REC_")):
             return f"rec_{v}"
         return v
@@ -267,7 +269,8 @@ class ImplementationPlanValidationModel(BaseModel):
     )
 
     @validator("phases")
-    def validate_phase_numbers(self, v):
+    @classmethod
+    def validate_phase_numbers(cls, v):
         phase_numbers = [p.phase_number for p in v]
         if len(set(phase_numbers)) != len(phase_numbers):
             raise ValueError("Phase numbers must be unique")
@@ -387,7 +390,8 @@ class ComplianceMetricsValidationModel(BaseModel):
     improvement_trend: TrendDirection = Field(..., description="Improvement trend")
 
     @validator("framework_scores")
-    def validate_framework_scores(self, v):
+    @classmethod
+    def validate_framework_scores(cls, v):
         for framework, score in v.items():
             if not (0.0 <= score <= 100.0):
                 raise ValueError(
@@ -396,7 +400,8 @@ class ComplianceMetricsValidationModel(BaseModel):
         return v
 
     @validator("gap_count_by_severity")
-    def validate_gap_counts(self, v):
+    @classmethod
+    def validate_gap_counts(cls, v):
         for severity, count in v.items():
             if count < 0:
                 raise ValueError(f"Gap count for {severity} must be non-negative")
@@ -445,7 +450,8 @@ class GapAnalysisValidationModel(BaseModel):
     )
 
     @validator("priority_order")
-    def validate_priority_order(self, v, values):
+    @classmethod
+    def validate_priority_order(cls, v, values):
         if "gaps" in values:
             gap_ids = {gap.id for gap in values["gaps"]}
             priority_ids = set(v)
@@ -454,7 +460,8 @@ class GapAnalysisValidationModel(BaseModel):
         return v
 
     @validator("framework_coverage")
-    def validate_framework_coverage(self, v):
+    @classmethod
+    def validate_framework_coverage(cls, v):
         for framework, coverage in v.items():
             if not (0.0 <= coverage <= 100.0):
                 raise ValueError(
@@ -498,13 +505,14 @@ class RecommendationResponseValidationModel(BaseModel):
     success_metrics: List[str] = Field(..., min_items=1, description="Success metrics")
 
     @validator("quick_wins", "long_term_initiatives")
-    def validate_recommendation_ids(self, v, values, field):
+    @classmethod
+    def validate_recommendation_ids(cls, v, values):
         if "recommendations" in values:
             recommendation_ids = {rec.id for rec in values["recommendations"]}
             invalid_ids = set(v) - recommendation_ids
             if invalid_ids:
                 raise ValueError(
-                    f"Invalid recommendation IDs in {field.name}: {invalid_ids}",
+                    f"Invalid recommendation IDs: {invalid_ids}",
                 )
         return v
 
@@ -679,7 +687,8 @@ class ResponseMetadataValidationModel(BaseModel):
     )
 
     @validator("timestamp")
-    def validate_timestamp(self, v):
+    @classmethod
+    def validate_timestamp(cls, v):
         try:
             datetime.fromisoformat(v.replace("Z", "+00:00"))
         except ValueError:

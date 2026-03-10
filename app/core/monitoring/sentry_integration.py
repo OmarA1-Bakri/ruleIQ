@@ -1,8 +1,4 @@
-"""
-import requests
-
-Sentry integration for error tracking and performance monitoring.
-"""
+"""Sentry integration for error tracking and performance monitoring."""
 
 import os
 from typing import Any, Dict, Optional, Generator

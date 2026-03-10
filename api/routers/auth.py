@@ -3,12 +3,13 @@ from typing import Any, Dict
 from datetime import timedelta, timezone
 from datetime import datetime
 from uuid import UUID, uuid4
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Body, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from api.dependencies.auth import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
+    REFRESH_TOKEN_EXPIRE_DAYS,
     create_access_token,
     create_refresh_token,
     get_password_hash,
@@ -51,6 +52,11 @@ class RegisterResponse(BaseModel):
     dependencies=[Depends(auth_rate_limit()), Depends(validate_request)],
 )
 async def register(user: UserCreate, db: Session = Depends(get_db)) -> Any:
+    """Register a new user account.
+
+    Validates email and password, creates the user, assigns the default
+    ``business_user`` role, and returns access + refresh tokens.
+    """
     # Validate email format and content
     try:
         validated_email = InputValidator.validate_email(user.email)
@@ -120,6 +126,12 @@ async def login_for_access_token(
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db),
 ) -> Dict[str, Any]:
+    """OAuth2-compatible token endpoint.
+
+    Accepts ``application/x-www-form-urlencoded`` credentials and returns
+    a JWT access token and refresh token. Failed attempts are logged for
+    security monitoring.
+    """
     # Validate and sanitize login credentials
     try:
         # Validate email (username field contains email)
@@ -262,19 +274,29 @@ async def login(
     )
     refresh_token = create_refresh_token(data={"sub": str(user.id)})
     await auth_service.create_user_session(
-        user, access_token, metadata={"login_method": "json", "ip": ip_address}
+        user,
+        access_token,
+        metadata={
+            "login_method": "json",
+            "ip_address": ip_address,
+            "user_agent": user_agent,
+        },
     )
     return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
 
 
 @router.post("/refresh", response_model=Token, dependencies=[Depends(auth_rate_limit())])
 async def refresh_token(refresh_request: dict, db: Session = Depends(get_db)) -> Dict[str, Any]:
-    from api.dependencies.auth import decode_token
+    from api.dependencies.auth import blacklist_token, decode_token, is_token_blacklisted
 
     refresh_token = refresh_request.get("refresh_token")
     if not refresh_token:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Refresh token required"
+        )
+    if await is_token_blacklisted(refresh_token):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Refresh token has been revoked"
         )
     payload = decode_token(refresh_token)
     if not payload or payload.get("type") != "refresh":
@@ -287,6 +309,13 @@ async def refresh_token(refresh_request: dict, db: Session = Depends(get_db)) ->
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid user")
     access_token = create_access_token(data={"sub": str(user.id)})
     new_refresh_token = create_refresh_token(data={"sub": str(user.id)})
+    await blacklist_token(
+        refresh_token,
+        reason="refresh_rotation",
+        ttl=REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60,
+        user_id=str(user.id),
+        metadata={"rotated_at": datetime.now(timezone.utc).isoformat()},
+    )
     return {
         "access_token": access_token,
         "refresh_token": new_refresh_token,
@@ -364,10 +393,15 @@ async def get_current_user(
 
 
 @router.post("/logout")
-async def logout(request: Request, token: str = Depends(oauth2_scheme)) -> Dict[str, Any]:
+async def logout(
+    request: Request,
+    refresh_request: Dict[str, str] | None = Body(default=None),
+    token: str = Depends(oauth2_scheme),
+) -> Dict[str, Any]:
     """Logout endpoint that blacklists the current token and invalidates sessions."""
     from api.dependencies.auth import blacklist_token, decode_token
 
+    refresh_token = refresh_request.get("refresh_token") if refresh_request else None
     if token:
         await blacklist_token(
             token,
@@ -383,6 +417,15 @@ async def logout(request: Request, token: str = Depends(oauth2_scheme)) -> Dict[
                 await auth_service.logout_user(user_id)
         except (requests.RequestException, KeyError, IndexError):
             pass
+    if refresh_token:
+        await blacklist_token(
+            refresh_token,
+            reason="user_logout",
+            ttl=REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60,
+            ip_address=getattr(request.client, "host", None),
+            user_agent=request.headers.get("user-agent"),
+            metadata={"logout_timestamp": datetime.now(timezone.utc).isoformat()},
+        )
     return {"message": "Successfully logged out"}
 
 

@@ -60,7 +60,7 @@ class LeadCaptureRequest(BaseModel):
     landing_page: Optional[str] = Field(None, max_length=500)
     user_agent: Optional[str] = None
     marketing_consent: bool = Field(default=False)
-    newsletter_subscribed: bool = Field(default=True)
+    newsletter_subscribed: bool = Field(default=False)
 
 
 class SessionStartRequest(BaseModel):

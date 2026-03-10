@@ -12,19 +12,18 @@ import { EnvBadge } from '@/components/ui/env-badge';
 import { useAuthStore } from '@/lib/stores/auth.store';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const _router = useRouter();
-  const { isAuthenticated: _isAuthenticated, isLoading: _isLoading, checkAuthStatus } = useAuthStore();
+  const router = useRouter();
+  const { isAuthenticated, isLoading, checkAuthStatus } = useAuthStore();
 
   useEffect(() => {
     checkAuthStatus();
   }, [checkAuthStatus]);
 
-  // Skip auth check for testing
-  // useEffect(() => {
-  //   if (!isLoading && !isAuthenticated) {
-  //     router.push('/login');
-  //   }
-  // }, [isAuthenticated, isLoading, router]);
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.replace('/login');
+    }
+  }, [isAuthenticated, isLoading, router]);
 
   return (
     <SidebarProvider>

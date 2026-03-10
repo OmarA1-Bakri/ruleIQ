@@ -3,6 +3,8 @@
 Asynchronous authentication dependencies for ComplianceGPT.
 """
 
+import base64
+
 import os
 import secrets
 from datetime import datetime, timedelta, timezone
@@ -62,11 +64,14 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/token", auto_error=False)
 
 
-async def blacklist_token(token: str, reason: str = "logout", **kwargs) -> None:
+async def blacklist_token(
+    token: str, reason: str = "logout", ttl: Optional[int] = None, **kwargs
+) -> None:
     """Add a token to the blacklist with enhanced security features."""
     from .token_blacklist import blacklist_token as enhanced_blacklist_token
 
-    ttl = ACCESS_TOKEN_EXPIRE_MINUTES * 60
+    if ttl is None:
+        ttl = ACCESS_TOKEN_EXPIRE_MINUTES * 60
     await enhanced_blacklist_token(token, reason=reason, ttl=ttl, **kwargs)
 
 
@@ -140,9 +145,39 @@ def validate_token_expiry(payload: Dict) -> None:
         logging.warning("Token expires in %s seconds" % time_until_expiry.total_seconds())
 
 
+def _decode_base64url_segment(segment: str) -> bytes:
+    """Decode a JWT segment with strict base64url padding handling."""
+    padding = "=" * (-len(segment) % 4)
+    return base64.urlsafe_b64decode(segment + padding)
+
+
+def _normalize_base64url_segment(segment: str) -> str:
+    """Return the canonical base64url representation for a JWT segment."""
+    return base64.urlsafe_b64encode(_decode_base64url_segment(segment)).decode().rstrip("=")
+
+
+def _validate_token_segments(token: str) -> None:
+    """Reject malformed or non-canonical JWT segments before semantic validation."""
+    segments = token.split(".")
+    if len(segments) != 3:
+        raise NotAuthenticatedException("Token validation failed: malformed token")
+
+    for segment in segments:
+        if not segment:
+            raise NotAuthenticatedException("Token validation failed: malformed token")
+        try:
+            if _normalize_base64url_segment(segment) != segment:
+                raise NotAuthenticatedException("Token validation failed: malformed token")
+        except (ValueError, NotAuthenticatedException):
+            if isinstance(sys.exc_info()[1], NotAuthenticatedException):
+                raise
+            raise NotAuthenticatedException("Token validation failed: malformed token")
+
+
 def decode_token(token: str) -> Optional[Dict]:
     """Decode JWT token with proper error handling for expiry."""
     try:
+        _validate_token_segments(token)
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         validate_token_expiry(payload)
         return payload
@@ -301,7 +336,7 @@ async def verify_websocket_token(
             raise WebSocketException(code=status.WS_1008_POLICY_VIOLATION)
 
         # Check if token is blacklisted
-        if is_token_blacklisted(token):
+        if await is_token_blacklisted(token):
             await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
             raise WebSocketException(code=status.WS_1008_POLICY_VIOLATION)
 

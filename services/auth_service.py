@@ -1,8 +1,4 @@
-"""
-import requests
-
-Authentication service for session management and security.
-"""
+"""Authentication service for session management and security."""
 
 import contextlib
 import json

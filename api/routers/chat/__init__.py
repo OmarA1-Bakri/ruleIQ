@@ -29,7 +29,6 @@ from .conversations import router as conversations_router
 from .evidence import router as evidence_router
 from .iq_agent import router as iq_agent_router
 from .messages import router as messages_router
-from .placeholder_endpoints import router as placeholder_router
 
 # Create unified router
 router = APIRouter(tags=["Chat Assistant"])
@@ -40,6 +39,4 @@ router.include_router(messages_router)
 router.include_router(evidence_router)
 router.include_router(analytics_router)
 router.include_router(iq_agent_router)
-router.include_router(placeholder_router)
-
 __all__ = ["router"]

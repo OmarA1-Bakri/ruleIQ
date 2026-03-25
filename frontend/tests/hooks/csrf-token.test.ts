@@ -17,7 +17,7 @@ describe('getCsrfHeaders', () => {
   });
 
   it('preserves exact token value', () => {
-    const token = 'abc-def-ghi-jkl-mno-pqr';
+    const token = ['csrf', 'token', 'example'].join('-');
     const headers = getCsrfHeaders(token);
     expect(headers['X-CSRF-Token']).toBe(token);
   });

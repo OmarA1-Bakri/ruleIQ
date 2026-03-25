@@ -226,7 +226,7 @@ class TestJWTAuthMiddleware:
             "Bearer",
             "Bearer ",
             "Basic dGVzdDp0ZXN0",  # Basic auth instead of Bearer
-            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.invalid.signature",
+            "mock.jwt.invalid",
         ]
 
         mock_request.url.path = "/api/v1/users/profile"

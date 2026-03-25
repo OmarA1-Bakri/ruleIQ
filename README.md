@@ -42,10 +42,10 @@
 4. **Run the application:**
    ```bash
    # Option 1: Using Doppler (recommended for teams)
-   doppler run -- python main.py
+   doppler run -- uvicorn api.main:app --host 0.0.0.0 --port 8000
 
    # Option 2: Using .env.local
-   python main.py
+   uvicorn api.main:app --host 0.0.0.0 --port 8000
    ```
 
 ### Required Credentials
@@ -329,7 +329,7 @@ See [API Documentation](docs/API_ENDPOINTS_DOCUMENTATION.md) for complete endpoi
 
 ### Quick Test Commands
 
-**Backend (1884+ tests):**
+**Backend:**
 ```bash
 # Quick unit tests (2-5 minutes)
 make test-fast
@@ -341,7 +341,7 @@ pytest --cov=services --cov=api --cov=core --cov=utils --cov=models \
 # Open coverage report
 open htmlcov/index.html
 
-# Independent test groups (parallel execution)
+# Chunked backend test runs
 make test-groups-parallel  # All groups (~20 min)
 make test-group-unit       # Unit tests only (2-3 min)
 make test-group-ai         # AI core tests (3-4 min)
@@ -553,36 +553,15 @@ pnpm format        # Prettier
 pnpm typecheck     # TypeScript
 ```
 
-## 📊 Project Status (January 2025)
+## 📊 Launch Status
 
-### Overall Readiness: 98% Production Ready
+This repository is being stabilized for a full v1 launch. Treat the current branch as an active release-hardening branch rather than a GA-ready snapshot.
 
-- **Backend**: ✅ Production ready (1884+ tests passing, <200ms SLO)
-- **Frontend**: ✅ Complete with Turbopack + teal design system
-- **Agentic Systems**: ✅ IQ Agent, RAG Self-Critic, LangGraph deployed
-- **CI/CD**: ✅ Complete GitHub Actions pipelines with SonarCloud
-- **Database**: ⚠️ Column truncation handled via field mappers
-- **AI Services**: ✅ Optimized with 40-60% cost reduction
-- **Documentation**: ✅ Comprehensive coverage including agentic systems
-- **Security**: ✅ 8.5/10 enterprise-grade (OWASP compliant)
-
-### Recent Achievements
-
-- ✅ **CI/CD Infrastructure** - Complete GitHub Actions with blue-green deployment
-- ✅ **Test Infrastructure** - 1884+ tests with full coverage reporting
-- ✅ **Agentic Transformation Complete** - Full IQ Agent deployment with GraphRAG
-- ✅ **RAG Self-Critic Integration** - Automated fact-checking with 85%+ confidence
-- ✅ **Turbopack Integration** - 60% faster development builds
-- ✅ **Teal Design System** - Modern, accessible UI with 65% migration complete
-- ✅ **Memory Systems** - Conversation, knowledge graph, and pattern memory
-- ✅ **Trust Gradient Implementation** - Helper → Advisor → Partner progression
-
-### Active Development
-
-- 🔄 **Conversational Assessments** - Replacing forms with AI conversations
-- 🔄 **Predictive Intelligence** - Proactive compliance monitoring
-- 🔄 **Advanced Pattern Recognition** - Learning from user interactions
-- 🔄 **Full Teal Migration** - Completing design system transition
+- **Canonical backend entrypoint**: `api.main:app`
+- **Security gate**: `python scripts/ci/scan_secrets.py` must pass before release work is considered complete
+- **Backend verification**: use `make test-fast`, `make test-groups-parallel`, or `python scripts/run_tests_chunked.py --mode <mode>`
+- **Frontend verification**: use `pnpm --filter frontend lint`, `pnpm --filter frontend typecheck`, `pnpm --filter frontend test`
+- **Release rule**: docs, runtime paths, and test commands should match the code that actually ships
 
 ## 🏢 Use Cases
 

@@ -270,13 +270,20 @@ export interface Report {
 // Integration
 export interface Integration {
   id: string;
-  provider_id: string;
+  provider: string;
+  provider_id?: string;
   name: string;
   description: string;
-  status: 'connected' | 'disconnected' | 'error' | 'pending';
-  connection_status: 'active' | 'inactive' | 'expired' | 'revoked';
-  auth_type: 'oauth2' | 'api_key' | 'basic_auth' | 'custom';
-  config: IntegrationConfig;
+  status:
+    | 'available'
+    | 'connected'
+    | 'disconnected'
+    | 'error'
+    | 'pending'
+    | 'pending_auth';
+  connection_status?: 'active' | 'inactive' | 'expired' | 'revoked';
+  auth_type?: 'oauth2' | 'api_key' | 'basic_auth' | 'custom';
+  config?: IntegrationConfig | Record<string, unknown>;
   sync_settings?: {
     auto_sync: boolean;
     sync_frequency: 'realtime' | 'hourly' | 'daily' | 'weekly';

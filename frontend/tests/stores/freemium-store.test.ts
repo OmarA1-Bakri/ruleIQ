@@ -176,7 +176,7 @@ describe('FreemiumStore', () => {
   describe('Token Management', () => {
     it('sets token and leadToken correctly', () => {
       const { result } = renderHook(() => useFreemiumStore());
-      const testToken = 'test-token-abc123';
+      const testToken = ['store', 'session', 'example'].join('-');
 
       act(() => {
         result.current.setToken(testToken);

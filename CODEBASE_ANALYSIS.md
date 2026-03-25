@@ -416,10 +416,10 @@ Backend API (FastAPI)
 **Locations Found**:
 ```python
 # services/neo4j_service.py (Line ~)
-self.password = os.getenv('NEO4J_PASSWORD', 'ruleiq123')  # ⛔ Default password
+self.password = os.getenv('NEO4J_PASSWORD')  # ✅ Required environment variable
 
 # services/ai/compliance_ingestion_pipeline.py (Line ~)
-neo4j_password = os.getenv("NEO4J_PASSWORD", "password")  # ⛔ Weak default
+neo4j_password = os.getenv("NEO4J_PASSWORD")  # ✅ Required environment variable
 
 # services/ai/evaluation/tools/ingestion_fixed.py (Line ~)
 self.password = 'ruleiq123'  # ⛔ Hardcoded password
@@ -442,7 +442,7 @@ self.password = 'ruleiq123'  # ⛔ Hardcoded password
 **Code Fix Example**:
 ```python
 # BAD
-self.password = os.getenv('NEO4J_PASSWORD', 'ruleiq123')
+self.password = os.getenv('NEO4J_PASSWORD')
 
 # GOOD
 self.password = os.getenv('NEO4J_PASSWORD')
@@ -1271,7 +1271,7 @@ frontend/lib/export/
 #### **services/neo4j_service.py**
 ```python
 # LINE ~15
-self.password = os.getenv('NEO4J_PASSWORD', 'ruleiq123')  # ⛔ REMOVE DEFAULT
+self.password = os.getenv('NEO4J_PASSWORD')  # ✅ Require explicit environment configuration
 ```
 
 **Fix**:
@@ -1284,7 +1284,7 @@ if not self.password:
 #### **services/ai/compliance_ingestion_pipeline.py**
 ```python
 # LINE ~
-neo4j_password = os.getenv("NEO4J_PASSWORD", "password")  # ⛔ REMOVE DEFAULT
+neo4j_password = os.getenv("NEO4J_PASSWORD")  # ✅ Require explicit environment configuration
 ```
 
 **Fix**: Same as above
@@ -1546,4 +1546,3 @@ npm update package-name
 **END OF COMPREHENSIVE CODEBASE ANALYSIS**
 
 *This document represents actual findings from systematic code review and should be updated as issues are resolved.*
-

@@ -12,7 +12,9 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
+import { businessProfileService } from '@/lib/api/business-profiles.service';
 import { cn } from '@/lib/utils';
+import type { BusinessProfileFormData } from '@/types/business-profile';
 
 const steps = [
   { id: 1, title: 'Company Details', icon: Building },
@@ -29,14 +31,43 @@ const frameworks = [
   { id: 'pci-dss', name: 'PCI DSS', description: 'Payment Card Security' },
 ];
 
+const frameworkNameMap: Record<string, string> = {
+  gdpr: 'GDPR',
+  iso27001: 'ISO 27001',
+  soc2: 'SOC 2',
+  hipaa: 'HIPAA',
+  'pci-dss': 'PCI DSS',
+};
+
+const companySizeEmployeeCount: Record<string, number> = {
+  '1-10': 10,
+  '11-50': 50,
+  '51-200': 200,
+  '201+': 500,
+};
+
+const timelineMap: Record<string, string> = {
+  asap: '3 months',
+  '3months': '3 months',
+  '6months': '6 months',
+  year: '12 months',
+};
+
+const complianceSensitivityMap: Record<string, BusinessProfileFormData['data_sensitivity']> = {
+  none: 'Low',
+  basic: 'Moderate',
+  advanced: 'High',
+};
+
 export default function OnboardingPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const [formData, setFormData] = useState({
     // Step 1
+    companyName: '',
     companySize: '',
     industry: '',
     location: '',
@@ -65,18 +96,92 @@ export default function OnboardingPage() {
     }
   };
 
+  const isCurrentStepValid = () => {
+    switch (currentStep) {
+      case 1:
+        return Boolean(
+          formData.companyName.trim() &&
+            formData.companySize &&
+            formData.industry.trim() &&
+            formData.location.trim(),
+        );
+      case 2:
+        return formData.frameworks.length > 0 && Boolean(formData.complianceLevel);
+      case 3:
+        return Boolean(formData.teamSize);
+      case 4:
+        return Boolean(formData.primaryGoal && formData.timeline);
+      default:
+        return false;
+    }
+  };
+
   const handleComplete = async () => {
     setIsLoading(true);
-    
+
     try {
-      // TODO: Save onboarding data
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      const selectedFrameworks = formData.frameworks.map(
+        (frameworkId) => frameworkNameMap[frameworkId] || frameworkId,
+      );
+
+      const dataTypes = Array.from(
+        new Set([
+          'Operational Data',
+          ...(formData.frameworks.includes('gdpr') ? ['Personal Data'] : []),
+          ...(formData.frameworks.includes('pci-dss') ? ['Payment Data'] : []),
+          ...(formData.frameworks.includes('hipaa') ? ['Health Data'] : []),
+        ]),
+      );
+
+      const profilePayload: BusinessProfileFormData = {
+        company_name: formData.companyName.trim(),
+        industry: formData.industry.trim(),
+        employee_count: companySizeEmployeeCount[formData.companySize] || 10,
+        annual_revenue: undefined,
+        country: formData.location.trim(),
+        data_sensitivity: complianceSensitivityMap[formData.complianceLevel] || 'Moderate',
+        data_types: dataTypes,
+        handles_personal_data:
+          formData.frameworks.includes('gdpr') || formData.frameworks.includes('hipaa'),
+        processes_payments: formData.frameworks.includes('pci-dss'),
+        stores_health_data: formData.frameworks.includes('hipaa'),
+        provides_financial_services: /finance|bank|fintech|insurance/i.test(formData.industry),
+        operates_critical_infrastructure: false,
+        has_international_operations: /global|international|multi/i.test(formData.location),
+        cloud_providers: [],
+        saas_tools: [],
+        development_tools: [],
+        existing_frameworks:
+          formData.complianceLevel === 'none' ? [] : selectedFrameworks,
+        planned_frameworks:
+          formData.complianceLevel === 'advanced' ? [] : selectedFrameworks,
+        compliance_budget: undefined,
+        compliance_timeline: timelineMap[formData.timeline],
+        assessment_completed: false,
+        assessment_data: {
+          current_step: steps.length,
+          completed_steps: steps.map((step) => step.title),
+          progress_percentage: 100,
+          completion_status: 'completed',
+          answers: {
+            company_size: formData.companySize,
+            team_size: formData.teamSize,
+            compliance_level: formData.complianceLevel,
+            primary_goal: formData.primaryGoal,
+            timeline: formData.timeline,
+            frameworks: selectedFrameworks,
+            invite_emails: formData.inviteEmails,
+          },
+        },
+      };
+
+      await businessProfileService.saveProfile(profilePayload);
+
       toast({
         title: 'Welcome to RuleIQ!',
         description: 'Your account setup is complete.',
       });
-      
+
       router.push('/dashboard');
     } catch (_error) {
       toast({
@@ -94,6 +199,16 @@ export default function OnboardingPage() {
       case 1:
         return (
           <div className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="companyName">Company Name</Label>
+              <Input
+                id="companyName"
+                placeholder="e.g., Acme Security Ltd"
+                value={formData.companyName}
+                onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
+              />
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="companySize">Company Size</Label>
               <RadioGroup
@@ -356,7 +471,7 @@ export default function OnboardingPage() {
             </Button>
             <Button
               onClick={handleNext}
-              disabled={isLoading}
+              disabled={isLoading || !isCurrentStepValid()}
               className="bg-brand-primary hover:bg-brand-dark"
             >
               {currentStep === steps.length ? (

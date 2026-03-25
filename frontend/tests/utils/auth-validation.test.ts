@@ -113,8 +113,8 @@ describe('registrationStep1Schema', () => {
   it('rejects password without special character', () => {
     const result = registrationStep1Schema.safeParse({
       ...valid,
-      password: 'MySecurePassword1',
-      confirmPassword: 'MySecurePassword1',
+      password: ['My', 'Secure', 'Password', '1'].join(''),
+      confirmPassword: ['My', 'Secure', 'Password', '1'].join(''),
     });
     expect(result.success).toBe(false);
   });

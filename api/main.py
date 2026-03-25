@@ -50,6 +50,7 @@ from api.routers import (
     integrations,
     iq_agent,
     monitoring,
+    payment,
     policies,
     readiness,
     rbac_auth,
@@ -296,6 +297,7 @@ app.include_router(implementation.router, prefix="/api/v1/implementation", tags=
 app.include_router(integrations.router, prefix="/api/v1/integrations", tags=["integrations"])
 app.include_router(iq_agent.router, prefix="/api/v1/iq", tags=["iq-agent", "graphrag"])
 app.include_router(monitoring.router, prefix="/api/v1/monitoring", tags=["monitoring"])
+app.include_router(payment.router, prefix="/api/v1/payments", tags=["payments", "billing"])
 app.include_router(policies.router, prefix="/api/v1/policies", tags=["policies"])
 app.include_router(readiness.router, prefix="/api/v1/readiness", tags=["readiness"])
 app.include_router(reports.router, prefix="/api/v1/reports", tags=["reports"])
@@ -546,22 +548,6 @@ async def root() -> Dict[str, Any]:
         "description": "AI-powered compliance and risk management platform",
         "documentation": "/docs" if settings.debug else None,
         "health": "/health",
-    }
-
-
-@app.get("/debug/config")
-async def debug_config() -> Dict[str, Any]:
-    """Diagnostic endpoint - remove in production"""
-    from config.settings import get_settings
-
-    settings_instance = get_settings()
-    jwt_secret = getattr(settings_instance, "jwt_secret_key", None)
-    return {
-        "jwt_secret_first_10": jwt_secret[:10] if jwt_secret else None,
-        "jwt_secret_length": len(jwt_secret) if jwt_secret else 0,
-        "working_directory": os.getcwd(),
-        "env_file_exists": os.path.exists(".env.local"),
-        "JWT_SECRET_env": (os.getenv("JWT_SECRET")[:10] if os.getenv("JWT_SECRET") else None),
     }
 
 

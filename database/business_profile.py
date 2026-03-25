@@ -1,5 +1,6 @@
 import uuid
 from datetime import datetime
+from typing import Any, Dict
 
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.dialects.postgresql import JSONB as PG_JSONB
@@ -60,3 +61,32 @@ class BusinessProfile(Base):
     # Relationships
     owner = relationship("User", back_populates="business_profiles")
     evidence_items = relationship("EvidenceItem", back_populates="business_profile")
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "id": str(self.id),
+            "user_id": str(self.user_id),
+            "name": self.company_name,
+            "company_name": self.company_name,
+            "industry": self.industry,
+            "employee_count": self.employee_count,
+            "annual_revenue": self.annual_revenue,
+            "country": self.country,
+            "data_sensitivity": self.data_sensitivity,
+            "handles_personal_data": self.handles_personal_data,
+            "processes_payments": self.processes_payments,
+            "stores_health_data": self.stores_health_data,
+            "provides_financial_services": self.provides_financial_services,
+            "operates_critical_infrastructure": self.operates_critical_infrastructure,
+            "has_international_operations": self.has_international_operations,
+            "existing_frameworks": self.existing_frameworks or [],
+            "planned_frameworks": self.planned_frameworks or [],
+            "cloud_providers": self.cloud_providers or [],
+            "saas_tools": self.saas_tools or [],
+            "development_tools": self.development_tools or [],
+            "compliance_budget": self.compliance_budget,
+            "compliance_timeline": self.compliance_timeline,
+            "assessment_completed": self.assessment_completed,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+        }

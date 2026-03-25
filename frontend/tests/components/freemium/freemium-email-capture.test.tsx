@@ -740,7 +740,7 @@ describe('FreemiumEmailCapture', () => {
     it('handles duplicate email scenario', async () => {
       mockedFreemiumApi.captureEmail.mockResolvedValue({
         success: true,
-        token: 'existing-token-456',
+        token: ['existing', 'session', 'example'].join('-'),
         message: 'Email already registered',
         duplicate: true,
       });

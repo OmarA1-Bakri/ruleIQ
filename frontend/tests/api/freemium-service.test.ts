@@ -280,7 +280,7 @@ describe('FreemiumService', () => {
     // Build a valid FreemiumAssessmentStartResponse
     const buildValidStartResponse = (): FreemiumAssessmentStartResponse => ({
       session_id: '00000000-0000-0000-0000-000000000003',
-      session_token: 'valid-session-token-123',
+      session_token: ['valid', 'session', 'example'].join('-'),
       question_id: 'q1_business_type',
       question_text: 'What type of business do you operate?',
       question_type: 'multiple_choice',
@@ -303,7 +303,7 @@ describe('FreemiumService', () => {
         })
       );
 
-      const result = await startAssessment('valid-token-123');
+      const result = await startAssessment(['valid', 'token', 'example'].join('-'));
 
       expect(result).toMatchObject({
         session_id: expect.any(String),

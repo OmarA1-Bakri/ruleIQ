@@ -32,6 +32,21 @@ class IntegrationService {
   }
 
   /**
+   * Get a single integration by id
+   */
+  async getIntegration(integrationId: string): Promise<Integration> {
+    const response = await apiClient.get<Integration>(`/integrations/${integrationId}/status`);
+    return response;
+  }
+
+  /**
+   * Get the current status payload for an integration
+   */
+  async getIntegrationStatus(integrationId: string): Promise<Integration> {
+    return this.getIntegration(integrationId);
+  }
+
+  /**
    * Connect a new integration
    */
   async connectIntegration(data: ConnectIntegrationRequest): Promise<{

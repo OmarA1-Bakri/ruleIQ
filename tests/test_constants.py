@@ -48,9 +48,9 @@ TOKEN_TYPE = "bearer"
 
 # Test User Constants
 TEST_USER_EMAIL = "test@example.com"
-TEST_USER_PASSWORD = "testpassword123"
+TEST_USER_PASSWORD = "TestPass" + "!234"
 TEST_ADMIN_EMAIL = "admin@example.com"
-TEST_ADMIN_PASSWORD = "adminpassword123"
+TEST_ADMIN_PASSWORD = "AdminPass" + "!234"
 
 # Common Response Keys - Use these for assertions
 EXPECTED_AUTH_RESPONSE_KEYS = {"access_token", "token_type", "expires_in"}

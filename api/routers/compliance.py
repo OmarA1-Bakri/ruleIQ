@@ -1,197 +1,125 @@
-from datetime import datetime, timedelta, timezone
-from typing import Any, Dict
+from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException
+from datetime import datetime, timedelta, timezone
+from typing import Any, Dict, List, Optional
+from uuid import UUID, uuid4
+
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.dependencies.auth import get_current_active_user
 from api.dependencies.database import get_async_db
-from api.schemas.models import ComplianceStatusResponse
 from database.business_profile import BusinessProfile
-from database.compliance_framework import ComplianceFramework
-from database.evidence_item import EvidenceItem
 from database.readiness_assessment import ReadinessAssessment
 from database.user import User
-from services.evidence_service import EvidenceService
+from services.launch_metrics import (
+    build_recommended_risks,
+    build_recommended_tasks,
+    calculate_framework_status,
+    get_owned_business_profile,
+    get_profile_frameworks,
+    load_profile_framework_state,
+)
 
-# Constants
-HTTP_BAD_REQUEST = 400
-HTTP_INTERNAL_SERVER_ERROR = 500
-
-STATUS_COLUMN = "status"
-UPDATED_AT_COLUMN = "updated_at"
 router = APIRouter()
 
 
-@router.get("/status", response_model=ComplianceStatusResponse)
+def _get_profile_state_container(profile: BusinessProfile) -> Dict[str, Any]:
+    assessment_data = profile.assessment_data if isinstance(profile.assessment_data, dict) else {}
+    assessment_data.setdefault("compliance_tasks", [])
+    assessment_data.setdefault("compliance_risks", [])
+    return assessment_data
+
+
+async def _load_statuses(
+    db: AsyncSession, current_user: User, business_profile_id: UUID | str
+) -> tuple[BusinessProfile, List[Dict[str, Any]]]:
+    profile = await get_owned_business_profile(db, current_user.id, business_profile_id)
+    if not profile:
+        raise HTTPException(status_code=404, detail="Business profile not found")
+
+    frameworks = await get_profile_frameworks(db, profile)
+    state = await load_profile_framework_state(db, current_user.id, profile, frameworks)
+    statuses = [
+        calculate_framework_status(
+            framework,
+            state["evidence"].get(framework.id, []),
+            state["policies"].get(framework.id, []),
+            state["plans"].get(framework.id, []),
+            state["assessments"].get(framework.id),
+        )
+        for framework in frameworks
+    ]
+    return profile, statuses
+
+
+async def _persist_profile_state(db: AsyncSession, profile: BusinessProfile, data: Dict[str, Any]) -> None:
+    profile.assessment_data = data
+    profile.updated_at = datetime.utcnow()
+    db.add(profile)
+    await db.commit()
+    await db.refresh(profile)
+
+
+@router.get("/status")
 async def get_compliance_status(
-    current_user: User = Depends(get_current_active_user), db: AsyncSession = Depends(get_async_db)
-) -> Dict[str, Any]:
-    """
-    Get overall compliance status for the current user.
-
-    Returns compliance metrics including:
-    - Overall compliance score
-    - Framework-specific scores
-    - Evidence collection status
-    - Recent activity summary
-    """
-    try:
-        profile_stmt = select(BusinessProfile).where(
-            BusinessProfile.user_id == str(current_user.id)
-        )
-        profile_result = await db.execute(profile_stmt)
-        profile = profile_result.scalars().first()
-        if not profile:
-            return {
-                "overall_score": 0.0,
-                STATUS_COLUMN: "not_started",
-                "message": "Business profile not found. Please complete your business assessment first.",
-                "framework_scores": {},
-                "evidence_summary": {"total_items": 0, "by_status": {}, "by_type": {}},
-                "recent_activity": [],
-                "recommendations": [
-                    "Complete your business profile assessment",
-                    "Select relevant compliance frameworks",
-                    "Begin evidence collection",
-                ],
-                "last_updated": datetime.now(timezone.utc).isoformat(),
-            }
-        evidence_stats = await EvidenceService.get_evidence_statistics(db, str(current_user.id))
-        frameworks_stmt = select(ComplianceFramework)
-        frameworks_result = await db.execute(frameworks_stmt)
-        all_frameworks = frameworks_result.scalars().all()
-        framework_scores = {}
-        total_score = 0.0
-        framework_count = 0
-        for framework in all_frameworks:
-            framework_evidence_stmt = select(EvidenceItem).where(
-                EvidenceItem.user_id == str(current_user.id),
-                EvidenceItem.framework_id == framework["id"],
-            )
-            framework_evidence_result = await db.execute(framework_evidence_stmt)
-            framework_evidence = framework_evidence_result.scalars().all()
-            assessment_stmt = (
-                select(ReadinessAssessment)
-                .where(
-                    ReadinessAssessment.user_id == str(current_user.id),
-                    ReadinessAssessment.framework_id == framework.id,
-                )
-                .order_by(ReadinessAssessment.created_at.desc())
-            )
-            assessment_result = await db.execute(assessment_stmt)
-            latest_assessment = assessment_result.scalars().first()
-            if latest_assessment:
-                framework_score = latest_assessment.overall_score
-            else:
-                evidence_count = len(framework_evidence)
-                approved_evidence = len([e for e in framework_evidence if e.status == "approved"])
-                framework_score = (
-                    approved_evidence / max(evidence_count, 1) * 100 if evidence_count > 0 else 0.0
-                )
-            framework_scores[framework.name] = round(framework_score, 1)
-            if framework_evidence:
-                total_score += framework_score
-                framework_count += 1
-        overall_score = (
-            round(total_score / max(framework_count, 1), 1) if framework_count > 0 else 0.0
-        )
-        if overall_score >= 90:
-            status = "excellent"
-        elif overall_score >= 75:
-            status = "good"
-        elif overall_score >= 50:
-            status = "developing"
-        elif overall_score > 0:
-            status = "needs_improvement"
-        else:
-            status = "not_started"
-        recent_cutoff = datetime.now(timezone.utc) - timedelta(days=30)
-        recent_evidence_stmt = (
-            select(EvidenceItem)
-            .where(
-                EvidenceItem.user_id == str(current_user.id),
-                EvidenceItem.updated_at >= recent_cutoff,
-            )
-            .order_by(EvidenceItem.updated_at.desc())
-            .limit(10)
-        )
-        recent_evidence_result = await db.execute(recent_evidence_stmt)
-        recent_evidence = recent_evidence_result.scalars().all()
-        recent_activity = [
-            {
-                "id": str(item.id),
-                "title": item.evidence_name,
-                "type": item.evidence_type,
-                STATUS_COLUMN: item.status,
-                UPDATED_AT_COLUMN: item.updated_at.isoformat() if item.updated_at else None,
-            }
-            for item in recent_evidence
-        ]
-        recommendations = []
-        if overall_score < 50:
-            recommendations.extend(
-                [
-                    "Focus on collecting evidence for high-priority controls",
-                    "Complete pending evidence reviews",
-                    "Consider conducting a compliance gap analysis",
-                ]
-            )
-        elif overall_score < 75:
-            recommendations.extend(
-                [
-                    "Review and approve pending evidence items",
-                    "Implement missing controls identified in assessments",
-                    "Schedule regular compliance monitoring",
-                ]
-            )
-        else:
-            recommendations.extend(
-                [
-                    "Maintain current compliance posture",
-                    "Schedule periodic compliance reviews",
-                    "Consider expanding to additional frameworks",
-                ]
-            )
-        return {
-            "overall_score": overall_score,
-            STATUS_COLUMN: status,
-            "message": f"Compliance status: {status.replace('_', ' ').title()}",
-            "framework_scores": framework_scores,
-            "evidence_summary": {
-                "total_items": evidence_stats.get("total_evidence_items", 0),
-                "by_status": evidence_stats.get("by_status", {}),
-                "by_type": evidence_stats.get("by_type", {}),
-                "by_framework": evidence_stats.get("by_framework", {}),
-            },
-            "recent_activity": recent_activity,
-            "recommendations": recommendations,
-            "last_updated": datetime.now(timezone.utc).isoformat(),
-        }
-    except Exception as e:
-        raise HTTPException(
-            status_code=HTTP_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to retrieve compliance status: {e!s}",
-        )
+    business_profile_id: UUID,
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_async_db),
+) -> List[Dict[str, Any]]:
+    _, statuses = await _load_statuses(db, current_user, business_profile_id)
+    return statuses
 
 
-@router.get("/status/{framework_id}", response_model=ComplianceStatusResponse)
+@router.get("/status/{framework_id}")
 async def get_framework_compliance_status(
-    framework_id: str,
+    framework_id: UUID,
+    business_profile_id: UUID,
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_async_db),
 ) -> Dict[str, Any]:
-    """
-    Get compliance status for a specific framework.
+    _, statuses = await _load_statuses(db, current_user, business_profile_id)
+    for status in statuses:
+        if status["framework_id"] == str(framework_id):
+            return status
+    raise HTTPException(status_code=404, detail="Framework status not found")
 
-    Args:
-        framework_id: The ID of the compliance framework
 
-    Returns:
-        Compliance status specific to the requested framework
-    """
-    return await get_compliance_status(current_user, db)
+@router.get("/tasks")
+async def get_compliance_tasks(
+    business_profile_id: UUID,
+    framework_id: Optional[str] = Query(default=None),
+    status: Optional[str] = Query(default=None),
+    priority: Optional[str] = Query(default=None),
+    assigned_to: Optional[str] = Query(default=None),
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=20, ge=1, le=100),
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_async_db),
+) -> Dict[str, Any]:
+    profile, statuses = await _load_statuses(db, current_user, business_profile_id)
+    state = _get_profile_state_container(profile)
+    generated_tasks = build_recommended_tasks(profile.id, statuses)
+    stored_tasks = state.get("compliance_tasks", [])
+
+    merged_tasks = {task["id"]: task for task in generated_tasks}
+    for task in stored_tasks:
+        merged_tasks[task["id"]] = task
+
+    tasks = list(merged_tasks.values())
+    if framework_id:
+        tasks = [task for task in tasks if task.get("framework_id") == framework_id]
+    if status:
+        tasks = [task for task in tasks if task.get("status") == status]
+    if priority:
+        tasks = [task for task in tasks if task.get("priority") == priority]
+    if assigned_to:
+        tasks = [task for task in tasks if task.get("assigned_to") == assigned_to]
+
+    start = max(page - 1, 0) * page_size
+    end = start + page_size
+    return {"tasks": tasks[start:end], "total": len(tasks)}
 
 
 @router.post("/tasks")
@@ -200,36 +128,95 @@ async def create_compliance_task(
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_async_db),
 ) -> Dict[str, Any]:
-    """Create a new compliance task."""
-    return {
-        "id": "task-123",
-        "title": task_data.get("title", "New Compliance Task"),
+    business_profile_id = task_data.get("business_profile_id")
+    if not business_profile_id:
+        raise HTTPException(status_code=400, detail="business_profile_id is required")
+
+    profile = await get_owned_business_profile(db, current_user.id, business_profile_id)
+    if not profile:
+        raise HTTPException(status_code=404, detail="Business profile not found")
+
+    state = _get_profile_state_container(profile)
+    task = {
+        "id": str(uuid4()),
+        "title": task_data.get("title", "New compliance task"),
         "description": task_data.get("description", ""),
-        STATUS_COLUMN: "pending",
-        "priority": task_data.get("priority", "medium"),
+        "control_id": task_data.get("control_id", "general"),
+        "framework": task_data.get("framework", "General"),
         "framework_id": task_data.get("framework_id"),
+        "business_profile_id": str(profile.id),
+        "priority": task_data.get("priority", "medium"),
+        "status": task_data.get("status", "pending"),
+        "assigned_to": task_data.get("assigned_to"),
         "due_date": task_data.get("due_date"),
+        "effort_hours": task_data.get("effort_hours", 4),
+        "dependencies": task_data.get("dependencies", []),
+        "evidence_required": task_data.get("evidence_required", []),
         "created_at": datetime.now(timezone.utc).isoformat(),
-        UPDATED_AT_COLUMN: datetime.now(timezone.utc).isoformat(),
+        "updated_at": datetime.now(timezone.utc).isoformat(),
     }
+    state["compliance_tasks"].append(task)
+    await _persist_profile_state(db, profile, state)
+    return task
 
 
-@router.patch("/tasks/{id}")
+@router.patch("/tasks/{task_id}")
 async def update_compliance_task(
-    id: str,
+    task_id: str,
     update_data: dict,
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_async_db),
 ) -> Dict[str, Any]:
-    """Update an existing compliance task."""
-    return {
-        "id": id,
-        "title": update_data.get("title", "Updated Task"),
-        "description": update_data.get("description"),
-        STATUS_COLUMN: update_data.get(STATUS_COLUMN, "in_progress"),
-        "priority": update_data.get("priority", "medium"),
-        UPDATED_AT_COLUMN: datetime.now(timezone.utc).isoformat(),
-    }
+    business_profile_id = update_data.get("business_profile_id")
+    if not business_profile_id:
+        raise HTTPException(status_code=400, detail="business_profile_id is required")
+
+    profile = await get_owned_business_profile(db, current_user.id, business_profile_id)
+    if not profile:
+        raise HTTPException(status_code=404, detail="Business profile not found")
+
+    state = _get_profile_state_container(profile)
+    for task in state["compliance_tasks"]:
+        if task["id"] == task_id:
+            task.update({key: value for key, value in update_data.items() if value is not None})
+            task["updated_at"] = datetime.now(timezone.utc).isoformat()
+            await _persist_profile_state(db, profile, state)
+            return task
+
+    raise HTTPException(status_code=404, detail="Compliance task not found")
+
+
+@router.get("/risks")
+async def get_compliance_risks(
+    business_profile_id: UUID,
+    framework_id: Optional[str] = Query(default=None),
+    severity: Optional[str] = Query(default=None),
+    status: Optional[str] = Query(default=None),
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=20, ge=1, le=100),
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_async_db),
+) -> Dict[str, Any]:
+    profile, statuses = await _load_statuses(db, current_user, business_profile_id)
+    state = _get_profile_state_container(profile)
+    generated_risks = build_recommended_risks(profile.id, statuses)
+    stored_risks = state.get("compliance_risks", [])
+
+    merged_risks = {risk["id"]: risk for risk in generated_risks}
+    for risk in stored_risks:
+        merged_risks[risk["id"]] = risk
+
+    risks = list(merged_risks.values())
+    if framework_id:
+        risks = [risk for risk in risks if risk.get("framework_id") == framework_id]
+    if severity:
+        risks = [risk for risk in risks if risk.get("severity") == severity]
+    if status:
+        risks = [risk for risk in risks if risk.get("status") == status]
+
+    start = max(page - 1, 0) * page_size
+    end = start + page_size
+    return {"risks": risks[start:end], "total": len(risks)}
 
 
 @router.post("/risks")
@@ -238,18 +225,34 @@ async def create_compliance_risk(
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_async_db),
 ) -> Dict[str, Any]:
-    """Create a new compliance risk."""
-    return {
-        "id": "risk-456",
-        "title": risk_data.get("title", "New Compliance Risk"),
+    business_profile_id = risk_data.get("business_profile_id")
+    if not business_profile_id:
+        raise HTTPException(status_code=400, detail="business_profile_id is required")
+
+    profile = await get_owned_business_profile(db, current_user.id, business_profile_id)
+    if not profile:
+        raise HTTPException(status_code=404, detail="Business profile not found")
+
+    state = _get_profile_state_container(profile)
+    risk = {
+        "id": str(uuid4()),
+        "title": risk_data.get("title", "New compliance risk"),
         "description": risk_data.get("description", ""),
-        "likelihood": risk_data.get("likelihood", "medium"),
-        "impact": risk_data.get("impact", "medium"),
-        STATUS_COLUMN: "identified",
-        "framework_id": risk_data.get("framework_id"),
+        "severity": risk_data.get("severity", "medium"),
+        "likelihood": risk_data.get("likelihood", "possible"),
+        "impact": risk_data.get("impact", ""),
+        "affected_controls": risk_data.get("affected_controls", []),
         "mitigation_plan": risk_data.get("mitigation_plan"),
+        "status": risk_data.get("status", "identified"),
+        "framework": risk_data.get("framework", "General"),
+        "framework_id": risk_data.get("framework_id"),
+        "business_profile_id": str(profile.id),
         "created_at": datetime.now(timezone.utc).isoformat(),
+        "updated_at": datetime.now(timezone.utc).isoformat(),
     }
+    state["compliance_risks"].append(risk)
+    await _persist_profile_state(db, profile, state)
+    return risk
 
 
 @router.patch("/risks/{risk_id}")
@@ -259,89 +262,132 @@ async def update_compliance_risk(
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_async_db),
 ) -> Dict[str, Any]:
-    """Update an existing compliance risk."""
-    return {
-        "id": risk_id,
-        "title": update_data.get("title"),
-        "description": update_data.get("description"),
-        "likelihood": update_data.get("likelihood", "medium"),
-        "impact": update_data.get("impact", "medium"),
-        STATUS_COLUMN: update_data.get(STATUS_COLUMN, "mitigated"),
-        "mitigation_plan": update_data.get("mitigation_plan"),
-        UPDATED_AT_COLUMN: datetime.now(timezone.utc).isoformat(),
-    }
+    business_profile_id = update_data.get("business_profile_id")
+    if not business_profile_id:
+        raise HTTPException(status_code=400, detail="business_profile_id is required")
+
+    profile = await get_owned_business_profile(db, current_user.id, business_profile_id)
+    if not profile:
+        raise HTTPException(status_code=404, detail="Business profile not found")
+
+    state = _get_profile_state_container(profile)
+    for risk in state["compliance_risks"]:
+        if risk["id"] == risk_id:
+            risk.update({key: value for key, value in update_data.items() if value is not None})
+            risk["updated_at"] = datetime.now(timezone.utc).isoformat()
+            await _persist_profile_state(db, profile, state)
+            return risk
+
+    raise HTTPException(status_code=404, detail="Compliance risk not found")
 
 
 @router.get("/timeline")
 async def get_compliance_timeline(
-    framework_id: str = None,
+    business_profile_id: UUID,
+    framework_id: Optional[str] = Query(default=None),
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_async_db),
 ) -> Dict[str, Any]:
-    """Get compliance timeline and milestones."""
-    return {
-        "framework_id": framework_id,
-        "milestones": [
+    profile, statuses = await _load_statuses(db, current_user, business_profile_id)
+    state = _get_profile_state_container(profile)
+    tasks = state.get("compliance_tasks", []) or build_recommended_tasks(profile.id, statuses)
+    if framework_id:
+        tasks = [task for task in tasks if task.get("framework_id") == framework_id]
+
+    milestones = []
+    today = datetime.now(timezone.utc).date()
+    for index, status in enumerate(statuses[:6], start=1):
+        milestone_date = today + timedelta(days=index * 14)
+        milestones.append(
             {
-                "id": "milestone-1",
-                "title": "Initial Assessment",
-                "date": "2024-01-15",
-                STATUS_COLUMN: "completed",
-                "description": "Complete initial compliance assessment",
-            },
+                "date": milestone_date.isoformat(),
+                "title": f"{status['framework']} review checkpoint",
+                "type": "review",
+                "status": "completed" if status["overall_compliance_percentage"] >= 75 else "upcoming",
+                "description": "Framework readiness and remediation checkpoint.",
+            }
+        )
+
+    upcoming_deadlines = []
+    for task in tasks[:10]:
+        if task.get("due_date"):
+            deadline = datetime.fromisoformat(str(task["due_date"])).date()
+        else:
+            deadline = today + timedelta(days=21)
+        upcoming_deadlines.append(
             {
-                "id": "milestone-2",
-                "title": "Evidence Collection",
-                "date": "2024-02-01",
-                STATUS_COLUMN: "in_progress",
-                "description": "Gather all required evidence",
-            },
-            {
-                "id": "milestone-3",
-                "title": "Gap Analysis",
-                "date": "2024-02-15",
-                STATUS_COLUMN: "pending",
-                "description": "Identify and address compliance gaps",
-            },
-            {
-                "id": "milestone-4",
-                "title": "Certification Audit",
-                "date": "2024-03-01",
-                STATUS_COLUMN: "pending",
-                "description": "External certification audit",
-            },
-        ],
-        "current_phase": "evidence_collection",
-        "estimated_completion": "2024-03-01",
-        "progress_percentage": 45,
-    }
+                "date": deadline.isoformat(),
+                "item": task["title"],
+                "type": "task",
+                "days_remaining": (deadline - today).days,
+            }
+        )
+
+    return {"milestones": milestones, "upcoming_deadlines": upcoming_deadlines}
 
 
+@router.get("/dashboard")
 async def get_compliance_dashboard(
-    current_user: User = Depends(get_current_active_user), db: AsyncSession = Depends(get_async_db)
+    business_profile_id: UUID,
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_async_db),
 ) -> Dict[str, Any]:
-    """Get compliance dashboard data."""
-    status_data = await get_compliance_status(current_user, db)
+    profile, statuses = await _load_statuses(db, current_user, business_profile_id)
+    state = _get_profile_state_container(profile)
+    tasks = state.get("compliance_tasks", []) or build_recommended_tasks(profile.id, statuses)
+    risks = state.get("compliance_risks", []) or build_recommended_risks(profile.id, statuses)
+
+    assessment_result = await db.execute(
+        select(ReadinessAssessment)
+        .where(
+            ReadinessAssessment.user_id == current_user.id,
+            ReadinessAssessment.business_profile_id == profile.id,
+        )
+        .order_by(ReadinessAssessment.created_at.asc())
+        .limit(20)
+    )
+    assessments = assessment_result.scalars().all()
+    compliance_trends = [
+        {"date": item.created_at.date().isoformat(), "score": item.overall_score}
+        for item in assessments
+    ]
+    if not compliance_trends:
+        compliance_trends = [
+            {
+                "date": datetime.now(timezone.utc).date().isoformat(),
+                "score": round(
+                    sum(status["overall_compliance_percentage"] for status in statuses) / max(len(statuses), 1),
+                    2,
+                ),
+            }
+        ]
+
     return {
-        **status_data,
-        "dashboard_metrics": {
-            "active_frameworks": len(status_data.get("framework_scores", {})),
-            "total_evidence": status_data.get("evidence_summary", {}).get("total_items", 0),
-            "pending_tasks": 5,
-            "identified_risks": 3,
-            "upcoming_deadlines": 2,
-        },
-        "quick_actions": [
-            {"action": "Upload Evidence", "path": "/evidence/upload"},
-            {"action": "Start Assessment", "path": "/assessments/new"},
-            {"action": "Review Tasks", "path": "/compliance/tasks"},
-            {"action": "View Risks", "path": "/compliance/risks"},
+        "overall_score": round(
+            sum(status["overall_compliance_percentage"] for status in statuses) / max(len(statuses), 1),
+            2,
+        ),
+        "frameworks_status": statuses,
+        "pending_tasks": len([task for task in tasks if task.get("status") != "completed"]),
+        "open_risks": len([risk for risk in risks if risk.get("status") != "resolved"]),
+        "upcoming_audits": [
+            {
+                "framework": status["framework"],
+                "date": (datetime.now(timezone.utc) + timedelta(days=45)).date().isoformat(),
+                "type": "readiness_review",
+            }
+            for status in statuses[:3]
         ],
-        "compliance_trends": {
-            "30_day_change": 5.2,
-            "trend_direction": "improving",
-            "forecast": "on_track",
-        },
+        "recent_activity": [
+            {
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "type": "framework_status",
+                "description": f"{status['framework']} is currently {status['status'].replace('_', ' ')}.",
+                "user": current_user.email,
+            }
+            for status in statuses[:5]
+        ],
+        "compliance_trends": compliance_trends,
     }
 
 
@@ -351,21 +397,25 @@ async def generate_compliance_certificate(
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_async_db),
 ) -> Dict[str, Any]:
-    """Generate a compliance certificate."""
+    business_profile_id = request_data.get("business_profile_id")
     framework_id = request_data.get("framework_id")
-    certificate_type = request_data.get("type", "attestation")
+    if not business_profile_id or not framework_id:
+        raise HTTPException(status_code=400, detail="business_profile_id and framework_id are required")
+
+    _, statuses = await _load_statuses(db, current_user, business_profile_id)
+    status = next((item for item in statuses if item["framework_id"] == framework_id), None)
+    if not status:
+        raise HTTPException(status_code=404, detail="Framework status not found")
+
+    issued = datetime.now(timezone.utc)
     return {
-        "certificate_id": "cert-789",
-        "framework_id": framework_id,
-        "type": certificate_type,
-        STATUS_COLUMN: "generated",
-        "issue_date": datetime.now(timezone.utc).isoformat(),
-        "expiry_date": (datetime.now(timezone.utc) + timedelta(days=365)).isoformat(),
-        "compliance_score": 85.5,
-        "certificate_url": "/api/v1/compliance/certificate/cert-789/download",
-        "verification_code": "VERIFY-2024-0001",
-        "issuer": "RuleIQ Compliance Platform",
-        "recipient": {"organization": "User Organization", "contact": current_user.email},
+        "certificate_id": str(uuid4()),
+        "issued_date": issued.isoformat(),
+        "valid_until": (issued + timedelta(days=365)).isoformat(),
+        "download_url": f"/api/v1/compliance/certificate/{framework_id}/download",
+        "framework": status["framework"],
+        "score": status["overall_compliance_percentage"],
+        "status": status["status"],
     }
 
 
@@ -375,86 +425,32 @@ async def query_compliance(
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_async_db),
 ) -> Dict[str, Any]:
-    """
-    Query compliance information using AI assistant.
+    question = str(request.get("question", "")).strip()
+    framework = str(request.get("framework", "")).strip()
+    if not question:
+        raise HTTPException(status_code=400, detail="Question is required")
 
-    This endpoint provides AI-powered compliance guidance and answers
-    to compliance-related questions.
-    """
-    try:
-        question = request.get("question", "")
-        framework = request.get("framework", "")
-        if not question or not question.strip():
-            raise HTTPException(status_code=HTTP_BAD_REQUEST, detail="Question is required")
-        import html
-        import re
+    business_profile_id = request.get("business_profile_id")
+    response_prefix = "Compliance guidance"
+    if business_profile_id:
+        _, statuses = await _load_statuses(db, current_user, business_profile_id)
+        matching_status = next(
+            (item for item in statuses if framework.lower() in item["framework"].lower()),
+            statuses[0] if statuses else None,
+        )
+        if matching_status:
+            response_prefix = (
+                f"{matching_status['framework']} is currently {matching_status['status']} "
+                f"at {matching_status['overall_compliance_percentage']}%."
+            )
 
-        question = html.escape(re.sub("<[^>]+>", "", question))
-        framework = html.escape(re.sub("<[^>]+>", "", framework)) if framework else ""
-        malicious_patterns = [
-            "<script[^>]*>.*?</script>",
-            "javascript:",
-            "on\\w+\\s*=",
-            "(union|select|insert|update|delete|drop|create|alter)\\s+",
-            "--\\s*",
-            "/\\*.*?\\*/",
-        ]
-        for pattern in malicious_patterns:
-            if re.search(pattern, question, re.IGNORECASE):
-                raise HTTPException(status_code=HTTP_BAD_REQUEST, detail="Invalid input detected")
-        compliance_keywords = [
-            "gdpr",
-            "iso",
-            "sox",
-            "hipaa",
-            "pci",
-            "compliance",
-            "regulation",
-            "data protection",
-            "privacy",
-            "security",
-            "audit",
-            "control",
-            "framework",
-            "standard",
-            "requirement",
-            "policy",
-            "procedure",
-        ]
-        is_compliance_related = any(
-            keyword in question.lower() or keyword in framework.lower()
-            for keyword in compliance_keywords
-        )
-        if not is_compliance_related:
-            out_of_scope_keywords = ["weather", "pasta", "cooking", "joke", "recipe", "sports"]
-            if any(keyword in question.lower() for keyword in out_of_scope_keywords):
-                return {
-                    "answer": "I can only help with compliance-related questions. Please ask about regulations, frameworks, or compliance requirements.",
-                    "framework": framework,
-                    "confidence": "high",
-                    "sources": [],
-                }
-        if "ignore" in question.lower() or "bypass" in question.lower():
-            answer = "I cannot help with bypassing compliance requirements. Proper compliance is essential for protecting your organization and customers."
-        elif framework.upper() == "GDPR":
-            answer = "GDPR (General Data Protection Regulation) requires organizations to implement appropriate technical and organizational measures to ensure data protection. Key requirements include obtaining consent, data minimization, breach notification within 72 hours, and appointing a Data Protection Officer when required."
-        elif framework.upper() == "ISO 27001":
-            answer = "ISO 27001 is an international standard for information security management systems. It requires organizations to establish, implement, maintain and continually improve an ISMS to protect information assets."
-        else:
-            answer = f"I can help with compliance questions about {framework if framework else 'various '}frameworks. Please provide more specific details about your compliance requirements."
-        return {
-            "answer": answer,
-            "framework": framework,
-            "confidence": "high",
-            "sources": [
-                f"{framework} official documentation" if framework else "Compliance best practices"
-            ],
-            "generated_at": datetime.now(timezone.utc).isoformat(),
-        }
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(
-            status_code=HTTP_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to process compliance query: {e!s}",
-        )
+    return {
+        "answer": (
+            f"{response_prefix} Prioritise evidence completion, policy approvals, and implementation execution "
+            f"to answer: {question}"
+        ),
+        "framework": framework or None,
+        "confidence": "medium",
+        "sources": ["Internal compliance status", "Framework guidance"],
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+    }

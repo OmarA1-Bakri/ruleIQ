@@ -1,13 +1,29 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-export function middleware(request: NextRequest) {
-  const isAuthPage =
-    request.nextUrl.pathname.startsWith('/login') ||
-    request.nextUrl.pathname.startsWith('/register');
-  const _isPublicPath = request.nextUrl.pathname === '/' || isAuthPage;
+const LEGACY_ROUTE_PREFIXES = [
+  '/advanced-dashboard',
+  '/dashboard',
+  '/dashboard-2',
+  '/demo',
+  '/showcase',
+  '/test-theme',
+  '/_deprecated',
+  '/design-system',
+  '/neural-demo',
+  '/editor',
+];
 
-  // For now, allow all requests
+export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  const isAuthPage =
+    pathname.startsWith('/login') || pathname.startsWith('/register');
+  const _isPublicPath = pathname === '/' || isAuthPage;
+
+  if (LEGACY_ROUTE_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`))) {
+    return NextResponse.redirect(new URL('/', request.url));
+  }
+
   return NextResponse.next();
 }
 

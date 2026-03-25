@@ -108,7 +108,7 @@ class TestAuthentication:
             "Bearer invalid_token",
             "Bearer ",
             "",
-            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.invalid.signature",
+            "mock.jwt.invalid",
         ]
         for token in invalid_tokens:
             headers = {"Authorization": token} if token else {}

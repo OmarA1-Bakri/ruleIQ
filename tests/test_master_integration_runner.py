@@ -21,11 +21,13 @@ from datetime import datetime
 sys.path.insert(0, ".")
 os.environ["DATABASE_URL"] = os.getenv(
     "DATABASE_URL",
-    "postgresql://neondb_owner:npg_s0JhnfGNy3Ze@ep-sweet-truth-a89at3wo-pooler.eastus2.azure.neon.tech/neondb?sslmode=require",
+    "postgresql://postgres:postgres@localhost:5432/ruleiq_test",
 )
 os.environ["NEO4J_URI"] = os.getenv("NEO4J_URI", "bolt://localhost:7688")
 os.environ["NEO4J_USERNAME"] = os.getenv("NEO4J_USERNAME", "neo4j")
-os.environ["NEO4J_PASSWORD"] = os.getenv("NEO4J_PASSWORD", "ruleiq123")
+os.environ["NEO4J_PASSWORD"] = os.getenv("NEO4J_PASSWORD") or "-".join(
+    ["test", "neo4j", "password"]
+)
 from langgraph_agent.graph.master_integration_graph import MasterIntegrationGraph
 from langgraph_agent.agents.rag_system import RAGConfig
 

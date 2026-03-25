@@ -21,13 +21,17 @@ fi
 echo "📝 Setting Neo4j AuraDB credentials in Doppler..."
 echo ""
 
-# Set the actual credentials
-doppler secrets set NEO4J_URI="neo4j+s://12e71bc4.databases.neo4j.io" --silent
-doppler secrets set NEO4J_USERNAME="neo4j" --silent
-doppler secrets set NEO4J_PASSWORD="b4mJskgWN15XenPG2spDWIXjHGTBmahg2Eg3HD8WvYh_0oTJE1u58JrY4f3pmVBJ" --silent
-doppler secrets set NEO4J_DATABASE="neo4j" --silent
-doppler secrets set NEO4J_INSTANCE_ID="FuhHmUmMCYAEdFaCwg6LUCl9uhoVyiQN" --silent
-doppler secrets set NEO4J_QUERY_API_URL="https://12e71bc4.databases.neo4j.io/db/neo4j/query/v2" --silent
+# Load credentials from the local environment instead of hard-coding them in-repo.
+: "${NEO4J_URI:?Set NEO4J_URI before running this script}"
+: "${NEO4J_USERNAME:?Set NEO4J_USERNAME before running this script}"
+: "${NEO4J_PASSWORD:?Set NEO4J_PASSWORD before running this script}"
+
+doppler secrets set NEO4J_URI="${NEO4J_URI}" --silent
+doppler secrets set NEO4J_USERNAME="${NEO4J_USERNAME}" --silent
+doppler secrets set NEO4J_PASSWORD="${NEO4J_PASSWORD}" --silent
+doppler secrets set NEO4J_DATABASE="${NEO4J_DATABASE:-neo4j}" --silent
+doppler secrets set NEO4J_INSTANCE_ID="${NEO4J_INSTANCE_ID:-set-in-environment}" --silent
+doppler secrets set NEO4J_QUERY_API_URL="${NEO4J_QUERY_API_URL:-https://your-instance-id.databases.neo4j.io/db/neo4j/query/v2}" --silent
 
 echo "✅ Doppler secrets configured successfully!"
 echo ""
@@ -106,9 +110,8 @@ if [ $? -eq 0 ]; then
     echo "📌 To view all Neo4j secrets:"
     echo "   doppler secrets get NEO4J_URI NEO4J_USERNAME NEO4J_DATABASE NEO4J_INSTANCE_ID"
     echo ""
-    echo "⚠️  Security Note: This script contains sensitive credentials."
-    echo "   Consider deleting it after successful configuration:"
-    echo "   rm scripts/doppler-neo4j-configure.sh"
+    echo "⚠️  Security Note: this script reads credentials from your local environment."
+    echo "   Do not commit exported secret values or shell history containing them."
 else
     echo ""
     echo "⚠️  Configuration saved but connection test failed."

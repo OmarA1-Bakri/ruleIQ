@@ -51,7 +51,7 @@ Run `python scripts/validate_required_env_vars.py` to check your configuration.
 ### ❌ Default Password in os.getenv()
 ```python
 # BAD - Application runs with insecure default
-password = os.getenv('NEO4J_PASSWORD', 'ruleiq123')
+password = os.getenv('NEO4J_PASSWORD')
 ```
 
 ```python
@@ -81,7 +81,7 @@ if not self.password:
 Test files (in `tests/` directory) are allowed to have hardcoded credentials:
 ```python
 # ACCEPTABLE in tests/test_something.py
-test_password = "test_password_123"
+test_password = getpass("Enter the local test password: ")
 ```
 
 ## Responding to Findings

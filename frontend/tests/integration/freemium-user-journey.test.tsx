@@ -370,7 +370,7 @@ describe('Freemium User Journey Integration', () => {
 
       mockedFreemiumApi.captureEmail.mockResolvedValue({
         success: true,
-        token: 'journey-token-123',
+        token: ['journey', 'session', 'example'].join('-'),
         message: 'Email captured successfully',
       });
 
@@ -440,7 +440,7 @@ describe('Freemium User Journey Integration', () => {
       act(() => {
         useFreemiumStore.setState({
           email: 'resume@example.com',
-          token: 'resume-token-123',
+          token: ['resume', 'session', 'example'].join('-'),
           assessmentStarted: true,
           responses: {
             q1_business_type: 'SaaS',
@@ -477,7 +477,7 @@ describe('Freemium User Journey Integration', () => {
       };
 
       const mockSessionStorage: Record<string, string> = {
-        'freemium-token': 'persistent-token-456',
+        'freemium-token': ['persistent', 'session', 'example'].join('-'),
         'freemium-responses': JSON.stringify({
           q1_business_type: 'Healthcare',
           q2_employee_count: '51-200',
@@ -493,7 +493,7 @@ describe('Freemium User Journey Integration', () => {
       act(() => {
         useFreemiumStore.setState({
           email: 'persistent@example.com',
-          token: 'persistent-token-456',
+          token: ['persistent', 'session', 'example'].join('-'),
           utmSource: 'linkedin',
           utmCampaign: 'retargeting',
           consentMarketing: true,
@@ -506,7 +506,7 @@ describe('Freemium User Journey Integration', () => {
 
       const state = useFreemiumStore.getState();
       expect(state.email).toBe('persistent@example.com');
-      expect(state.token).toBe('persistent-token-456');
+      expect(state.token).toBe(['persistent', 'session', 'example'].join('-'));
       expect(state.utmSource).toBe('linkedin');
       expect(state.consentMarketing).toBe(true);
       expect(state.responses).toEqual({

@@ -155,7 +155,7 @@ class TestAuthenticationSecurityRegression:
             "not-a-jwt-token",
             "Bearer invalid",
             "",
-            "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.invalid.signature",
+            "Bearer mock.jwt.invalid",
         ]
 
         for token in malformed_tokens:

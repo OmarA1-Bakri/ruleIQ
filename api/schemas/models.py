@@ -88,6 +88,8 @@ class BusinessProfileBase(BaseModel):
     development_tools: Optional[List[str]] = Field(default_factory=list)
     compliance_budget: Optional[str] = Field(None)
     compliance_timeline: Optional[str] = Field(None)
+    assessment_completed: bool = Field(default=False)
+    assessment_data: Dict[str, Any] = Field(default_factory=dict)
 
 
 class BusinessProfileCreate(BaseModel):
@@ -118,6 +120,8 @@ class BusinessProfileCreate(BaseModel):
     development_tools: Optional[List[str]] = Field(default_factory=list)
     compliance_budget: Optional[str] = Field(None)
     compliance_timeline: Optional[str] = Field(None)
+    assessment_completed: bool = Field(default=False)
+    assessment_data: Dict[str, Any] = Field(default_factory=dict)
 
 
 class BusinessProfileUpdate(BaseModel):
@@ -141,6 +145,11 @@ class BusinessProfileUpdate(BaseModel):
     development_tools: Optional[List[str]] = Field(None)
     compliance_budget: Optional[str] = Field(None)
     compliance_timeline: Optional[str] = Field(None)
+    data_sensitivity: Optional[str] = Field(
+        None, pattern="^(Low|Moderate|High|Confidential)$"
+    )
+    assessment_completed: Optional[bool] = Field(None)
+    assessment_data: Optional[Dict[str, Any]] = Field(None)
 
 
 class BusinessProfileResponse(BusinessProfileBase):

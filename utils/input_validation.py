@@ -378,7 +378,7 @@ class WhitelistValidator:
                 },
                 "data_sensitivity": {
                     "type": FieldType.ENUM,
-                    "allowed_values": ["Low", "Medium", "High", "Critical"],
+                    "allowed_values": ["Low", "Moderate", "High", "Confidential"],
                     "required": False,
                 },
                 # Business characteristics

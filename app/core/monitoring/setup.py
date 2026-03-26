@@ -68,15 +68,7 @@ def setup_monitoring(
         collector = get_metrics_collector()
         logger.info(f"Metrics collector initialized with {len(collector.metrics)} default metrics")
     if enable_health_checks or enable_metrics:
-        try:
-            from api.routers.monitoring import router as monitoring_router
-
-            app.include_router(monitoring_router, prefix="/monitoring", tags=["monitoring"])
-            logger.info("Monitoring endpoints registered")
-        except ImportError:
-            logger.warning(
-                "Monitoring router not found, skipping monitoring endpoints registration"
-            )
+        logger.info("Monitoring runtime configured; API routes are mounted by the canonical app entrypoint")
     logger.info("Monitoring setup completed successfully")
 
     @app.on_event("startup")

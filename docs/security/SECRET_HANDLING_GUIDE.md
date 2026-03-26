@@ -78,9 +78,18 @@ if not self.password:
 ```
 
 ### ✅ Test Files Exception
-Test files (in `tests/` directory) are allowed to have hardcoded credentials:
+Test files (in `tests/` directory) are allowed to have hardcoded **non-secret placeholder** values. Tests must remain fully non-interactive so they can run unattended in CI — never use `getpass()` or any other interactive prompt.
+
 ```python
-# ACCEPTABLE in tests/test_something.py
+# ACCEPTABLE in tests/test_something.py — use obvious placeholder constants
+TEST_PASSWORD = "test-password-placeholder"  # noqa: S105 – not a real secret
+
+# PREFERRED — load from environment with a safe fallback for CI
+TEST_PASSWORD = os.getenv("TEST_NEO4J_PASSWORD", "test-password-placeholder")
+```
+
+```python
+# ❌ NEVER do this — interactive prompts hang automated CI runs
 test_password = getpass("Enter the local test password: ")
 ```
 

@@ -78,11 +78,20 @@ if not self.password:
 ```
 
 ### ✅ Test Files Exception
-Test files (in `tests/` directory) are allowed to have hardcoded credentials:
+Test files (in `tests/` directory) may use non-secret placeholder constants or load credentials
+from environment variables/fixtures. Tests **must remain non-interactive** so they can run
+unattended in CI without hanging.
+
 ```python
-# ACCEPTABLE in tests/test_something.py
-test_password = getpass("Enter the local test password: ")
+# ACCEPTABLE in tests/test_something.py — hardcoded placeholder (not a real secret)
+TEST_PASSWORD = "test-password-placeholder"
+
+# ALSO ACCEPTABLE — load from environment variable with a safe fallback for CI
+TEST_PASSWORD = os.getenv("TEST_NEO4J_PASSWORD", "test-password-placeholder")
 ```
+
+**Never use `getpass()` or any other interactive prompt in tests.** Interactive prompts block
+automated runs and will cause CI pipelines to hang indefinitely.
 
 ## Responding to Findings
 1. Investigate the file/location reported by the scanner.

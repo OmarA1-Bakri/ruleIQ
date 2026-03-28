@@ -8,6 +8,8 @@ import asyncio
 import json
 import logging
 import os
+import threading
+from contextlib import suppress
 from datetime import datetime, timezone
 from typing import Any, AsyncIterator, Optional
 
@@ -18,6 +20,7 @@ from .base import (
     ProviderUnavailableError,
     ProviderTimeoutError,
     ProviderQuotaError,
+    queue_put_with_backpressure,
 )
 
 logger = logging.getLogger(__name__)
@@ -200,29 +203,25 @@ class OpenAIProvider(AIProvider):
                 kwargs["max_tokens"] = config.max_tokens
 
             timeout_seconds = config.timeout or 30.0
-            queue: asyncio.Queue[Any] = asyncio.Queue()
-            sentinel = object()
-            loop = asyncio.get_running_loop()
+            stream = client.chat.completions.create(**kwargs)
+            iterator = iter(stream)
 
-            def _producer() -> None:
+            def _next_content_chunk(chunk_iterator: Any) -> tuple[bool, Any]:
                 try:
-                    stream = client.chat.completions.create(**kwargs)
-                    for chunk in stream:
-                        if chunk.choices and chunk.choices[0].delta.content:
-                            loop.call_soon_threadsafe(
-                                queue.put_nowait,
-                                chunk.choices[0].delta.content,
-                            )
-                except Exception as exc:
-                    loop.call_soon_threadsafe(queue.put_nowait, exc)
-                finally:
-                    loop.call_soon_threadsafe(queue.put_nowait, sentinel)
+                    chunk = next(chunk_iterator)
+                except StopIteration:
+                    return False, None
 
-            producer_task = asyncio.create_task(asyncio.to_thread(_producer))
+                if chunk.choices and chunk.choices[0].delta.content:
+                    return True, chunk.choices[0].delta.content
+                return True, None
 
             while True:
                 try:
-                    item = await asyncio.wait_for(queue.get(), timeout=timeout_seconds)
+                    has_chunk, content = await asyncio.wait_for(
+                        asyncio.to_thread(_next_content_chunk, iterator),
+                        timeout=timeout_seconds,
+                    )
                 except asyncio.TimeoutError:
                     logger.error(
                         "OpenAI streaming timed out after %ss (model=%s)",
@@ -233,17 +232,18 @@ class OpenAIProvider(AIProvider):
                         f"OpenAI streaming timed out after {timeout_seconds}s"
                     )
 
-                if item is sentinel:
+                if not has_chunk:
                     break
-                if isinstance(item, Exception):
-                    raise item
-                yield item
-
-            await asyncio.wait_for(producer_task, timeout=timeout_seconds)
+                if content:
+                    yield content
 
         except Exception as e:
-            if isinstance(e, ProviderTimeoutError):
+            if isinstance(e, (ProviderTimeoutError, ProviderUnavailableError, ProviderQuotaError)):
                 raise
+            error_str = str(e).lower()
+            if "rate" in error_str or "429" in error_str or "quota" in error_str:
+                logger.error(f"OpenAI quota exceeded during streaming: {e}")
+                raise ProviderQuotaError(f"OpenAI quota exceeded during streaming: {e}")
             logger.error(f"OpenAI streaming failed: {e}", exc_info=True)
             raise ProviderUnavailableError(f"OpenAI streaming failed: {e}")
 

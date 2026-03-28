@@ -9,8 +9,13 @@ from typing import Optional, Tuple
 from sqlalchemy import create_engine, text, pool
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import OperationalError
-import psycopg2
-from psycopg2 import OperationalError as PsycopgOperationalError
+
+try:
+    import psycopg
+    from psycopg import OperationalError as PsycopgOperationalError
+except ImportError:  # pragma: no cover - optional in minimal test env
+    psycopg = None
+    PsycopgOperationalError = OperationalError
 
 logger = logging.getLogger(__name__)
 
@@ -50,9 +55,9 @@ class TestDatabaseManager:
 
         # Convert URL format if needed
         if "+asyncpg" in db_url:
-            db_url = db_url.replace("+asyncpg", "+psycopg2")
+            db_url = db_url.replace("+asyncpg", "+psycopg")
         elif "postgresql://" in db_url and "+" not in db_url:
-            db_url = db_url.replace("postgresql://", "postgresql+psycopg2://")
+            db_url = db_url.replace("postgresql://", "postgresql+psycopg://")
 
         # Test-optimized settings
         engine_kwargs = {
@@ -102,6 +107,10 @@ class TestDatabaseManager:
 
     def ensure_database_exists(self) -> bool:
         """Ensure the test database exists."""
+        if psycopg is None:
+            logger.info("psycopg is not installed; skipping database creation check")
+            return False
+
         db_url = self.get_test_db_url()
 
         # Skip database creation for Neon (managed service)
@@ -126,7 +135,7 @@ class TestDatabaseManager:
 
             try:
                 # Connect to postgres database to create test database
-                conn = psycopg2.connect(
+                conn = psycopg.connect(
                     host=host, port=port, user=user, password=password, database="postgres"
                 )
                 conn.autocommit = True

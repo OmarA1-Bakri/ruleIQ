@@ -61,7 +61,9 @@ class ReportService {
    */
   async downloadReport(id: string): Promise<void> {
     const report = await this.getReport(id);
-    await apiClient.download(`/reports/${id}/download`, `report-${id}.${report.format || 'pdf'}`);
+    const extension =
+      report.format === 'excel' ? 'csv' : report.format === 'word' ? 'docx' : report.format || 'pdf';
+    await apiClient.download(`/reports/${id}/download`, `report-${id}.${extension}`);
   }
 
   /**

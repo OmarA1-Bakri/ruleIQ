@@ -7,6 +7,8 @@ Implements the AIProvider interface for Anthropic Claude models.
 import asyncio
 import logging
 import os
+import threading
+from contextlib import suppress
 from datetime import datetime, timezone
 from typing import Any, AsyncIterator, Optional
 
@@ -17,6 +19,7 @@ from .base import (
     ProviderUnavailableError,
     ProviderTimeoutError,
     ProviderQuotaError,
+    queue_put_with_backpressure,
 )
 
 logger = logging.getLogger(__name__)
@@ -163,47 +166,43 @@ class AnthropicProvider(AIProvider):
                 kwargs["system"] = config.system_instruction
 
             timeout_seconds = config.timeout or 30.0
-            queue: asyncio.Queue[Any] = asyncio.Queue()
-            sentinel = object()
-            loop = asyncio.get_running_loop()
+            with client.messages.stream(**kwargs) as stream:
+                iterator = iter(stream.text_stream)
 
-            def _producer() -> None:
-                try:
-                    with client.messages.stream(**kwargs) as stream:
-                        for text in stream.text_stream:
-                            loop.call_soon_threadsafe(queue.put_nowait, text)
-                except Exception as exc:
-                    loop.call_soon_threadsafe(queue.put_nowait, exc)
-                finally:
-                    loop.call_soon_threadsafe(queue.put_nowait, sentinel)
+                def _next_text_chunk(text_iterator: Any) -> tuple[bool, Any]:
+                    try:
+                        return True, next(text_iterator)
+                    except StopIteration:
+                        return False, None
 
-            producer_task = asyncio.create_task(asyncio.to_thread(_producer))
+                while True:
+                    try:
+                        has_chunk, text = await asyncio.wait_for(
+                            asyncio.to_thread(_next_text_chunk, iterator),
+                            timeout=timeout_seconds,
+                        )
+                    except asyncio.TimeoutError:
+                        logger.error(
+                            "Anthropic streaming timed out after %ss (model=%s)",
+                            timeout_seconds,
+                            model_name,
+                        )
+                        raise ProviderTimeoutError(
+                            f"Anthropic streaming timed out after {timeout_seconds}s"
+                        )
 
-            while True:
-                try:
-                    item = await asyncio.wait_for(queue.get(), timeout=timeout_seconds)
-                except asyncio.TimeoutError:
-                    logger.error(
-                        "Anthropic streaming timed out after %ss (model=%s)",
-                        timeout_seconds,
-                        model_name,
-                    )
-                    raise ProviderTimeoutError(
-                        f"Anthropic streaming timed out after {timeout_seconds}s"
-                    )
-
-                if item is sentinel:
-                    break
-                if isinstance(item, Exception):
-                    raise item
-
-                yield item
-
-            await asyncio.wait_for(producer_task, timeout=timeout_seconds)
+                    if not has_chunk:
+                        break
+                    if text:
+                        yield text
 
         except Exception as e:
             if isinstance(e, (ProviderTimeoutError, ProviderUnavailableError, ProviderQuotaError)):
                 raise
+            error_str = str(e).lower()
+            if "rate" in error_str or "429" in error_str or "quota" in error_str:
+                logger.error(f"Anthropic quota exceeded during streaming: {e}")
+                raise ProviderQuotaError(f"Anthropic quota exceeded during streaming: {e}")
             logger.error(f"Anthropic streaming failed: {e}", exc_info=True)
             raise ProviderUnavailableError(f"Anthropic streaming failed: {e}")
 

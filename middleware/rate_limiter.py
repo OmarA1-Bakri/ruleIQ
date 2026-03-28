@@ -68,27 +68,40 @@ class RateLimiter:
 
     def __init__(self, redis_client: Optional[redis.Redis] = None) -> None:
         """Initialize the rate limiter."""
-        self.redis_client = redis_client or self._get_redis_client()
+        self.redis_client = redis_client
+        self._memory_windows: Dict[str, list[int]] = {}
+        self._memory_stats: Dict[str, Dict[str, int]] = {}
+        if self.redis_client is None:
+            self.redis_client = self._get_redis_client()
         self.key_prefix = "rate_limit:"
         self.stats_prefix = "rate_limit_stats:"
 
         # Load configuration
         self._load_config()
 
-    def _get_redis_client(self) -> redis.Redis:
+    def _get_redis_client(self) -> Optional[redis.Redis]:
         """Get Redis client with connection pooling."""
-        pool = redis.ConnectionPool(
-            host=settings.REDIS_HOST,
-            port=settings.REDIS_PORT,
-            db=settings.REDIS_DB,
-            password=settings.REDIS_PASSWORD,
-            max_connections=100,
-            socket_connect_timeout=5,
-            socket_timeout=5,
-            retry_on_timeout=True,
-            health_check_interval=30,
-        )
-        return redis.Redis(connection_pool=pool, decode_responses=False)
+        redis_url = getattr(settings, "redis_url", "")
+        if not redis_url:
+            return None
+
+        try:
+            client = redis.from_url(
+                redis_url,
+                max_connections=getattr(settings, "redis_max_connections", 20),
+                socket_keepalive=getattr(settings, "redis_socket_keepalive", True),
+                socket_keepalive_options=getattr(
+                    settings,
+                    "redis_socket_keepalive_options",
+                    {},
+                ),
+                decode_responses=False,
+            )
+            client.ping()
+            return client
+        except (redis.RedisError, OSError, ValueError, TypeError) as exc:
+            logger.warning("Rate limiter Redis unavailable, using in-memory fallback: %s", exc)
+            return None
 
     def _load_config(self):
         """Load rate limit configuration from settings."""
@@ -261,26 +274,36 @@ class RateLimiter:
             now_ms = int(time.time() * 1000)
             window_start_ms = now_ms - (window_seconds * 1000)
 
-            # Use Redis pipeline for atomic operations
-            pipe = self.redis_client.pipeline()
+            if self.redis_client is None:
+                window = [
+                    timestamp
+                    for timestamp in self._memory_windows.get(redis_key, [])
+                    if timestamp > window_start_ms
+                ]
+                request_count = len(window)
+                window.append(now_ms)
+                self._memory_windows[redis_key] = window
+            else:
+                # Use Redis pipeline for atomic operations
+                pipe = self.redis_client.pipeline()
 
-            # Remove old entries outside the window
-            pipe.zremrangebyscore(redis_key, 0, window_start_ms)
+                # Remove old entries outside the window
+                pipe.zremrangebyscore(redis_key, 0, window_start_ms)
 
-            # Count requests in current window
-            pipe.zcard(redis_key)
+                # Count requests in current window
+                pipe.zcard(redis_key)
 
-            # Add current request
-            pipe.zadd(redis_key, {str(now_ms): now_ms})
+                # Add current request
+                pipe.zadd(redis_key, {str(now_ms): now_ms})
 
-            # Set expiry on the key
-            pipe.expire(redis_key, window_seconds + 1)
+                # Set expiry on the key
+                pipe.expire(redis_key, window_seconds + 1)
 
-            # Execute pipeline
-            results = pipe.execute()
+                # Execute pipeline
+                results = pipe.execute()
 
-            # Get request count (before adding current)
-            request_count = results[1]
+                # Get request count (before adding current)
+                request_count = results[1]
 
             # Calculate rate limit info
             remaining = max(0, max_requests - request_count - 1)
@@ -334,6 +357,16 @@ class RateLimiter:
 
     def _update_stats(self, endpoint: str, tier: UserTier, violated: bool):
         """Update rate limit statistics."""
+        if self.redis_client is None:
+            stats_key = f"{self.stats_prefix}{endpoint}"
+            stats = self._memory_stats.setdefault(stats_key, {})
+            request_key = f"requests:{tier.value}"
+            stats[request_key] = stats.get(request_key, 0) + 1
+            if violated:
+                violation_key = f"violations:{tier.value}"
+                stats[violation_key] = stats.get(violation_key, 0) + 1
+            return
+
         try:
             stats_key = f"{self.stats_prefix}{endpoint}"
 
@@ -357,6 +390,15 @@ class RateLimiter:
 
     def get_stats(self, endpoint: Optional[str] = None) -> Dict[str, Any]:
         """Get rate limit statistics."""
+        if self.redis_client is None:
+            if endpoint:
+                return dict(self._memory_stats.get(f"{self.stats_prefix}{endpoint}", {}))
+
+            return {
+                key.replace(self.stats_prefix, ""): dict(value)
+                for key, value in self._memory_stats.items()
+            }
+
         try:
             if endpoint:
                 stats_key = f"{self.stats_prefix}{endpoint}"
@@ -376,6 +418,18 @@ class RateLimiter:
 
     def reset_limits(self, identifier: str, endpoint: Optional[str] = None):
         """Reset rate limits for an identifier (admin action)."""
+        if self.redis_client is None:
+            if endpoint:
+                self._memory_windows.pop(f"{self.key_prefix}{endpoint}:{identifier}", None)
+            else:
+                prefix = f"{self.key_prefix}"
+                suffix = f":{identifier}"
+                for key in list(self._memory_windows.keys()):
+                    if key.startswith(prefix) and key.endswith(suffix):
+                        self._memory_windows.pop(key, None)
+            logger.info(f"Reset rate limits for {identifier} on {endpoint or 'all endpoints'}")
+            return True
+
         try:
             if endpoint:
                 key = f"{self.key_prefix}{endpoint}:{identifier}"

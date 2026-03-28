@@ -1,26 +1,29 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { integrationService } from '@/lib/api/integrations.service';
+import {
+  integrationService,
+  type ConnectIntegrationRequest,
+  type IntegrationWebhookConfig,
+} from '@/lib/api/integrations.service';
+import type { Integration } from '@/types/api';
 
 import {
   createQueryKey,
+  type BaseMutationOptions,
   type BaseQueryOptions,
   type PaginationParams,
   type PaginatedResponse,
 } from './base';
 
-// Import available types from @/types/api
-import type { Integration } from '@/types/api';
-
-// Define missing types locally
 interface IntegrationLog {
   id: string;
   message: string;
   timestamp: string;
-  [key: string]: any;
+  event_type?: string;
+  status?: string;
+  details?: unknown;
 }
 
-// Query keys
 const INTEGRATION_KEY = 'integrations';
 
 export const integrationKeys = {
@@ -30,76 +33,84 @@ export const integrationKeys = {
   details: () => [...integrationKeys.all, 'detail'] as const,
   detail: (id: string) => createQueryKey(INTEGRATION_KEY, 'detail', { id }),
   status: (id: string) => createQueryKey(INTEGRATION_KEY, 'status', { id }),
-  logs: (id: string, params?: any) => createQueryKey(INTEGRATION_KEY, 'logs', { id, ...params }),
-  providers: () => createQueryKey(INTEGRATION_KEY, 'providers'),
-  provider: (providerId: string) => createQueryKey(INTEGRATION_KEY, 'provider', { providerId }),
-  configs: (providerId: string) => createQueryKey(INTEGRATION_KEY, 'configs', { providerId }),
+  logs: (id: string, params?: Record<string, unknown>) =>
+    createQueryKey(INTEGRATION_KEY, 'logs', { id, ...params }),
   syncHistory: (id: string) => createQueryKey(INTEGRATION_KEY, 'sync-history', { id }),
 };
 
-// Hook to fetch integrations list
+function paginateIntegrations(
+  integrations: Integration[],
+  params?: PaginationParams & {
+    provider?: string;
+    status?: string;
+    type?: string;
+  },
+): PaginatedResponse<Integration> {
+  let filtered = integrations;
+
+  if (params?.provider) {
+    filtered = filtered.filter(
+      (integration: any) =>
+        integration.provider === params.provider || integration.provider_id === params.provider,
+    );
+  }
+
+  if (params?.status) {
+    filtered = filtered.filter((integration: any) => integration.status === params.status);
+  }
+
+  const page = params?.page || 1;
+  const pageSize = params?.page_size || 20;
+  const start = (page - 1) * pageSize;
+  const items = filtered.slice(start, start + pageSize);
+
+  return {
+    items,
+    total: filtered.length,
+    page,
+    page_size: pageSize,
+    total_pages: Math.max(1, Math.ceil(filtered.length / pageSize)),
+  };
+}
+
 export function useIntegrations(
   params?: PaginationParams & {
     provider?: string;
-    status?: 'active' | 'inactive' | 'error';
+    status?: string;
     type?: string;
   },
   options?: BaseQueryOptions<PaginatedResponse<Integration>>,
 ) {
   return useQuery({
     queryKey: integrationKeys.list(params),
-    queryFn: async () => {
-      const integrations = await integrationService.getIntegrations();
-      // Convert to PaginatedResponse format
-      // TODO: Apply client-side filtering based on params
-      return {
-        items: integrations,
-        total: integrations.length,
-        page: params?.page || 1,
-        page_size: params?.page_size || 20,
-        total_pages: Math.ceil(integrations.length / (params?.page_size || 20)),
-      } as PaginatedResponse<Integration>;
-    },
+    queryFn: async () => paginateIntegrations(await integrationService.getIntegrations(), params),
     ...options,
   });
 }
 
-// Hook to fetch single integration
 export function useIntegration(id: string, options?: BaseQueryOptions<Integration>) {
   return useQuery({
     queryKey: integrationKeys.detail(id),
-    queryFn: async () => {
-      // TODO: getIntegration method doesn't exist, using getIntegrations and filtering
-      const integrations = await integrationService.getIntegrations();
-      const integration = integrations.find((i) => i.id === id);
-      if (!integration) {
-        throw new Error(`Integration with id ${id} not found`);
-      }
-      return integration;
-    },
+    queryFn: () => integrationService.getIntegration(id),
     enabled: !!id,
     ...options,
   });
 }
 
-// Hook to fetch integration status
-// TODO: getIntegrationStatus method doesn't exist in the service
-// export function useIntegrationStatus(id: string, options?: BaseQueryOptions<IntegrationStatus>) {
-//   return useQuery({
-//     queryKey: integrationKeys.status(id),
-//     queryFn: () => integrationService.getIntegrationStatus(id),
-//     enabled: !!id,
-//     refetchInterval: 30000, // Refresh every 30 seconds
-//     ...options,
-//   });
-// }
+export function useIntegrationStatus(id: string, options?: BaseQueryOptions<Integration>) {
+  return useQuery({
+    queryKey: integrationKeys.status(id),
+    queryFn: () => integrationService.getIntegrationStatus(id),
+    enabled: !!id,
+    refetchInterval: 30000,
+    ...options,
+  });
+}
 
-// Hook to fetch integration logs
-// TODO: getIntegrationLogs method exists but needs proper implementation
 export function useIntegrationLogs(
   id: string,
   params?: {
-    level?: 'info' | 'warning' | 'error';
+    event_type?: string;
     start_date?: string;
     end_date?: string;
     page?: number;
@@ -111,226 +122,136 @@ export function useIntegrationLogs(
     queryKey: integrationKeys.logs(id, params),
     queryFn: async () => {
       const response = await integrationService.getIntegrationLogs(id, params);
-      // Convert to PaginatedResponse format
+      const page = params?.page || 1;
+      const pageSize = params?.page_size || 20;
+
       return {
-        items: response.logs.map((log: any) => ({
-          id: log.timestamp,
+        items: response.logs.map((log) => ({
+          id: `${log.timestamp}-${log.event_type}`,
           message: log.event_type,
           timestamp: log.timestamp,
           ...log,
         })),
         total: response.total,
-        page: params?.page || 1,
-        page_size: params?.page_size || 20,
-        total_pages: Math.ceil(response.total / (params?.page_size || 20)),
-      } as PaginatedResponse<IntegrationLog>;
+        page,
+        page_size: pageSize,
+        total_pages: Math.max(1, Math.ceil(response.total / pageSize)),
+      };
     },
     enabled: !!id,
     ...options,
   });
 }
 
-// Hook to fetch available providers
-// TODO: getProviders method doesn't exist in the service
-// export function useIntegrationProviders(options?: BaseQueryOptions<IntegrationProvider[]>) {
-//   return useQuery({
-//     queryKey: integrationKeys.providers(),
-//     queryFn: () => integrationService.getProviders(),
-//     ...options,
-//   });
-// }
+export function useSyncHistory(id: string, options?: BaseQueryOptions<any>) {
+  return useQuery({
+    queryKey: integrationKeys.syncHistory(id),
+    queryFn: () => integrationService.getIntegrationSyncHistory(id),
+    enabled: !!id,
+    ...options,
+  });
+}
 
-// Hook to fetch provider details
-// TODO: getProvider method doesn't exist in the service
-// export function useIntegrationProvider(
-//   providerId: string,
-//   options?: BaseQueryOptions<IntegrationProvider>,
-// ) {
-//   return useQuery({
-//     queryKey: integrationKeys.provider(providerId),
-//     queryFn: () => integrationService.getProvider(providerId),
-//     enabled: !!providerId,
-//     ...options,
-//   });
-// }
+export function useConnectIntegration(
+  options?: BaseMutationOptions<
+    { integration_id: string; status: 'connected' | 'pending_auth'; auth_url?: string },
+    unknown,
+    ConnectIntegrationRequest
+  >,
+) {
+  const queryClient = useQueryClient();
 
-// Hook to fetch provider configurations
-// TODO: getProviderConfigs method doesn't exist in the service
-// export function useProviderConfigs(
-//   providerId: string,
-//   options?: BaseQueryOptions<IntegrationConfig[]>,
-// ) {
-//   return useQuery({
-//     queryKey: integrationKeys.configs(providerId),
-//     queryFn: () => integrationService.getProviderConfigs(providerId),
-//     enabled: !!providerId,
-//     ...options,
-//   });
-// }
+  return useMutation({
+    mutationFn: (data) => integrationService.connectIntegration(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: integrationKeys.lists() });
+    },
+    ...options,
+  });
+}
 
-// Hook to fetch sync history
-// TODO: getSyncHistory method doesn't exist in the service
-// export function useSyncHistory(id: string, options?: BaseQueryOptions<SyncResult[]>) {
-//   return useQuery({
-//     queryKey: integrationKeys.syncHistory(id),
-//     queryFn: () => integrationService.getSyncHistory(id),
-//     enabled: !!id,
-//     ...options,
-//   });
-// }
+export function useDisconnectIntegration(
+  options?: BaseMutationOptions<void, unknown, string>,
+) {
+  const queryClient = useQueryClient();
 
-// Hook to create integration
-// TODO: createIntegration method doesn't exist in the service
-// export function useCreateIntegration(options?: BaseMutationOptions<Integration, unknown, any>) {
-//   const queryClient = useQueryClient();
-//
-//   return useMutation({
-//     mutationFn: (data) => integrationService.createIntegration(data),
-//     onSuccess: (newIntegration) => {
-//       // Add to cache and invalidate list
-//       queryClient.setQueryData(integrationKeys.detail(newIntegration.id), newIntegration);
-//       queryClient.invalidateQueries({ queryKey: integrationKeys.lists() });
-//     },
-//     ...options,
-//   });
-// }
+  return useMutation({
+    mutationFn: (id) => integrationService.disconnectIntegration(id),
+    onSuccess: (_, id) => {
+      queryClient.removeQueries({ queryKey: integrationKeys.detail(id) });
+      queryClient.invalidateQueries({ queryKey: integrationKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: integrationKeys.status(id) });
+    },
+    ...options,
+  });
+}
 
-// Hook to update integration
-// TODO: updateIntegration method doesn't exist in the service
-// export function useUpdateIntegration(
-//   options?: BaseMutationOptions<Integration, unknown, { id: string; data: unknown }>,
-// ) {
-//   const queryClient = useQueryClient();
-//
-//   return useMutation({
-//     mutationFn: ({ id, data }) => integrationService.updateIntegration(id, data),
-//     onSuccess: (updatedIntegration, variables) => {
-//       // Update cache
-//       queryClient.setQueryData(integrationKeys.detail(variables.id), updatedIntegration);
-//       queryClient.invalidateQueries({ queryKey: integrationKeys.lists() });
-//     },
-//     ...options,
-//   });
-// }
+export function useTestIntegration(
+  options?: BaseMutationOptions<any, unknown, string>,
+) {
+  const queryClient = useQueryClient();
 
-// Hook to delete integration
-// TODO: deleteIntegration method doesn't exist in the service
-// export function useDeleteIntegration(options?: BaseMutationOptions<void, unknown, string>) {
-//   const queryClient = useQueryClient();
-//
-//   return useMutation({
-//     mutationFn: (id: string) => integrationService.deleteIntegration(id),
-//     onSuccess: (_, id) => {
-//       // Remove from cache and invalidate list
-//       queryClient.removeQueries({ queryKey: integrationKeys.detail(id) });
-//       queryClient.invalidateQueries({ queryKey: integrationKeys.lists() });
-//     },
-//     ...options,
-//   });
-// }
+  return useMutation({
+    mutationFn: (id) => integrationService.testIntegration(id),
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: integrationKeys.status(id) });
+    },
+    ...options,
+  });
+}
 
-// Hook to test integration connection
-// TODO: testConnection method doesn't exist in the service
-// export function useTestIntegrationConnection(
-//   options?: BaseMutationOptions<any, unknown, { id?: string; config?: any }>,
-// ) {
-//   return useMutation({
-//     mutationFn: ({ id, config }) => integrationService.testConnection(id, config),
-//     ...options,
-//   });
-// }
+export function useSyncIntegration(
+  options?: BaseMutationOptions<
+    { sync_id: string; status: 'started' | 'in_progress' | 'completed' | 'failed'; items_synced?: number; errors?: string[] },
+    unknown,
+    { id: string; options?: { full_sync?: boolean; data_types?: string[] } }
+  >,
+) {
+  const queryClient = useQueryClient();
 
-// Hook to enable integration
-// TODO: enableIntegration method doesn't exist in the service
-// export function useEnableIntegration(options?: BaseMutationOptions<Integration, unknown, string>) {
-//   const queryClient = useQueryClient();
-//
-//   return useMutation({
-//     mutationFn: (id: string) => integrationService.enableIntegration(id),
-//     onSuccess: (updatedIntegration, id) => {
-//       // Update cache
-//       queryClient.setQueryData(integrationKeys.detail(id), updatedIntegration);
-//       queryClient.invalidateQueries({ queryKey: integrationKeys.status(id) });
-//       queryClient.invalidateQueries({ queryKey: integrationKeys.lists() });
-//     },
-//     ...options,
-//   });
-// }
+  return useMutation({
+    mutationFn: ({ id, options: syncOptions }) =>
+      integrationService.syncIntegration(id, syncOptions),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: integrationKeys.status(variables.id) });
+      queryClient.invalidateQueries({ queryKey: integrationKeys.syncHistory(variables.id) });
+      queryClient.invalidateQueries({ queryKey: integrationKeys.logs(variables.id) });
+    },
+    ...options,
+  });
+}
 
-// Hook to disable integration
-// TODO: disableIntegration method doesn't exist in the service
-// export function useDisableIntegration(options?: BaseMutationOptions<Integration, unknown, string>) {
-//   const queryClient = useQueryClient();
-//
-//   return useMutation({
-//     mutationFn: (id: string) => integrationService.disableIntegration(id),
-//     onSuccess: (updatedIntegration, id) => {
-//       // Update cache
-//       queryClient.setQueryData(integrationKeys.detail(id), updatedIntegration);
-//       queryClient.invalidateQueries({ queryKey: integrationKeys.status(id) });
-//       queryClient.invalidateQueries({ queryKey: integrationKeys.lists() });
-//     },
-//     ...options,
-//   });
-// }
+export function useUpdateIntegrationConfig(
+  options?: BaseMutationOptions<Integration, unknown, { id: string; config: Record<string, any> }>,
+) {
+  const queryClient = useQueryClient();
 
-// Hook to sync integration data
-// TODO: syncIntegration method doesn't exist in the service
-// export function useSyncIntegration(
-//   options?: BaseMutationOptions<SyncResult, unknown, { id: string; force?: boolean }>,
-// ) {
-//   const queryClient = useQueryClient();
-//
-//   return useMutation({
-//     mutationFn: ({ id, force }) => integrationService.syncIntegration(id, force),
-//     onSuccess: (_, variables) => {
-//       // Invalidate status and sync history
-//       queryClient.invalidateQueries({ queryKey: integrationKeys.status(variables.id) });
-//       queryClient.invalidateQueries({ queryKey: integrationKeys.syncHistory(variables.id) });
-//     },
-//     ...options,
-//   });
-// }
+  return useMutation({
+    mutationFn: ({ id, config }) => integrationService.updateIntegrationConfig(id, config),
+    onSuccess: (updatedIntegration, variables) => {
+      queryClient.setQueryData(integrationKeys.detail(variables.id), updatedIntegration);
+      queryClient.invalidateQueries({ queryKey: integrationKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: integrationKeys.status(variables.id) });
+    },
+    ...options,
+  });
+}
 
-// Hook to refresh integration credentials
-// TODO: refreshCredentials method doesn't exist in the service
-// export function useRefreshCredentials(options?: BaseMutationOptions<Integration, unknown, string>) {
-//   const queryClient = useQueryClient();
-//
-//   return useMutation({
-//     mutationFn: (id: string) => integrationService.refreshCredentials(id),
-//     onSuccess: (updatedIntegration, id) => {
-//       // Update cache
-//       queryClient.setQueryData(integrationKeys.detail(id), updatedIntegration);
-//       queryClient.invalidateQueries({ queryKey: integrationKeys.status(id) });
-//     },
-//     ...options,
-//   });
-// }
+export function useConfigureIntegrationWebhooks(
+  options?: BaseMutationOptions<
+    { webhook_id: string; status: 'active' | 'inactive'; test_url: string },
+    unknown,
+    { id: string; config: IntegrationWebhookConfig }
+  >,
+) {
+  const queryClient = useQueryClient();
 
-// Hook to export integration data
-// TODO: exportData method doesn't exist in the service
-// export function useExportIntegrationData() {
-//   return useMutation({
-//     mutationFn: ({ id, format }: { id: string; format: 'json' | 'csv' | 'excel' }) =>
-//       integrationService.exportData(id, format),
-//   });
-// }
-
-// Hook to bulk sync multiple integrations
-// TODO: bulkSync method doesn't exist in the service
-// export function useBulkSync(options?: BaseMutationOptions<SyncResult[], unknown, string[]>) {
-//   const queryClient = useQueryClient();
-//
-//   return useMutation({
-//     mutationFn: (integrationIds: string[]) => integrationService.bulkSync(integrationIds),
-//     onSuccess: (_, integrationIds) => {
-//       // Invalidate status and sync history for all integrations
-//       integrationIds.forEach((id) => {
-//         queryClient.invalidateQueries({ queryKey: integrationKeys.status(id) });
-//         queryClient.invalidateQueries({ queryKey: integrationKeys.syncHistory(id) });
-//       });
-//     },
-//     ...options,
-//   });
-// }
+  return useMutation({
+    mutationFn: ({ id, config }) => integrationService.configureWebhooks(id, config),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: integrationKeys.detail(variables.id) });
+      queryClient.invalidateQueries({ queryKey: integrationKeys.logs(variables.id) });
+    },
+    ...options,
+  });
+}

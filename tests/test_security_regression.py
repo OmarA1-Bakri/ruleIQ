@@ -155,7 +155,7 @@ class TestAuthenticationSecurityRegression:
             "not-a-jwt-token",
             "Bearer invalid",
             "",
-            "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.invalid.signature",
+            "Bearer mock.jwt.invalid",
         ]
 
         for token in malformed_tokens:
@@ -725,20 +725,22 @@ class TestRateLimitingSecurityRegression:
         tier = rate_limiter.get_user_tier(mock_request)
         assert tier == UserTier.ADMIN
 
-    def test_rate_limit_enforcement(self, rate_limiter, mock_request):
+    @pytest.mark.asyncio
+    async def test_rate_limit_enforcement(self, rate_limiter, mock_request):
         """Test rate limit enforcement."""
         mock_request.url.path = "/api/test"
 
         # Should allow requests within limit
         for _i in range(5):  # Under anonymous limit of 10
-            allowed, info = rate_limiter.check_rate_limit(mock_request)
+            allowed, info = await rate_limiter.check_rate_limit(mock_request)
             assert allowed is True
             assert info["remaining"] > 0
 
         # Should block when limit exceeded
         # Note: This test may be timing-dependent in real Redis
 
-    def test_admin_bypass_rate_limiting(self, rate_limiter, mock_request):
+    @pytest.mark.asyncio
+    async def test_admin_bypass_rate_limiting(self, rate_limiter, mock_request):
         """Test that admins bypass rate limiting."""
         mock_request.url.path = "/api/test"
 
@@ -748,7 +750,7 @@ class TestRateLimitingSecurityRegression:
         mock_request.state.user = mock_user
 
         # Should bypass rate limiting
-        allowed, info = rate_limiter.check_rate_limit(mock_request)
+        allowed, info = await rate_limiter.check_rate_limit(mock_request)
         assert allowed is True
         assert info.get("bypassed") is True
 
@@ -803,55 +805,62 @@ class TestAuditLoggingSecurityRegression:
         """Create audit logger for testing."""
         return AuditLogger()
 
-    def test_security_event_logging(self, audit_logger):
+    @pytest.mark.asyncio
+    async def test_security_event_logging(self, audit_logger):
         """Test that security events are logged."""
-        # Log a security event
-        audit_logger.log_event(
-            event_type="AUTH_FAILED",
-            user_id="test-user",
-            action="LOGIN",
-            result="DENIED",
-            details={"reason": "invalid_credentials"},
-        )
+        try:
+            await audit_logger.log_event(
+                event_type="AUTH_FAILED",
+                user_id="test-user",
+                action="LOGIN",
+                result="DENIED",
+                details={"reason": "invalid_credentials"},
+            )
 
-        # Should be in buffer
-        assert len(audit_logger.buffer) > 0
-        event = audit_logger.buffer[-1]
-        assert event["event_type"] == "AUTH_FAILED"
-        assert event["user_id"] == "test-user"
+            assert len(audit_logger.buffer) > 0
+            event = audit_logger.buffer[-1]
+            assert event["event_type"] == "AUTH_FAILED"
+            assert event["user_id"] == "test-user"
+        finally:
+            await audit_logger.shutdown()
 
-    def test_sensitive_data_redaction(self, audit_logger):
+    @pytest.mark.asyncio
+    async def test_sensitive_data_redaction(self, audit_logger):
         """Test that sensitive data is redacted in logs."""
-        sensitive_details = {
-            "password": "secret123",
-            "token": "jwt-token-here",
-            "api_key": "sk-123456789",
-            "safe_field": "this is safe",
-        }
+        try:
+            sensitive_details = {
+                "password": "secret123",
+                "token": "jwt-token-here",
+                "api_key": "sk-123456789",
+                "safe_field": "this is safe",
+            }
 
-        audit_logger.log_event(event_type="TEST_EVENT", details=sensitive_details)
+            await audit_logger.log_event(event_type="TEST_EVENT", details=sensitive_details)
 
-        event = audit_logger.buffer[-1]
-        redacted_details = event["details"]
+            event = audit_logger.buffer[-1]
+            redacted_details = event["details"]
 
-        # Sensitive fields should be redacted
-        assert redacted_details["password"] == "***REDACTED***"
-        assert redacted_details["token"] == "***REDACTED***"
-        assert redacted_details["api_key"] == "***REDACTED***"
+            assert redacted_details["password"] == "***REDACTED***"
+            assert redacted_details["token"] == "***REDACTED***"
+            assert redacted_details["api_key"] == "***REDACTED***"
+            assert redacted_details["safe_field"] == "this is safe"
+        finally:
+            await audit_logger.shutdown()
 
-        # Safe fields should remain
-        assert redacted_details["safe_field"] == "this is safe"
-
-    def test_critical_event_immediate_logging(self, audit_logger):
+    @pytest.mark.asyncio
+    async def test_critical_event_immediate_logging(self, audit_logger):
         """Test that critical events are logged immediately."""
-        # This would normally trigger immediate file logging
-        # In test environment, we verify the event is marked as critical
+        try:
+            await audit_logger.log_event(
+                event_type="AUTH_FAILED",
+                user_id="test-user",
+                action="LOGIN",
+            )
 
-        audit_logger.log_event(event_type="AUTH_FAILED", user_id="test-user", action="LOGIN")
-
-        event = audit_logger.buffer[-1]
-        # Critical events should be in buffer
-        assert event["event_type"] == "AUTH_FAILED"
+            event = audit_logger.buffer[-1]
+            assert event["event_type"] == "AUTH_FAILED"
+        finally:
+            await audit_logger.shutdown()
 
     def test_audit_context_preservation(self):
         """Test that audit context is preserved across operations."""
@@ -925,7 +934,8 @@ class TestVulnerabilityRegression:
         # Should restrict frame ancestors
         assert csp["frame-src"] == ["'none'"]
 
-    def test_rate_limit_dos_prevention(self):
+    @pytest.mark.asyncio
+    async def test_rate_limit_dos_prevention(self):
         """Test that rate limiting prevents DoS attacks."""
         from middleware.rate_limiter import RateLimiter
 
@@ -948,7 +958,8 @@ class TestVulnerabilityRegression:
         assert limits["requests"] > 0
         assert limits["window"] > 0
 
-    def test_session_fixation_prevention(self):
+    @pytest.mark.asyncio
+    async def test_session_fixation_prevention(self):
         """Test prevention of session fixation attacks."""
         # Session fixation involves forcing a user to use a known session ID
         # Our implementation should generate new session IDs on login
@@ -958,18 +969,18 @@ class TestVulnerabilityRegression:
         # Create a session
         user_id = uuid4()
         token = "original-token"
-        session_id = session_manager.create_session(user_id, token)
+        session_id = await session_manager.create_session(user_id, token)
 
         # On "login", a new session should be created
         # This prevents session fixation
         new_token = "new-token-after-login"
-        new_session_id = session_manager.create_session(user_id, new_token)
+        new_session_id = await session_manager.create_session(user_id, new_token)
 
         # Should be different sessions
         assert new_session_id != session_id
 
         # Original session should still exist (until invalidated)
-        original_session = session_manager.get_session(session_id)
+        original_session = await session_manager.get_session(session_id)
         assert original_session is not None
 
     def test_clickjacking_prevention(self):

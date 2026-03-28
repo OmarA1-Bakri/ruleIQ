@@ -53,13 +53,17 @@ class AuditLogger:
         self._flush_task_lock: Optional[asyncio.Lock] = None
         self._flush_task: Optional[asyncio.Task] = None
 
+    def _get_flush_task_lock(self) -> asyncio.Lock:
+        """Create the flush lock lazily when the event loop is available."""
+        if self._flush_task_lock is None:
+            self._flush_task_lock = asyncio.Lock()
+        return self._flush_task_lock
+
     async def _start_flush_timer(self):
         """Start periodic flush timer. Safe to call outside event loop."""
         if self._flush_task_started:
             return
-        if self._flush_task_lock is None:
-            self._flush_task_lock = asyncio.Lock()
-        async with self._flush_task_lock:
+        async with self._get_flush_task_lock():
             if self._flush_task_started:
                 return
             try:
@@ -77,7 +81,7 @@ class AuditLogger:
     async def shutdown(self) -> None:
         """Stop periodic flush task and flush remaining buffered events."""
         task_to_cancel: Optional[asyncio.Task] = None
-        async with self._flush_task_lock:
+        async with self._get_flush_task_lock():
             if self._flush_task:
                 task_to_cancel = self._flush_task
                 self._flush_task = None
@@ -199,7 +203,7 @@ class AuditLoggingMiddleware(BaseHTTPMiddleware):
 
     def __init__(self, app, audit_logger: Optional[AuditLogger] = None) -> None:
         super().__init__(app)
-        self.audit_logger = audit_logger or AuditLogger()
+        self.audit_logger = audit_logger or get_audit_logger()
 
     async def dispatch(self, request: Request, call_next):
         """Process request with audit logging."""
@@ -390,7 +394,7 @@ def audit_operation(operation_type: str, resource_type: str = None):
             user_id = audit_context.get().get("user_id")
 
             # Log operation start — use module-level singleton, not a new instance
-            await audit_logger.log_event(
+            await get_audit_logger().log_event(
                 event_type=f"{operation_type}_START",
                 user_id=user_id,
                 resource=resource_type,
@@ -403,7 +407,7 @@ def audit_operation(operation_type: str, resource_type: str = None):
                 result = await func(*args, **kwargs)
 
                 # Log operation success
-                await audit_logger.log_event(
+                await get_audit_logger().log_event(
                     event_type=f"{operation_type}_SUCCESS",
                     user_id=user_id,
                     resource=resource_type,
@@ -415,7 +419,7 @@ def audit_operation(operation_type: str, resource_type: str = None):
 
             except Exception as e:
                 # Log operation failure
-                await audit_logger.log_event(
+                await get_audit_logger().log_event(
                     event_type=f"{operation_type}_FAILURE",
                     user_id=user_id,
                     resource=resource_type,
@@ -432,14 +436,21 @@ def audit_operation(operation_type: str, resource_type: str = None):
 
 def setup_audit_logging(app):
     """Setup audit logging middleware on FastAPI app."""
-    audit_logger = AuditLogger()
+    audit_logger = get_audit_logger()
     app.add_middleware(AuditLoggingMiddleware, audit_logger=audit_logger)
     logger.info("Audit logging middleware configured")
     return audit_logger
 
 
-# Create a module-level audit logger instance
-audit_logger = AuditLogger()
+_audit_logger: Optional[AuditLogger] = None
+
+
+def get_audit_logger() -> AuditLogger:
+    """Return the shared audit logger singleton, creating it lazily."""
+    global _audit_logger
+    if _audit_logger is None:
+        _audit_logger = AuditLogger()
+    return _audit_logger
 
 
 # Helper function for compatibility with security validation
@@ -450,7 +461,7 @@ async def log_security_event(
     Helper function for logging security events.
     Provides compatibility with security validation module.
     """
-    await audit_logger.log_event(
+    await get_audit_logger().log_event(
         event_type=event_type,
         details=details,
         ip_address=request.client.host if request.client else None,

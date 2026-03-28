@@ -1,46 +1,18 @@
 /**
  * Business Profile Field Mapping Layer
  *
- * This mapper handles the translation between our clean frontend field names
- * and the backend's truncated field names. This abstraction ensures our
- * frontend code remains readable and self-documenting while seamlessly
- * integrating with the backend API.
- *
- * Backend Constraints:
- * - Database column names are truncated due to length limitations
- * - API responses use these truncated names
- *
- * Frontend Benefits:
- * - Clean, descriptive field names
- * - Self-documenting code
- * - Better developer experience
- * - Type safety with meaningful names
+ * The canonical backend contract now uses the same descriptive field names as
+ * the frontend, so this mapper mainly normalizes defaults and keeps the
+ * service layer stable.
  */
 
 import { type BusinessProfile } from '@/types/business-profile';
 
 export class BusinessProfileFieldMapper {
   /**
-   * Bidirectional field mapping between frontend (descriptive) and backend (truncated) names
+   * Bidirectional field mapping between frontend and backend field names.
    */
-  public static readonly fieldMap = {
-    // Boolean fields - Business characteristics
-    handles_personal_data: 'handles_persona',
-    processes_payments: 'processes_payme',
-    stores_health_data: 'stores_health_d',
-    provides_financial_services: 'provides_financ',
-    operates_critical_infrastructure: 'operates_critic',
-    has_international_operations: 'has_internation',
-
-    // Array fields - Technology and compliance
-    existing_frameworks: 'existing_framew',
-    planned_frameworks: 'planned_framewo',
-    development_tools: 'development_too',
-
-    // String fields - Compliance planning
-    compliance_budget: 'compliance_budg',
-    compliance_timeline: 'compliance_time',
-  } as const;
+  public static readonly fieldMap = {} as const;
 
   /**
    * Convert clean frontend data to API format
@@ -58,13 +30,7 @@ export class BusinessProfileFieldMapper {
       const apiKey = this.fieldMap[key as keyof typeof this.fieldMap] || key;
 
       // Handle type conversions
-      if (key === 'compliance_budget' && typeof value === 'string') {
-        // Convert string to number for API
-        const numValue = parseFloat(value);
-        mapped[apiKey] = isNaN(numValue) ? 0 : numValue;
-      } else {
-        mapped[apiKey] = value;
-      }
+      mapped[apiKey] = value;
     });
 
     return mapped;
@@ -88,12 +54,7 @@ export class BusinessProfileFieldMapper {
         Object.entries(this.fieldMap).find(([_, apiKey]) => apiKey === key)?.[0] || key;
 
       // Handle type conversions from API to frontend
-      if (frontendKey === 'compliance_budget' && typeof value === 'number') {
-        // Convert number to string for frontend
-        mapped[frontendKey] = value.toString();
-      } else {
-        mapped[frontendKey] = value;
-      }
+      mapped[frontendKey] = value;
     });
 
     return mapped as BusinessProfile;
@@ -125,19 +86,7 @@ export class BusinessProfileFieldMapper {
    * Used for development/testing to ensure mapping completeness
    */
   static validateMappings(): { isValid: boolean; missingMappings: string[] } {
-    const requiredBackendFields = [
-      'handles_persona',
-      'processes_payme',
-      'stores_health_d',
-      'provides_financ',
-      'operates_critic',
-      'has_internation',
-      'existing_framew',
-      'planned_framewo',
-      'development_too',
-      'compliance_budg',
-      'compliance_time',
-    ];
+    const requiredBackendFields: string[] = [];
 
     const mappedBackendFields = Object.values(this.fieldMap);
     const missingMappings = requiredBackendFields.filter(
@@ -168,9 +117,9 @@ export class BusinessProfileFieldMapper {
     const arrayFields = [
       'cloud_providers',
       'saas_tools',
-      'development_too',
-      'existing_framew',
-      'planned_framewo',
+      'development_tools',
+      'existing_frameworks',
+      'planned_frameworks',
     ];
     arrayFields.forEach((field) => {
       if (transformed[field] && !Array.isArray(transformed[field])) {
@@ -180,12 +129,12 @@ export class BusinessProfileFieldMapper {
 
     // Ensure boolean fields are properly typed
     const booleanFields = [
-      'handles_persona',
-      'processes_payme',
-      'stores_health_d',
-      'provides_financ',
-      'operates_critic',
-      'has_internation',
+      'handles_personal_data',
+      'processes_payments',
+      'stores_health_data',
+      'provides_financial_services',
+      'operates_critical_infrastructure',
+      'has_international_operations',
     ];
     booleanFields.forEach((field) => {
       if (transformed[field] !== undefined) {
@@ -247,9 +196,12 @@ export class BusinessProfileFieldMapper {
       transformed.country = 'United Kingdom';
     }
 
-    // Add frontend-specific properties that don't exist in API
-    (transformed as any).assessment_completed = false;
-    (transformed as any).assessment_data = {};
+    if ((transformed as any).assessment_completed === undefined) {
+      (transformed as any).assessment_completed = false;
+    }
+    if (!(transformed as any).assessment_data) {
+      (transformed as any).assessment_data = {};
+    }
 
     return transformed;
   }

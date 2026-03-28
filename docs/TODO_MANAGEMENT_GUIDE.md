@@ -247,7 +247,7 @@ python scripts/ci/scan_todos.py --format csv --output todos.csv
 **Setup**:
 ```bash
 # Set GitHub token (required)
-export GITHUB_TOKEN="your_personal_access_token"
+export GITHUB_TOKEN=<set-your-github-token-locally>
 ```
 
 **Basic Usage**:

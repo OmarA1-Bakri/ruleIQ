@@ -64,7 +64,7 @@ class TestAuthenticationSecurity:
         invalid_tokens = [
             "invalid_token",
             "Bearer invalid_token",
-            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.invalid.signature",
+            "mock.jwt.invalid",
             "Bearer " + "x" * 100,
             "",
             "Bearer ",
@@ -525,9 +525,9 @@ class TestTokenSecurity:
         # Create tokens with different algorithms in header
         malicious_tokens = [
             # Token with "none" algorithm (if improperly handled)
-            "eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJzdWIiOiJ0ZXN0QGV4YW1wbGUuY29tIn0.",
+            "mock.none-alg.jwt",
             # Token with different algorithm
-            "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0QGV4YW1wbGUuY29tIn0.signature",
+            "mock.hs512.jwt",
         ]
 
         for malicious_token in malicious_tokens:

@@ -51,7 +51,7 @@
       "command": "npx",
       "args": ["@testsprite/testsprite-mcp@latest"],
       "env": {
-        "API_KEY": "sk-user-b-dOi1HbRc33E1UXQrAsQac8Lw1jPX-T6HFKcweaEaC7avLKnobKlFyScXbEMaZHzGP_BXKmYmwwtnj-8qVO7jrTAw0oWcnWqXqecgMnLVzOgJgHOfckcXNn4sB2ySyjZwE"
+        "API_KEY": "set-testsprite-api-key-locally"
       }
     },
     "magic-ui-component-server": {
@@ -62,9 +62,9 @@
         "run",
         "@magicuidesign/mcp",
         "--key",
-        "95e83c85-9a18-4524-9549-6a2c0f194f69",
+        "set-smithery-key-locally",
         "--profile",
-        "hungry-lemming-s64fT3"
+        "set-smithery-profile-locally"
       ]
     },
     "fetch": {
@@ -75,9 +75,9 @@
         "run",
         "@smithery-ai/fetch",
         "--key",
-        "95e83c85-9a18-4524-9549-6a2c0f194f69",
+        "set-smithery-key-locally",
         "--profile",
-        "hungry-lemming-s64fT3"
+        "set-smithery-profile-locally"
       ]
     },
     "cloudflare-playwright": {
@@ -88,9 +88,9 @@
         "run",
         "@cloudflare/playwright-mcp",
         "--key",
-        "95e83c85-9a18-4524-9549-6a2c0f194f69",
+        "set-smithery-key-locally",
         "--profile",
-        "hungry-lemming-s64fT3"
+        "set-smithery-profile-locally"
       ]
     },
     "neon-database": {
@@ -101,9 +101,9 @@
         "run",
         "neon",
         "--key",
-        "95e83c85-9a18-4524-9549-6a2c0f194f69",
+        "set-smithery-key-locally",
         "--profile",
-        "hungry-lemming-s64fT3"
+        "set-smithery-profile-locally"
       ]
     },
     "shadcn-vue-mcp-server": {
@@ -114,9 +114,9 @@
         "run",
         "@HelloGGX/shadcn-vue-mcp",
         "--key",
-        "95e83c85-9a18-4524-9549-6a2c0f194f69",
+        "set-smithery-key-locally",
         "--profile",
-        "hungry-lemming-s64fT3"
+        "set-smithery-profile-locally"
       ]
     },
     "browser-tools": {
@@ -127,9 +127,9 @@
         "run",
         "@diulela/browser-tools-mcp",
         "--key",
-        "95e83c85-9a18-4524-9549-6a2c0f194f69",
+        "set-smithery-key-locally",
         "--profile",
-        "hungry-lemming-s64fT3"
+        "set-smithery-profile-locally"
       ]
     },
     "mem0-memory": {
@@ -140,9 +140,9 @@
         "run",
         "@mem0ai/mem0-memory-mcp",
         "--key",
-        "95e83c85-9a18-4524-9549-6a2c0f194f69",
+        "set-smithery-key-locally",
         "--profile",
-        "hungry-lemming-s64fT3"
+        "set-smithery-profile-locally"
       ]
     },
     "context-7": {
@@ -153,9 +153,9 @@
         "run",
         "@upstash/context7-mcp",
         "--key",
-        "95e83c85-9a18-4524-9549-6a2c0f194f69",
+        "set-smithery-key-locally",
         "--profile",
-        "hungry-lemming-s64fT3"
+        "set-smithery-profile-locally"
       ]
     },
     "postgre-sql-database-management-server": {
@@ -166,9 +166,9 @@
         "run",
         "@HenkDz/postgresql-mcp-server",
         "--key",
-        "95e83c85-9a18-4524-9549-6a2c0f194f69",
+        "set-smithery-key-locally",
         "--profile",
-        "hungry-lemming-s64fT3"
+        "set-smithery-profile-locally"
       ]
     },
     "tavily-mcp-server": {
@@ -179,9 +179,9 @@
         "run",
         "@tavily-ai/tavily-mcp",
         "--key",
-        "95e83c85-9a18-4524-9549-6a2c0f194f69",
+        "set-smithery-key-locally",
         "--profile",
-        "hungry-lemming-s64fT3"
+        "set-smithery-profile-locally"
       ]
     },
     "redis": {
@@ -192,9 +192,9 @@
         "run",
         "@redis/mcp-redis",
         "--key",
-        "95e83c85-9a18-4524-9549-6a2c0f194f69",
+        "set-smithery-key-locally",
         "--profile",
-        "hungry-lemming-s64fT3"
+        "set-smithery-profile-locally"
       ]
     },
     "automated-ui-debuger-and-tester": {
@@ -218,9 +218,9 @@
         "run",
         "@smithery-ai/github",
         "--key",
-        "95e83c85-9a18-4524-9549-6a2c0f194f69",
+        "set-smithery-key-locally",
         "--profile",
-        "hungry-lemming-s64fT3"
+        "set-smithery-profile-locally"
       ]
     }
   },

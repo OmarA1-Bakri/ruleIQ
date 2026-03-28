@@ -1,295 +1,329 @@
-import logging
+from __future__ import annotations
 
-# Constants
-HTTP_FORBIDDEN = 403
-HTTP_NOT_FOUND = 404
-
-logger = logging.getLogger(__name__)
-from typing import List, Any, Dict
+from typing import Any, Dict, List, Optional
 from uuid import UUID
-from fastapi import APIRouter, Depends, HTTPException
+
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from api.dependencies.auth import get_current_active_user
 from api.dependencies.database import get_async_db
-from api.dependencies.rbac_auth import UserWithRoles, require_permission
-from api.schemas.models import ComplianceFrameworkResponse, FrameworkRecommendation
-from services.framework_service import get_framework_by_id, get_relevant_frameworks
+from api.schemas.models import ComplianceFrameworkResponse
+from database.compliance_framework import ComplianceFramework
+from database.user import User
+from services.launch_metrics import (
+    build_framework_controls,
+    calculate_framework_status,
+    get_owned_business_profile,
+    get_profile_frameworks,
+    load_profile_framework_state,
+)
 
 router = APIRouter()
 
 
+def _serialize_framework(framework: ComplianceFramework) -> ComplianceFrameworkResponse:
+    return ComplianceFrameworkResponse(
+        id=framework.id,
+        name=framework.display_name,
+        description=framework.description or "",
+        category=framework.category or "general",
+        version=framework.version or "1.0",
+        controls=build_framework_controls(framework),
+    )
+
+
+def _framework_relevance(profile: Any, framework: ComplianceFramework) -> tuple[float, List[str], str]:
+    score = 25.0
+    reasons: List[str] = []
+
+    if profile.industry and profile.industry in (framework.applicable_indu or []):
+        score += 30
+        reasons.append(f"Relevant to the {profile.industry} industry.")
+    if profile.employee_count and framework.employee_thresh and profile.employee_count >= framework.employee_thresh:
+        score += 20
+        reasons.append("Company size meets the framework applicability threshold.")
+    if profile.has_international_operations and any(
+        location in {"EU", "Global", "UK"} for location in (framework.geographic_scop or [])
+    ):
+        score += 15
+        reasons.append("Framework aligns with international operating footprint.")
+    if profile.handles_personal_data and framework.category.lower() in {"data protection", "information security"}:
+        score += 20
+        reasons.append("Business handles personal or regulated information.")
+    if profile.processes_payments and "PCI" in framework.display_name.upper():
+        score += 25
+        reasons.append("Framework is relevant to payment-processing obligations.")
+
+    priority = "high" if score >= 70 else "medium" if score >= 50 else "low"
+    return score, reasons or ["General launch relevance for the current business profile."], priority
+
+
 @router.get("/", response_model=List[ComplianceFrameworkResponse])
 async def list_frameworks(
-    current_user: UserWithRoles = Depends(require_permission("user_list")),
+    current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_async_db),
 ) -> Any:
-    """List all available frameworks - simplified for compliance wizard."""
-    from database.compliance_framework import ComplianceFramework
-    from sqlalchemy.future import select
-
-    result = await db.execute(select(ComplianceFramework))
+    result = await db.execute(
+        select(ComplianceFramework)
+        .where(ComplianceFramework.is_active.is_(True))
+        .order_by(ComplianceFramework.display_name.asc(), ComplianceFramework.name.asc())
+    )
     frameworks = result.scalars().all()
-    logger.info("DEBUG: Found %s total frameworks" % len(frameworks))
-    active_frameworks = [fw for fw in frameworks if fw.is_active]
-    logger.info("DEBUG: Found %s active frameworks" % len(active_frameworks))
-    return [
-        ComplianceFrameworkResponse(
-            id=fw.id,
-            name=fw.name,
-            description=fw.description or "",
-            category=fw.category or "general",
-            version=fw.version or "1.0",
-            controls=[],
-        )
-        for fw in active_frameworks
-    ]
+    return [_serialize_framework(framework) for framework in frameworks]
 
 
-@router.get("/recommendations", response_model=List[FrameworkRecommendation])
+@router.get("/recommendations")
 async def get_framework_recommendations(
-    current_user: UserWithRoles = Depends(require_permission("framework_list")),
+    business_profile_id: Optional[UUID] = Query(default=None),
+    current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_async_db),
 ) -> Any:
-    """Get framework recommendations filtered by user's access permissions."""
-    recommendations = await get_relevant_frameworks(db, current_user)
-    accessible_recommendations = []
-    for rec in recommendations:
-        framework = rec["framework"]
-        framework_id = str(framework.id)
-        has_access = any(af["id"] == framework_id for af in current_user.accessible_frameworks)
-        if has_access:
-            accessible_recommendations.append(
-                FrameworkRecommendation(
-                    framework=framework,
-                    relevance_score=rec["relevance_score"],
-                    reasons=rec.get("reasons", []),
-                    priority=rec.get("priority", "medium"),
-                )
-            )
-    return accessible_recommendations
+    profile = await get_owned_business_profile(db, current_user.id, business_profile_id)
+    if not profile:
+        return []
+
+    frameworks = await get_profile_frameworks(db, profile)
+    recommendations = []
+    for framework in frameworks:
+        relevance_score, reasons, priority = _framework_relevance(profile, framework)
+        recommendations.append(
+            {
+                "framework": _serialize_framework(framework).model_dump(mode="json"),
+                "relevance_score": round(relevance_score, 2),
+                "reasons": reasons,
+                "estimated_effort": f"{max(1, framework.implementation_ // 4)}-{max(2, framework.implementation_ // 2)} months",
+                "priority": priority,
+            }
+        )
+
+    recommendations.sort(key=lambda item: item["relevance_score"], reverse=True)
+    return recommendations
 
 
-@router.get("/recommendations/{business_profile_id}", response_model=List[FrameworkRecommendation])
+@router.get("/recommendations/{business_profile_id}")
 async def get_framework_recommendations_for_profile(
     business_profile_id: UUID,
-    current_user: UserWithRoles = Depends(require_permission("framework_list")),
+    current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_async_db),
 ) -> Any:
-    """Get framework recommendations for a specific business profile."""
-    recommendations = await get_relevant_frameworks(db, current_user)
-    accessible_recommendations = []
-    for rec in recommendations:
-        framework = rec["framework"]
-        framework_id = str(framework.id)
-        has_access = any(af["id"] == framework_id for af in current_user.accessible_frameworks)
-        if has_access:
-            accessible_recommendations.append(
-                FrameworkRecommendation(
-                    framework=framework,
-                    relevance_score=rec["relevance_score"],
-                    reasons=rec.get("reasons", []),
-                    priority=rec.get("priority", "medium"),
-                )
-            )
-    return accessible_recommendations
+    return await get_framework_recommendations(business_profile_id, current_user, db)
 
 
 @router.get("/all-public", response_model=List[ComplianceFrameworkResponse])
 async def list_all_public_frameworks(
-    current_user: UserWithRoles = Depends(require_permission("user_list")),
+    current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_async_db),
 ) -> Any:
-    """List all available frameworks without RBAC restrictions - for compliance wizard."""
-    from database.compliance_framework import ComplianceFramework
-    from sqlalchemy.future import select
-
-    result = await db.execute(select(ComplianceFramework).where(ComplianceFramework.is_active))
-    frameworks = result.scalars().all()
-    return [
-        ComplianceFrameworkResponse(
-            id=fw.id,
-            name=fw.name,
-            description=fw.description or "",
-            category=fw.category or "general",
-            version=fw.version or "1.0",
-            controls=[],
-        )
-        for fw in frameworks
-    ]
+    return await list_frameworks(current_user, db)
 
 
 @router.get("/{id}", response_model=ComplianceFrameworkResponse)
 async def get_framework(
     id: UUID,
-    current_user: UserWithRoles = Depends(require_permission("framework_list")),
+    current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_async_db),
 ) -> Any:
-    """Get a specific framework if user has access to it."""
-    framework_id = id
-    has_access = any(af["id"] == str(framework_id) for af in current_user.accessible_frameworks)
-    if not has_access:
-        raise HTTPException(
-            status_code=HTTP_FORBIDDEN,
-            detail="Access denied: You don't have permission to access this framework",
-        )
-    framework = await get_framework_by_id(db, current_user, framework_id)
+    result = await db.execute(select(ComplianceFramework).where(ComplianceFramework.id == id))
+    framework = result.scalars().first()
     if not framework:
-        raise HTTPException(status_code=HTTP_NOT_FOUND, detail="Framework not found")
-    controls = []
-    if framework.control_domains:
-        controls = [
-            {"name": domain, "description": f"{domain} controls"}
-            for domain in framework.control_domains
-        ]
-    return ComplianceFrameworkResponse(
-        id=framework.id,
-        name=framework.name,
-        description=framework.description,
-        category=framework.category,
-        version=framework.version,
-        controls=controls,
-    )
+        raise HTTPException(status_code=404, detail="Framework not found")
+    return _serialize_framework(framework)
 
 
 @router.get("/{framework_id}/controls")
 async def get_framework_controls(
     framework_id: UUID,
-    current_user: UserWithRoles = Depends(require_permission("framework_list")),
+    current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_async_db),
 ) -> Dict[str, Any]:
-    """Get controls for a specific framework."""
+    result = await db.execute(select(ComplianceFramework).where(ComplianceFramework.id == framework_id))
+    framework = result.scalars().first()
+    if not framework:
+        raise HTTPException(status_code=404, detail="Framework not found")
+
+    controls = build_framework_controls(framework)
     return {
-        "framework_id": str(framework_id),
-        "controls": [
-            {
-                "id": "ctrl-1",
-                "name": "Access Control",
-                "description": "Implement proper access control mechanisms",
-                "category": "Security",
-                "required": True,
-            },
-            {
-                "id": "ctrl-2",
-                "name": "Data Encryption",
-                "description": "Encrypt data at rest and in transit",
-                "category": "Security",
-                "required": True,
-            },
-            {
-                "id": "ctrl-3",
-                "name": "Audit Logging",
-                "description": "Maintain comprehensive audit logs",
-                "category": "Compliance",
-                "required": False,
-            },
-        ],
-        "total": 3,
+        "framework": framework.display_name,
+        "total_controls": len(controls),
+        "controls": controls,
     }
 
 
 @router.get("/{framework_id}/implementation-guide")
 async def get_framework_implementation_guide(
     framework_id: UUID,
-    current_user: UserWithRoles = Depends(require_permission("framework_list")),
+    current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_async_db),
 ) -> Dict[str, Any]:
-    """Get implementation guide for a framework."""
-    return {
-        "framework_id": str(framework_id),
-        "guide": {
-            "overview": "Step-by-step guide to implement this framework",
-            "phases": [
-                {
-                    "phase": 1,
-                    "name": "Assessment",
-                    "duration": "2-4 weeks",
-                    "tasks": ["Gap analysis", "Risk assessment", "Resource planning"],
-                },
-                {
-                    "phase": 2,
-                    "name": "Implementation",
-                    "duration": "8-12 weeks",
-                    "tasks": ["Control implementation", "Process documentation", "Training"],
-                },
-                {
-                    "phase": 3,
-                    "name": "Validation",
-                    "duration": "2-3 weeks",
-                    "tasks": ["Internal audit", "Remediation", "Certification prep"],
-                },
+    result = await db.execute(select(ComplianceFramework).where(ComplianceFramework.id == framework_id))
+    framework = result.scalars().first()
+    if not framework:
+        raise HTTPException(status_code=404, detail="Framework not found")
+
+    controls = build_framework_controls(framework)
+    phases = [
+        {
+            "phase": 1,
+            "name": "Scope and baseline",
+            "duration": "2-3 weeks",
+            "tasks": [
+                "Confirm framework scope",
+                "Identify owners",
+                "Baseline current evidence and policy coverage",
             ],
-            "resources": ["Implementation checklist", "Control templates", "Policy templates"],
+            "deliverables": ["Scope document", "Owner matrix", "Baseline assessment"],
         },
+        {
+            "phase": 2,
+            "name": "Control implementation",
+            "duration": f"{max(4, framework.implementation_ // 3)} weeks",
+            "tasks": [control["control_name"] for control in controls[:5]],
+            "deliverables": ["Implemented controls", "Updated policies", "Collected evidence"],
+        },
+        {
+            "phase": 3,
+            "name": "Validation and launch readiness",
+            "duration": "2-4 weeks",
+            "tasks": [
+                "Run readiness assessment",
+                "Resolve critical gaps",
+                "Prepare executive reporting",
+            ],
+            "deliverables": ["Readiness assessment", "Gap register", "Launch evidence pack"],
+        },
+    ]
+
+    return {
+        "framework": framework.display_name,
+        "estimated_duration": f"{max(2, framework.implementation_ // 4)}-{max(4, framework.implementation_ // 2)} months",
+        "phases": phases,
+        "resources_required": [
+            "Compliance owner",
+            "Policy approver",
+            "Technical implementation lead",
+        ],
+        "key_milestones": [phase["name"] for phase in phases],
     }
 
 
 @router.get("/{framework_id}/compliance-status")
 async def get_framework_compliance_status(
     framework_id: UUID,
-    current_user: UserWithRoles = Depends(require_permission("framework_list")),
+    business_profile_id: UUID,
+    current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_async_db),
 ) -> Dict[str, Any]:
-    """Get compliance status for a specific framework."""
+    profile = await get_owned_business_profile(db, current_user.id, business_profile_id)
+    if not profile:
+        raise HTTPException(status_code=404, detail="Business profile not found")
+
+    result = await db.execute(select(ComplianceFramework).where(ComplianceFramework.id == framework_id))
+    framework = result.scalars().first()
+    if not framework:
+        raise HTTPException(status_code=404, detail="Framework not found")
+
+    state = await load_profile_framework_state(db, current_user.id, profile, [framework])
+    status = calculate_framework_status(
+        framework,
+        state["evidence"].get(framework.id, []),
+        state["policies"].get(framework.id, []),
+        state["plans"].get(framework.id, []),
+        state["assessments"].get(framework.id),
+    )
     return {
-        "framework_id": str(framework_id),
-        "overall_compliance": 75.5,
-        "status": "in_progress",
-        "controls_status": {"compliant": 15, "partial": 5, "non_compliant": 3, "not_applicable": 2},
-        "last_assessment": "2024-01-15T10:00:00Z",
-        "next_review": "2024-04-15T10:00:00Z",
+        "framework": status["framework"],
+        "overall_compliance": status["overall_compliance_percentage"],
+        "by_category": {item["domain"]: item["compliance_percentage"] for item in status["by_domain"]},
+        "controls_status": status["controls_status"],
+        "last_assessment_date": status["last_assessment_date"],
+        "next_review_date": status["next_review_date"],
     }
 
 
 @router.post("/compare")
 async def compare_frameworks(
     comparison_data: dict,
-    current_user: UserWithRoles = Depends(require_permission("framework_list")),
+    current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_async_db),
 ) -> Dict[str, Any]:
-    """Compare multiple frameworks."""
     framework_ids = comparison_data.get("framework_ids", [])
+    if len(framework_ids) < 2:
+        raise HTTPException(status_code=400, detail="At least two framework_ids are required")
+
+    result = await db.execute(
+        select(ComplianceFramework).where(ComplianceFramework.id.in_([UUID(item) for item in framework_ids]))
+    )
+    frameworks = result.scalars().all()
+    if len(frameworks) < 2:
+        raise HTTPException(status_code=404, detail="Unable to load requested frameworks")
+
+    controls_by_framework = {str(framework.id): build_framework_controls(framework) for framework in frameworks}
+    common_controls = min(len(controls) for controls in controls_by_framework.values())
+    unique_controls = {
+        str(framework.id): max(len(controls_by_framework[str(framework.id)]) - common_controls, 0)
+        for framework in frameworks
+    }
+
     return {
-        "frameworks": framework_ids,
-        "comparison": {
-            "common_controls": 45,
-            "unique_controls": {
-                (framework_ids[0] if len(framework_ids) > 0 else "framework1"): 12,
-                (framework_ids[1] if len(framework_ids) > 1 else "framework2"): 8,
-            },
-            "complexity": {
-                (framework_ids[0] if len(framework_ids) > 0 else "framework1"): "High",
-                (framework_ids[1] if len(framework_ids) > 1 else "framework2"): "Medium",
-            },
-            "implementation_time": {
-                (framework_ids[0] if len(framework_ids) > 0 else "framework1"): "6-8 months",
-                (framework_ids[1] if len(framework_ids) > 1 else "framework2"): "4-6 months",
-            },
+        "frameworks": [
+            {
+                "id": str(framework.id),
+                "name": framework.display_name,
+                "control_count": len(controls_by_framework[str(framework.id)]),
+                "estimated_effort": f"{max(2, framework.implementation_ // 4)}-{max(4, framework.implementation_ // 2)} months",
+                "industry_alignment": framework.applicable_indu or [],
+                "key_features": (framework.key_requirement or [])[:5],
+            }
+            for framework in frameworks
+        ],
+        "overlap_analysis": {
+            "common_controls": common_controls,
+            "unique_controls": unique_controls,
+            "compatibility_score": round(common_controls / max(sum(len(v) for v in controls_by_framework.values()) / len(frameworks), 1) * 100, 2),
         },
-        "recommendation": "Consider implementing both frameworks in phases",
+        "recommendation": "Use the higher-overlap framework first, then extend evidence and policies to the second framework.",
     }
 
 
 @router.get("/{framework_id}/maturity-assessment")
 async def get_framework_maturity_assessment(
     framework_id: UUID,
-    current_user: UserWithRoles = Depends(require_permission("framework_list")),
+    business_profile_id: UUID,
+    current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_async_db),
 ) -> Dict[str, Any]:
-    """Get maturity assessment for a framework."""
+    profile = await get_owned_business_profile(db, current_user.id, business_profile_id)
+    if not profile:
+        raise HTTPException(status_code=404, detail="Business profile not found")
+
+    result = await db.execute(select(ComplianceFramework).where(ComplianceFramework.id == framework_id))
+    framework = result.scalars().first()
+    if not framework:
+        raise HTTPException(status_code=404, detail="Framework not found")
+
+    state = await load_profile_framework_state(db, current_user.id, profile, [framework])
+    status = calculate_framework_status(
+        framework,
+        state["evidence"].get(framework.id, []),
+        state["policies"].get(framework.id, []),
+        state["plans"].get(framework.id, []),
+        state["assessments"].get(framework.id),
+    )
     return {
-        "framework_id": str(framework_id),
-        "maturity_level": 3,
-        "maturity_name": "Defined",
-        "levels": {
-            "1": {"name": "Initial", "achieved": True},
-            "2": {"name": "Managed", "achieved": True},
-            "3": {"name": "Defined", "achieved": True},
-            "4": {"name": "Quantitatively Managed", "achieved": False},
-            "5": {"name": "Optimizing", "achieved": False},
-        },
-        "recommendations": [
-            "Implement continuous monitoring",
-            "Automate compliance checks",
-            "Establish metrics and KPIs",
+        "framework": framework.display_name,
+        "maturity_level": status["maturity_level"],
+        "maturity_score": status["maturity_score"],
+        "strengths": status["strengths"],
+        "weaknesses": status["weaknesses"],
+        "improvement_areas": [
+            {
+                "area": domain["domain"],
+                "current_level": round(domain["compliance_percentage"] / 20, 2),
+                "target_level": 5,
+                "recommendations": status["recommendations"][:2],
+            }
+            for domain in status["by_domain"]
         ],
-        "next_steps": "Focus on quantitative management and metrics",
     }

@@ -126,8 +126,11 @@ class GoogleWorkspaceIntegration(BaseIntegration):
             return mock_creds
         return Credentials.from_authorized_user_info(creds_data, self.SCOPES)
 
-    async def collect_evidence(self) -> List[Dict[str, Any]]:
+    async def collect_evidence(
+        self, evidence_type: Optional[str] = None, since: Optional[Any] = None
+    ) -> List[Dict[str, Any]]:
         """Collects login and admin activity logs."""
+        _ = (evidence_type, since)
         try:
             if not await self.authenticate():
                 raise AuthenticationError(
@@ -273,7 +276,7 @@ class GoogleWorkspaceIntegration(BaseIntegration):
             logger.error("Failed to collect group evidence: %s" % e)
             return []
 
-    async def get_supported_evidence_types(self) -> List[Dict[str, Any]]:
+    async def get_available_evidence_types(self) -> List[Dict[str, Any]]:
         """Returns the evidence types this integration can collect."""
         return [
             {
@@ -305,3 +308,7 @@ class GoogleWorkspaceIntegration(BaseIntegration):
                 "frequency": "Daily",
             },
         ]
+
+    async def get_supported_evidence_types(self) -> List[Dict[str, Any]]:
+        """Backward-compatible alias for older call sites."""
+        return await self.get_available_evidence_types()

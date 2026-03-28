@@ -6,6 +6,8 @@ Implements the AIProvider interface for Google's Gemini models.
 
 import asyncio
 import logging
+import threading
+from contextlib import suppress
 from datetime import datetime, timezone
 from typing import Any, AsyncIterator, Optional
 
@@ -21,6 +23,7 @@ from .base import (
     ProviderUnavailableError,
     ProviderTimeoutError,
     ProviderQuotaError,
+    queue_put_with_backpressure,
 )
 
 logger = logging.getLogger(__name__)
@@ -214,56 +217,52 @@ class GeminiProvider(AIProvider):
 
             safety_settings = config.safety_settings or self.safety_settings
             timeout_seconds = config.timeout or 30.0
+            response = self.model.generate_content(
+                prompt,
+                safety_settings=safety_settings,
+                generation_config=generation_config,
+                stream=True,
+            )
+            iterator = iter(response)
 
-            queue: asyncio.Queue[Any] = asyncio.Queue()
-            sentinel = object()
-            loop = asyncio.get_running_loop()
-
-            def _producer() -> None:
+            def _next_text_chunk(chunk_iterator: Any) -> tuple[bool, Any]:
                 try:
-                    response = self.model.generate_content(
-                        prompt,
-                        safety_settings=safety_settings,
-                        generation_config=generation_config,
-                        stream=True,
-                    )
-                    for chunk in response:
-                        if hasattr(chunk, "text") and chunk.text:
-                            loop.call_soon_threadsafe(queue.put_nowait, chunk.text)
-                except Exception as exc:
-                    loop.call_soon_threadsafe(queue.put_nowait, exc)
-                finally:
-                    loop.call_soon_threadsafe(queue.put_nowait, sentinel)
+                    chunk = next(chunk_iterator)
+                except StopIteration:
+                    return False, None
 
-            producer_task = asyncio.create_task(asyncio.to_thread(_producer))
+                if hasattr(chunk, "text") and chunk.text:
+                    return True, chunk.text
+                return True, None
 
             while True:
                 try:
-                    item = await asyncio.wait_for(queue.get(), timeout=timeout_seconds)
+                    has_chunk, text = await asyncio.wait_for(
+                        asyncio.to_thread(_next_text_chunk, iterator),
+                        timeout=timeout_seconds,
+                    )
                 except asyncio.TimeoutError:
-                    producer_task.cancel()
-                    try:
-                        await asyncio.wait_for(producer_task, timeout=1.0)
-                    except (asyncio.CancelledError, asyncio.TimeoutError):
-                        pass
                     logger.error(
                         "Gemini streaming timed out after %ss (model=%s)",
                         timeout_seconds,
                         model_name,
                     )
-                    raise ProviderUnavailableError(
+                    raise ProviderTimeoutError(
                         f"Gemini streaming timed out after {timeout_seconds}s"
                     )
 
-                if item is sentinel:
+                if not has_chunk:
                     break
-                if isinstance(item, Exception):
-                    raise item
-                yield item
-
-            await asyncio.wait_for(producer_task, timeout=timeout_seconds)
+                if text:
+                    yield text
 
         except Exception as e:
+            if isinstance(e, (ProviderTimeoutError, ProviderUnavailableError, ProviderQuotaError)):
+                raise
+            error_str = str(e).lower()
+            if "quota" in error_str or "429" in error_str or "resource_exhausted" in error_str:
+                logger.error(f"Gemini quota exceeded during streaming: {e}")
+                raise ProviderQuotaError(f"Gemini quota exceeded during streaming: {e}")
             logger.error(f"Gemini streaming failed: {e}", exc_info=True)
             raise ProviderUnavailableError(f"Gemini streaming failed: {e}")
 

@@ -20,6 +20,8 @@ openai==1.91.0
 langchain==0.3.26
 langchain-openai==0.2.14
 langchain-community==0.3.27
+langgraph==0.3.34
+langgraph-checkpoint-postgres==2.0.25
 chromadb==0.4.22
 pinecone-client==5.0.1
 stripe==8.1.0
@@ -34,5 +36,4 @@ aiosmtplib==3.0.1
 pyyaml==6.0.2
 typing-extensions>=4.12.2,<5
 google-genai>=1.63.0
-google-generativeai>=0.8.0  # LEGACY: still imported by 9+ source files; remove after full google.genai migration
 email-validator>=2.1.0  # Required by Pydantic EmailStr

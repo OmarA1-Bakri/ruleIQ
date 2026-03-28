@@ -185,7 +185,7 @@ def setup_auth_mocks():
     # Mock AI services to prevent external API calls
     import unittest.mock
 
-    # Mock Google Generative AI
+    # Mock Google GenAI
     mock_genai = unittest.mock.MagicMock()
     mock_response = unittest.mock.MagicMock()
     mock_response.text = "Mock AI response for testing"
@@ -199,8 +199,6 @@ def setup_auth_mocks():
     # Apply mocks
     import sys
 
-    sys.modules["google.generativeai"] = mock_genai
-    sys.modules["google.generativeai.types"] = unittest.mock.MagicMock()
     sys.modules["google.genai"] = mock_genai
     sys.modules["google.genai.types"] = unittest.mock.MagicMock()
 

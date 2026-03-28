@@ -39,66 +39,23 @@ fi
 
 BACKUP_REF="rewrite-backup-$(date +%Y%m%d-%H%M%S)"
 BACKUP_BRANCH="refs/backup/${BACKUP_REF}"
+REPLACEMENTS_FILE="${SECRETS_REPLACEMENTS_FILE:-scripts/tools/purge_secrets.local.txt}"
 
 echo "📦 Creating safety tag ${BACKUP_REF}..."
 git update-ref "${BACKUP_BRANCH}" HEAD
 
-tmpfile="$(mktemp)"
-trap 'rm -f "${tmpfile}"' EXIT
+if [[ ! -f "${REPLACEMENTS_FILE}" ]]; then
+  cat >&2 <<MSG
+❌ Replacement file not found: ${REPLACEMENTS_FILE}
 
-cat > "${tmpfile}" <<'EOF_REPLACEMENTS'
-# Each block is original text, newline, replacement, newline.
-# Neon Database URL credentials
-postgresql+asyncpg://neondb_owner:npg_s0JhnfGNy3Ze@ep-sweet-truth-a89at3wo-pooler.eastus2.azure.neon.tech/neondb?sslmode=require&channel_binding=require
-postgresql+asyncpg://<redacted-neon-url>
+Create a local replacement file using the format documented in:
+  scripts/tools/purge_secrets.example.txt
 
-postgresql://neondb_owner:npg_s0JhnfGNy3Ze@ep-wild-grass-a8o37wq8-pooler.eastus2.azure.neon.tech/neondb?sslmode=require
-postgresql://<redacted-neon-url>
-
-# Stack Auth keys
-5771eac7-350a-43b0-9fe2-0ca6a0b8ea17
-<redacted-stack-project-id>
-
-pck_bga2tny5stehdhyay71bj4pmzstfar6gpvh8n63q63c00
-<redacted-stack-client-key>
-
-ssk_0wkry6dwy3z0a8gwhjcxywwzcqzb1nbzp1gknfpn7bh60
-<redacted-stack-server-key>
-
-ssk_sy6z4a4h84hca9mybvf8wzn5td696wjsvydkpbnh52400
-<redacted-stack-server-key>
-
-# JWT/Fernet secrets
-nTDlGluRj39drsQ+IczE7pFw0okljEY/tKsLa+mB3d8=
-<redacted-jwt-secret>
-
-dev-secret-key-change-for-production
-<redacted-secret-key>
-
-dev-32-character-encryption-key
-<redacted-encryption-key>
-
-PiuMdniC0TBtnLTactkEi7TZSpQq_PA_tkg5olwDQbM=
-<redacted-fernet-key>
-
-# OpenAI / Google AI keys from env files and Postman collections
-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
-<redacted-openai-key>
-
-AIzaSyAp13qdjwpFbqi85X2uK5K2exj7tX6I5eE
-<redacted-google-api-key>
-
-# Sample JWT tokens
-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI0MWIxOTMwZC05YzI0LTQwZWItYmE3Ny02YzViNTA4YjNiNDEiLCJleHAiOjE3NTU5NDAxNDgsInR5cGUiOiJhY2Nlc3MiLCJpYXQiOjE3NTU5MzgzNDh9.iAoqj2FrDDW0-ckb6A74I_KKetm87MCH6astHxxk2aI
-<redacted-jwt-token>
-
-eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0QGV4YW1wbGUuY29tIn0.signature
-<redacted-jwt-token>
-
-# Google API references in manifests
-sk-management-framework
-sk-management-framework-redacted
-EOF_REPLACEMENTS
+Then run:
+  SECRETS_REPLACEMENTS_FILE=${REPLACEMENTS_FILE} ALLOW_HISTORY_REWRITE=true scripts/tools/purge_secrets.sh
+MSG
+  exit 1
+fi
 
 echo "🧹 Running git-filter-repo..."
 if command -v git-filter-repo >/dev/null 2>&1; then
@@ -107,7 +64,7 @@ else
   FILTER_REPO="git filter-repo"
 fi
 
-${FILTER_REPO} --force --replace-text "${tmpfile}"
+${FILTER_REPO} --force --replace-text "${REPLACEMENTS_FILE}"
 
 echo "✅ History rewrite complete. Backup ref stored at ${BACKUP_BRANCH}."
 echo "Next steps:"

@@ -7,6 +7,8 @@ Provides mocks for all external APIs to ensure test isolation.
 import pytest
 from unittest.mock import MagicMock, AsyncMock, patch
 import json
+import sys
+import types
 from typing import Dict, Any, Optional
 
 
@@ -506,6 +508,21 @@ def auto_mock_external_services(monkeypatch):
     monkeypatch.setenv("STRIPE_SECRET_KEY", "sk_test_mock")
     monkeypatch.setenv("SENDGRID_API_KEY", "test-key")
     monkeypatch.setenv("SENTRY_DSN", "")  # Disable Sentry in tests
+
+    if "openai" not in sys.modules:
+        openai_stub = types.ModuleType("openai")
+        openai_stub.OpenAI = MagicMock()
+        sys.modules["openai"] = openai_stub
+
+    if "anthropic" not in sys.modules:
+        anthropic_stub = types.ModuleType("anthropic")
+        anthropic_stub.Anthropic = MagicMock()
+        sys.modules["anthropic"] = anthropic_stub
+
+    if "boto3" not in sys.modules:
+        boto3_stub = types.ModuleType("boto3")
+        boto3_stub.client = MagicMock()
+        sys.modules["boto3"] = boto3_stub
 
     # Patch common external service imports
     with patch("openai.OpenAI") as mock_openai:

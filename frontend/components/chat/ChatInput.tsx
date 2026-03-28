@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, KeyboardEvent } from 'react';
+import React, { useEffect, useRef, useState, KeyboardEvent } from 'react';
 import { cn } from '@/lib/utils';
 import { 
   Send, 
@@ -28,6 +28,47 @@ interface ChatInputProps {
   maxLength?: number;
 }
 
+interface BrowserSpeechRecognitionAlternative {
+  transcript: string;
+}
+
+interface BrowserSpeechRecognitionResult {
+  isFinal: boolean;
+  0: BrowserSpeechRecognitionAlternative;
+}
+
+interface SpeechRecognitionEventLike {
+  resultIndex: number;
+  results: ArrayLike<BrowserSpeechRecognitionResult>;
+}
+
+interface SpeechRecognitionErrorEventLike {
+  error: string;
+}
+
+interface BrowserSpeechRecognition {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  onresult: ((event: SpeechRecognitionEventLike) => void) | null;
+  onerror: ((event: SpeechRecognitionErrorEventLike) => void) | null;
+  onend: (() => void) | null;
+  start: () => void;
+  stop: () => void;
+  abort: () => void;
+}
+
+interface SpeechRecognitionConstructor {
+  new (): BrowserSpeechRecognition;
+}
+
+declare global {
+  interface Window {
+    SpeechRecognition?: SpeechRecognitionConstructor;
+    webkitSpeechRecognition?: SpeechRecognitionConstructor;
+  }
+}
+
 export function ChatInput({
   onSendMessage,
   disabled = false,
@@ -37,9 +78,26 @@ export function ChatInput({
   const [message, setMessage] = useState('');
   const [attachments, setAttachments] = useState<File[]>([]);
   const [isRecording, setIsRecording] = useState(false);
+  const [isVoiceSupported, setIsVoiceSupported] = useState(false);
   const [charCount, setCharCount] = useState(0);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const recognitionRef = useRef<BrowserSpeechRecognition | null>(null);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+    setIsVoiceSupported(Boolean(SpeechRecognition));
+
+    return () => {
+      recognitionRef.current?.abort();
+      recognitionRef.current = null;
+    };
+  }, []);
 
   // Auto-resize textarea
   const adjustTextareaHeight = () => {
@@ -60,9 +118,30 @@ export function ChatInput({
     }
   };
 
+  const appendTranscript = (transcript: string) => {
+    const cleanedTranscript = transcript.trim();
+    if (!cleanedTranscript) {
+      return;
+    }
+
+    setMessage((currentMessage) => {
+      const combinedMessage = currentMessage.trim()
+        ? `${currentMessage.trimEnd()} ${cleanedTranscript}`
+        : cleanedTranscript;
+      const nextMessage = combinedMessage.slice(0, maxLength);
+      setCharCount(nextMessage.length);
+      requestAnimationFrame(adjustTextareaHeight);
+      return nextMessage;
+    });
+  };
+
   // Handle send
   const handleSend = () => {
     if (message.trim() || attachments.length > 0) {
+      if (isRecording) {
+        recognitionRef.current?.stop();
+        setIsRecording(false);
+      }
       onSendMessage(message.trim(), attachments);
       setMessage('');
       setAttachments([]);
@@ -104,10 +183,58 @@ export function ChatInput({
     return FileText;
   };
 
-  // Toggle voice recording (placeholder)
+  const getSpeechRecognition = (): SpeechRecognitionConstructor | null => {
+    if (typeof window === 'undefined') {
+      return null;
+    }
+
+    return window.SpeechRecognition || window.webkitSpeechRecognition || null;
+  };
+
+  // Toggle voice recording
   const toggleRecording = () => {
-    setIsRecording(!isRecording);
-    // TODO: Implement actual voice recording
+    if (disabled) {
+      return;
+    }
+
+    if (isRecording) {
+      recognitionRef.current?.stop();
+      setIsRecording(false);
+      return;
+    }
+
+    const SpeechRecognition = getSpeechRecognition();
+    if (!SpeechRecognition) {
+      setIsVoiceSupported(false);
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'en-US';
+
+    recognition.onresult = (event) => {
+      const transcript = Array.from(event.results)
+        .slice(event.resultIndex)
+        .filter((result) => result.isFinal)
+        .map((result) => result[0].transcript)
+        .join(' ');
+
+      appendTranscript(transcript);
+    };
+
+    recognition.onerror = () => {
+      setIsRecording(false);
+    };
+
+    recognition.onend = () => {
+      setIsRecording(false);
+    };
+
+    recognitionRef.current = recognition;
+    recognition.start();
+    setIsRecording(true);
   };
 
   return (
@@ -169,7 +296,7 @@ export function ChatInput({
                     "h-8 w-8",
                     isRecording && "text-red-500"
                   )}
-                  disabled={disabled}
+                  disabled={disabled || !isVoiceSupported}
                   onClick={toggleRecording}
                 >
                   {isRecording ? (
@@ -180,7 +307,11 @@ export function ChatInput({
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                {isRecording ? 'Stop recording' : 'Voice input'}
+                {!isVoiceSupported
+                  ? 'Voice input is not supported in this browser'
+                  : isRecording
+                    ? 'Stop recording'
+                    : 'Voice input'}
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>

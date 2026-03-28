@@ -25,10 +25,8 @@ class BusinessProfileService {
    * Get all business profiles for the current user
    */
   async getBusinessProfiles(): Promise<BusinessProfile[]> {
-    const response = await apiClient.get<any>('/business-profiles');
-    // API client returns parsed JSON directly, not wrapped in .data
-    const profileData = Array.isArray(response) ? response : response.data || [];
-    // Transform each profile from API format to frontend format
+    const response = await apiClient.get<any>('/business-profiles/owned');
+    const profileData = Array.isArray(response?.profiles) ? response.profiles : [];
     return profileData
       .map((profile: any) => BusinessProfileFieldMapper.transformAPIResponseForFrontend(profile))
       .filter(Boolean) as BusinessProfile[];
@@ -101,10 +99,12 @@ class BusinessProfileService {
    */
   async getProfile(): Promise<BusinessProfile | null> {
     try {
-      const profiles = await this.getBusinessProfiles();
-      return profiles.length > 0 ? profiles[0] ?? null : null;
-    } catch (error) {
-
+      const response = await apiClient.get<any>('/business-profiles');
+      return BusinessProfileFieldMapper.transformAPIResponseForFrontend(response);
+    } catch (error: any) {
+      if (error?.status === 404 || error?.response?.status === 404) {
+        return null;
+      }
       throw error;
     }
   }

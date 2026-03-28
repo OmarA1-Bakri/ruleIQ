@@ -162,6 +162,13 @@ def _map_invoice(invoice: Any) -> dict[str, Any]:
     }
 
 
+def _resource_customer_id(resource: Any) -> str | None:
+    customer = resource.get("customer")
+    if isinstance(customer, dict):
+        return customer.get("id")
+    return customer
+
+
 async def _find_or_create_customer(current_user: User) -> Any:
     customers = await _stripe_call(stripe.Customer.list, email=current_user.email, limit=10)
     for customer in customers.get("data", []):
@@ -175,6 +182,42 @@ async def _find_or_create_customer(current_user: User) -> Any:
         metadata={"ruleiq_user_id": str(current_user.id)},
         name=getattr(current_user, "full_name", None) or current_user.email,
     )
+
+
+async def _get_customer_payment_method(customer_id: str, payment_method_id: str) -> Any:
+    try:
+        payment_method = await _stripe_call(stripe.PaymentMethod.retrieve, payment_method_id)
+    except stripe.error.InvalidRequestError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Payment method not found.",
+        ) from exc
+
+    if _resource_customer_id(payment_method) != customer_id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Payment method not found.",
+        )
+
+    return payment_method
+
+
+async def _get_customer_invoice(customer_id: str, invoice_id: str) -> Any:
+    try:
+        invoice = await _stripe_call(stripe.Invoice.retrieve, invoice_id)
+    except stripe.error.InvalidRequestError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Invoice not found.",
+        ) from exc
+
+    if _resource_customer_id(invoice) != customer_id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Invoice not found.",
+        )
+
+    return invoice
 
 
 async def _get_current_subscription(customer_id: str) -> Any | None:
@@ -403,7 +446,8 @@ async def remove_payment_method(
     payment_method_id: str,
     current_user: User = Depends(get_current_active_user),
 ) -> dict[str, str]:
-    _ = current_user
+    customer = await _find_or_create_customer(current_user)
+    await _get_customer_payment_method(customer.get("id"), payment_method_id)
     await _stripe_call(stripe.PaymentMethod.detach, payment_method_id)
     return {"message": "Payment method removed."}
 
@@ -418,12 +462,12 @@ async def set_default_payment_method(
     current_user: User = Depends(get_current_active_user),
 ) -> dict[str, Any]:
     customer = await _find_or_create_customer(current_user)
+    payment_method = await _get_customer_payment_method(customer.get("id"), payment_method_id)
     await _stripe_call(
         stripe.Customer.modify,
         customer.get("id"),
         invoice_settings={"default_payment_method": payment_method_id},
     )
-    payment_method = await _stripe_call(stripe.PaymentMethod.retrieve, payment_method_id)
     return _map_payment_method(payment_method, payment_method_id)
 
 
@@ -452,8 +496,8 @@ async def download_invoice(
     invoice_id: str,
     current_user: User = Depends(get_current_active_user),
 ):
-    _ = current_user
-    invoice = await _stripe_call(stripe.Invoice.retrieve, invoice_id)
+    customer = await _find_or_create_customer(current_user)
+    invoice = await _get_customer_invoice(customer.get("id"), invoice_id)
     destination = invoice.get("invoice_pdf") or invoice.get("hosted_invoice_url")
     if not destination:
         raise HTTPException(

@@ -25,11 +25,38 @@ def event_loop():
 
 
 @pytest.fixture(scope="session", autouse=True)
-def setup_test_environment():
+def setup_test_environment(request):
     """Automatically set up test environment for all tests."""
     # Set test environment variables
     os.environ["TESTING"] = "true"
     os.environ["ENVIRONMENT"] = "testing"
+
+    db_fixture_names = {
+        "db_session",
+        "async_db_session",
+        "clean_db",
+        "sample_user",
+        "sample_business_profile",
+        "authenticated_user",
+        "postgres_connection",
+        "postgres_checkpointer",
+        "redis_client",
+        "mock_redis_client",
+        "test_db_engine",
+        "SessionLocal",
+    }
+    selected_items = getattr(request.session, "items", [])
+    needs_database_setup = any(
+        bool(db_fixture_names.intersection(getattr(item, "fixturenames", ())))
+        or "database" in getattr(item, "keywords", {})
+        or "integration" in getattr(item, "keywords", {})
+        or "requires_db" in getattr(item, "keywords", {})
+        for item in selected_items
+    )
+
+    if not needs_database_setup:
+        yield
+        return
 
     # Setup test database
     success, error = setup_test_database()

@@ -5,6 +5,7 @@ Task 799f27b3: Properly configured test fixtures and mocks.
 
 # Setup test environment before anything else
 import os
+import inspect
 
 # Load .env.test if it exists (for Neon test database configuration)
 from pathlib import Path
@@ -27,10 +28,19 @@ import pytest
 import asyncio
 from typing import Generator, Optional
 from unittest.mock import MagicMock, patch
-import psycopg
-from psycopg.rows import dict_row
-from langgraph.checkpoint.postgres import PostgresSaver
 from contextlib import contextmanager
+
+try:
+    import psycopg
+    from psycopg.rows import dict_row
+except ImportError:  # pragma: no cover - optional in minimal test env
+    psycopg = None
+    dict_row = None
+
+try:
+    from langgraph.checkpoint.postgres import PostgresSaver
+except ImportError:  # pragma: no cover - optional in minimal test env
+    PostgresSaver = None
 
 # Import test database fixtures
 from tests.fixtures.database import (
@@ -148,6 +158,9 @@ def postgres_checkpointer(postgres_test_url):
     - Table creation if needed
     - Cleanup after tests
     """
+    if psycopg is None or PostgresSaver is None or dict_row is None:
+        pytest.skip("PostgreSQL checkpointer dependencies are not installed")
+
     try:
         # Create connection with proper settings for PostgresSaver
         conn = psycopg.connect(
@@ -176,6 +189,9 @@ def postgres_connection(postgres_test_url):
     """
     Provide a raw PostgreSQL connection for tests that need direct DB access.
     """
+    if psycopg is None:
+        pytest.skip("psycopg is not installed")
+
     try:
         conn = psycopg.connect(postgres_test_url)
         yield conn
@@ -243,6 +259,23 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "asyncio: mark test as async")
     config.addinivalue_line("markers", "external: mark test as requiring external services")
     config.addinivalue_line("markers", "unit: mark test as unit test")
+
+
+def pytest_pyfunc_call(pyfuncitem):
+    """Run async test functions even when pytest-asyncio is unavailable."""
+    if pyfuncitem.config.pluginmanager.hasplugin("asyncio"):
+        return None
+
+    testfunction = pyfuncitem.obj
+    if not inspect.iscoroutinefunction(testfunction):
+        return None
+
+    funcargs = {
+        name: pyfuncitem.funcargs[name]
+        for name in pyfuncitem._fixtureinfo.argnames
+    }
+    asyncio.run(testfunction(**funcargs))
+    return True
 
 
 def assert_api_response_security(response):

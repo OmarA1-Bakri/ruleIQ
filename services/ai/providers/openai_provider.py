@@ -203,59 +203,39 @@ class OpenAIProvider(AIProvider):
                 kwargs["max_tokens"] = config.max_tokens
 
             timeout_seconds = config.timeout or 30.0
-            queue: asyncio.Queue[Any] = asyncio.Queue(maxsize=1)
-            sentinel = object()
-            stop_requested = threading.Event()
-            loop = asyncio.get_running_loop()
-            producer_task: asyncio.Task[Any] | None = None
+            stream = client.chat.completions.create(**kwargs)
+            iterator = iter(stream)
 
-            def _producer() -> None:
+            def _next_content_chunk(chunk_iterator: Any) -> tuple[bool, Any]:
                 try:
-                    stream = client.chat.completions.create(**kwargs)
-                    for chunk in stream:
-                        if chunk.choices and chunk.choices[0].delta.content:
-                            if stop_requested.is_set():
-                                return
-                            queue_put_with_backpressure(
-                                queue,
-                                loop,
-                                chunk.choices[0].delta.content,
-                                stop_requested,
-                            )
-                except Exception as exc:
-                    queue_put_with_backpressure(queue, loop, exc, stop_requested)
-                finally:
-                    queue_put_with_backpressure(queue, loop, sentinel, stop_requested)
+                    chunk = next(chunk_iterator)
+                except StopIteration:
+                    return False, None
 
-            try:
-                producer_task = asyncio.create_task(asyncio.to_thread(_producer))
+                if chunk.choices and chunk.choices[0].delta.content:
+                    return True, chunk.choices[0].delta.content
+                return True, None
 
-                while True:
-                    try:
-                        item = await asyncio.wait_for(queue.get(), timeout=timeout_seconds)
-                    except asyncio.TimeoutError:
-                        logger.error(
-                            "OpenAI streaming timed out after %ss (model=%s)",
-                            timeout_seconds,
-                            model_name,
-                        )
-                        raise ProviderTimeoutError(
-                            f"OpenAI streaming timed out after {timeout_seconds}s"
-                        )
+            while True:
+                try:
+                    has_chunk, content = await asyncio.wait_for(
+                        asyncio.to_thread(_next_content_chunk, iterator),
+                        timeout=timeout_seconds,
+                    )
+                except asyncio.TimeoutError:
+                    logger.error(
+                        "OpenAI streaming timed out after %ss (model=%s)",
+                        timeout_seconds,
+                        model_name,
+                    )
+                    raise ProviderTimeoutError(
+                        f"OpenAI streaming timed out after {timeout_seconds}s"
+                    )
 
-                    if item is sentinel:
-                        break
-                    if isinstance(item, Exception):
-                        raise item
-                    yield item
-
-                await asyncio.wait_for(producer_task, timeout=timeout_seconds)
-            finally:
-                stop_requested.set()
-                if producer_task is not None and not producer_task.done():
-                    producer_task.cancel()
-                    with suppress(asyncio.CancelledError, asyncio.TimeoutError, Exception):
-                        await asyncio.wait_for(producer_task, timeout=1.0)
+                if not has_chunk:
+                    break
+                if content:
+                    yield content
 
         except Exception as e:
             if isinstance(e, (ProviderTimeoutError, ProviderUnavailableError, ProviderQuotaError)):

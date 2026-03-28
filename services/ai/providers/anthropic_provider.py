@@ -166,30 +166,21 @@ class AnthropicProvider(AIProvider):
                 kwargs["system"] = config.system_instruction
 
             timeout_seconds = config.timeout or 30.0
-            queue: asyncio.Queue[Any] = asyncio.Queue(maxsize=1)
-            sentinel = object()
-            stop_requested = threading.Event()
-            loop = asyncio.get_running_loop()
-            producer_task: asyncio.Task[Any] | None = None
+            with client.messages.stream(**kwargs) as stream:
+                iterator = iter(stream.text_stream)
 
-            def _producer() -> None:
-                try:
-                    with client.messages.stream(**kwargs) as stream:
-                        for text in stream.text_stream:
-                            if stop_requested.is_set():
-                                return
-                            queue_put_with_backpressure(queue, loop, text, stop_requested)
-                except Exception as exc:
-                    queue_put_with_backpressure(queue, loop, exc, stop_requested)
-                finally:
-                    queue_put_with_backpressure(queue, loop, sentinel, stop_requested)
-
-            try:
-                producer_task = asyncio.create_task(asyncio.to_thread(_producer))
+                def _next_text_chunk(text_iterator: Any) -> tuple[bool, Any]:
+                    try:
+                        return True, next(text_iterator)
+                    except StopIteration:
+                        return False, None
 
                 while True:
                     try:
-                        item = await asyncio.wait_for(queue.get(), timeout=timeout_seconds)
+                        has_chunk, text = await asyncio.wait_for(
+                            asyncio.to_thread(_next_text_chunk, iterator),
+                            timeout=timeout_seconds,
+                        )
                     except asyncio.TimeoutError:
                         logger.error(
                             "Anthropic streaming timed out after %ss (model=%s)",
@@ -200,20 +191,10 @@ class AnthropicProvider(AIProvider):
                             f"Anthropic streaming timed out after {timeout_seconds}s"
                         )
 
-                    if item is sentinel:
+                    if not has_chunk:
                         break
-                    if isinstance(item, Exception):
-                        raise item
-
-                    yield item
-
-                await asyncio.wait_for(producer_task, timeout=timeout_seconds)
-            finally:
-                stop_requested.set()
-                if producer_task is not None and not producer_task.done():
-                    producer_task.cancel()
-                    with suppress(asyncio.CancelledError, asyncio.TimeoutError, Exception):
-                        await asyncio.wait_for(producer_task, timeout=1.0)
+                    if text:
+                        yield text
 
         except Exception as e:
             if isinstance(e, (ProviderTimeoutError, ProviderUnavailableError, ProviderQuotaError)):

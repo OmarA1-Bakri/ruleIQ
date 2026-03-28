@@ -725,20 +725,22 @@ class TestRateLimitingSecurityRegression:
         tier = rate_limiter.get_user_tier(mock_request)
         assert tier == UserTier.ADMIN
 
-    def test_rate_limit_enforcement(self, rate_limiter, mock_request):
+    @pytest.mark.asyncio
+    async def test_rate_limit_enforcement(self, rate_limiter, mock_request):
         """Test rate limit enforcement."""
         mock_request.url.path = "/api/test"
 
         # Should allow requests within limit
         for _i in range(5):  # Under anonymous limit of 10
-            allowed, info = rate_limiter.check_rate_limit(mock_request)
+            allowed, info = await rate_limiter.check_rate_limit(mock_request)
             assert allowed is True
             assert info["remaining"] > 0
 
         # Should block when limit exceeded
         # Note: This test may be timing-dependent in real Redis
 
-    def test_admin_bypass_rate_limiting(self, rate_limiter, mock_request):
+    @pytest.mark.asyncio
+    async def test_admin_bypass_rate_limiting(self, rate_limiter, mock_request):
         """Test that admins bypass rate limiting."""
         mock_request.url.path = "/api/test"
 
@@ -748,7 +750,7 @@ class TestRateLimitingSecurityRegression:
         mock_request.state.user = mock_user
 
         # Should bypass rate limiting
-        allowed, info = rate_limiter.check_rate_limit(mock_request)
+        allowed, info = await rate_limiter.check_rate_limit(mock_request)
         assert allowed is True
         assert info.get("bypassed") is True
 
@@ -932,7 +934,8 @@ class TestVulnerabilityRegression:
         # Should restrict frame ancestors
         assert csp["frame-src"] == ["'none'"]
 
-    def test_rate_limit_dos_prevention(self):
+    @pytest.mark.asyncio
+    async def test_rate_limit_dos_prevention(self):
         """Test that rate limiting prevents DoS attacks."""
         from middleware.rate_limiter import RateLimiter
 
@@ -955,7 +958,8 @@ class TestVulnerabilityRegression:
         assert limits["requests"] > 0
         assert limits["window"] > 0
 
-    def test_session_fixation_prevention(self):
+    @pytest.mark.asyncio
+    async def test_session_fixation_prevention(self):
         """Test prevention of session fixation attacks."""
         # Session fixation involves forcing a user to use a known session ID
         # Our implementation should generate new session IDs on login
@@ -965,18 +969,18 @@ class TestVulnerabilityRegression:
         # Create a session
         user_id = uuid4()
         token = "original-token"
-        session_id = session_manager.create_session(user_id, token)
+        session_id = await session_manager.create_session(user_id, token)
 
         # On "login", a new session should be created
         # This prevents session fixation
         new_token = "new-token-after-login"
-        new_session_id = session_manager.create_session(user_id, new_token)
+        new_session_id = await session_manager.create_session(user_id, new_token)
 
         # Should be different sessions
         assert new_session_id != session_id
 
         # Original session should still exist (until invalidated)
-        original_session = session_manager.get_session(session_id)
+        original_session = await session_manager.get_session(session_id)
         assert original_session is not None
 
     def test_clickjacking_prevention(self):

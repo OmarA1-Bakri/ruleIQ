@@ -10,9 +10,20 @@ import os
 import sys
 from unittest.mock import patch, MagicMock
 from contextlib import contextmanager
-import psycopg2
-import psycopg
-import redis
+try:
+    import psycopg2
+except ImportError:  # pragma: no cover - optional in minimal test env
+    psycopg2 = None
+
+try:
+    import psycopg
+except ImportError:  # pragma: no cover - optional in minimal test env
+    psycopg = None
+
+try:
+    import redis
+except ImportError:  # pragma: no cover - optional in minimal test env
+    redis = None
 from sqlalchemy import create_engine
 from urllib.parse import urlparse, urlunparse
 
@@ -51,32 +62,16 @@ class ServiceProxy:
     def patch_postgres_connections(self):
         """Patch all PostgreSQL connection methods to use test database."""
         test_url = self.get_test_postgres_url()
-        original_psycopg2_connect = psycopg2.connect
+        if psycopg2 is not None:
+            original_psycopg2_connect = psycopg2.connect
 
-        def psycopg2_connect_wrapper(*args, **kwargs):
-            # Remove conflicting parameters
-            if "dsn" in kwargs:
-                del kwargs["dsn"]
-            if "database" in kwargs:
-                del kwargs["database"]
-            # Set test database parameters using dbname (psycopg2 standard)
-            kwargs.update(
-                {
-                    "host": self.test_config["postgres"]["host"],
-                    "port": self.test_config["postgres"]["port"],
-                    "dbname": self.test_config["postgres"]["database"],
-                    "user": self.test_config["postgres"]["user"],
-                    "password": self.test_config["postgres"]["password"],
-                }
-            )
-            return original_psycopg2_connect(*args, **kwargs)
-
-        original_psycopg_connect = psycopg.connect
-
-        def psycopg_connect_wrapper(*args, **kwargs):
-            if args and isinstance(args[0], str):
-                args = (test_url,) + args[1:]
-            else:
+            def psycopg2_connect_wrapper(*args, **kwargs):
+                # Remove conflicting parameters
+                if "dsn" in kwargs:
+                    del kwargs["dsn"]
+                if "database" in kwargs:
+                    del kwargs["database"]
+                # Set test database parameters using dbname (psycopg2 standard)
                 kwargs.update(
                     {
                         "host": self.test_config["postgres"]["host"],
@@ -86,7 +81,31 @@ class ServiceProxy:
                         "password": self.test_config["postgres"]["password"],
                     }
                 )
-            return original_psycopg_connect(*args, **kwargs)
+                return original_psycopg2_connect(*args, **kwargs)
+
+            psycopg2.connect = psycopg2_connect_wrapper
+
+        if psycopg is not None:
+            original_psycopg_connect = psycopg.connect
+
+            def psycopg_connect_wrapper(*args, **kwargs):
+                if args and isinstance(args[0], str):
+                    args = (test_url,) + args[1:]
+                else:
+                    kwargs.pop("dsn", None)
+                    kwargs.pop("database", None)
+                    kwargs.update(
+                        {
+                            "host": self.test_config["postgres"]["host"],
+                            "port": self.test_config["postgres"]["port"],
+                            "dbname": self.test_config["postgres"]["database"],
+                            "user": self.test_config["postgres"]["user"],
+                            "password": self.test_config["postgres"]["password"],
+                        }
+                    )
+                return original_psycopg_connect(*args, **kwargs)
+
+            psycopg.connect = psycopg_connect_wrapper
 
         original_create_engine = create_engine
 
@@ -95,14 +114,15 @@ class ServiceProxy:
                 url = test_url
             return original_create_engine(url, *args, **kwargs)
 
-        psycopg2.connect = psycopg2_connect_wrapper
-        psycopg.connect = psycopg_connect_wrapper
         import sqlalchemy
 
         sqlalchemy.create_engine = create_engine_wrapper
 
     def patch_redis_connections(self):
         """Patch all Redis connection methods to use test Redis."""
+        if redis is None:
+            return
+
         cfg = self.test_config["redis"]
         original_redis_init = redis.Redis.__init__
 
@@ -190,6 +210,9 @@ class ServiceProxy:
 
     def _patch_cache_module(self):
         """Patch cache modules to use test Redis."""
+        if redis is None:
+            return
+
         try:
             import config.cache
 

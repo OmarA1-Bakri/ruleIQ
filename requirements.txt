@@ -20,6 +20,8 @@ openai==1.91.0
 langchain==0.3.26
 langchain-openai==0.2.14
 langchain-community==0.3.27
+langgraph==0.3.34
+langgraph-checkpoint-postgres==2.0.25
 chromadb==0.4.22
 pinecone-client==5.0.1
 stripe==8.1.0

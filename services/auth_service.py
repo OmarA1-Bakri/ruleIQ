@@ -11,6 +11,7 @@ from typing import Dict, List, Optional
 from uuid import UUID, uuid4
 
 import redis.asyncio as redis
+from redis.exceptions import RedisError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
@@ -41,7 +42,7 @@ class SessionManager:
                 # Test the connection
                 await self._redis_client.ping()
                 self._redis_available = True
-            except (ValueError, TypeError):
+            except (RedisError, OSError, ValueError, TypeError):
                 self._redis_available = False
                 self._redis_client = None
                 return None
@@ -75,7 +76,7 @@ class SessionManager:
                 await redis_client.sadd(f"user_sessions:{user_id}", session_id)
                 await redis_client.expire(f"user_sessions:{user_id}", 30 * 24 * 60 * 60)
                 return session_id
-            except json.JSONDecodeError:
+            except (RedisError, OSError, json.JSONDecodeError):
                 # Fall back to in-memory
                 pass
 
@@ -92,7 +93,7 @@ class SessionManager:
                 session_data = await redis_client.get(f"session:{session_id}")
                 if session_data:
                     return json.loads(session_data)
-            except (json.JSONDecodeError, requests.RequestException):
+            except (RedisError, OSError, json.JSONDecodeError, requests.RequestException):
                 pass
 
         # Fallback to in-memory
@@ -116,7 +117,7 @@ class SessionManager:
                     json.dumps(session_data),
                 )
                 return True
-            except json.JSONDecodeError:
+            except (RedisError, OSError, json.JSONDecodeError):
                 pass
 
         # Fallback to in-memory
@@ -139,7 +140,7 @@ class SessionManager:
                 if user_id:
                     await redis_client.srem(f"user_sessions:{user_id}", session_id)
                 return True
-            except (ValueError, TypeError):
+            except (RedisError, OSError, ValueError, TypeError):
                 pass
 
         # Fallback to in-memory
@@ -154,7 +155,7 @@ class SessionManager:
             try:
                 sessions = await redis_client.smembers(f"user_sessions:{user_id}")
                 return list(sessions)
-            except (ValueError, TypeError):
+            except (RedisError, OSError, ValueError, TypeError):
                 pass
 
         # Fallback to in-memory

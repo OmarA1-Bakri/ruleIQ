@@ -42,11 +42,18 @@ if "google.genai.types" not in sys.modules:
         HARM_CATEGORY_DANGEROUS_CONTENT = "HARM_CATEGORY_DANGEROUS_CONTENT"
 
     class _HarmBlockThreshold:
+        BLOCK_LOW_AND_ABOVE = "BLOCK_LOW_AND_ABOVE"
         BLOCK_ONLY_HIGH = "BLOCK_ONLY_HIGH"
         BLOCK_MEDIUM_AND_ABOVE = "BLOCK_MEDIUM_AND_ABOVE"
 
+    class _CreateCachedContentConfig:
+        def __init__(self, **kwargs):
+            for key, value in kwargs.items():
+                setattr(self, key, value)
+
     genai_types_stub.HarmCategory = _HarmCategory
     genai_types_stub.HarmBlockThreshold = _HarmBlockThreshold
+    genai_types_stub.CreateCachedContentConfig = _CreateCachedContentConfig
     sys.modules["google.genai.types"] = genai_types_stub
 
 from services.ai.providers.anthropic_provider import AnthropicProvider

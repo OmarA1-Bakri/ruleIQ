@@ -217,65 +217,44 @@ class GeminiProvider(AIProvider):
 
             safety_settings = config.safety_settings or self.safety_settings
             timeout_seconds = config.timeout or 30.0
+            response = self.model.generate_content(
+                prompt,
+                safety_settings=safety_settings,
+                generation_config=generation_config,
+                stream=True,
+            )
+            iterator = iter(response)
 
-            queue: asyncio.Queue[Any] = asyncio.Queue(maxsize=1)
-            sentinel = object()
-            stop_requested = threading.Event()
-            loop = asyncio.get_running_loop()
-            producer_task: asyncio.Task[Any] | None = None
-
-            def _producer() -> None:
+            def _next_text_chunk(chunk_iterator: Any) -> tuple[bool, Any]:
                 try:
-                    response = self.model.generate_content(
-                        prompt,
-                        safety_settings=safety_settings,
-                        generation_config=generation_config,
-                        stream=True,
+                    chunk = next(chunk_iterator)
+                except StopIteration:
+                    return False, None
+
+                if hasattr(chunk, "text") and chunk.text:
+                    return True, chunk.text
+                return True, None
+
+            while True:
+                try:
+                    has_chunk, text = await asyncio.wait_for(
+                        asyncio.to_thread(_next_text_chunk, iterator),
+                        timeout=timeout_seconds,
                     )
-                    for chunk in response:
-                        if hasattr(chunk, "text") and chunk.text:
-                            if stop_requested.is_set():
-                                return
-                            queue_put_with_backpressure(
-                                queue,
-                                loop,
-                                chunk.text,
-                                stop_requested,
-                            )
-                except Exception as exc:
-                    queue_put_with_backpressure(queue, loop, exc, stop_requested)
-                finally:
-                    queue_put_with_backpressure(queue, loop, sentinel, stop_requested)
+                except asyncio.TimeoutError:
+                    logger.error(
+                        "Gemini streaming timed out after %ss (model=%s)",
+                        timeout_seconds,
+                        model_name,
+                    )
+                    raise ProviderTimeoutError(
+                        f"Gemini streaming timed out after {timeout_seconds}s"
+                    )
 
-            try:
-                producer_task = asyncio.create_task(asyncio.to_thread(_producer))
-
-                while True:
-                    try:
-                        item = await asyncio.wait_for(queue.get(), timeout=timeout_seconds)
-                    except asyncio.TimeoutError:
-                        logger.error(
-                            "Gemini streaming timed out after %ss (model=%s)",
-                            timeout_seconds,
-                            model_name,
-                        )
-                        raise ProviderTimeoutError(
-                            f"Gemini streaming timed out after {timeout_seconds}s"
-                        )
-
-                    if item is sentinel:
-                        break
-                    if isinstance(item, Exception):
-                        raise item
-                    yield item
-
-                await asyncio.wait_for(producer_task, timeout=timeout_seconds)
-            finally:
-                stop_requested.set()
-                if producer_task is not None and not producer_task.done():
-                    producer_task.cancel()
-                    with suppress(asyncio.CancelledError, asyncio.TimeoutError, Exception):
-                        await asyncio.wait_for(producer_task, timeout=1.0)
+                if not has_chunk:
+                    break
+                if text:
+                    yield text
 
         except Exception as e:
             if isinstance(e, (ProviderTimeoutError, ProviderUnavailableError, ProviderQuotaError)):

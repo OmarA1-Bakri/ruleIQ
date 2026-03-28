@@ -46,7 +46,7 @@ class FieldValidator:
     )
 
     # Safe string pattern (alphanumeric, spaces, basic punctuation only)
-    SAFE_STRING_PATTERN = re.compile(r'^[a-zA-Z0-9\s\-_.,!?()[\]{}:;"\']+$')
+    SAFE_STRING_PATTERN = re.compile(r'^[a-zA-Z0-9\s@:/&%+=#\-_.,!?()[\]{};"\']+$')
 
     @staticmethod
     def validate_string(
@@ -70,6 +70,10 @@ class FieldValidator:
 
         # Check empty string
         if not value and not allow_empty:
+            if min_length > 0:
+                raise ValidationError(
+                    f"String must be at least {min_length} characters long",
+                )
             raise ValidationError("String value cannot be empty")
 
         # Check length
@@ -81,6 +85,9 @@ class FieldValidator:
             raise ValidationError(
                 f"String must be at most {max_length} characters long",
             )
+
+        if SecurityValidator.scan_for_dangerous_patterns(value):
+            raise ValidationError("String contains potentially dangerous content")
 
         # Check for potentially dangerous characters
         if not FieldValidator.SAFE_STRING_PATTERN.match(value):
@@ -546,12 +553,24 @@ class SecurityValidator:
         r"system\s*\(",  # System calls
         r"__.*__",  # Python private attributes
         r"\.\./",  # Path traversal
+        r"\.\.\\",  # Windows path traversal
         r"\.\.//",  # Path traversal
+        r"'\s*(?:or|and)\s*'.*=\s*'?.+",  # SQL injection auth bypass
+        r"'\s*--",  # SQL comment truncation
+        r";\s*select\b",  # Statement stacking select
+        r";\s*drop\s+table",  # SQL injection drop table
         r"union\s+select",  # SQL injection
         r"drop\s+table",  # SQL injection
         r"delete\s+from",  # SQL injection
         r"insert\s+into",  # SQL injection
         r"update\s+.*\s+set",  # SQL injection,
+        r";\s*rm\s+-rf",  # Command injection
+        r"\|\s*cat\s+",  # Command injection
+        r"`[^`]+`",  # Command injection backticks
+        r"\$\([^)]*\)",  # Command substitution
+        r"&&\s*\w+",  # Shell chaining
+        r"\{\{.*\}\}",  # Template injection
+        r"\$\{.*\}",  # Expression injection
     ]
 
     @staticmethod

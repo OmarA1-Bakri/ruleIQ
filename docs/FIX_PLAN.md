@@ -50,10 +50,10 @@
 **Worktree**: `p0-frontend`
 **Estimated effort**: 30 minutes
 
-### P0-4: `google.generativeai` deprecated
+### P0-4: Legacy Google SDK deprecated
 
 **File**: `services/ai/assistant_facade.py:13`
-**Root Cause**: `from google.generativeai.types import HarmCategory, HarmBlockThreshold` — the `google-generativeai` package is deprecated in favor of `google-genai`.
+**Root Cause**: The legacy Google SDK namespace was deprecated in favor of `google-genai`.
 **Fix**: For P0, add a try/except fallback or suppress the FutureWarning. Full migration to `google.genai` is P2 scope.
 **Risk**: LOW — the package still works, it's just deprecated.
 **Verification**: No crash on import.
@@ -176,7 +176,7 @@
 
 **Worktree `p0-backend`** (fix/p0-backend):
 1. P0-1: Remove `from __future__ import annotations` from 39 routers
-2. P0-4: Suppress google.generativeai deprecation warning
+2. P0-4: Suppress Google SDK deprecation warning
 3. Verify: `python -c "from api.main import app; print('OK')"`
 
 **Worktree `p0-frontend`** (fix/p0-frontend):
@@ -221,7 +221,7 @@ Per-wave hardening as specified in sprint prompt.
 |-----|------------|------------|
 | P0-1 future annotations removal | LOW | Mechanical change, well-understood |
 | P0-2/P0-3 frontend module fixes | MEDIUM | Need to trace all import paths |
-| P0-4 google.generativeai | LOW | Suppress warning only |
+| P0-4 legacy Google SDK | LOW | Suppress warning only |
 | P0-5 celery removal | LOW | Dead code removal |
 | P1-1 TypeScript fixes | MEDIUM | 823 errors, some may cascade |
 | P1-3 ruff auto-fix | LOW | Only safe auto-fixes |

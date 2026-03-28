@@ -4,8 +4,10 @@ Base AI Provider Classes
 Defines the abstract base class and data structures for AI providers.
 """
 
+import asyncio
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field, asdict
+from concurrent.futures import TimeoutError as FutureTimeoutError
+from dataclasses import asdict, dataclass, field
 from typing import Any, AsyncIterator, Dict, List, Optional
 
 
@@ -150,3 +152,29 @@ class AIProvider(ABC):
         """
         # Override in subclasses for provider-specific pricing
         return 0.0
+
+
+def queue_put_with_backpressure(
+    queue: asyncio.Queue[Any],
+    loop: asyncio.AbstractEventLoop,
+    item: Any,
+    stop_requested: Any,
+    timeout_seconds: float = 0.1,
+) -> None:
+    """
+    Put an item onto an async queue from a worker thread with backpressure.
+
+    This blocks the producer until the consumer has room, which prevents a fast
+    producer from buffering an entire streamed response before the caller can
+    consume the first chunk.
+    """
+    future = asyncio.run_coroutine_threadsafe(queue.put(item), loop)
+
+    while True:
+        try:
+            future.result(timeout=timeout_seconds)
+            return
+        except FutureTimeoutError:
+            if stop_requested.is_set():
+                future.cancel()
+                return

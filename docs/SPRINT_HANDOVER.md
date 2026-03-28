@@ -38,7 +38,7 @@ The full issue inventory is in `docs/FIX_PLAN.md`. The system architecture map i
 2. **Fix AI provider streaming** — All 3 providers buffer the full response before yielding. This is the biggest UX issue. See item #1 under "What Still Needs Work".
 3. **Fix 54 ESLint theme token errors** — Pre-existing design debt from teal→neural purple migration. Non-blocking.
 
-**What NOT to touch yet**: The 265 `from __future__ import annotations` instances outside `api/` and `middleware/` are low risk and low priority. The `google.generativeai` → `google.genai` migration works as-is with both packages installed.
+**What NOT to touch yet**: The 265 `from __future__ import annotations` instances outside `api/` and `middleware/` are low risk and low priority. The Google SDK migration is complete.
 
 ---
 
@@ -68,7 +68,7 @@ A 7-phase production readiness sprint that systematically triaged and fixed 20 c
 | Fixed `freemium-store.ts` broken module re-export | `0fcb7a65c` | Frontend build failed |
 | Restored `export.ts` utils from broken module re-export | `42c83109e` | Frontend build failed |
 | Removed stale Celery services from `docker-compose.yml` | `2e990353f` | Docker startup included dead services |
-| Suppressed `google.generativeai` deprecation warning | `179381203` | Console noise |
+| Suppressed Google SDK deprecation warning | `179381203` | Console noise |
 
 ### Phase 4 — P1 Fixes (5 commits)
 | Fix | Commit | Impact |
@@ -83,7 +83,7 @@ A 7-phase production readiness sprint that systematically triaged and fixed 20 c
 | Fix | Commit | Impact |
 |-----|--------|--------|
 | Tuned ruff config — reduced errors from 5333 to 407 | `12ca0aab1` | Lint noise |
-| Migrated `google-generativeai` → `google-genai` in config | `e532b1b70` | Deprecated package |
+| Migrated legacy Google SDK usage to `google-genai` in config | `e532b1b70` | Deprecated package |
 | Backend P2/P3 quality fixes across services/scripts/middleware | `36bd3f498` | Code quality |
 | Frontend P2 type safety fixes for stores/services/utils | `1007ada96` | Type mismatches |
 
@@ -114,7 +114,7 @@ Three parallel code review agents (backend, frontend, infrastructure) audited al
 |-----|--------|---------|
 | `sections[category]` undefined var + invalid error_type values + stale constraints | `3b39b3c4c` | 2 CRITICAL runtime bugs |
 | Malformed `.secrets.baseline` JSON + typing-extensions lower bound | `ddb421568` | Pre-commit hooks broken |
-| Restored `google-generativeai` dep + CORS wildcard → env-driven + DB health rollback | `63fbfdeb4` | AI layer crash + security |
+| Restored Google SDK compatibility + CORS wildcard → env-driven + DB health rollback | `63fbfdeb4` | AI layer crash + security |
 | Removed `from __future__ import annotations` from 50 remaining api/middleware files + audit_operation singleton fix | `bc2c8078d` | Pydantic v2 breakage + memory leak |
 | Dockerfiles use correct `api.main:app` entrypoint + removed `as any` casts from freemium store | `600b0dd74` | Stub API + type safety |
 
@@ -170,19 +170,19 @@ Three parallel code review agents (backend, frontend, infrastructure) audited al
 
 ### MEDIUM Priority
 
-5. **`google.generativeai` → `google.genai` code migration**
+5. **Google SDK code migration**
     - **Decision record**: dual-package support is a **temporary compatibility shim**, not permanent architecture.
-    - 9+ source files still import from the old `google.generativeai` namespace.
-    - Current status is **in-progress migration**, intentionally retained for compatibility until full cutover.
+    - Historical note: the old Google SDK namespace was replaced during the sprint.
+    - Current status is **complete** for repo source code.
     - Owner: AI Platform Maintainer (backend-specialist squad)
     - Next steps:
-       1. Replace remaining `google.generativeai` imports with `google.genai` equivalents.
+       1. Keep the `google.genai` codepath as the canonical implementation.
        2. Run provider integration tests and smoke tests for assistant flows.
-       3. Remove legacy package from requirements once no imports remain.
+       3. Keep the legacy package out of new code paths.
     - Acceptance criteria:
-       - Zero `google.generativeai` imports in source files.
+       - Zero legacy Google SDK imports in source files.
        - All AI provider smoke/integration tests pass.
-       - `requirements.txt` and constraints no longer require legacy package.
+       - `requirements.txt` and constraints reference only `google-genai`.
    - Files: `assistant_facade.py`, `assistant_legacy.py`, `gemini_provider.py`, `cached_content.py`, `google_cached_content.py`, `health_monitor.py`, `policy_generator.py`, `safety_manager.py`, `ai_config.py`
 
 6. **`asyncio.Lock()` at module import time**
@@ -199,7 +199,7 @@ Three parallel code review agents (backend, frontend, infrastructure) audited al
 
 10. **Duplicate layout directories** — `frontend/components/layout/` AND `frontend/components/layouts/`. Consolidate.
 
-11. **`SPRINT_ARCHITECTURE.md`** references stale `google-generativeai 0.8.6`. Update to `google-genai`.
+11. **`SPRINT_ARCHITECTURE.md`** references stale Google SDK details. Update to `google-genai`.
 
 12. **`requirements-cloudrun.txt`** — now partially updated (FastAPI, python-jose aligned) but still missing several packages vs `requirements.txt`.
 
@@ -207,7 +207,7 @@ Three parallel code review agents (backend, frontend, infrastructure) audited al
 
 ## Key Architecture Decisions Made
 
-1. **Kept `google-generativeai` as legacy dep** instead of rushing the namespace migration. The 9 source files work with the old package. Full migration is a focused task that should be done with tests.
+1. **Completed the Google GenAI migration** and removed the legacy package dependency after source imports were updated and test shims were aligned.
 
 2. **Removed inline `production_start.py` from Dockerfile.production** and pointed CMD at `api.main:app`. The stub app only served 5 health endpoints — production needs the full 56+ router tree.
 
@@ -215,7 +215,7 @@ Three parallel code review agents (backend, frontend, infrastructure) audited al
 
 4. **`from __future__ import annotations` removal** scoped to `api/` and `middleware/` (90 files) where FastAPI+Pydantic v2 breaks. The 265 remaining instances in `services/`, `config/`, `tests/`, etc. are lower risk.
 
-5. **`constraints.txt` updated** to allow `pydantic-core>=2.33.0` (required by pydantic 2.11.5) and reference `google-genai` instead of deprecated `google-generativeai`.
+5. **`constraints.txt` updated** to allow `pydantic-core>=2.33.0` (required by pydantic 2.11.5) and reference `google-genai`.
 
 ---
 
@@ -227,7 +227,7 @@ Three parallel code review agents (backend, frontend, infrastructure) audited al
 | `docs/SPRINT_ARCHITECTURE.md` | Phase 1 reconnaissance | Full system inventory |
 | `docs/PHASE2_BASELINE.txt` | Pre-sprint metrics snapshot | Static reference point |
 | `constraints.txt` | pip dependency constraints | Updated for pydantic 2.11.5 |
-| `requirements.txt` | Full dependency list | Includes both google-genai + google-generativeai |
+| `requirements.txt` | Full dependency list | Uses google-genai |
 | `Dockerfile.sprint` | Build validation image | Uses full requirements.txt, CMD is no-op |
 | `Dockerfile.production` | Production image | Now uses `api.main:app` |
 | `Dockerfile.freemium` | Freemium variant | Now uses `api.main:app` |

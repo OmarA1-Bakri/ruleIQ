@@ -355,14 +355,10 @@ class TestCachedContentEndToEnd:
         }
 
     @pytest.mark.asyncio
-    @patch("google.generativeai.caching.CachedContent.create")
     async def test_assessment_analysis_with_cached_content(
-        self, mock_create, assistant_with_cache, mock_business_profile
+        self, assistant_with_cache, mock_business_profile
     ):
         """Test assessment analysis uses cached content when available."""
-        mock_cached_content = Mock()
-        mock_cached_content.name = "test_assessment_cache"
-        mock_create.return_value = mock_cached_content
         mock_result = {
             "gaps": [],
             "recommendations": [],

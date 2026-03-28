@@ -34,5 +34,4 @@ aiosmtplib==3.0.1
 pyyaml==6.0.2
 typing-extensions>=4.12.2,<5
 google-genai>=1.63.0
-google-generativeai>=0.8.0  # LEGACY: still imported by 9+ source files; remove after full google.genai migration
 email-validator>=2.1.0  # Required by Pydantic EmailStr

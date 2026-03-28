@@ -93,6 +93,89 @@ class TestPaymentRouterOwnership:
         assert stripe_call.await_count == 1
 
 
+class TestPaymentRouterCoreFlows:
+    @pytest.mark.asyncio
+    async def test_create_checkout_session_appends_session_placeholder(self, monkeypatch):
+        user = _make_user()
+        monkeypatch.setenv("STRIPE_PROFESSIONAL_PRICE_ID", "price_pro")
+        payload = payment.CheckoutSessionRequest(
+            plan_id="professional",
+            success_url="https://example.com/success",
+            cancel_url="https://example.com/cancel",
+            trial_days=14,
+        )
+
+        with (
+            patch.object(payment, "_require_stripe_config", return_value=None),
+            patch.object(
+                payment,
+                "_find_or_create_customer",
+                AsyncMock(return_value={"id": "cus_owner"}),
+            ),
+            patch.object(
+                payment,
+                "_stripe_call",
+                AsyncMock(return_value={"id": "cs_test", "url": "https://checkout.example"}),
+            ) as stripe_call,
+        ):
+            result = await payment.create_checkout_session(payload, current_user=user)
+
+        assert result == {"session_id": "cs_test", "url": "https://checkout.example"}
+        assert stripe_call.await_count == 1
+        assert stripe_call.await_args.kwargs["success_url"] == (
+            "https://example.com/success?session_id={CHECKOUT_SESSION_ID}"
+        )
+        assert stripe_call.await_args.kwargs["line_items"] == [{"price": "price_pro", "quantity": 1}]
+        assert stripe_call.await_args.kwargs["subscription_data"] == {
+            "trial_period_days": 14,
+            "metadata": {"ruleiq_user_id": str(user.id), "plan_id": "professional"},
+        }
+
+    @pytest.mark.asyncio
+    async def test_get_subscription_limits_uses_enterprise_capacities(self, monkeypatch):
+        user = _make_user()
+        monkeypatch.setenv("STRIPE_ENTERPRISE_PRICE_ID", "price_enterprise")
+
+        current_subscription = {
+            "id": "sub_123",
+            "status": "active",
+            "cancel_at_period_end": False,
+            "items": {"data": [{"price": {"id": "price_enterprise"}}]},
+        }
+        framework = SimpleNamespace(id=uuid4())
+        framework_result = SimpleNamespace(
+            scalars=lambda: SimpleNamespace(first=lambda: framework),
+        )
+        db = SimpleNamespace(execute=AsyncMock(return_value=framework_result))
+
+        with (
+            patch.object(
+                payment,
+                "_find_or_create_customer",
+                AsyncMock(return_value={"id": "cus_owner"}),
+            ),
+            patch.object(
+                payment,
+                "_get_current_subscription",
+                AsyncMock(return_value=current_subscription),
+            ),
+            patch.object(
+                payment,
+                "_count_subscription_usage",
+                AsyncMock(return_value={"business_profiles": 2, "frameworks": 4, "users": 1}),
+            ),
+        ):
+            result = await payment.get_subscription_limits(current_user=user, db=db)
+
+        assert result["plan_id"] == "enterprise"
+        assert result["limits"] == {
+            "business_profiles": {"current": 2, "max": 999999},
+            "frameworks": {"current": 4, "max": 999999},
+            "users": {"current": 1, "max": 999999},
+        }
+        assert result["can_upgrade"] is False
+
+
 class TestReportStoreAnalytics:
     def test_build_analytics_filters_by_day_window(self):
         store = object.__new__(ReportStore)

@@ -803,55 +803,62 @@ class TestAuditLoggingSecurityRegression:
         """Create audit logger for testing."""
         return AuditLogger()
 
-    def test_security_event_logging(self, audit_logger):
+    @pytest.mark.asyncio
+    async def test_security_event_logging(self, audit_logger):
         """Test that security events are logged."""
-        # Log a security event
-        audit_logger.log_event(
-            event_type="AUTH_FAILED",
-            user_id="test-user",
-            action="LOGIN",
-            result="DENIED",
-            details={"reason": "invalid_credentials"},
-        )
+        try:
+            await audit_logger.log_event(
+                event_type="AUTH_FAILED",
+                user_id="test-user",
+                action="LOGIN",
+                result="DENIED",
+                details={"reason": "invalid_credentials"},
+            )
 
-        # Should be in buffer
-        assert len(audit_logger.buffer) > 0
-        event = audit_logger.buffer[-1]
-        assert event["event_type"] == "AUTH_FAILED"
-        assert event["user_id"] == "test-user"
+            assert len(audit_logger.buffer) > 0
+            event = audit_logger.buffer[-1]
+            assert event["event_type"] == "AUTH_FAILED"
+            assert event["user_id"] == "test-user"
+        finally:
+            await audit_logger.shutdown()
 
-    def test_sensitive_data_redaction(self, audit_logger):
+    @pytest.mark.asyncio
+    async def test_sensitive_data_redaction(self, audit_logger):
         """Test that sensitive data is redacted in logs."""
-        sensitive_details = {
-            "password": "secret123",
-            "token": "jwt-token-here",
-            "api_key": "sk-123456789",
-            "safe_field": "this is safe",
-        }
+        try:
+            sensitive_details = {
+                "password": "secret123",
+                "token": "jwt-token-here",
+                "api_key": "sk-123456789",
+                "safe_field": "this is safe",
+            }
 
-        audit_logger.log_event(event_type="TEST_EVENT", details=sensitive_details)
+            await audit_logger.log_event(event_type="TEST_EVENT", details=sensitive_details)
 
-        event = audit_logger.buffer[-1]
-        redacted_details = event["details"]
+            event = audit_logger.buffer[-1]
+            redacted_details = event["details"]
 
-        # Sensitive fields should be redacted
-        assert redacted_details["password"] == "***REDACTED***"
-        assert redacted_details["token"] == "***REDACTED***"
-        assert redacted_details["api_key"] == "***REDACTED***"
+            assert redacted_details["password"] == "***REDACTED***"
+            assert redacted_details["token"] == "***REDACTED***"
+            assert redacted_details["api_key"] == "***REDACTED***"
+            assert redacted_details["safe_field"] == "this is safe"
+        finally:
+            await audit_logger.shutdown()
 
-        # Safe fields should remain
-        assert redacted_details["safe_field"] == "this is safe"
-
-    def test_critical_event_immediate_logging(self, audit_logger):
+    @pytest.mark.asyncio
+    async def test_critical_event_immediate_logging(self, audit_logger):
         """Test that critical events are logged immediately."""
-        # This would normally trigger immediate file logging
-        # In test environment, we verify the event is marked as critical
+        try:
+            await audit_logger.log_event(
+                event_type="AUTH_FAILED",
+                user_id="test-user",
+                action="LOGIN",
+            )
 
-        audit_logger.log_event(event_type="AUTH_FAILED", user_id="test-user", action="LOGIN")
-
-        event = audit_logger.buffer[-1]
-        # Critical events should be in buffer
-        assert event["event_type"] == "AUTH_FAILED"
+            event = audit_logger.buffer[-1]
+            assert event["event_type"] == "AUTH_FAILED"
+        finally:
+            await audit_logger.shutdown()
 
     def test_audit_context_preservation(self):
         """Test that audit context is preserved across operations."""

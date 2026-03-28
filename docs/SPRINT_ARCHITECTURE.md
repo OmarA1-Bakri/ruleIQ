@@ -20,7 +20,7 @@ RuleIQ is an enterprise-grade agentic AI compliance automation platform for UK S
 | Graph DB | Neo4j | GraphRAG knowledge graph |
 | Cache | Redis | 5.0.1 |
 | AI Orchestration | LangGraph | (replaced Celery) |
-| AI Providers | Google Gemini, OpenAI, Anthropic | google-generativeai 0.8.6 (DEPRECATED), google-genai (migration in progress) |
+| AI Providers | Google Gemini, OpenAI, Anthropic | google-genai |
 | Frontend Styling | TailwindCSS + shadcn/ui | Teal design (65% migrated) |
 | Package Manager | pnpm | 10.30.1 |
 
@@ -103,7 +103,7 @@ api/routers/webhooks.py
 Key service modules:
 - `services/ai/` — 60+ files: AI providers, assessment tools, compliance ingestion, circuit breaker
 - `services/ai/assistant.py` — backward-compat shim → `assistant_facade.py`
-- `services/ai/assistant_facade.py` — ComplianceAssistant facade (imports deprecated `google.generativeai`)
+- `services/ai/assistant_facade.py` — ComplianceAssistant facade (uses the Google GenAI client wrapper)
 - `services/agents/` — Agent orchestration, trust algorithm, session management
 - `services/compliance/` — UK compliance engine, GDPR, GraphRAG research
 - `services/caching/` — Cache manager, invalidator, warmer, metrics
@@ -241,7 +241,7 @@ sse-starlette 3.3.2 requires starlette>=0.49.1 (have 0.36.3)
 | P0-1 | **`from __future__ import annotations` breaks FastAPI+Pydantic v2** | 39 router files (list above) | Backend cannot start — NameError on forward refs *(Resolved in Phase 3, commit `a054abc3a`)* |
 | P0-2 | **Missing `frontend/lib/stores/freemium/` directory** | `freemium-store.ts` line 21 | Frontend build fails — Module not found *(Resolved in Phase 3 handover)* |
 | P0-3 | **Missing `frontend/lib/utils/export/` directory** | `export.ts` line 8 | Frontend build fails — Module not found *(Resolved in Phase 3 handover)* |
-| P0-4 | **`google.generativeai` deprecated** | `services/ai/assistant_facade.py:13` | FutureWarning, will break in next version *(Partially resolved; migration decision recorded in handover)* |
+| P0-4 | **Google SDK deprecated** | `services/ai/assistant_facade.py:13` | FutureWarning, will break in next version *(Partially resolved; migration decision recorded in handover)* |
 | P0-5 | **Stale celery services in docker-compose.yml** | `docker-compose.yml` | Docker startup includes dead services *(Resolved in Phase 3 handover)* |
 
 ### P1 — Blocks Core Functionality
@@ -302,7 +302,7 @@ sse-starlette 3.3.2 requires starlette>=0.49.1 (have 0.36.3)
 
 1. **P0-1**: Remove `from __future__ import annotations` from 39 routers (mechanical batch fix)
 2. **P0-2 + P0-3**: Restore `freemium/` and `export/` module directories or fix shim imports
-3. **P0-4**: Migrate `google.generativeai` → `google.genai`
+3. **P0-4**: Migrate to the Google GenAI client wrapper
 4. **P0-5**: Remove celery services from docker-compose.yml
 5. **P1-1 + P1-2**: Fix TypeScript type errors (prioritize duplicate exports, then type mismatches)
 6. **P1-3**: Run `ruff check . --fix` for auto-fixable lint errors

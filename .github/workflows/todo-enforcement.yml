@@ -18,7 +18,7 @@ on:
 jobs:
   enforce-todo-policy:
     name: Enforce TODO Policy
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
 
     steps:
       - name: Checkout code
@@ -87,7 +87,7 @@ jobs:
 
   generate-weekly-report:
     name: Generate Weekly TODO Report
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     if: github.event_name == 'schedule'
 
     steps:

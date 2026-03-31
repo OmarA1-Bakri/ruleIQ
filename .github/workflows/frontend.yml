@@ -28,7 +28,7 @@ env:
 jobs:
   quality-checks:
     name: Code Quality
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
@@ -76,7 +76,7 @@ jobs:
 
   unit-tests:
     name: Unit Tests
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
@@ -118,7 +118,7 @@ jobs:
 
   build-verification:
     name: Production Build
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
@@ -165,7 +165,7 @@ jobs:
 
   bundle-analysis:
     name: Bundle Analysis
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
@@ -208,7 +208,7 @@ jobs:
 
   lighthouse-audit:
     name: Lighthouse Performance Audit
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     if: github.event_name == 'pull_request'
     permissions:
       contents: read
@@ -282,7 +282,7 @@ jobs:
 
   dependency-audit:
     name: Dependency Audit
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
@@ -322,7 +322,7 @@ jobs:
 
   frontend-summary:
     name: Frontend Pipeline Summary
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     needs: [quality-checks, unit-tests, build-verification, bundle-analysis]
     if: always()
     steps:

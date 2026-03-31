@@ -26,7 +26,7 @@ env:
 jobs:
   backend-unit-tests:
     name: Backend Unit Tests
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     strategy:
       matrix:
         python-version: ['3.11', '3.12']
@@ -137,7 +137,7 @@ jobs:
 
   backend-integration-tests:
     name: Backend Integration Tests
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     services:
       postgres:
         image: postgres:15
@@ -220,7 +220,7 @@ jobs:
 
   frontend-tests:
     name: Frontend Tests
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     defaults:
       run:
         working-directory: ./frontend
@@ -278,7 +278,7 @@ jobs:
 
   e2e-tests:
     name: End-to-End Tests
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     services:
       postgres:
         image: postgres:15
@@ -377,7 +377,7 @@ jobs:
 
   performance-tests:
     name: Performance Tests
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     if: github.event_name != 'schedule'
     services:
       postgres:
@@ -459,7 +459,7 @@ jobs:
 
   test-coverage-report:
     name: Test Coverage Report
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     needs: [backend-unit-tests, backend-integration-tests, frontend-tests]
     if: always()
     steps:
@@ -500,7 +500,7 @@ jobs:
 
   test-summary:
     name: Test Summary
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     needs: [backend-unit-tests, backend-integration-tests, frontend-tests, e2e-tests, performance-tests]
     if: always()
     steps:

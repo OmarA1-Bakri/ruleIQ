@@ -25,7 +25,7 @@ on:
 jobs:
   unit-tests:
     name: Unit Tests (Vitest)
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     timeout-minutes: 15
 
     defaults:
@@ -118,7 +118,7 @@ jobs:
 
   e2e-tests:
     name: E2E Tests (Playwright)
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     timeout-minutes: 30
 
     strategy:
@@ -190,7 +190,7 @@ jobs:
 
   performance-checks:
     name: Performance & Bundle Size
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     timeout-minutes: 15
 
     defaults:
@@ -256,7 +256,7 @@ jobs:
   test-summary:
     name: Test Summary
     needs: [unit-tests, e2e-tests]
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     if: always()
 
     steps:
